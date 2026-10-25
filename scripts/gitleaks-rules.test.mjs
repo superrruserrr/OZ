@@ -3,7 +3,7 @@
 // Fidélité à gitleaks : correspondance, groupe secret, entropie de Shannon, liste blanche de la règle
 // appliquée à la cible déclarée (`regexTarget`), sensible à la casse sauf `(?i)` explicite.
 import { spawnSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
@@ -134,7 +134,9 @@ describe('règles gitleaks oz-jwt-secret-* (R8)', () => {
     expect(listed.status).toBe(0);
     const files = listed.stdout
       .split('\0')
-      .filter((file) => file && !file.endsWith('pnpm-lock.yaml'));
+      .filter((file) => file && !file.endsWith('pnpm-lock.yaml'))
+      // Fichiers suivis mais supprimés de la copie de travail : listés par git, absents du disque.
+      .filter((file) => existsSync(new URL(file, `file://${root}/`)));
     const hits = files.flatMap((file) => {
       const content = readFileSync(new URL(file, `file://${root}/`), 'utf8');
       return findings(content).map((finding) => `${file} — ${finding}`);

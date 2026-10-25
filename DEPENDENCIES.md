@@ -23,6 +23,43 @@ Audit : `pnpm audit --audit-level high` — aucune vulnérabilité connue au 202
 | `vitest` | ^5.0.5 | MIT | ≈ 2,7 Mo | Tests unitaires (TD-006) | `node:test` : pas de projets multiples ni d'écosystème de couverture équivalent | 0.1 |
 | `@vitest/coverage-v8` | ^5.0.5 | MIT | ≈ 28 Ko | Couverture (seuils R6 en 0.7) | — | 0.1 |
 
+## API (apps/api, packages/config) — lot 0.3
+
+| Paquet | Version | Licence | Poids (décompressé) | Rôle | Alternative native envisagée | Ajouté |
+|---|---|---|---|---|---|---|
+| `@nestjs/core` | ^12.2.0 | MIT | ≈ 740 Ko | Framework de l'API (TD-001), ESM natif | Express ou Fastify nus : structure modulaire à réinventer (ADR-001) | 0.3 |
+| `@nestjs/common` | ^12.2.0 | MIT | ≈ 550 Ko | Décorateurs, exceptions, pipes Nest | — (indissociable de @nestjs/core) | 0.3 |
+| `@nestjs/platform-express` | ^12.2.0 | MIT | ≈ 80 Ko | Adaptateur HTTP Express | @nestjs/platform-fastify : écosystème plus réduit (helmet, téléversements) | 0.3 |
+| `@nestjs/swagger` | ^12.0.4 | MIT | ≈ 400 Ko (+ swagger-ui-dist) | OpenAPI et /docs (EX-T07) | Écriture manuelle du schéma OpenAPI : dérive garantie | 0.3 |
+| `nestjs-pino` | ^5.3.1 | MIT | ≈ 390 Ko | Logger pino intégré à Nest, propagation du contexte | Intercepteur maison : réinvente AsyncLocalStorage et le format pino-http | 0.3 |
+| `pino` | ^10.4.0 | MIT | ≈ 690 Ko | Logs JSON structurés et masquage (EX-T19) | console : ni JSON ni masquage | 0.3 |
+| `pino-http` | ^11.0.0 | MIT | ≈ 80 Ko | Logs de requêtes HTTP, identifiant de requête | Middleware maison | 0.3 |
+| `helmet` | ^8.3.0 | MIT | ≈ 100 Ko | En-têtes de sécurité §6.5 (EX-T17) | En-têtes posés à la main : oublis probables | 0.3 |
+| `reflect-metadata` | ^0.2.2 | Apache-2.0 | ≈ 235 Ko | Métadonnées des décorateurs (injection Nest) | Aucune : requis par Nest | 0.3 |
+| `rxjs` | ^7.8.2 | Apache-2.0 | ≈ 4,3 Mo | Dépendance de pair de Nest | Aucune : requis par Nest | 0.3 |
+| `pg` | ^8.23.1 | MIT | ≈ 100 Ko | Sonde de santé PostgreSQL (Prisma au lot 0.6) | Prisma : pas encore en place | 0.3 |
+| `ioredis` | ^6.0.0 | MIT | ≈ 1,2 Mo | Sonde de santé Redis ; client de BullMQ plus tard | node-redis : BullMQ s'appuie sur ioredis | 0.3 |
+| `@aws-sdk/client-s3` | ^3.1156.0 | Apache-2.0 | ≈ 3,2 Mo | Sonde de santé du stockage ; URL signées au lot 1.9 | Signature SigV4 maison : risque de sécurité | 0.3 |
+| `zod` | ^4.6.7 | MIT | ≈ 6 Mo | Validation de la configuration ; contrats au lot 0.5 (TD-001 : 3.24+ minimum) | Validation manuelle : pas de schéma partagé client/serveur | 0.3 |
+| `@nestjs/testing` | ^12.2.0 | MIT | ≈ 45 Ko | Modules de test Nest | — | 0.3 |
+| `supertest` | ^7.3.1 | MIT | ≈ 47 Ko | Tests HTTP d'intégration (TD-006) | fetch sur un port réel : plus lent, ports à gérer | 0.3 |
+| `@types/supertest` | ^7.2.1 | MIT | ≈ 10 Ko | Types de supertest | — | 0.3 |
+| `@types/pg` | ^8.23.1 | MIT | ≈ 19 Ko | Types de pg | — | 0.3 |
+| `@types/express` | ^5.0.6 | MIT | ≈ 7 Ko | Types d'Express | — | 0.3 |
+| `testcontainers` | ^12.2.1 | MIT | ≈ 250 Ko | Conteneurs jetables pour les tests d'intégration (TD-006) | Base de développement partagée : tests non isolés | 0.3 |
+| `@testcontainers/postgresql` | ^12.2.1 | MIT | ≈ 16 Ko | Module PostgreSQL de testcontainers | Conteneur générique configuré à la main | 0.3 |
+| `@testcontainers/redis` | ^12.2.1 | MIT | ≈ 9 Ko | Module Redis de testcontainers | Conteneur générique configuré à la main | 0.3 |
+| `unplugin-swc` | ^2.0.0 | MIT | ≈ 44 Ko | Transformation SWC dans Vitest (métadonnées de décorateurs) | esbuild de Vitest : n'émet pas les métadonnées, l'injection Nest échoue | 0.3 |
+| `@swc/core` | ^1.16.20 | Apache-2.0 | ≈ 130 Ko (+ binaire natif) | Compilateur utilisé par unplugin-swc | tsc dans les tests : beaucoup plus lent | 0.3 |
+
+## Correctifs forcés (overrides pnpm) — lot 0.3
+
+| Paquet | Version | Licence | Poids (décompressé) | Rôle | Alternative native envisagée | Ajouté |
+|---|---|---|---|---|---|---|
+| `multer` | ^2.5.0 (override) | MIT | ≈ 53 Ko | Correctif GHSA-q7qp-rjg7-q26m (déni de service) sur la dépendance transitive de @nestjs/platform-express | Attendre une nouvelle version de Nest : vulnérabilité haute ouverte entre-temps | 0.3 |
+
+**Scripts d'installation :** aucun n'est exécuté. Refus explicites dans `pnpm-workspace.yaml` (`allowBuilds`) : `@scarf/scarf` (télémétrie de swagger-ui-dist), `@swc/core`, `cpu-features`, `protobufjs`, `ssh2`.
+
 ## Images Docker (développement local) — lot 0.2
 
 Environnement local uniquement (`infra/docker/compose.dev.yml`) ; aucune donnée réelle (R10). Versions épinglées, mises à jour par Dependabot (écosystème `docker`).
