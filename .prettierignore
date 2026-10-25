@@ -1,0 +1,11 @@
+# Documents de référence du projet : rédigés à la main, non reformatés
+/*.md
+.claude/
+EX CHART/
+OZ_Document_de_Projet.pdf
+
+# Générés
+pnpm-lock.yaml
+**/dist/
+**/coverage/
+**/.turbo/

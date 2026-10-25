@@ -1,0 +1,21 @@
+{
+  "name": "@oz/core",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Logique métier pure : OZ ID, âge, règles (lot 1.2)",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "typescript": "catalog:"
+  }
+}

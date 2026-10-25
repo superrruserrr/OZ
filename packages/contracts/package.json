@@ -1,0 +1,21 @@
+{
+  "name": "@oz/contracts",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Schémas Zod partagés client et serveur (lot 0.5)",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "typescript": "catalog:"
+  }
+}
