@@ -27,6 +27,9 @@ const SENSITIVE = /SECRET|KEY|TOKEN|PASSWORD|DSN|SID/;
 const REQUIRED = [
   // Annexe C du plan
   'NODE_ENV',
+  'APP_ENV',
+  'API_PORT',
+  'CORS_ORIGINS',
   'APP_URL',
   'API_URL',
   'DATABASE_URL',

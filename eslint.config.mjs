@@ -30,6 +30,8 @@ export default defineConfig(
       'no-warning-comments': ['error', { terms: ['todo', 'fixme'], location: 'anywhere' }],
       // EX-T19 : les logs passent par le logger structuré, jamais par la console
       'no-console': 'error',
+      // Modules NestJS : classes décorées sans membre d'instance
+      '@typescript-eslint/no-extraneous-class': ['error', { allowWithDecorator: true }],
     },
   },
   {
