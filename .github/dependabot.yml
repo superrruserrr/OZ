@@ -1,0 +1,30 @@
+# Mises à jour groupées mensuelles, sans auto-merge (R12, R14 — implementation_plan.md § Maintenance).
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    target-branch: develop
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: chore
+      include: scope
+    groups:
+      npm:
+        patterns: ['*']
+
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: develop
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: chore
+      include: scope
+    groups:
+      github-actions:
+        patterns: ['*']
+
+  # Écosystème docker : ajouté au lot 0.2, quand infra/docker contiendra des images.

@@ -1,0 +1,21 @@
+{
+  "name": "@oz/web",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Application web publique et espaces des entités (Next.js, lot 0.4)",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "typescript": "catalog:"
+  }
+}
