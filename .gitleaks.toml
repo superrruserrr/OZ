@@ -12,6 +12,15 @@ title = "OZ — détection de secrets (R8)"
 [extend]
 useDefault = true
 
+# Faux positif des règles par défaut (generic-api-key…) : sur une variable vide, leur motif franchit
+# le retour à la ligne et prend l'affectation suivante pour un secret (ex. `SCW_TEM_SECRET_KEY=` puis
+# `SCW_TEM_REGION=fr-par`). Exemption étroite : valeur vide immédiatement suivie d'une autre affectation
+# `NOM=`. Une valeur réelle écrite à la ligne suivante (YAML indenté) reste détectée.
+[allowlist]
+description = "Variable vide suivie d'une autre affectation (gabarits .env)"
+regexTarget = "match"
+regexes = ['''=[ \t]*\r?\n[A-Z][A-Z0-9_]*=''']
+
 [[rules]]
 id = "oz-jwt-secret-bare"
 description = "Secret JWT en clair, valeur nue (JWT_SECRET=…, jwt-secret: …)"

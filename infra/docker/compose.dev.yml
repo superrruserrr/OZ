@@ -1,0 +1,100 @@
+# OZ — environnement de développement local (lot 0.2, TD-004)
+# Lancer avec `pnpm dev:up` (lit le .env de la racine). Données synthétiques uniquement (R10).
+# Ports publiés sur 127.0.0.1 seulement : rien n'est exposé au réseau (EX-T17).
+# Versions épinglées ; registre et licences dans DEPENDENCIES.md (EX-T12).
+name: oz-dev
+
+services:
+  postgres:
+    # Version majeure alignée sur Scaleway Managed PostgreSQL (TD-009) — à confirmer, voir README
+    image: postgres:16.15-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?définir POSTGRES_USER dans .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?définir POSTGRES_PASSWORD dans .env}
+      POSTGRES_DB: ${POSTGRES_DB:?définir POSTGRES_DB dans .env}
+    ports:
+      - '127.0.0.1:${POSTGRES_PORT:-5432}:5432'
+    volumes:
+      - oz-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  redis:
+    image: redis:7.4.11-alpine
+    command: ['redis-server', '--appendonly', 'yes', '--save', '60', '1']
+    ports:
+      - '127.0.0.1:${REDIS_PORT:-6379}:6379'
+    volumes:
+      - oz-redis:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  s3:
+    # SeaweedFS remplace MinIO (image officielle MinIO retirée en 2025) : API S3, URL signées
+    image: chrislusf/seaweedfs:4.50
+    environment:
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:?définir S3_ACCESS_KEY dans .env}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:?définir S3_SECRET_KEY dans .env}
+    entrypoint: ['/bin/sh', '-c']
+    command:
+      - >-
+        printf '{"identities":[{"name":"oz-dev","credentials":[{"accessKey":"%s","secretKey":"%s"}],"actions":["Admin","Read","Write","List","Tagging"]}]}'
+        "$$S3_ACCESS_KEY" "$$S3_SECRET_KEY" > /tmp/s3.json &&
+        exec weed server -dir=/data -ip.bind=0.0.0.0 -master.volumeSizeLimitMB=256
+        -s3 -s3.port=8333 -s3.config=/tmp/s3.json
+    ports:
+      - '127.0.0.1:${S3_PORT:-8333}:8333'
+    volumes:
+      - oz-s3:/data
+    healthcheck:
+      test: ['CMD-SHELL', 'nc -z 127.0.0.1 8333']
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+
+  clamav:
+    # Image Debian : seule variante publiée pour arm64 (Apple Silicon)
+    image: clamav/clamav:1.5.4-debian13-slim
+    ports:
+      - '127.0.0.1:${CLAMAV_PORT:-3310}:3310'
+    volumes:
+      - oz-clamav:/var/lib/clamav
+    healthcheck:
+      test: ['CMD', 'clamdcheck.sh']
+      interval: 10s
+      timeout: 10s
+      retries: 30
+      start_period: 120s
+    restart: unless-stopped
+
+  mailpit:
+    image: axllent/mailpit:v1.32.0
+    environment:
+      MP_DATABASE: /data/mailpit.db
+    ports:
+      - '127.0.0.1:${SMTP_PORT:-1025}:1025'
+      - '127.0.0.1:${MAILPIT_UI_PORT:-8025}:8025'
+    volumes:
+      - oz-mailpit:/data
+    healthcheck:
+      test: ['CMD', '/mailpit', 'readyz']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+volumes:
+  oz-postgres:
+  oz-redis:
+  oz-s3:
+  oz-clamav:
+  oz-mailpit:
