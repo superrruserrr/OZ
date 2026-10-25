@@ -23,9 +23,22 @@ Audit : `pnpm audit --audit-level high` — aucune vulnérabilité connue au 202
 | `vitest` | ^5.0.5 | MIT | ≈ 2,7 Mo | Tests unitaires (TD-006) | `node:test` : pas de projets multiples ni d'écosystème de couverture équivalent | 0.1 |
 | `@vitest/coverage-v8` | ^5.0.5 | MIT | ≈ 28 Ko | Couverture (seuils R6 en 0.7) | — | 0.1 |
 
+## Images Docker (développement local) — lot 0.2
+
+Environnement local uniquement (`infra/docker/compose.dev.yml`) ; aucune donnée réelle (R10). Versions épinglées, mises à jour par Dependabot (écosystème `docker`).
+
+| Image | Version | Licence | Rôle | Alternative envisagée | Ajouté |
+|---|---|---|---|---|---|
+| `postgres` | 16.15-alpine (majeure à confirmer avec Scaleway, TD-009) | PostgreSQL License | Base de données (TD-002) | — | 0.2 |
+| `redis` | 7.4.11-alpine | RSALv2 / SSPLv1 (depuis 7.4) | Cache, sessions, files BullMQ | Valkey (BSD-3) : à évaluer pour la recette et la production au lot 0.8 | 0.2 |
+| `chrislusf/seaweedfs` | 4.50 | Apache-2.0 | Stockage compatible S3 (TD-010) | MinIO, prévu au plan : image officielle retirée en octobre 2025, dépôt archivé ; Garage (AGPL-3.0) : pas de versioning | 0.2 |
+| `clamav/clamav` | 1.5.4-debian13-slim | GPL-2.0 | Antivirus des fichiers téléversés | Variante Alpine : pas d'arm64 | 0.2 |
+| `axllent/mailpit` | v1.32.0 | MIT | Capture des emails en local | MailHog : non maintenu | 0.2 |
+
 ## Outils système (hors npm)
 
 | Outil | Rôle | Installation |
 |---|---|---|
+| Docker Desktop | Moteur de conteneurs du poste (TD-004) | Installé par le développeur ; gratuit pour une petite structure |
 | gitleaks | Détection de secrets en pre-commit et en CI (R8) | Poste : 8.30.1 (release officielle GitHub, SHA-256 vérifié, `~/.local/bin`), minimum 8.19.0 imposé par le hook ; CI : lot 0.7 |
 | corepack | Fournit pnpm à la version figée dans `package.json` | Livré avec Node.js |

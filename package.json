@@ -14,7 +14,11 @@
     "test:coverage": "vitest run --coverage",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "prepare": "husky"
+    "prepare": "husky",
+    "dev:up": "node scripts/dev-env.mjs up",
+    "dev:down": "node scripts/dev-env.mjs down",
+    "dev:reset": "node scripts/dev-env.mjs reset",
+    "dev:status": "node scripts/dev-env.mjs status"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.4",
