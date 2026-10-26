@@ -52,6 +52,21 @@ Audit : `pnpm audit --audit-level high` — aucune vulnérabilité connue au 202
 | `unplugin-swc` | ^2.0.0 | MIT | ≈ 44 Ko | Transformation SWC dans Vitest (métadonnées de décorateurs) | esbuild de Vitest : n'émet pas les métadonnées, l'injection Nest échoue | 0.3 |
 | `@swc/core` | ^1.16.20 | Apache-2.0 | ≈ 130 Ko (+ binaire natif) | Compilateur utilisé par unplugin-swc | tsc dans les tests : beaucoup plus lent | 0.3 |
 
+## Web et contrats (apps/web, packages/contracts) — lot 0.5
+
+| Paquet | Version | Licence | Poids (décompressé) | Rôle | Alternative native envisagée | Ajouté |
+|---|---|---|---|---|---|---|
+| `react` | ^19.3.1 | MIT | ≈ 170 Ko | Composants d'interface (TD-003) ; version exigée par Next.js 16 (lot 0.4) | Aucune : imposé par Next.js | 0.5 |
+| `react-dom` | ^19.3.1 | MIT | ≈ 7,7 Mo | Rendu DOM de React | Aucune : imposé par Next.js | 0.5 |
+| `react-hook-form` | ^7.91.0 | MIT | ≈ 1,6 Mo | Formulaires performants, longs formulaires d'inscription (TD-003) | État contrôlé React : re-rendu à chaque frappe, lent sur appareils modestes | 0.5 |
+| `@hookform/resolvers` | ^6.0.0 | MIT | ≈ 1,1 Mo | Branche les schémas Zod de packages/contracts sur les formulaires (C1) | Validation manuelle : double écriture des règles, divergence garantie | 0.5 |
+| `@testing-library/react` | ^16.3.3 | MIT | ≈ 300 Ko | Tests de composants par le comportement | Enzyme : abandonné | 0.5 |
+| `@testing-library/user-event` | ^14.6.8 | MIT | ≈ 430 Ko | Saisies utilisateur réalistes en test | fireEvent seul : n'imite pas la frappe réelle | 0.5 |
+| `@testing-library/dom` | ^10.4.2 | MIT | ≈ 2,4 Mo | Requêtes DOM (dépendance de pair de @testing-library/react) | — | 0.5 |
+| `jsdom` | ^30.1.3 | MIT | ≈ 5,3 Mo | DOM simulé pour les tests de composants | happy-dom : moins fidèle ; navigateur réel (Playwright) réservé aux tests E2E | 0.5 |
+| `@types/react` | ^19.3.0 | MIT | ≈ 400 Ko | Types de React | — | 0.5 |
+| `@types/react-dom` | ^19.3.0 | MIT | ≈ 32 Ko | Types de react-dom | — | 0.5 |
+
 ## Correctifs forcés (overrides pnpm) — lot 0.3
 
 | Paquet | Version | Licence | Poids (décompressé) | Rôle | Alternative native envisagée | Ajouté |

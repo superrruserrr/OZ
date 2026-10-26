@@ -56,9 +56,19 @@ const schema = z
           .filter((item) => item !== ''),
       )
       .pipe(z.array(origin).min(1)),
+    // Drapeaux (R13) : « true » ou « false » uniquement, désactivés par défaut.
+    FEATURE_CONTACT_FORM: z.enum(['true', 'false']).default('false'),
   })
   .superRefine((env, ctx) => {
     if (env.APP_ENV !== 'production') return;
+    // Formulaire de contact public : ni limitation de débit (lot 1.3) ni email (lot 1.15) avant ces lots.
+    if (env.FEATURE_CONTACT_FORM === 'true') {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['FEATURE_CONTACT_FORM'],
+        message: 'interdit en production avant les lots 1.3 et 1.15',
+      });
+    }
     if (env.NODE_ENV !== 'production') {
       ctx.addIssue({ code: 'custom', path: ['NODE_ENV'], message: 'production requis' });
     }
@@ -94,6 +104,7 @@ export interface ApiConfig {
     readonly secretKey: string;
   };
   readonly corsOrigins: readonly string[];
+  readonly features: { readonly contactForm: boolean };
 }
 
 /** Charge et valide la configuration de l'API. Lève `ConfigError` au lieu de démarrer avec un état invalide. */
@@ -121,5 +132,6 @@ export function loadApiConfig(env: Readonly<Record<string, string | undefined>>)
       secretKey: value.S3_SECRET_KEY,
     }),
     corsOrigins: Object.freeze([...value.CORS_ORIGINS]),
+    features: Object.freeze({ contactForm: value.FEATURE_CONTACT_FORM === 'true' }),
   });
 }

@@ -5,6 +5,7 @@ import type { DestinationStream } from 'pino';
 import { AllExceptionsFilter } from './common/errors/all-exceptions.filter.js';
 import { LoggingModule } from './common/logging/logging.module.js';
 import { ConfigModule } from './config/config.module.js';
+import { ContactModule } from './contact/contact.module.js';
 import { HealthModule } from './health/health.module.js';
 
 export interface AppOptions {
@@ -21,6 +22,8 @@ export class AppModule {
         ConfigModule.forRoot(config),
         LoggingModule.forRoot(config, options.logStream),
         HealthModule,
+        // Drapeau R13 : le module n'existe pas du tout quand il est désactivé (404).
+        ...(config.features.contactForm ? [ContactModule] : []),
       ],
       providers: [{ provide: APP_FILTER, useClass: AllExceptionsFilter }],
     };
