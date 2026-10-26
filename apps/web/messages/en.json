@@ -1,0 +1,40 @@
+{
+  "meta": {
+    "title": "OZ — Your talent, our mission",
+    "description": "OZ, the verified identity of football players."
+  },
+  "notFound": {
+    "title": "Page not found",
+    "body": "The address you requested does not exist or is no longer available.",
+    "back": "Back to home"
+  },
+  "home": {
+    "skipLink": "Skip to content",
+    "brand": "OZ",
+    "kicker": "Verified football identity",
+    "title": "Your talent,",
+    "titleAccent": "our mission.",
+    "lead": "OZ gives every player a verified digital identity, protects minors and connects talent with trusted recruiters.",
+    "pillarsTitle": "What OZ guarantees",
+    "pillars": {
+      "identity": {
+        "title": "Verified identity",
+        "body": "One unique OZ ID per player, backed by step-by-step identity verification."
+      },
+      "protection": {
+        "title": "Minors protected",
+        "body": "The legal guardian decides on profile visibility and every contact request."
+      },
+      "network": {
+        "title": "Trusted connections",
+        "body": "Only verified organisations can view profiles, with rights set role by role."
+      }
+    },
+    "status": "Coming soon"
+  },
+  "localeSwitcher": {
+    "label": "Language",
+    "fr": "Français",
+    "en": "English"
+  }
+}

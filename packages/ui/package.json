@@ -8,7 +8,9 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
-    }
+    },
+    "./tokens.css": "./styles/tokens.css",
+    "./base.css": "./styles/base.css"
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
@@ -17,5 +19,9 @@
   },
   "devDependencies": {
     "typescript": "catalog:"
-  }
+  },
+  "files": [
+    "dist",
+    "styles"
+  ]
 }

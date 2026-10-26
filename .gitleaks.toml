@@ -17,9 +17,10 @@ useDefault = true
 # `SCW_TEM_REGION=fr-par`). Exemption étroite : valeur vide immédiatement suivie d'une autre affectation
 # `NOM=`. Une valeur réelle écrite à la ligne suivante (YAML indenté) reste détectée.
 [allowlist]
-description = "Variable vide suivie d'une autre affectation (gabarits .env)"
+description = "Variable vide suivie d'une autre affectation (gabarits .env) ; builds Next.js (ignorés par Git, minifiés)"
 regexTarget = "match"
 regexes = ['''=[ \t]*\r?\n[A-Z][A-Z0-9_]*=''']
+paths = ['''(^|/)\.next/''']
 
 [[rules]]
 id = "oz-jwt-secret-bare"

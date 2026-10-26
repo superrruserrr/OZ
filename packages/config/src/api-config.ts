@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { APP_ENVS } from './security-headers.js';
 
 /** Erreur de configuration : nomme les variables fautives, n'expose jamais leurs valeurs (EX-003, EX-T19). */
 export class ConfigError extends Error {
@@ -30,7 +31,7 @@ const origin = z.string().refine((value) => {
 const schema = z
   .object({
     NODE_ENV: z.enum(['development', 'test', 'production']),
-    APP_ENV: z.enum(['local', 'preview', 'staging', 'production']),
+    APP_ENV: z.enum(APP_ENVS),
     // Chiffres décimaux uniquement : pas de 0x10, 1e3 ni d'espaces tolérés par une conversion libre.
     API_PORT: z
       .string()

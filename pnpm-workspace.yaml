@@ -4,8 +4,10 @@ packages:
 
 # Aucun script d'installation n'est exécuté (chaîne d'approvisionnement, R12) :
 # @scarf/scarf = télémétrie de swagger-ui-dist (refusée) ; @swc/core = binaire fourni par un paquet
-# optionnel ; cpu-features, protobufjs, ssh2 = optionnels natifs de testcontainers.
+# optionnel ; cpu-features, protobufjs, ssh2 = optionnels natifs de testcontainers ;
+# @parcel/watcher (tiré par next-intl) = binaire précompilé fourni par un paquet optionnel.
 allowBuilds:
+  '@parcel/watcher': false
   '@scarf/scarf': false
   '@swc/core': false
   cpu-features: false
