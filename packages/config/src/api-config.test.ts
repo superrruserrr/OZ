@@ -109,4 +109,23 @@ describe('loadApiConfig (EX-003)', () => {
     ]);
     expect(() => loadApiConfig(production)).not.toThrow();
   });
+
+  it('désactive le formulaire de contact par défaut', () => {
+    expect(loadApiConfig(valid).features.contactForm).toBe(false);
+    expect(loadApiConfig({ ...valid, FEATURE_CONTACT_FORM: 'true' }).features.contactForm).toBe(
+      true,
+    );
+  });
+
+  it('refuse une valeur de drapeau ambiguë', () => {
+    expect(errorOf({ ...valid, FEATURE_CONTACT_FORM: 'yes' }).invalidVariables).toEqual([
+      'FEATURE_CONTACT_FORM',
+    ]);
+  });
+
+  it('refuse le formulaire de contact en production (ni limitation de débit ni email avant 1.3 / 1.15)', () => {
+    expect(errorOf({ ...production, FEATURE_CONTACT_FORM: 'true' }).invalidVariables).toEqual([
+      'FEATURE_CONTACT_FORM',
+    ]);
+  });
 });

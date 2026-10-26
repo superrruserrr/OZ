@@ -83,10 +83,12 @@ export function toApiError(
   }
   if (exception instanceof InputValidationException) {
     const [code, message] = HTTP_CODES[422] ?? INTERNAL;
-    const details = exception.zodError.issues.map((issue) => ({
-      field: fieldName(issue.path),
-      code: issue.code,
-    }));
+    // Champ inconnu : Zod signale l'objet parent et liste les clés à part ; on nomme chaque clé.
+    const details = exception.zodError.issues.flatMap((issue): { field: string; code: string }[] =>
+      issue.code === 'unrecognized_keys'
+        ? issue.keys.map((key) => ({ field: fieldName([...issue.path, key]), code: issue.code }))
+        : [{ field: fieldName(issue.path), code: issue.code }],
+    );
     return { status: 422, body: { code, message, requestId, details } };
   }
   if (exception instanceof HttpException) {

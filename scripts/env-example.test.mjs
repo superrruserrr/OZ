@@ -30,6 +30,7 @@ const REQUIRED = [
   'APP_ENV',
   'API_PORT',
   'CORS_ORIGINS',
+  'FEATURE_CONTACT_FORM',
   'APP_URL',
   'API_URL',
   'DATABASE_URL',
