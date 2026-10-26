@@ -30,7 +30,14 @@ function jobs(yaml) {
 const blocks = jobs(text);
 
 /** Noms affichés des contrôles exigés par la protection de branches (.github/rulesets). */
-export const REQUIRED_JOBS = ['quality', 'test', 'build-e2e', 'security', 'migrations'];
+export const REQUIRED_JOBS = [
+  'quality',
+  'test',
+  'build-e2e',
+  'security',
+  'migrations',
+  'containers',
+];
 
 describe('ci.yml — contrôles exigés (EX-T03)', () => {
   it('existe et déclare exactement les jobs exigés', () => {
@@ -166,6 +173,17 @@ describe('ci.yml — contenu des jobs', () => {
     }
   });
 
+  it('containers : images construites, Trivy bloquant sur chacune, fumée sur les conteneurs', () => {
+    const job = blocks.get('containers') ?? '';
+    expect(job).toContain('docker compose -f infra/docker/compose.smoke.yml build');
+    for (const image of ['oz-api:smoke', 'oz-web:smoke', 'oz-admin:smoke']) {
+      // Configuration dédiée : trivy.yaml (racine) exclut node_modules, qui serait ignoré dans l'image.
+      expect(job, image).toContain(`trivy" image --config trivy-image.yaml ${image}'`);
+    }
+    expect(job).toContain('pnpm exec playwright install --with-deps chromium');
+    expect(job).toContain('pnpm test:containers');
+  });
+
   it('migrations : PostgreSQL 16.15 du compose, script vérifié, APP_ENV explicite', () => {
     const job = blocks.get('migrations') ?? '';
     const compose = readFileSync(
@@ -224,7 +242,7 @@ describe('protection de branches versionnée (.github/rulesets, EX-T03.1)', () =
   });
 
   it.each(['develop', 'main'])(
-    '%s : exige les cinq contrôles de la CI, à jour avec la base',
+    '%s : exige les six contrôles de la CI, à jour avec la base',
     (name) => {
       const checks = rule(ruleset(name), 'required_status_checks')?.parameters;
       expect(checks?.strict_required_status_checks_policy).toBe(true);

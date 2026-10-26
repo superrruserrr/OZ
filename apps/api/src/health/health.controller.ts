@@ -19,6 +19,17 @@ import { HealthService, type HealthReport } from './health.service.js';
 export class HealthController {
   constructor(private readonly health: HealthService) {}
 
+  /**
+   * Vivacité : le processus répond, sans interroger aucune dépendance. Sonde des conteneurs : une panne
+   * de base ou de Redis ne doit pas faire redémarrer l'API en boucle (`/health` en rend compte).
+   */
+  @Get('live')
+  @ApiOperation({ summary: 'Vivacité du processus (public, sans dépendance)' })
+  @ApiOkResponse({ description: 'Le processus répond' })
+  live(): { status: 'ok' } {
+    return { status: 'ok' };
+  }
+
   @Get()
   @ApiOperation({ summary: 'État de l’API et de ses dépendances (public, sans authentification)' })
   @ApiOkResponse({ type: HealthReportDto, description: 'Toutes les dépendances répondent' })

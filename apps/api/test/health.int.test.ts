@@ -25,6 +25,21 @@ afterAll(async () => {
   await services.stop();
 });
 
+describe('GET /health/live (vivacité, lot 0.8a)', () => {
+  it('200 même quand la base, Redis et le stockage sont injoignables', async () => {
+    const response = await request(
+      await serverWith({
+        ...services.env,
+        DATABASE_URL: 'postgresql://u:p@127.0.0.1:1/none',
+        REDIS_URL: 'redis://127.0.0.1:1',
+        S3_ENDPOINT: 'http://127.0.0.1:1',
+      }),
+    ).get('/health/live');
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ status: 'ok' });
+  });
+});
+
 describe('GET /health (EX-003 n° 3)', () => {
   it('200 ok quand PostgreSQL, Redis et le stockage répondent', async () => {
     const response = await request(await serverWith(services.env)).get('/health');
