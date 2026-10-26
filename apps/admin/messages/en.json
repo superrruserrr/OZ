@@ -1,0 +1,15 @@
+{
+  "meta": {
+    "title": "OZ · Administration"
+  },
+  "home": {
+    "title": "OZ · Administration",
+    "badge": "OZ Admin",
+    "lead": "Internal back office. Review queues will arrive with the next work packages."
+  },
+  "notFound": {
+    "title": "Page not found",
+    "body": "This address does not exist in the back office.",
+    "back": "Back to home"
+  }
+}

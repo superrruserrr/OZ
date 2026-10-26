@@ -1,0 +1,20 @@
+@import 'tailwindcss';
+@import '@oz/ui/tokens.css';
+@import '@oz/ui/base.css';
+
+/* E17 : néon lime, registre Émotion uniquement (design.md §8.7). Repli : base.css coupe les animations. */
+.oz-neon {
+  text-shadow: 0 0 24px rgb(129 240 0 / 0.35);
+}
+
+/* Entrée du héros : opacité et translation seulement (GPU), sans retarder l'accès au contenu. */
+.oz-rise {
+  animation: oz-rise 500ms ease-out both;
+}
+
+@keyframes oz-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}

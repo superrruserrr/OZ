@@ -1,0 +1,45 @@
+/* Base commune web et admin : thème sombre natif (TD-008), focus visible, mouvements réduits. */
+@layer base {
+  html {
+    color-scheme: dark;
+    background-color: var(--oz-bg);
+    color: var(--oz-text);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    min-height: 100dvh;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--oz-primary-bright);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/*
+ * Familles composées : sous-ensemble latin puis latin-ext (déclarés par next/font dans chaque app).
+ * Une app qui ne charge pas Inter Tight ou JetBrains Mono retombe sur Inter.
+ */
+:root {
+  --oz-font-inter: var(--oz-font-inter-latin), var(--oz-font-inter-latin-ext);
+  --oz-font-inter-tight:
+    var(--oz-font-inter-tight-latin, var(--oz-font-inter-latin)),
+    var(--oz-font-inter-tight-latin-ext, var(--oz-font-inter-latin-ext));
+  --oz-font-jetbrains-mono:
+    var(--oz-font-jetbrains-mono-latin, var(--oz-font-inter-latin)),
+    var(--oz-font-jetbrains-mono-latin-ext, var(--oz-font-inter-latin-ext));
+}

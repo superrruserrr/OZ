@@ -4,8 +4,15 @@ packages:
 
 # Aucun script d'installation n'est exécuté (chaîne d'approvisionnement, R12) :
 # @scarf/scarf = télémétrie de swagger-ui-dist (refusée) ; @swc/core = binaire fourni par un paquet
-# optionnel ; cpu-features, protobufjs, ssh2 = optionnels natifs de testcontainers.
+# optionnel ; cpu-features, protobufjs, ssh2 = optionnels natifs de testcontainers ;
+# @parcel/watcher (tiré par next-intl) = binaire précompilé fourni par un paquet optionnel ;
+# prisma = simple contrôle de version de Node (preinstall).
+# Seule exception autorisée : @prisma/engines télécharge le moteur de migration de Prisma
+# (binaire publié par Prisma, empreinte vérifiée ; décision D5 du lot 0.6).
 allowBuilds:
+  '@prisma/engines': true
+  prisma: false
+  '@parcel/watcher': false
   '@scarf/scarf': false
   '@swc/core': false
   cpu-features: false

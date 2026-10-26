@@ -8,6 +8,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./security-headers": {
+      "types": "./dist/security-headers.d.ts",
+      "default": "./dist/security-headers.js"
     }
   },
   "scripts": {

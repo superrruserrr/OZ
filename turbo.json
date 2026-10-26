@@ -1,13 +1,29 @@
 {
   "$schema": "https://turborepo.com/schema.json",
+  "globalDependencies": ["scripts/next-standalone-assets.mjs"],
   "tasks": {
+    "generate": {
+      "inputs": ["prisma/**", "prisma.config.ts", "package.json"],
+      "outputs": ["src/generated/**"]
+    },
     "build": {
-      "dependsOn": ["^build"],
-      "inputs": ["src/**", "tsconfig.json", "tsconfig.build.json", "package.json"],
-      "outputs": ["dist/**"]
+      "dependsOn": ["^build", "generate"],
+      "inputs": [
+        "src/**",
+        "styles/**",
+        "messages/**",
+        "tsconfig.json",
+        "tsconfig.build.json",
+        "package.json",
+        "next.config.ts",
+        "postcss.config.mjs",
+        "prisma/**",
+        "prisma.config.ts"
+      ],
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
     },
     "typecheck": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["^build", "generate"],
       "outputs": []
     }
   }

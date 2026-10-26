@@ -19,3 +19,13 @@ out/
 # Documents confidentiels sous NDA, conservés hors dépôt
 OZ_Document_de_Projet.pdf
 EX CHART/
+
+# Généré par Next.js (next dev, build, typegen)
+next-env.d.ts
+
+# Playwright
+test-results/
+playwright-report/
+
+# Client Prisma généré (pnpm --filter @oz/db generate)
+packages/db/src/generated/

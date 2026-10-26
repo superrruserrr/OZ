@@ -1,0 +1,69 @@
+/*
+ * Jetons OZ (design.md §8.3). Valeurs identiques à src/tokens.ts (vérifié par test).
+ * À importer après `@import 'tailwindcss';` : le bloc @theme expose les classes `bg-oz-*`, `text-oz-*`…
+ */
+:root {
+  --oz-bg: #070707;
+  --oz-bg-page: #090909;
+  --oz-surface-1: #0c0e0d;
+  --oz-surface-2: #10120f;
+  --oz-surface-input: #171c16;
+  --oz-surface-ozid: #141e16;
+  --oz-tint-green: #0d2517;
+  --oz-border: #1e2221;
+  --oz-text: #f2f4f1;
+  --oz-text-muted: #8c8e8b;
+  --oz-text-label: #818680;
+  --oz-text-disabled: #4a4f49;
+  --oz-primary: #35d468;
+  --oz-primary-from: #3be06a;
+  --oz-primary-to: #2cc45a;
+  --oz-primary-bright: #49e86f;
+  --oz-on-primary: #06120a;
+  --oz-lime: #81f000;
+  --oz-legal: #3b64f1;
+  --oz-legal-text: #6b8ef0;
+  --oz-legal-bg: #0a111c;
+  --oz-legal-border: #222a37;
+  --oz-kyc: #c89137;
+  --oz-kyc-border: #3f3923;
+  --oz-danger: #e5484d;
+  --oz-admin: #d29847;
+  --oz-observer: #8c8e8b;
+}
+
+@theme inline {
+  --color-oz-bg: var(--oz-bg);
+  --color-oz-bg-page: var(--oz-bg-page);
+  --color-oz-surface-1: var(--oz-surface-1);
+  --color-oz-surface-2: var(--oz-surface-2);
+  --color-oz-surface-input: var(--oz-surface-input);
+  --color-oz-surface-ozid: var(--oz-surface-ozid);
+  --color-oz-tint-green: var(--oz-tint-green);
+  --color-oz-border: var(--oz-border);
+  --color-oz-text: var(--oz-text);
+  --color-oz-text-muted: var(--oz-text-muted);
+  --color-oz-text-label: var(--oz-text-label);
+  --color-oz-text-disabled: var(--oz-text-disabled);
+  --color-oz-primary: var(--oz-primary);
+  --color-oz-primary-from: var(--oz-primary-from);
+  --color-oz-primary-to: var(--oz-primary-to);
+  --color-oz-primary-bright: var(--oz-primary-bright);
+  --color-oz-on-primary: var(--oz-on-primary);
+  --color-oz-lime: var(--oz-lime);
+  /* M8 : #3B64F1 ne passe pas AA en petit texte. Exposé pour les icônes et bordures seulement ;
+     le texte bleu utilise `text-oz-legal-text`. Aucune classe `text-oz-legal` n'existe. */
+  --color-oz-legal-icon: var(--oz-legal);
+  --color-oz-legal-text: var(--oz-legal-text);
+  --color-oz-legal-bg: var(--oz-legal-bg);
+  --color-oz-legal-border: var(--oz-legal-border);
+  --color-oz-kyc: var(--oz-kyc);
+  --color-oz-kyc-border: var(--oz-kyc-border);
+  --color-oz-danger: var(--oz-danger);
+  --color-oz-admin: var(--oz-admin);
+  --color-oz-observer: var(--oz-observer);
+
+  --font-sans: var(--oz-font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--oz-font-inter-tight), var(--oz-font-inter), ui-sans-serif, sans-serif;
+  --font-mono: var(--oz-font-jetbrains-mono), ui-monospace, monospace;
+}

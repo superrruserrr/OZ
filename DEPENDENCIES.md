@@ -67,13 +67,37 @@ Audit : `pnpm audit --audit-level high` — aucune vulnérabilité connue au 202
 | `@types/react` | ^19.3.0 | MIT | ≈ 400 Ko | Types de React | — | 0.5 |
 | `@types/react-dom` | ^19.3.0 | MIT | ≈ 32 Ko | Types de react-dom | — | 0.5 |
 
+## Applications Next.js et design system (apps/web, apps/admin, packages/ui) — lot 0.4
+
+| Paquet | Version | Licence | Poids (décompressé) | Rôle | Alternative native envisagée | Ajouté |
+|---|---|---|---|---|---|---|
+| `next` | ^16.4.3 | MIT | ≈ 192 Mo (dont binaire SWC ; serveur autonome livré bien plus léger) | Framework web App Router, rendu serveur, proxy CSP (TD-003) ; 16 plutôt que 15 (plancher du plan, D1 du lot 0.4) | Remix / SPA Vite : écartés en TD-003 (3G, SEO) | 0.4 |
+| `next-intl` | ^4.14.9 | MIT | ≈ 410 Ko | i18n : routage `/` français, `/en` anglais, messages ICU (EX-T21.3, D2) | Dictionnaires maison : pluriels et formats ICU à réécrire | 0.4 |
+| `tailwindcss` | ^4.3.3 | MIT | ≈ 770 Ko | Styles utilitaires branchés sur les jetons OZ (TD-008) | CSS modules : jetons à recâbler composant par composant | 0.4 |
+| `@tailwindcss/postcss` | ^4.3.3 | MIT | ≈ 100 Ko | Intégration de Tailwind 4 au pipeline CSS de Next | Aucune : intégration officielle | 0.4 |
+| `@fontsource-variable/inter` | ^5.3.0 | OFL-1.1 | ≈ 1,9 Mo (seuls latin et latin-ext servis, ≈ 133 Ko) | Police du corps de texte, auto-hébergée (design.md §8.5, D3) | Google Fonts : appel à un tiers, refusé (R12, connexion faible) | 0.4 |
+| `@fontsource-variable/inter-tight` | ^5.3.0 | OFL-1.1 | ≈ 480 Ko (latin et latin-ext servis) | Police des titres (design.md §8.5) | Inter seule : perd la signature typographique des maquettes | 0.4 |
+| `@fontsource-variable/jetbrains-mono` | ^5.3.0 | OFL-1.1 | ≈ 200 Ko (latin et latin-ext servis) | Chasse fixe des OZ ID et codes (design.md §8.5) | Police monospace système : rendu variable selon l'appareil | 0.4 |
+| `@next/eslint-plugin-next` | ^16.4.3 | MIT | ≈ 105 Ko | Règles ESLint de Next et Core Web Vitals (EX-T22) | eslint-config-next : embarque des règles redondantes avec typescript-eslint | 0.4 |
+| `@playwright/test` | ^1.64.1 | Apache-2.0 | ≈ 30 Ko (+ playwright-core ≈ 13,7 Mo, navigateurs hors dépôt) | Fumée navigateur sur le build autonome (D4) ; parcours E2E ensuite (TD-006) | Cypress : écarté en TD-006 | 0.4 |
+| `@axe-core/playwright` | ^4.14.0 | MPL-2.0 | ≈ 48 Ko (+ axe-core ≈ 3,4 Mo) | Contrôle WCAG 2.1 AA automatisé (EX-T22.1) | Audit manuel seul : pas de garde-fou continu | 0.4 |
+
+## Base de données et données de test (packages/db, packages/testing) — lot 0.6
+
+| Paquet | Version | Licence | Poids (décompressé) | Rôle | Alternative native envisagée | Ajouté |
+|---|---|---|---|---|---|---|
+| `prisma` | 7.10.1 | Apache-2.0 | ≈ 600 Ko (+ moteur de migration ≈ 40 Mo, téléchargé par `@prisma/engines`) | CLI : génération du client, migrations versionnées (TD-002) ; 7.10.1 stable plutôt que l'étiquette `latest` 8.0.0-rc (D1 du lot 0.6) | dbmate / node-pg-migrate : `down` natif, mais s'écarte du plan (Prisma) | 0.6 |
+| `@prisma/client` | 7.10.1 | Apache-2.0 | ≈ 74 Mo (client généré dans `src/generated`, non versionné) | Client typé de la base (TD-002) | SQL paramétré seul (`pg`) : pas de typage généré | 0.6 |
+| `@prisma/adapter-pg` | 7.10.1 | Apache-2.0 | ≈ 72 Ko | Branche Prisma 7 sur le pilote `pg` déjà utilisé par l'API | Aucune : adaptateur requis par Prisma 7 | 0.6 |
+| `@faker-js/faker` | 10.6.0 (épinglé : les données synthétiques en dépendent) | MIT | ≈ 2,9 Mo | Données synthétiques déterministes (graine fixe) pour les fabriques, seeds et l'anonymisation (R10, D4) | Générateur maison : listes de noms à maintenir | 0.6 |
+
 ## Correctifs forcés (overrides pnpm) — lot 0.3
 
 | Paquet | Version | Licence | Poids (décompressé) | Rôle | Alternative native envisagée | Ajouté |
 |---|---|---|---|---|---|---|
 | `multer` | ^2.5.0 (override) | MIT | ≈ 53 Ko | Correctif GHSA-q7qp-rjg7-q26m (déni de service) sur la dépendance transitive de @nestjs/platform-express | Attendre une nouvelle version de Nest : vulnérabilité haute ouverte entre-temps | 0.3 |
 
-**Scripts d'installation :** aucun n'est exécuté. Refus explicites dans `pnpm-workspace.yaml` (`allowBuilds`) : `@scarf/scarf` (télémétrie de swagger-ui-dist), `@swc/core`, `cpu-features`, `protobufjs`, `ssh2`.
+**Scripts d'installation :** aucun n'est exécuté. Refus explicites dans `pnpm-workspace.yaml` (`allowBuilds`) : `@scarf/scarf` (télémétrie de swagger-ui-dist), `@swc/core`, `cpu-features`, `protobufjs`, `ssh2`, `@parcel/watcher` (tiré par next-intl, binaire précompilé fourni par un paquet optionnel), `prisma` (simple contrôle de version de Node). **Seule exception autorisée : `@prisma/engines`** (`true`), qui télécharge le moteur de migration publié par Prisma depuis `binaries.prisma.sh`, empreinte vérifiée par Prisma (D5 du lot 0.6).
 
 ## Images Docker (développement local) — lot 0.2
 
