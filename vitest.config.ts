@@ -12,7 +12,10 @@ export default defineConfig({
     projects: [
       'apps/*',
       'packages/*',
-      { test: { name: 'scripts', include: ['scripts/**/*.test.mjs'] } },
+      {
+        // Ces tests lancent ESLint (analyse typée) ou commitlint : premier démarrage lent sur un runner.
+        test: { name: 'scripts', include: ['scripts/**/*.test.mjs'], testTimeout: 30_000 },
+      },
     ],
     coverage: {
       provider: 'v8',

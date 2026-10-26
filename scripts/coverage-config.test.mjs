@@ -42,4 +42,11 @@ describe('seuils de couverture (R6, EX-T06)', () => {
       /^turbo run generate .*&& vitest run --coverage$/,
     );
   });
+
+  it('laisse 30 s aux tests des scripts, qui lancent ESLint ou commitlint (runner GitHub plus lent)', () => {
+    const scripts = config.test?.projects?.find(
+      (p) => typeof p === 'object' && p.test?.name === 'scripts',
+    );
+    expect(scripts?.test?.testTimeout).toBe(30_000);
+  });
 });
