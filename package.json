@@ -4,7 +4,7 @@
   "type": "module",
   "packageManager": "pnpm@12.15.0",
   "engines": {
-    "node": ">=22.12"
+    "node": ">=24"
   },
   "scripts": {
     "build": "turbo run build",
@@ -12,7 +12,7 @@
     "lint": "eslint . --max-warnings=0 && node scripts/check-dependencies.mjs",
     "test": "turbo run generate --output-logs=errors-only && vitest run",
     "test:e2e": "playwright test --config e2e/playwright.config.ts",
-    "test:coverage": "vitest run --coverage",
+    "test:coverage": "turbo run generate --output-logs=errors-only && vitest run --coverage",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "prepare": "husky",

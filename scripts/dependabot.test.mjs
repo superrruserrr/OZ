@@ -34,6 +34,14 @@ describe('dependabot.yml', () => {
     expect(ignoresMajor(ecosystem(name), dependency)).toBe(true);
   });
 
+  it.each(['npm', 'github-actions', 'docker-compose'])(
+    '%s : attend au moins 14 jours après une publication (cooldown, chaîne d’approvisionnement)',
+    (name) => {
+      const days = /cooldown:\s*\n\s+default-days:\s*(\d+)/.exec(ecosystem(name))?.[1];
+      expect(Number(days)).toBeGreaterThanOrEqual(14);
+    },
+  );
+
   it('ne fusionne jamais automatiquement (R14)', () => {
     expect(text).not.toMatch(/auto-?merge:\s*true/i);
   });

@@ -2,7 +2,7 @@
 
 Toute dépendance externe (racine, apps, paquets) figure ici **avant** d'être mergée : licence vérifiée, audit de vulnérabilités, poids évalué, alternative native envisagée. `pnpm lint` échoue si une dépendance déclarée n'y figure pas (`scripts/check-dependencies.mjs`).
 
-Audit : `pnpm audit --audit-level high` — aucune vulnérabilité connue au 2026-10-24.
+Audit : `pnpm audit --audit-level high` — aucune vulnérabilité connue au 2026-10-26 (overrides compris) ; contrôle bloquant en CI depuis le lot 0.7 (job `security`, avec Trivy).
 
 ## Outillage (devDependencies, racine) — lot 0.1
 
@@ -86,9 +86,9 @@ Audit : `pnpm audit --audit-level high` — aucune vulnérabilité connue au 202
 
 | Paquet | Version | Licence | Poids (décompressé) | Rôle | Alternative native envisagée | Ajouté |
 |---|---|---|---|---|---|---|
-| `prisma` | 7.10.1 | Apache-2.0 | ≈ 600 Ko (+ moteur de migration ≈ 40 Mo, téléchargé par `@prisma/engines`) | CLI : génération du client, migrations versionnées (TD-002) ; 7.10.1 stable plutôt que l'étiquette `latest` 8.0.0-rc (D1 du lot 0.6) | dbmate / node-pg-migrate : `down` natif, mais s'écarte du plan (Prisma) | 0.6 |
-| `@prisma/client` | 7.10.1 | Apache-2.0 | ≈ 74 Mo (client généré dans `src/generated`, non versionné) | Client typé de la base (TD-002) | SQL paramétré seul (`pg`) : pas de typage généré | 0.6 |
-| `@prisma/adapter-pg` | 7.10.1 | Apache-2.0 | ≈ 72 Ko | Branche Prisma 7 sur le pilote `pg` déjà utilisé par l'API | Aucune : adaptateur requis par Prisma 7 | 0.6 |
+| `prisma` | 7.9.1 | Apache-2.0 | ≈ 600 Ko (+ moteur de migration ≈ 40 Mo, téléchargé par `@prisma/engines`) | CLI : génération du client, migrations versionnées (TD-002). 7.9.1 : dernière CLI publiée avec attestation de provenance (7.10.x publiées sans, prisma/orm#30850 ; `trustPolicy` les refuse, DEBT D-028) | dbmate / node-pg-migrate : `down` natif, mais s'écarte du plan (Prisma) | 0.6 |
+| `@prisma/client` | 7.9.1 | Apache-2.0 | ≈ 74 Mo (client généré dans `src/generated`, non versionné) | Client typé de la base (TD-002) | SQL paramétré seul (`pg`) : pas de typage généré | 0.6 |
+| `@prisma/adapter-pg` | 7.9.1 | Apache-2.0 | ≈ 72 Ko | Branche Prisma 7 sur le pilote `pg` déjà utilisé par l'API | Aucune : adaptateur requis par Prisma 7 | 0.6 |
 | `@faker-js/faker` | 10.6.0 (épinglé : les données synthétiques en dépendent) | MIT | ≈ 2,9 Mo | Données synthétiques déterministes (graine fixe) pour les fabriques, seeds et l'anonymisation (R10, D4) | Générateur maison : listes de noms à maintenir | 0.6 |
 
 ## Correctifs forcés (overrides pnpm) — lot 0.3
@@ -96,6 +96,8 @@ Audit : `pnpm audit --audit-level high` — aucune vulnérabilité connue au 202
 | Paquet | Version | Licence | Poids (décompressé) | Rôle | Alternative native envisagée | Ajouté |
 |---|---|---|---|---|---|---|
 | `multer` | ^2.5.0 (override) | MIT | ≈ 53 Ko | Correctif GHSA-q7qp-rjg7-q26m (déni de service) sur la dépendance transitive de @nestjs/platform-express | Attendre une nouvelle version de Nest : vulnérabilité haute ouverte entre-temps | 0.3 |
+| `mysql2` | ^3.24.4 (override, résolu 3.24.6, attesté) | MIT | ≈ 630 Ko | Correctif GHSA-3f6p-5ww8-9rcr (haute) sur la dépendance de `prisma@7.9.1` (DEBT D-028) ; version qu'embarque Prisma 7.10.x | Prisma 7.10.x : CLI sans attestation de provenance | 0.7 |
+| `deepmerge-ts` | ^8.0.2 (override, attesté) | BSD-3-Clause | ≈ 265 Ko | Correctif GHSA-ggr8-5vv4-36mx (haute) sur la dépendance de `@prisma/config@7.9.1` ; version qu'embarque Prisma 7.10.x | idem | 0.7 |
 
 **Scripts d'installation :** aucun n'est exécuté. Refus explicites dans `pnpm-workspace.yaml` (`allowBuilds`) : `@scarf/scarf` (télémétrie de swagger-ui-dist), `@swc/core`, `cpu-features`, `protobufjs`, `ssh2`, `@parcel/watcher` (tiré par next-intl, binaire précompilé fourni par un paquet optionnel), `prisma` (simple contrôle de version de Node). **Seule exception autorisée : `@prisma/engines`** (`true`), qui télécharge le moteur de migration publié par Prisma depuis `binaries.prisma.sh`, empreinte vérifiée par Prisma (D5 du lot 0.6).
 
@@ -110,6 +112,19 @@ Environnement local uniquement (`infra/docker/compose.dev.yml`) ; aucune donnée
 | `chrislusf/seaweedfs` | 4.50 | Apache-2.0 | Stockage compatible S3 (TD-010) | MinIO, prévu au plan : image officielle retirée en octobre 2025, dépôt archivé ; Garage (AGPL-3.0) : pas de versioning | 0.2 |
 | `clamav/clamav` | 1.5.4-debian13-slim | GPL-2.0 | Antivirus des fichiers téléversés | Variante Alpine : pas d'arm64 | 0.2 |
 | `axllent/mailpit` | v1.32.0 | MIT | Capture des emails en local | MailHog : non maintenu | 0.2 |
+
+## Intégration continue (hors npm) — lot 0.7
+
+| Outil | Version | Licence | Rôle | Épinglage |
+|---|---|---|---|---|
+| `actions/checkout` | v7.0.1 | MIT | Récupération du dépôt (identifiants non conservés) | Commit `3d3c42e5…` |
+| `actions/setup-node` | v7.1.0 | MIT | Node 24 depuis `.nvmrc`, cache pnpm | Commit `949feb24…` |
+| `pnpm/action-setup` | v6.1.0 | MIT | pnpm de `packageManager` | Commit `ea17c68d…` (étiquette annotée : commit, pas étiquette) |
+| `actions/cache` | v6.1.0 | MIT | Cache Turbo | Commit `55cc8345…` |
+| `actions/upload-artifact` | v7.0.2 | MIT | Rapports de couverture et Playwright | Commit `cf430e03…` |
+| gitleaks | 8.30.1 | MIT | Secrets dans tout l'historique (R8) | SHA-256 dans `scripts/install-ci-tools.sh` |
+| Trivy | 0.75.0 | Apache-2.0 | Vulnérabilités, configurations, secrets | SHA-256 dans `scripts/install-ci-tools.sh` |
+| Semgrep CE | 1.180.0 | LGPL-2.1 (règles du registre : licences propres) | Analyse statique (D1) | Image `semgrep/semgrep@sha256:529ee8a2…` |
 
 ## Outils système (hors npm)
 

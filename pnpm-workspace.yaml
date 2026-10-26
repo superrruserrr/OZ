@@ -23,6 +23,16 @@ allowBuilds:
 overrides:
   # GHSA-q7qp-rjg7-q26m (déni de service), tiré par @nestjs/platform-express
   multer: ^2.5.0
+  # GHSA-3f6p-5ww8-9rcr (high) et GHSA-ggr8-5vv4-36mx (high), tirés par prisma@7.9.1 (DEBT D-028) :
+  # versions corrigées, celles qu'embarque Prisma 7.10.x.
+  mysql2: ^3.24.4
+  deepmerge-ts: ^8.0.2
 
 catalog:
   typescript: 6.0.3
+
+# Chaîne d'approvisionnement (lot 0.7, alertes Semgrep) : refuse un paquet dont la publication est moins
+# sûre que les versions précédentes (provenance perdue, prise de contrôle possible) et toute
+# sous-dépendance venue d'ailleurs que du registre. Âge minimal de publication : DEBT D-027.
+trustPolicy: no-downgrade
+blockExoticSubdeps: true
