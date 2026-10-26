@@ -1,0 +1,21 @@
+# Dépendances et builds
+node_modules/
+dist/
+.turbo/
+coverage/
+*.tsbuildinfo
+.next/
+out/
+
+# Environnement — seuls les exemples sont versionnés (R8)
+.env
+.env.*
+!.env.example
+
+# Système
+.DS_Store
+*.log
+
+# Documents confidentiels sous NDA, conservés hors dépôt
+OZ_Document_de_Projet.pdf
+EX CHART/

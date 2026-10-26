@@ -1,0 +1,46 @@
+{
+  "name": "oz",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.15.0",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "typecheck": "turbo run typecheck",
+    "lint": "eslint . --max-warnings=0 && node scripts/check-dependencies.mjs",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepare": "husky",
+    "dev:up": "node scripts/dev-env.mjs up",
+    "dev:down": "node scripts/dev-env.mjs down",
+    "dev:reset": "node scripts/dev-env.mjs reset",
+    "dev:status": "node scripts/dev-env.mjs status"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^21.2.4",
+    "@commitlint/config-conventional": "^21.2.4",
+    "@eslint/js": "10.0.1",
+    "@types/node": "^24.19.2",
+    "@vitest/coverage-v8": "^5.0.5",
+    "eslint": "10.13.0",
+    "globals": "^17.13.0",
+    "husky": "9.1.7",
+    "lint-staged": "^17.6.0",
+    "prettier": "3.9.10",
+    "turbo": "^2.11.10",
+    "typescript": "catalog:",
+    "typescript-eslint": "8.72.0",
+    "vitest": "^5.0.5"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,mts,mjs,js}": [
+      "eslint --fix --max-warnings=0 --no-warn-ignored",
+      "prettier --write --ignore-unknown"
+    ],
+    "*.{json,yml,yaml,css,md}": "prettier --write --ignore-unknown"
+  }
+}

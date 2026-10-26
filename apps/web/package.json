@@ -1,0 +1,35 @@
+{
+  "name": "@oz/web",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Application web publique et espaces des entités (Next.js, lot 0.4)",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.8",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "jsdom": "^30.1.3",
+    "typescript": "catalog:"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^6.0.0",
+    "@oz/contracts": "workspace:*",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-hook-form": "^7.91.0",
+    "zod": "^4.6.7"
+  }
+}

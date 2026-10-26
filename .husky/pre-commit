@@ -1,0 +1,21 @@
+# R8 : aucun secret dans le dépôt — gitleaks est obligatoire, jamais contourné.
+GITLEAKS_MIN_VERSION="8.19.0"
+
+if ! command -v gitleaks >/dev/null 2>&1; then
+  echo "✖ gitleaks est requis par la règle R8 mais n'est pas installé sur ce poste." >&2
+  echo "  Installation : https://github.com/gitleaks/gitleaks#installing" >&2
+  echo "  (macOS avec Homebrew : brew install gitleaks)" >&2
+  exit 1
+fi
+
+installed="$(gitleaks version 2>/dev/null | sed 's/^v//')"
+if ! node -e '
+  const [a, b] = process.argv.slice(1).map((v) => v.split(".").map(Number));
+  for (let i = 0; i < 3; i++) { if ((a[i] ?? 0) !== (b[i] ?? 0)) process.exit((a[i] ?? 0) > (b[i] ?? 0) ? 0 : 1); }
+' "${installed:-0}" "$GITLEAKS_MIN_VERSION"; then
+  echo "✖ gitleaks ${installed:-inconnu} est trop ancien : version ${GITLEAKS_MIN_VERSION} ou plus récente requise." >&2
+  exit 1
+fi
+
+gitleaks git --pre-commit --staged --redact --no-banner --config .gitleaks.toml
+pnpm exec lint-staged

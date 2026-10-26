@@ -1,0 +1,62 @@
+title = "OZ — détection de secrets (R8)"
+
+# Règles par défaut de gitleaks + trois règles propres aux secrets JWT d'OZ (valeur nue, entre
+# guillemets doubles, entre apostrophes : RE2 n'a pas de référence arrière pour les fusionner).
+# Aucune liste blanche de fichier : .env.example ne contient que des valeurs vides, qui ne
+# déclenchent aucune règle ; un vrai secret collé dans .env.example est donc détecté.
+# Comportement couvert par scripts/gitleaks-rules.test.mjs.
+#
+# Les listes blanches portent sur le secret capturé (regexTarget = "secret") et sont ancrées en
+# début de valeur : seule une valeur qui EST une référence (process.env…, ${…}, config…, z.…)
+# est exemptée. Un secret suivi d'un commentaire citant une référence reste détecté.
+[extend]
+useDefault = true
+
+# Faux positif des règles par défaut (generic-api-key…) : sur une variable vide, leur motif franchit
+# le retour à la ligne et prend l'affectation suivante pour un secret (ex. `SCW_TEM_SECRET_KEY=` puis
+# `SCW_TEM_REGION=fr-par`). Exemption étroite : valeur vide immédiatement suivie d'une autre affectation
+# `NOM=`. Une valeur réelle écrite à la ligne suivante (YAML indenté) reste détectée.
+[allowlist]
+description = "Variable vide suivie d'une autre affectation (gabarits .env)"
+regexTarget = "match"
+regexes = ['''=[ \t]*\r?\n[A-Z][A-Z0-9_]*=''']
+
+[[rules]]
+id = "oz-jwt-secret-bare"
+description = "Secret JWT en clair, valeur nue (JWT_SECRET=…, jwt-secret: …)"
+# La valeur s'arrête au premier blanc : un commentaire ou une phrase n'est jamais capturé.
+regex = '''(?i)jwt[\w-]*secret[\w-]*['"]?[ \t]*(?::=|=|:)[ \t]*([^\s'"#][^\s'"]{15,})'''
+secretGroup = 1
+entropy = 3.0
+keywords = ["jwt"]
+
+[rules.allowlist]
+description = "Lecture d'un secret, pas sa valeur"
+regexTarget = "secret"
+regexes = ['''^(?:process\.env|import\.meta\.env|env\.|\$\{|this\.|config[A-Za-z]*\.|z\.)''']
+
+[[rules]]
+id = "oz-jwt-secret-double-quoted"
+description = "Secret JWT en clair entre guillemets doubles"
+regex = '''(?i)jwt[\w-]*secret[\w-]*['"]?[ \t]*(?::=|=|:)[ \t]*"([^"\n]{16,})"'''
+secretGroup = 1
+entropy = 3.0
+keywords = ["jwt"]
+
+[rules.allowlist]
+description = "Lecture d'un secret, pas sa valeur"
+regexTarget = "secret"
+regexes = ['''^(?:process\.env|import\.meta\.env|env\.|\$\{|this\.|config[A-Za-z]*\.|z\.)''']
+
+[[rules]]
+id = "oz-jwt-secret-single-quoted"
+description = "Secret JWT en clair entre apostrophes"
+regex = '''(?i)jwt[\w-]*secret[\w-]*['"]?[ \t]*(?::=|=|:)[ \t]*[']([^'\n]{16,})[']'''
+secretGroup = 1
+entropy = 3.0
+keywords = ["jwt"]
+
+[rules.allowlist]
+description = "Lecture d'un secret, pas sa valeur"
+regexTarget = "secret"
+regexes = ['''^(?:process\.env|import\.meta\.env|env\.|\$\{|this\.|config[A-Za-z]*\.|z\.)''']
