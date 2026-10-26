@@ -1,0 +1,15 @@
+{
+  "meta": {
+    "title": "OZ · Administration"
+  },
+  "home": {
+    "title": "OZ · Administration",
+    "badge": "Admin OZ",
+    "lead": "Back-office interne. Les files de vérification arriveront avec les lots suivants."
+  },
+  "notFound": {
+    "title": "Page introuvable",
+    "body": "Cette adresse n’existe pas dans le back-office.",
+    "back": "Retour à l’accueil"
+  }
+}

@@ -1,12 +1,32 @@
 import { builtinModules } from 'node:module';
 import js from '@eslint/js';
+import nextPlugin from '@next/eslint-plugin-next';
 import { defineConfig } from 'eslint/config';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
+// Attributs lus par l'utilisateur ou les technologies d'assistance : leur texte passe par l'i18n.
+const READABLE_ATTRIBUTE =
+  'JSXAttribute[name.name=/^(alt|title|placeholder|aria-label|aria-description|aria-placeholder|aria-roledescription|aria-valuetext)$/]';
+
+// Texte en dur (chaîne non vide ou gabarit) et expressions qui le transportent tel quel.
+const HARD_TEXT = ':matches(Literal[value=/\\S/], TemplateLiteral)';
+const TEXT_WRAPPER =
+  ":matches(ConditionalExpression, LogicalExpression, BinaryExpression[operator='+'], ArrayExpression)";
+const BUTTON_VALUE =
+  "JSXOpeningElement:has(JSXAttribute[name.name='type'] > Literal[value=/^(submit|button|reset)$/]) > JSXAttribute[name.name='value']";
+
 export default defineConfig(
   {
-    ignores: ['**/dist/**', '**/node_modules/**', '**/.turbo/**', '**/coverage/**', '.claude/**'],
+    ignores: [
+      '**/dist/**',
+      '**/node_modules/**',
+      '**/.turbo/**',
+      '**/.next/**',
+      '**/next-env.d.ts',
+      '**/coverage/**',
+      '.claude/**',
+    ],
   },
   {
     // R5 : aucune désactivation de règle dans le code. Une exception passe par la configuration,
@@ -111,6 +131,69 @@ export default defineConfig(
         {
           selector: "MemberExpression[object.name='process']",
           message: 'process interdit dans @oz/contracts (code exécuté aussi dans le navigateur).',
+        },
+      ],
+    },
+  },
+  {
+    // Applications Next.js : règles du framework et Core Web Vitals (EX-T22, connexion faible).
+    files: ['apps/web/**/*.{ts,tsx}', 'apps/admin/**/*.{ts,tsx}'],
+    plugins: { '@next/next': nextPlugin },
+    settings: { next: { rootDir: ['apps/web/', 'apps/admin/'] } },
+    rules: {
+      ...nextPlugin.configs.recommended.rules,
+      ...nextPlugin.configs['core-web-vitals'].rules,
+    },
+  },
+  {
+    // EX-T21.3 : toute chaîne d'interface passe par l'i18n (next-intl), jamais en dur ;
+    // pas d'attribut style (CSP §6.5). Formes couvertes et limites connues : scripts/eslint-i18n.test.mjs
+    // et DEBT.md (D-020) ; la revue de code reste le dernier filet.
+    files: ['apps/web/src/**/*.tsx', 'apps/admin/src/**/*.tsx'],
+    ignores: ['**/*.test.tsx'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'JSXText[value=/\\S/]',
+          message: 'Texte en dur : passer par une clé i18n (useTranslations / getTranslations).',
+        },
+        {
+          selector:
+            ':matches(JSXElement, JSXFragment) > JSXExpressionContainer > :matches(Literal[value=/\\S/], TemplateLiteral)',
+          message: 'Texte en dur entre accolades : passer par une clé i18n.',
+        },
+        {
+          // Condition, &&, ||, concaténation ou tableau : le texte reste en dur (revue lot 0.4).
+          selector: `:matches(JSXElement, JSXFragment) > JSXExpressionContainer > ${TEXT_WRAPPER} > ${HARD_TEXT}`,
+          message: 'Texte en dur dans une expression : passer par une clé i18n.',
+        },
+        {
+          selector: [
+            `${READABLE_ATTRIBUTE} > Literal[value=/\\S/]`,
+            `${READABLE_ATTRIBUTE} > JSXExpressionContainer > ${HARD_TEXT}`,
+            `${READABLE_ATTRIBUTE} > JSXExpressionContainer > ${TEXT_WRAPPER} > ${HARD_TEXT}`,
+            // Libellé d'un bouton de formulaire : `value` est lu à l'écran.
+            `${BUTTON_VALUE} > Literal[value=/\\S/]`,
+            `${BUTTON_VALUE} > JSXExpressionContainer > ${HARD_TEXT}`,
+          ].join(', '),
+          message: 'Attribut lisible en dur : passer par une clé i18n.',
+        },
+        {
+          selector:
+            'Property[key.name=/^(title|description|template|default|absolute)$/] > :matches(Literal[value=/\\S/], TemplateLiteral)',
+          message: 'Métadonnée en dur (title, description…) : passer par getTranslations.',
+        },
+        {
+          // La CSP (style-src sans 'unsafe-inline') bloquerait l'attribut style rendu côté serveur.
+          selector:
+            "JSXAttribute[name.name='style'], JSXSpreadAttribute Property[key.name='style']",
+          message: 'Attribut style interdit (CSP) : utiliser des classes Tailwind.',
+        },
+        {
+          selector:
+            "CallExpression:matches([callee.name='createElement'], [callee.property.name='createElement'])",
+          message: 'createElement échappe aux contrôles i18n et CSP : écrire du JSX.',
         },
       ],
     },

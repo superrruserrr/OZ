@@ -7,5 +7,7 @@ export default defineConfig({
     environment: 'jsdom',
     include: ['src/**/*.test.{ts,tsx}'],
     setupFiles: ['./src/test/setup.ts'],
+    // next-intl importe `next/server` sans extension : résolu par Vite plutôt que par Node ESM.
+    server: { deps: { inline: ['next-intl'] } },
   },
 });

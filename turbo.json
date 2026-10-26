@@ -1,10 +1,20 @@
 {
   "$schema": "https://turborepo.com/schema.json",
+  "globalDependencies": ["scripts/next-standalone-assets.mjs"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "inputs": ["src/**", "tsconfig.json", "tsconfig.build.json", "package.json"],
-      "outputs": ["dist/**"]
+      "inputs": [
+        "src/**",
+        "styles/**",
+        "messages/**",
+        "tsconfig.json",
+        "tsconfig.build.json",
+        "package.json",
+        "next.config.ts",
+        "postcss.config.mjs"
+      ],
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
     },
     "typecheck": {
       "dependsOn": ["^build"],

@@ -4,29 +4,34 @@
   "private": true,
   "description": "Application web publique et espaces des entités (Next.js, lot 0.4)",
   "type": "module",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
-    }
-  },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "dev": "NEXT_TELEMETRY_DISABLED=1 next dev --port 3000",
+    "build": "NEXT_TELEMETRY_DISABLED=1 next build && node ../../scripts/next-standalone-assets.mjs",
+    "start": "NEXT_TELEMETRY_DISABLED=1 HOSTNAME=0.0.0.0 PORT=${PORT:-3000} node .next/standalone/apps/web/server.js",
+    "typecheck": "NEXT_TELEMETRY_DISABLED=1 next typegen && tsc -p tsconfig.json --noEmit",
     "test": "vitest run"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.8",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "jsdom": "^30.1.3",
+    "tailwindcss": "^4.3.3",
     "typescript": "catalog:"
   },
   "dependencies": {
+    "@fontsource-variable/inter": "^5.3.0",
+    "@fontsource-variable/inter-tight": "^5.3.0",
+    "@fontsource-variable/jetbrains-mono": "^5.3.0",
     "@hookform/resolvers": "^6.0.0",
+    "@oz/config": "workspace:*",
     "@oz/contracts": "workspace:*",
+    "@oz/ui": "workspace:*",
+    "next": "^16.4.3",
+    "next-intl": "^4.14.9",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-hook-form": "^7.91.0",

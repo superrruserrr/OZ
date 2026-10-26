@@ -6,11 +6,13 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/). Versionnage :
 
 ### Ajouté
 
+- Lot 0.4 — squelette web Next.js 16 : `apps/web` (accueil provisoire sombre aux jetons OZ, `/` en français et `/en` en anglais via next-intl, chaîne en dur refusée par ESLint), `apps/admin` (non indexable), jetons de `design.md` §8.3 dans `@oz/ui` avec contrastes WCAG testés, polices Inter / Inter Tight / JetBrains Mono auto-hébergées (latin et latin-ext seulement), CSP avec nonce par requête et en-têtes §6.5 partagés (`@oz/config/security-headers`), serveurs autonomes prêts pour la recette, fumée Playwright + axe (`pnpm test:e2e`).
 - Lot 0.5 — contrats partagés `@oz/contracts` (conventions vérifiées automatiquement, briques `email`, `personName`, `longText`, `consent`), `ZodValidationPipe` et `@ValidatedBody` (422 avant toute logique, champ inconnu refusé), premier contrat : formulaire de contact (composant React + `POST /contact` derrière le drapeau `FEATURE_CONTACT_FORM`, interdit en production), test de contrat formulaire ↔ schéma obligatoire.
 - Lot 0.3 — squelette d'API NestJS 12 : configuration typée Zod (démarrage refusé si invalide, valeurs jamais affichées), format d'erreur normalisé, `X-Request-Id` et logs JSON pino masqués, `/health` (PostgreSQL, Redis, S3) et `/docs` hors production, en-têtes de sécurité §6.5, CORS en liste blanche.
 
 ### Sécurité
 
+- Dependabot n'ouvre plus de PR pour les montées majeures de `typescript`, `@types/node`, `postgres` et `redis` ; PostgreSQL 16.15 et Redis 7.4.11 rétablis (#10).
 - Override `multer` ^2.5.0 (GHSA-q7qp-rjg7-q26m) ; aucun script d'installation de dépendance exécuté (`allowBuilds`).
 
 ### Ajouté (suite)
