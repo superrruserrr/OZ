@@ -17,5 +17,8 @@
   },
   "devDependencies": {
     "typescript": "catalog:"
+  },
+  "dependencies": {
+    "@faker-js/faker": "10.6.0"
   }
 }

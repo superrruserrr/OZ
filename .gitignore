@@ -26,3 +26,6 @@ next-env.d.ts
 # Playwright
 test-results/
 playwright-report/
+
+# Client Prisma généré (pnpm --filter @oz/db generate)
+packages/db/src/generated/

@@ -1,0 +1,24 @@
+// Schéma OZ (TD-002). Conventions : naming_conventions.md (tables snake_case au pluriel, @map),
+// migrations : docs/db/migrations.md (chaque migration a son down.sql).
+
+generator client {
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  moduleFormat        = "esm"
+  importFileExtension = "js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// Réglages techniques de la plateforme (table technique minimale du lot 0.6).
+model SystemSetting {
+  id        String   @id @default(dbgenerated("oz_uuid_v7()")) @db.Uuid
+  key       String   @unique
+  value     Json     @db.JsonB
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("system_settings")
+}
