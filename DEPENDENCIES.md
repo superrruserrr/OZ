@@ -77,7 +77,7 @@ Audit : `pnpm audit --audit-level high` — aucune vulnérabilité connue au 202
 
 ## Images Docker (développement local) — lot 0.2
 
-Environnement local uniquement (`infra/docker/compose.dev.yml`) ; aucune donnée réelle (R10). Versions épinglées, mises à jour par Dependabot (écosystème `docker`).
+Environnement local uniquement (`infra/docker/compose.dev.yml`) ; aucune donnée réelle (R10). Versions épinglées, mises à jour par Dependabot (écosystème `docker-compose`) ; montées majeures de `postgres` et `redis` ignorées jusqu’au lot 0.8 (D-005).
 
 | Image | Version | Licence | Rôle | Alternative envisagée | Ajouté |
 |---|---|---|---|---|---|

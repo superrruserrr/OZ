@@ -10,6 +10,13 @@ updates:
     commit-message:
       prefix: chore
       include: scope
+    # Majeures tranchées dans DEBT.md : D-002 (TypeScript 7 non pris en charge par typescript-eslint),
+    # D-001 (types alignés sur Node 24 LTS). Levée manuelle à la clôture de la dette.
+    ignore:
+      - dependency-name: typescript
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@types/node'
+        update-types: ['version-update:semver-major']
     groups:
       npm:
         patterns: ['*']
@@ -36,6 +43,13 @@ updates:
     commit-message:
       prefix: chore
       include: scope
+    # D-005 : PostgreSQL suit la majeure de Scaleway Managed PostgreSQL (lot 0.8) ;
+    # Redis : licence RSALv2/SSPLv1 et alternative Valkey à évaluer au lot 0.8.
+    ignore:
+      - dependency-name: postgres
+        update-types: ['version-update:semver-major']
+      - dependency-name: redis
+        update-types: ['version-update:semver-major']
     groups:
       docker:
         patterns: ['*']

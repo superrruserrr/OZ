@@ -46,6 +46,18 @@ describe('compose.dev.yml', () => {
     }
   });
 
+  it('utilise exactement les versions d’images inscrites dans DEPENDENCIES.md (R12)', () => {
+    const registry = readFileSync(new URL('../DEPENDENCIES.md', import.meta.url), 'utf8');
+    for (const [name, block] of blocks) {
+      const [image = '', tag = ''] = (/^\s+image:\s*(\S+)\s*$/m.exec(block)?.[1] ?? '').split(':');
+      const row = new RegExp(
+        String.raw`^\| \x60${image.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')}\x60 \| (\S+)`,
+        'm',
+      );
+      expect(row.exec(registry)?.[1], `${name} (${image})`).toBe(tag);
+    }
+  });
+
   it('dote chaque service d’un healthcheck (EX-002)', () => {
     for (const [name, block] of blocks) expect(block, name).toMatch(/^\s+healthcheck:\s*$/m);
   });
