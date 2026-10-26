@@ -1,0 +1,18 @@
+# Trivy (CI, job security) : bloque sur toute alerte HIGH ou CRITICAL (EX-T03.3).
+exit-code: 1
+severity:
+  - HIGH
+  - CRITICAL
+scan:
+  scanners:
+    - vuln
+    - misconfig
+    - secret
+  skip-dirs:
+    - node_modules
+    - '**/node_modules'
+    - '**/.next'
+    - '**/dist'
+    - coverage
+vulnerability:
+  ignore-unfixed: false

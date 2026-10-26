@@ -6,6 +6,7 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/). Versionnage :
 
 ### Ajouté
 
+- Lot 0.7 — intégration continue GitHub Actions : cinq jobs exigés (`quality`, `test`, `build-e2e`, `security`, `migrations`), Node 24, seuils de couverture R6 bloquants, gitleaks (historique complet), `pnpm audit`, Trivy, Semgrep, vérification réelle des migrations ; actions épinglées par commit, outils aux empreintes figées, Dependabot avec délai de 14 jours ; règles de protection de `develop` et `main` versionnées.
 - Lot 0.6 — base de données initiale : Prisma 7.10.1 (client sur `pg`), migration initiale réversible (extensions `pgcrypto`, `pg_trgm`, `unaccent`, UUIDv7 `oz_uuid_v7()`, table `system_settings`), convention `down.sql` vérifiée et `pnpm db:rollback` atomique, cycle `up` → `down` → `up` testé sur PostgreSQL jetable, fabriques synthétiques déterministes `@oz/testing`, `pnpm db:seed`, anonymisation par registre de colonnes testée (EX-T10).
 - Lot 0.4 — squelette web Next.js 16 : `apps/web` (accueil provisoire sombre aux jetons OZ, `/` en français et `/en` en anglais via next-intl, chaîne en dur refusée par ESLint), `apps/admin` (non indexable), jetons de `design.md` §8.3 dans `@oz/ui` avec contrastes WCAG testés, polices Inter / Inter Tight / JetBrains Mono auto-hébergées (latin et latin-ext seulement), CSP avec nonce par requête et en-têtes §6.5 partagés (`@oz/config/security-headers`), serveurs autonomes prêts pour la recette, fumée Playwright + axe (`pnpm test:e2e`).
 - Lot 0.5 — contrats partagés `@oz/contracts` (conventions vérifiées automatiquement, briques `email`, `personName`, `longText`, `consent`), `ZodValidationPipe` et `@ValidatedBody` (422 avant toute logique, champ inconnu refusé), premier contrat : formulaire de contact (composant React + `POST /contact` derrière le drapeau `FEATURE_CONTACT_FORM`, interdit en production), test de contrat formulaire ↔ schéma obligatoire.
@@ -13,6 +14,7 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/). Versionnage :
 
 ### Sécurité
 
+- Prisma ramené à 7.9.1 : la CLI 7.10.x est publiée sans attestation de provenance ; pnpm `trustPolicy: no-downgrade` et `blockExoticSubdeps` activés.
 - Dependabot n'ouvre plus de PR pour les montées majeures de `typescript`, `@types/node`, `postgres` et `redis` ; PostgreSQL 16.15 et Redis 7.4.11 rétablis (#10).
 - Override `multer` ^2.5.0 (GHSA-q7qp-rjg7-q26m) ; aucun script d'installation de dépendance exécuté (`allowBuilds`).
 
