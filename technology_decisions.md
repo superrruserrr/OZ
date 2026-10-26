@@ -193,6 +193,13 @@ Ce fichier consigne chaque décision technologique d'OZ avec ses options, sa jus
 - **Compromis acceptés :** une table de 32 × 32 à maintenir immuable ; un algorithme moins connu que Luhn (documenté dans l'ADR avec la référence de Damm, 2004).
 - **Tests :** CP-01 (toute altération d'un caractère détectée), test exhaustif des inversions voisines, test de non-régression de la table (empreinte SHA-256 figée).
 
+### TD-018 — Protection des branches : aucune approbation exigée, merge commit vers main
+- **Date :** 2026-10-26 · **Statut :** Décidé par Gaëtan Wassu (lot 0.7) · Écart assumé au plan §2.3 (« 1 approbation »)
+- **Options considérées :** 1 approbation exigée (plan ; impossible seul : GitHub refuse l'auto-approbation, il faudrait un second compte relecteur) · aucune approbation exigée, PR et cinq contrôles de CI obligatoires (retenue) · squash seul vers `main` (crée des commits absents de `develop`, conflits à la release suivante) · merge commit vers `main` (retenue)
+- **Justification :** développeur seul avec Claude ; la revue croisée R14 passe par la revue adversariale de `/execute-phase` et l'acte de merge de Gaëtan Wassu, qui vaut approbation. `develop` reste en squash seul avec historique linéaire ; `main` reçoit les branches `release/*` et `hotfix/*` (contrôle de la CI) par merge commit, sans historique linéaire imposé.
+- **Compromis acceptés :** aucune barrière technique n'empêche Gaëtan Wassu de merger une PR que la revue adversariale n'a pas examinée ; la CI verte reste obligatoire. À réviser dès qu'un second développeur rejoint le projet (approbation exigée).
+- **Mise en œuvre :** `.github/rulesets/develop.json`, `.github/rulesets/main.json`, testés par `scripts/ci-workflow.test.mjs`.
+
 ---
 
 ## Synthèse de la stack

@@ -24,7 +24,7 @@
     },
     "typecheck": {
       "dependsOn": ["^build", "generate"],
-      "outputs": []
+      "outputs": [".next/types/**", "next-env.d.ts"]
     }
   }
 }
