@@ -10,7 +10,7 @@
     "build": "turbo run build",
     "typecheck": "turbo run typecheck",
     "lint": "eslint . --max-warnings=0 && node scripts/check-dependencies.mjs",
-    "test": "vitest run",
+    "test": "turbo run generate --output-logs=errors-only && vitest run",
     "test:e2e": "playwright test --config e2e/playwright.config.ts",
     "test:coverage": "vitest run --coverage",
     "format": "prettier --write .",
@@ -20,7 +20,11 @@
     "dev:down": "node scripts/dev-env.mjs down",
     "dev:reset": "node scripts/dev-env.mjs reset",
     "dev:status": "node scripts/dev-env.mjs status",
-    "dev:web": "pnpm --filter @oz/web dev"
+    "dev:web": "pnpm --filter @oz/web dev",
+    "db:migrate": "pnpm --filter @oz/db db:migrate",
+    "db:status": "pnpm --filter @oz/db db:status",
+    "db:rollback": "pnpm --filter @oz/db db:rollback",
+    "db:seed": "pnpm --filter @oz/db db:seed"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",

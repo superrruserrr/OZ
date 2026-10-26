@@ -23,6 +23,7 @@ export default defineConfig(
       '**/node_modules/**',
       '**/.turbo/**',
       '**/.next/**',
+      '**/src/generated/**',
       '**/next-env.d.ts',
       '**/coverage/**',
       '.claude/**',
