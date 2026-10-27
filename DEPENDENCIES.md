@@ -113,6 +113,15 @@ Environnement local uniquement (`infra/docker/compose.dev.yml`) ; aucune donnée
 | `clamav/clamav` | 1.5.4-debian13-slim | GPL-2.0 | Antivirus des fichiers téléversés | Variante Alpine : pas d'arm64 | 0.2 |
 | `axllent/mailpit` | v1.32.0 | MIT | Capture des emails en local | MailHog : non maintenu | 0.2 |
 
+## Images de base des applications — lot 0.8a
+
+Épinglées par condensé dans `infra/docker/images/*.Dockerfile`, mises à jour par Dependabot (écosystème `docker`, délai de 14 jours).
+
+| Image | Version | Licence | Rôle | Alternative envisagée |
+|---|---|---|---|---|
+| `node:24-trixie-slim` | `sha256:43b9ba11…` | MIT (Node.js) / Debian | Étape de construction : pnpm (corepack), `turbo prune`, build | `node:24-alpine` : musl, écarts possibles avec la production |
+| `gcr.io/distroless/nodejs24-debian13:nonroot` | `sha256:cb606325…` | Apache-2.0 | Exécution : ni shell ni gestionnaire de paquets, utilisateur 65532 | `node:24-trixie-slim` en exécution : shell et surface d'attaque plus larges |
+
 ## Intégration continue (hors npm) — lot 0.7
 
 | Outil | Version | Licence | Rôle | Épinglage |

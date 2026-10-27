@@ -1,0 +1,108 @@
+# Fumée sur les images réelles (lot 0.8a) : api, web et admin construits depuis infra/docker/images,
+# dépendances jetables (aucun volume), ports sur 127.0.0.1. Lancé par scripts/containers-smoke.sh.
+# Valeurs de test uniquement : aucune donnée ni identifiant réel (R8, R10).
+name: oz-smoke
+
+x-s3: &s3-credentials
+  S3_ACCESS_KEY: oz-smoke-access
+  S3_SECRET_KEY: oz-smoke-access-key-not-secret
+
+services:
+  postgres:
+    image: postgres:16.15-alpine
+    environment:
+      POSTGRES_USER: oz_smoke
+      POSTGRES_PASSWORD: oz_smoke
+      POSTGRES_DB: oz_smoke
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U oz_smoke']
+      interval: 2s
+      retries: 30
+
+  redis:
+    image: redis:7.4.11-alpine
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 2s
+      retries: 30
+
+  s3:
+    image: chrislusf/seaweedfs:4.50
+    environment: *s3-credentials
+    entrypoint: ['/bin/sh', '-c']
+    command:
+      - >-
+        printf '{"identities":[{"name":"oz-smoke","credentials":[{"accessKey":"%s","secretKey":"%s"}],"actions":["Admin","Read","Write","List"]}]}'
+        "$$S3_ACCESS_KEY" "$$S3_SECRET_KEY" > /tmp/s3.json &&
+        exec weed server -dir=/data -ip.bind=0.0.0.0 -s3 -s3.port=8333 -s3.config=/tmp/s3.json
+    healthcheck:
+      test: ['CMD-SHELL', 'nc -z 127.0.0.1 8333']
+      interval: 2s
+      retries: 60
+
+  # Bucket créé une fois le maître SeaweedFS prêt (il peut refuser les premières secondes).
+  s3-init:
+    image: chrislusf/seaweedfs:4.50
+    depends_on:
+      s3:
+        condition: service_healthy
+    entrypoint: ['/bin/sh', '-c']
+    command:
+      - >-
+        for i in $$(seq 1 60); do
+        echo 's3.bucket.create -name oz-documents' | weed shell -master=s3:9333 >/dev/null 2>&1;
+        echo 's3.bucket.list' | weed shell -master=s3:9333 2>/dev/null | grep -q oz-documents && exit 0;
+        sleep 1; done; exit 1
+
+  api:
+    build:
+      context: ../..
+      dockerfile: infra/docker/images/api.Dockerfile
+    image: oz-api:smoke
+    environment:
+      <<: *s3-credentials
+      APP_ENV: preview
+      API_PORT: '3001'
+      LOG_LEVEL: warn
+      CORS_ORIGINS: http://127.0.0.1:3200
+      DATABASE_URL: postgresql://oz_smoke:oz_smoke@postgres:5432/oz_smoke
+      REDIS_URL: redis://redis:6379
+      S3_ENDPOINT: http://s3:8333
+      S3_REGION: fr-par
+      S3_BUCKET: oz-documents
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      s3-init:
+        condition: service_completed_successfully
+    ports:
+      - '127.0.0.1:3201:3001'
+
+  web:
+    build:
+      context: ../..
+      dockerfile: infra/docker/images/next.Dockerfile
+      args:
+        APP: web
+    image: oz-web:smoke
+    # D-013 : HOSTNAME arbitraire, comme sous un orchestrateur.
+    environment:
+      APP_ENV: preview
+      HOSTNAME: oz-web-smoke-container
+    ports:
+      - '127.0.0.1:3200:3000'
+
+  admin:
+    build:
+      context: ../..
+      dockerfile: infra/docker/images/next.Dockerfile
+      args:
+        APP: admin
+    image: oz-admin:smoke
+    environment:
+      APP_ENV: preview
+      HOSTNAME: oz-admin-smoke-container
+    ports:
+      - '127.0.0.1:3202:3000'

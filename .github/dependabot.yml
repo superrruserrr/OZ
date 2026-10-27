@@ -62,3 +62,20 @@ updates:
     groups:
       docker:
         patterns: ['*']
+
+  # Images de base des applications (lot 0.8a) : épinglées par condensé dans les Dockerfile.
+  - package-ecosystem: docker
+    directory: /infra/docker/images
+    target-branch: develop
+    schedule:
+      interval: monthly
+    # Aucune version proposée avant 14 jours de publication (chaîne d'approvisionnement, lot 0.7).
+    cooldown:
+      default-days: 14
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: chore
+      include: scope
+    groups:
+      docker-images:
+        patterns: ['*']

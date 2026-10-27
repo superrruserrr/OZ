@@ -30,7 +30,14 @@ function jobs(yaml) {
 const blocks = jobs(text);
 
 /** Noms affichés des contrôles exigés par la protection de branches (.github/rulesets). */
-export const REQUIRED_JOBS = ['quality', 'test', 'build-e2e', 'security', 'migrations'];
+export const REQUIRED_JOBS = [
+  'quality',
+  'test',
+  'build-e2e',
+  'security',
+  'migrations',
+  'containers',
+];
 
 describe('ci.yml — contrôles exigés (EX-T03)', () => {
   it('existe et déclare exactement les jobs exigés', () => {
@@ -166,6 +173,37 @@ describe('ci.yml — contenu des jobs', () => {
     }
   });
 
+  it('containers : images construites, Trivy bloquant sur chacune, fumée sur les conteneurs', () => {
+    const job = blocks.get('containers') ?? '';
+    expect(job).toContain('docker compose -f infra/docker/compose.smoke.yml build');
+    for (const image of ['oz-api:smoke', 'oz-web:smoke', 'oz-admin:smoke']) {
+      // Configuration dédiée : trivy.yaml (racine) exclut node_modules, qui serait ignoré dans l'image.
+      expect(job, image).toContain(`trivy" image --config trivy-image.yaml ${image}'`);
+    }
+    expect(job).toContain('pnpm exec playwright install --with-deps chromium');
+    expect(job).toContain('pnpm test:containers');
+  });
+
+  it('containers : ménage le disque du runner (ENOSPC aux deux premières exécutions, PR #17)', () => {
+    const job = blocks.get('containers') ?? '';
+    const at = (needle) => job.indexOf(needle);
+    // Outils préinstallés inutiles supprimés d'abord ; Chromium avant les images ; cache de
+    // construction vidé dès la fin de la construction, avant que Trivy télécharge sa base.
+    expect(at('sudo rm -rf /usr/share/dotnet')).toBeGreaterThan(-1);
+    expect(at('sudo rm -rf /usr/share/dotnet')).toBeLessThan(at('playwright install'));
+    expect(at('playwright install')).toBeLessThan(at('compose.smoke.yml build'));
+    expect(at('docker builder prune --all --force')).toBeGreaterThan(at('compose.smoke.yml build'));
+    expect(at('docker builder prune --all --force')).toBeLessThan(at('oz-api:smoke'));
+    expect(job).toMatch(/df -h/);
+  });
+
+  it('containers : la fumée lance les images déjà analysées par Trivy, sans les reconstruire', () => {
+    const job = blocks.get('containers') ?? '';
+    expect(job).toMatch(/SMOKE_SKIP_BUILD: '1'\s*\n\s+run: pnpm test:containers/);
+    const script = readFileSync(new URL('./containers-smoke.sh', import.meta.url), 'utf8');
+    expect(script).toMatch(/SMOKE_SKIP_BUILD/);
+  });
+
   it('migrations : PostgreSQL 16.15 du compose, script vérifié, APP_ENV explicite', () => {
     const job = blocks.get('migrations') ?? '';
     const compose = readFileSync(
@@ -224,7 +262,7 @@ describe('protection de branches versionnée (.github/rulesets, EX-T03.1)', () =
   });
 
   it.each(['develop', 'main'])(
-    '%s : exige les cinq contrôles de la CI, à jour avec la base',
+    '%s : exige les six contrôles de la CI, à jour avec la base',
     (name) => {
       const checks = rule(ruleset(name), 'required_status_checks')?.parameters;
       expect(checks?.strict_required_status_checks_policy).toBe(true);

@@ -2,7 +2,7 @@
   "name": "oz",
   "private": true,
   "type": "module",
-  "packageManager": "pnpm@12.15.0",
+  "packageManager": "pnpm@12.15.0+sha512.b3951d6d6ff4a9f13dc7cf56cd28d2b8eb37dbcc9c68e52e1e1191873ea9f82a017287ab50baadc5ccc494f036c67c0e47eb13608c2fa36f47711b61ea128e61",
   "engines": {
     "node": ">=24"
   },
@@ -12,6 +12,7 @@
     "lint": "eslint . --max-warnings=0 && node scripts/check-dependencies.mjs",
     "test": "turbo run generate --output-logs=errors-only && vitest run",
     "test:e2e": "playwright test --config e2e/playwright.config.ts",
+    "test:containers": "scripts/containers-smoke.sh",
     "test:coverage": "turbo run generate --output-logs=errors-only && vitest run --coverage",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
