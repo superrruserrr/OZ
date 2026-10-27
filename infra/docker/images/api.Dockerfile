@@ -3,7 +3,7 @@
 # Construction : docker build -f infra/docker/images/api.Dockerfile .
 
 # node 24.x, Debian 13 (trixie) slim
-FROM node:24-trixie-slim@sha256:43b9ba1142b8dcf33fa8f922ca1be85714adc444e0586c7cf7726daaeabc1bea AS base
+FROM node:25-trixie-slim@sha256:aabbe39553d15ede8a97cc60c9e1a97034ff772afcf696ea42b94e7f5f2ec71b AS base
 ENV PNPM_HOME=/pnpm PATH=/pnpm:$PATH TURBO_TELEMETRY_DISABLED=1 DO_NOT_TRACK=1 CI=1
 RUN corepack enable
 WORKDIR /repo
@@ -25,7 +25,7 @@ RUN pnpm exec turbo run build --filter=@oz/api \
  && rm -rf /out/src /out/test /out/.turbo /out/*.md /out/tsconfig*.json /out/vitest.config.ts
 
 # distroless nodejs24, Debian 13, utilisateur nonroot
-FROM gcr.io/distroless/nodejs24-debian13@sha256:cb606325b7ec4af55462cb0b424a53b452a5b4a894ffe841fcf1048d216fb9f8 AS runtime
+FROM gcr.io/distroless/nodejs24-debian13@sha256:206cfbab1a64af20b63645150e3aa61b7babc17869e0254914947732963d6f07 AS runtime
 ENV NODE_ENV=production API_PORT=3001
 # L'image nonroot s'exécute déjà en 65532 : root le temps de préparer /app (propriété de root).
 USER 0:0

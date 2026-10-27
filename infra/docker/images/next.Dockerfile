@@ -4,7 +4,7 @@
 ARG APP=web
 
 # node 24.x, Debian 13 (trixie) slim
-FROM node:24-trixie-slim@sha256:43b9ba1142b8dcf33fa8f922ca1be85714adc444e0586c7cf7726daaeabc1bea AS base
+FROM node:25-trixie-slim@sha256:aabbe39553d15ede8a97cc60c9e1a97034ff772afcf696ea42b94e7f5f2ec71b AS base
 ENV PNPM_HOME=/pnpm PATH=/pnpm:$PATH NEXT_TELEMETRY_DISABLED=1 TURBO_TELEMETRY_DISABLED=1 DO_NOT_TRACK=1 CI=1
 RUN corepack enable
 WORKDIR /repo
@@ -27,7 +27,7 @@ RUN mkdir -p scripts && mv next-standalone-assets.mjs scripts/ \
  && mkdir -p /writable/cache
 
 # distroless nodejs24, Debian 13, utilisateur nonroot
-FROM gcr.io/distroless/nodejs24-debian13@sha256:cb606325b7ec4af55462cb0b424a53b452a5b4a894ffe841fcf1048d216fb9f8 AS runtime
+FROM gcr.io/distroless/nodejs24-debian13@sha256:206cfbab1a64af20b63645150e3aa61b7babc17869e0254914947732963d6f07 AS runtime
 ARG APP
 # D-013 : l'adresse d'écoute est imposée par next-start.mjs (un HOSTNAME défini par l'orchestrateur
 # ferait boucler ou tomber le serveur autonome) ; HOSTNAME reste aussi fixé ici par défaut.
