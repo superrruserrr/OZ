@@ -1,4 +1,4 @@
-import { databaseTarget, type DatabaseTarget } from './target.js';
+import { databaseTarget, type DatabaseTarget } from './database-target.js';
 
 /**
  * Transport des commandes Prisma vers la base (D-039). Le moteur de schéma de Prisma accepte, avec
