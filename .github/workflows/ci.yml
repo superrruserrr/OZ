@@ -137,8 +137,20 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .nvmrc
-      - name: Outils (gitleaks, Trivy) aux empreintes vérifiées
+      - name: Outils (gitleaks, Trivy, Terraform) aux empreintes vérifiées
         run: scripts/install-ci-tools.sh "$RUNNER_TEMP/bin"
+      # Infrastructure Scaleway (lot 0.8b) : sans identifiant ni état distant ; les tests de sécurité
+      # tournent sur un fournisseur simulé. Les lockfiles versionnés font foi (-lockfile=readonly).
+      - name: Terraform (format, validité, tests de sécurité)
+        working-directory: infra/terraform
+        run: |
+          "$RUNNER_TEMP/bin/terraform" fmt -check -recursive
+          for root in bootstrap envs/staging envs/production; do
+            "$RUNNER_TEMP/bin/terraform" -chdir="$root" init -backend=false -input=false -lockfile=readonly
+            "$RUNNER_TEMP/bin/terraform" -chdir="$root" validate
+          done
+          "$RUNNER_TEMP/bin/terraform" -chdir=modules/stack init -backend=false -input=false -lockfile=readonly
+          "$RUNNER_TEMP/bin/terraform" -chdir=modules/stack test
       # Tout l'historique de la branche analysée (HEAD) : un secret dans n'importe lequel de ses
       # commits bloque (R8) ; les autres branches récupérées ne sont pas concernées.
       - run: '"$RUNNER_TEMP/bin/gitleaks" git --no-banner --redact .'

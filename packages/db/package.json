@@ -15,7 +15,7 @@
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run",
-    "db:migrate": "prisma migrate deploy",
+    "db:migrate": "turbo run build --filter=@oz/db --output-logs=errors-only && node dist/cli/migrate.js",
     "db:status": "prisma migrate status",
     "db:rollback": "turbo run build --filter=@oz/db --output-logs=errors-only && node dist/cli/rollback.js",
     "db:seed": "turbo run build --filter=@oz/db --output-logs=errors-only && node dist/cli/seed.js",

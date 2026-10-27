@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { ConfigError, loadApiConfig } from './api-config.js';
 
@@ -70,6 +71,9 @@ describe('loadApiConfig (EX-003)', () => {
       NODE_ENV: 'production',
       APP_ENV: 'production',
       S3_ENDPOINT: 'https://s3.fr-par.scw.cloud',
+      REDIS_URL: 'rediss://oz:pw@10.10.0.6:6379',
+      DATABASE_CA_CERT: '-----BEGIN CERTIFICATE-----\nMIIBfake\n-----END CERTIFICATE-----',
+      REDIS_CA_CERT: '-----BEGIN CERTIFICATE-----\nMIIBfake\n-----END CERTIFICATE-----',
     };
     expect(errorOf(prod).invalidVariables).toEqual(['CORS_ORIGINS']);
     expect(() => loadApiConfig({ ...prod, CORS_ORIGINS: 'https://www.oz.example' })).not.toThrow();
@@ -89,12 +93,16 @@ describe('loadApiConfig (EX-003)', () => {
     ]);
   });
 
+  const CA = '-----BEGIN CERTIFICATE-----\nMIIBfake\n-----END CERTIFICATE-----';
   const production = {
     ...valid,
     NODE_ENV: 'production',
     APP_ENV: 'production',
     CORS_ORIGINS: 'https://www.oz.example',
     S3_ENDPOINT: 'https://s3.fr-par.scw.cloud',
+    REDIS_URL: 'rediss://oz:pw@10.10.0.6:6379',
+    DATABASE_CA_CERT: CA,
+    REDIS_CA_CERT: CA,
   };
 
   it('exige NODE_ENV=production quand APP_ENV=production', () => {
@@ -108,6 +116,68 @@ describe('loadApiConfig (EX-003)', () => {
       'S3_ENDPOINT',
     ]);
     expect(() => loadApiConfig(production)).not.toThrow();
+  });
+
+  describe('TLS de la base et de Redis en recette et en production (D-006)', () => {
+    const secured = production;
+
+    it.each(['staging', 'production'])('%s : certificats et rediss:// exigés', (appEnv) => {
+      const env = {
+        ...production,
+        APP_ENV: appEnv,
+        REDIS_URL: 'redis://10.10.0.6:6379',
+        DATABASE_CA_CERT: undefined,
+        REDIS_CA_CERT: undefined,
+      };
+      expect(errorOf(env).invalidVariables).toEqual([
+        'DATABASE_CA_CERT',
+        'REDIS_CA_CERT',
+        'REDIS_URL',
+      ]);
+      expect(() => loadApiConfig({ ...secured, APP_ENV: appEnv })).not.toThrow();
+    });
+
+    it('refuse sslmode=disable en recette et en production', () => {
+      expect(
+        errorOf({ ...secured, DATABASE_URL: 'postgresql://u:p@h/oz?sslmode=disable' })
+          .invalidVariables,
+      ).toEqual(['DATABASE_URL']);
+    });
+
+    it("refuse un certificat qui n'est pas au format PEM", () => {
+      expect(errorOf({ ...secured, REDIS_CA_CERT: 'abc' }).invalidVariables).toEqual([
+        'REDIS_CA_CERT',
+      ]);
+    });
+
+    it('accepte un certificat sur une ligne avec des \\n littéraux (variables Coolify)', () => {
+      const config = loadApiConfig({ ...secured, DATABASE_CA_CERT: CA.replaceAll('\n', '\\n') });
+      expect(config.databaseCaCert).toBe(CA);
+      expect(config.redisCaCert).toBe(CA);
+    });
+
+    it('reste facultatif en local', () => {
+      expect(loadApiConfig(valid).databaseCaCert).toBeUndefined();
+    });
+
+    it('traite une variable vide comme absente (.env copié de .env.example)', () => {
+      const config = loadApiConfig({ ...valid, DATABASE_CA_CERT: '', REDIS_CA_CERT: '' });
+      expect(config.databaseCaCert).toBeUndefined();
+      expect(config.redisCaCert).toBeUndefined();
+      expect(errorOf({ ...secured, DATABASE_CA_CERT: '' }).invalidVariables).toEqual([
+        'DATABASE_CA_CERT',
+      ]);
+    });
+
+    it('accepte .env.example tel quel (premier démarrage local)', () => {
+      const text = readFileSync(new URL('../../../.env.example', import.meta.url), 'utf8');
+      const env: Record<string, string> = {};
+      for (const line of text.split('\n')) {
+        const match = /^([A-Z][A-Z0-9_]*)=(.*)$/.exec(line.trim());
+        if (match?.[1]) env[match[1]] = (match[2] ?? '').replace(/\s+#.*$/, '').trim();
+      }
+      expect(() => loadApiConfig(env)).not.toThrow();
+    });
   });
 
   it('désactive le formulaire de contact par défaut', () => {

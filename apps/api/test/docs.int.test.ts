@@ -3,12 +3,18 @@ import request from 'supertest';
 import type { App } from 'supertest/types.js';
 import { afterAll, describe, expect, it } from 'vitest';
 import { createApp } from '../src/app.js';
-import { productionOverrides, testConfig } from './support.js';
+import { productionOverrides, securedTransport, testConfig } from './support.js';
 
 const apps: NestExpressApplication[] = [];
 async function serverFor(appEnv: string): Promise<App> {
   const app = await createApp(
-    testConfig(appEnv === 'production' ? productionOverrides : { APP_ENV: appEnv }),
+    testConfig(
+      appEnv === 'production'
+        ? productionOverrides
+        : appEnv === 'staging'
+          ? { ...securedTransport, APP_ENV: appEnv }
+          : { APP_ENV: appEnv },
+    ),
   );
   await app.init();
   apps.push(app);

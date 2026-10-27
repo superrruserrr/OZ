@@ -135,6 +135,16 @@ Environnement local uniquement (`infra/docker/compose.dev.yml`) ; aucune donnée
 | Trivy | 0.75.0 | Apache-2.0 | Vulnérabilités, configurations, secrets | SHA-256 dans `scripts/install-ci-tools.sh` |
 | Semgrep CE | 1.180.0 | LGPL-2.1 (règles du registre : licences propres) | Analyse statique (D1) | Image `semgrep/semgrep@sha256:529ee8a2…` |
 
+## Infrastructure en code — lot 0.8b
+
+Versions exactes dans `infra/terraform/**/versions.tf` ; empreintes dans les `.terraform.lock.hcl` versionnés (darwin_arm64, linux_amd64).
+
+| Outil | Version | Licence | Rôle | Alternative envisagée |
+|---|---|---|---|---|
+| Terraform | 1.16.5 | BUSL-1.1 (usage interne autorisé) | Infrastructure Scaleway en code (TD-019) ; CI : SHA-256 dans `scripts/install-ci-tools.sh` | OpenTofu (MPL-2.0) |
+| `scaleway/scaleway` | 2.86.0 | MPL-2.0 | Fournisseur Scaleway | — |
+| `hashicorp/random` | 3.9.1 | MPL-2.0 | Valeurs éphémères (mots de passe, secrets JWT), suffixes de noms | — |
+
 ## Outils système (hors npm)
 
 | Outil | Rôle | Installation |

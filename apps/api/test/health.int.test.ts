@@ -77,6 +77,25 @@ describe('GET /health (EX-003 n° 3)', () => {
     expect(elapsed).toBeLessThan(3_000);
   });
 
+  it('utilise TLS épinglé dès que les certificats sont fournis (D-006)', async () => {
+    // Les services de test parlent en clair : avec un certificat, la poignée de main TLS échoue.
+    // La preuve que les sondes tentent bien TLS au lieu d'ignorer le certificat.
+    const ca = '-----BEGIN CERTIFICATE-----\nMIIBfake\n-----END CERTIFICATE-----';
+    const redisUrl = services.env.REDIS_URL?.replace(/^redis:/, 'rediss:') ?? '';
+    const response = await request(
+      await serverWith({
+        ...services.env,
+        REDIS_URL: redisUrl,
+        DATABASE_CA_CERT: ca,
+        REDIS_CA_CERT: ca,
+      }),
+    ).get('/health');
+    expect(response.body).toEqual({
+      status: 'degraded',
+      checks: { database: 'down', redis: 'down', storage: 'up' },
+    });
+  });
+
   it('ne met pas l’état de santé en cache', async () => {
     const response = await request(await serverWith(services.env)).get('/health');
     expect(response.headers['cache-control']).toBe('no-store');

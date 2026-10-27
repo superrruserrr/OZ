@@ -138,6 +138,19 @@ describe('ci.yml — contenu des jobs', () => {
     expect(test).toContain('pnpm test:coverage');
   });
 
+  it('security : Terraform formaté, valide et testé, sans identifiant Scaleway (lot 0.8b)', () => {
+    const job = blocks.get('security') ?? '';
+    expect(job).toContain('terraform" fmt -check -recursive');
+    for (const root of ['bootstrap', 'envs/staging', 'envs/production']) {
+      expect(job).toContain(root);
+    }
+    // Lockfiles versionnés imposés ; aucun état distant (pas d'identifiant en CI).
+    expect(job).toMatch(/init -backend=false -input=false -lockfile=readonly/);
+    expect(job).toMatch(/terraform" -chdir="\$root" validate/);
+    expect(job).toMatch(/terraform" -chdir=modules\/stack test/);
+    expect(text).not.toMatch(/SCW_|AWS_ACCESS_KEY_ID|AWS_SECRET_ACCESS_KEY/);
+  });
+
   it('build-e2e : build complet puis fumée Playwright sur Chromium', () => {
     const job = blocks.get('build-e2e') ?? '';
     expect(job).toContain('pnpm build');
