@@ -9,7 +9,8 @@ const text = readFileSync(new URL('../.github/dependabot.yml', import.meta.url),
 /** Bloc d'un écosystème : de son `- package-ecosystem:` au suivant. */
 function ecosystem(name) {
   const blocks = text.split(/^ {2}- package-ecosystem:\s*/m).slice(1);
-  return blocks.find((block) => block.startsWith(name)) ?? '';
+  // Nom exact : `docker` ne doit pas désigner le bloc `docker-compose`.
+  return blocks.find((block) => block.split('\n')[0]?.trim() === name) ?? '';
 }
 
 /** Vrai si le bloc ignore les montées majeures de la dépendance. */
@@ -30,6 +31,8 @@ describe('dependabot.yml', () => {
     ['npm', '@types/node'],
     ['docker-compose', 'postgres'],
     ['docker-compose', 'redis'],
+    // Node 24 LTS (.nvmrc) : une majeure impaire (non LTS) cassait la construction des images (#19).
+    ['docker', 'node'],
   ])('%s : ignore les montées majeures de %s', (name, dependency) => {
     expect(ignoresMajor(ecosystem(name), dependency)).toBe(true);
   });

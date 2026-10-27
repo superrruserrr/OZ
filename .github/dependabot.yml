@@ -76,6 +76,11 @@ updates:
     commit-message:
       prefix: chore
       include: scope
+    # Node suit la LTS du projet (.nvmrc, Node 24) : une majeure impaire n'est pas LTS et l'image
+    # d'exécution distroless reste en nodejs24 (PR #19). Changement de majeure = lot dédié.
+    ignore:
+      - dependency-name: node
+        update-types: ['version-update:semver-major']
     groups:
       docker-images:
         patterns: ['*']
