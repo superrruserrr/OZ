@@ -1,0 +1,304 @@
+# Diagramme entités-relations
+
+Généré depuis le catalogue PostgreSQL d'une base migrée (EX-101 n° 7) : ne pas modifier à la main.
+Régénérer avec `pnpm --filter @oz/db db:er` ; un test échoue si ce fichier n'est plus à jour.
+Les partitions mensuelles de `audit_log` ne sont pas représentées.
+
+```mermaid
+erDiagram
+  audit_chain_state {
+    boolean id PK
+    bigint last_position
+    bytea last_hash
+  }
+  audit_log {
+    uuid id PK
+    bigint chain_position
+    uuid actor_user_id FK
+    text action
+    text target_type
+    uuid target_id
+    text reason
+    text request_id
+    jsonb metadata
+    bytea prev_hash
+    bytea hash
+    timestamptz created_at PK
+  }
+  consents {
+    uuid id PK
+    consent_type type
+    text text_version
+    uuid player_id FK
+    uuid granted_by_user_id FK
+    uuid granted_by_guardian_id FK
+    timestamptz granted_at
+    timestamptz revoked_at
+    timestamptz created_at
+    timestamptz updated_at
+    timestamptz deleted_at
+    uuid created_by FK
+    uuid updated_by FK
+  }
+  documents {
+    uuid id PK
+    document_type type
+    uuid player_id FK
+    uuid guardian_id FK
+    uuid organization_id FK
+    uuid uploaded_by FK
+    text storage_key
+    text mime_type
+    bigint size_bytes
+    text sha256
+    av_status av_status
+    timestamptz av_checked_at
+    bytea ocr_extract_encrypted
+    bytea document_number_encrypted
+    bytea document_number_hmac
+    timestamptz retention_until
+    timestamptz created_at
+    timestamptz updated_at
+    timestamptz deleted_at
+    uuid created_by FK
+    uuid updated_by FK
+  }
+  guardians {
+    uuid id PK
+    uuid user_id FK
+    text first_name
+    text last_name
+    guardian_relationship relationship
+    text country
+    bytea phone_encrypted
+    bytea phone_hmac
+    bytea email_encrypted
+    bytea email_hmac
+    bytea document_number_encrypted
+    bytea document_number_hmac
+    verification_status verification_status
+    timestamptz created_at
+    timestamptz updated_at
+    timestamptz deleted_at
+    uuid created_by FK
+    uuid updated_by FK
+  }
+  imports {
+    uuid id PK
+    uuid organization_id FK
+    import_source source
+    text file_name
+    text file_sha256
+    text file_storage_key
+    jsonb mapping
+    import_status status
+    integer rows_total
+    integer rows_ok
+    integer rows_rejected
+    integer rows_duplicate
+    text report_key
+    timestamptz started_at
+    timestamptz finished_at
+    timestamptz created_at
+    timestamptz updated_at
+    timestamptz deleted_at
+    uuid created_by FK
+    uuid updated_by FK
+  }
+  kyc_case_documents {
+    uuid kyc_case_id PK,FK
+    uuid document_id PK,FK
+    timestamptz created_at
+    uuid created_by FK
+  }
+  kyc_cases {
+    uuid id PK
+    uuid player_id FK
+    uuid organization_id FK
+    smallint level
+    kyc_status status
+    jsonb checks
+    timestamptz submitted_at
+    uuid decided_by FK
+    uuid second_decided_by FK
+    text decision_reason
+    timestamptz decided_at
+    timestamptz created_at
+    timestamptz updated_at
+    timestamptz deleted_at
+    uuid created_by FK
+    uuid updated_by FK
+  }
+  notifications {
+    uuid id PK
+    uuid recipient_user_id FK
+    notification_channel channel
+    text template
+    jsonb payload
+    notification_status status
+    smallint attempts
+    text last_error
+    timestamptz scheduled_at
+    timestamptz sent_at
+    timestamptz read_at
+    timestamptz created_at
+    timestamptz updated_at
+    timestamptz deleted_at
+  }
+  organizations {
+    uuid id PK,FK
+    organization_type type
+    text name
+    text registration_number
+    text country
+    text region
+    text city
+    text contact_email
+    verification_status verification_status
+    timestamptz created_at
+    timestamptz updated_at
+    timestamptz deleted_at
+    uuid created_by FK
+    uuid updated_by FK
+    uuid subscription_id FK
+  }
+  players {
+    uuid id PK
+    uuid user_id FK
+    text oz_id
+    text first_name
+    text last_name
+    date birth_date
+    text nationality
+    text country
+    text region
+    text city
+    bytea phone_encrypted
+    bytea phone_hmac
+    bytea document_number_encrypted
+    bytea document_number_hmac
+    player_position primary_position
+    player_position secondary_position
+    dominant_foot dominant_foot
+    smallint height_cm
+    smallint weight_kg
+    verification_status verification_status
+    uuid guardian_id FK
+    uuid organization_id FK
+    jsonb visibility
+    timestamptz created_at
+    timestamptz updated_at
+    timestamptz deleted_at
+    uuid created_by FK
+    uuid updated_by FK
+    tsvector search_vector
+  }
+  sessions {
+    uuid id PK
+    uuid user_id FK
+    uuid family_id
+    text refresh_token_hash
+    text user_agent
+    text device_fingerprint
+    inet ip
+    timestamptz expires_at
+    timestamptz last_used_at
+    timestamptz revoked_at
+    timestamptz created_at
+    timestamptz updated_at
+    timestamptz deleted_at
+  }
+  subscriptions {
+    uuid id PK
+    uuid organization_id FK
+    text tier
+    subscription_status status
+    payment_provider provider
+    text provider_reference
+    timestamptz period_start
+    timestamptz period_end
+    jsonb quotas
+    timestamptz cancelled_at
+    timestamptz created_at
+    timestamptz updated_at
+    timestamptz deleted_at
+    uuid created_by FK
+    uuid updated_by FK
+  }
+  system_settings {
+    uuid id PK
+    text key
+    jsonb value
+    timestamptz created_at
+    timestamptz updated_at
+  }
+  user_roles {
+    uuid id PK
+    uuid user_id FK
+    role_kind role
+    uuid organization_id FK
+    timestamptz created_at
+    timestamptz updated_at
+    timestamptz deleted_at
+    uuid created_by FK
+    uuid updated_by FK
+  }
+  users {
+    uuid id PK
+    text email
+    text password_hash
+    user_status status
+    bytea totp_secret_encrypted
+    timestamptz totp_enabled_at
+    timestamptz email_verified_at
+    timestamptz phone_verified_at
+    timestamptz last_seen_at
+    timestamptz created_at
+    timestamptz updated_at
+    timestamptz deleted_at
+  }
+  audit_log }o--o| users : "actor_user_id"
+  consents }o--o| guardians : "granted_by_guardian_id"
+  consents }o--o| players : "player_id"
+  consents }o--o| users : "created_by"
+  consents }o--o| users : "granted_by_user_id"
+  consents }o--o| users : "updated_by"
+  documents }o--o| guardians : "guardian_id"
+  documents }o--o| organizations : "organization_id"
+  documents }o--o| players : "player_id"
+  documents }o--o| users : "created_by"
+  documents }o--o| users : "updated_by"
+  documents }o--|| users : "uploaded_by"
+  guardians }o--o| users : "created_by"
+  guardians }o--o| users : "updated_by"
+  guardians }o--o| users : "user_id"
+  imports }o--|| organizations : "organization_id"
+  imports }o--o| users : "created_by"
+  imports }o--o| users : "updated_by"
+  kyc_case_documents }o--|| documents : "document_id"
+  kyc_case_documents }o--|| kyc_cases : "kyc_case_id"
+  kyc_case_documents }o--o| users : "created_by"
+  kyc_cases }o--o| organizations : "organization_id"
+  kyc_cases }o--o| players : "player_id"
+  kyc_cases }o--o| users : "created_by"
+  kyc_cases }o--o| users : "decided_by"
+  kyc_cases }o--o| users : "second_decided_by"
+  kyc_cases }o--o| users : "updated_by"
+  notifications }o--|| users : "recipient_user_id"
+  organizations }o--o| subscriptions : "subscription_id,id"
+  organizations }o--o| users : "created_by"
+  organizations }o--o| users : "updated_by"
+  players }o--o| guardians : "guardian_id"
+  players }o--o| organizations : "organization_id"
+  players }o--o| users : "created_by"
+  players }o--o| users : "updated_by"
+  players }o--o| users : "user_id"
+  sessions }o--|| users : "user_id"
+  subscriptions }o--|| organizations : "organization_id"
+  subscriptions }o--o| users : "created_by"
+  subscriptions }o--o| users : "updated_by"
+  user_roles }o--o| organizations : "organization_id"
+  user_roles }o--o| users : "created_by"
+  user_roles }o--o| users : "updated_by"
+  user_roles }o--|| users : "user_id"
+```

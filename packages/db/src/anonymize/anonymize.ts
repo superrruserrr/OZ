@@ -122,6 +122,8 @@ function replacement(
       return FREE_TEXT;
     case 'empty_json':
       return '{}';
+    case 'empty_json_array':
+      return '[]';
     default:
       return original;
   }
@@ -198,7 +200,8 @@ export async function anonymizeDatabase(options: AnonymizeOptions): Promise<{ ro
           const c = client.escapeIdentifier(column);
           const value = `$${String(index + 2)}`;
           if (strategy === 'birth_date') return `${c} = ${value}::date`;
-          if (strategy === 'empty_json') return `${c} = ${value}::jsonb`;
+          if (strategy === 'empty_json' || strategy === 'empty_json_array')
+            return `${c} = ${value}::jsonb`;
           if (strategy.startsWith('encrypted:'))
             return `${c} = oz_encrypt(${value}::text, ${encKey}::text)`;
           if (strategy.startsWith('blind_index:'))

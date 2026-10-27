@@ -19,7 +19,8 @@
     "db:status": "prisma migrate status",
     "db:rollback": "turbo run build --filter=@oz/db --output-logs=errors-only && node dist/cli/rollback.js",
     "db:seed": "turbo run build --filter=@oz/db --output-logs=errors-only && node dist/cli/seed.js",
-    "db:anonymize": "turbo run build --filter=@oz/db --output-logs=errors-only && node dist/cli/anonymize.js"
+    "db:anonymize": "turbo run build --filter=@oz/db --output-logs=errors-only && node dist/cli/anonymize.js",
+    "db:er": "turbo run build --filter=@oz/db --output-logs=errors-only && node dist/cli/er-diagram.js"
   },
   "devDependencies": {
     "@testcontainers/postgresql": "^12.2.1",
