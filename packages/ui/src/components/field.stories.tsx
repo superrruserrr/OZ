@@ -58,7 +58,7 @@ export const Erreur: Story = {
 
 export const Desactive: Story = {
   name: 'Désactivé',
-  args: { id: 'oz-id', label: 'OZ ID', disabled: true, defaultValue: 'OZ-CM-26-7K4M9Q-3' },
+  args: { id: 'oz-id', label: 'OZ ID', disabled: true, defaultValue: 'OZ-CM-26-7K4M9Q-M' },
 };
 
 export const Chargement: Story = {

@@ -156,24 +156,31 @@ describe('contraintes (EX-101 n° 4)', () => {
     ['une nationalité en minuscules', { nationality: 'cm' }],
     ['une taille impossible', { height_cm: 40 }],
     ['un OZ ID mal formé', { oz_id: 'OZ-CM-26-7K4M9Q' }],
-    ['un OZ ID contenant un U', { oz_id: 'OZ-CM-26-7K4U9Q-3' }],
+    ['un OZ ID contenant un U', { oz_id: 'OZ-CM-26-7K4U9Q-M' }],
   ])('refuse %s', async (_label, values) => {
     await expect(insertPlayer(values)).rejects.toThrow(/violates check constraint/);
   });
 
   it('OZ ID unique et immuable une fois posé (CP-03)', async () => {
-    const id = await insertPlayer({ oz_id: 'OZ-CM-26-7K4M9Q-3' });
-    await expect(insertPlayer({ oz_id: 'OZ-CM-26-7K4M9Q-3' })).rejects.toThrow(/unique/i);
+    // L'OZ ID d'un joueur doit lui être réservé au registre (lot 1.2) : réservation, puis pose.
+    const reserve = async (player: string, ozId: string): Promise<void> => {
+      await db.query('INSERT INTO oz_id_registry (oz_id, player_id) VALUES ($1, $2)', [
+        ozId,
+        player,
+      ]);
+      await db.query('UPDATE players SET oz_id = $1 WHERE id = $2', [ozId, player]);
+    };
+    const id = await insertPlayer();
+    await reserve(id, 'OZ-CM-26-7K4M9Q-M');
     await expect(
-      db.query(`UPDATE players SET oz_id = 'OZ-CM-26-7K4M9R-4' WHERE id = $1`, [id]),
+      db.query(`UPDATE players SET oz_id = 'OZ-CI-26-000000-4' WHERE id = $1`, [id]),
     ).rejects.toThrow(/immuable/);
     await expect(db.query(`UPDATE players SET oz_id = NULL WHERE id = $1`, [id])).rejects.toThrow(
       /immuable/,
     );
     const other = await insertPlayer();
-    await expect(
-      db.query(`UPDATE players SET oz_id = 'OZ-SN-26-AB12CD-5' WHERE id = $1`, [other]),
-    ).resolves.toBeDefined();
+    await expect(reserve(other, 'OZ-CM-26-7K4M9Q-M')).rejects.toThrow(/oz_id_registry_pkey/);
+    await expect(reserve(other, 'OZ-SN-27-ZZZZZZ-9')).resolves.toBeUndefined();
   });
 
   it('statut de vérification limité au graphe du §5.4', async () => {

@@ -5,7 +5,9 @@ import {
   REFERENCE_DATE,
   type SyntheticPerson,
 } from '@oz/testing';
+import type { RandomSource } from '@oz/core';
 import { createDbClient } from './client.js';
+import { issueOzIdWithSource } from './oz-id.js';
 import type { TransactionClient } from './session-context.js';
 
 /** Graine du jeu synthétique : la changer change toutes les données générées. */
@@ -72,7 +74,7 @@ type Keys = { encryptionKey: string; blindIndexKey: string } | undefined;
 /**
  * Remplit une base locale ou de prévisualisation avec des données synthétiques déterministes (R10,
  * EX-T10.1, EX-101 n° 8) : 500 joueurs dont un tiers de mineurs (chacun avec tuteur et consentement
- * parental), 30 organisations, des comptes pour chaque rôle. Idempotent : relancer ne duplique ni ne
+ * parental), chacun avec son OZ ID (lot 1.2), 30 organisations, des comptes pour chaque rôle. Idempotent : relancer ne duplique ni ne
  * modifie rien. Sans clés de chiffrement, les colonnes chiffrées restent vides. Refusé en recette et
  * en production, qui ne reçoivent que des données anonymisées ou réelles.
  */
@@ -166,6 +168,8 @@ async function seedProfiles(tx: TransactionClient, keys: Keys): Promise<void> {
   const guardians = createPersonFactory(SEED, { start: 100_000 });
   const staff = createPersonFactory(SEED, { start: 200_000 });
 
+  const playerIds: string[] = [];
+  let admin: string | undefined;
   const organizations = new Map<string, string[]>();
   for (const org of createOrganizationFactory(SEED).organizations(ORGANIZATIONS_PER_TYPE * 6)) {
     const id = await insertReturningId(
@@ -221,6 +225,7 @@ async function seedProfiles(tx: TransactionClient, keys: Keys): Promise<void> {
         150 + (i % 45),
       ],
     );
+    playerIds.push(playerId);
     if (userId) {
       await tx.$executeRawUnsafe(
         `INSERT INTO user_roles (user_id, role) VALUES ($1::uuid, 'player')`,
@@ -246,6 +251,7 @@ async function seedProfiles(tx: TransactionClient, keys: Keys): Promise<void> {
         id,
         role,
       );
+      if (role === 'admin') admin ??= id;
     }
     for (const [role, type] of Object.entries(ORGANIZATION_ROLES)) {
       const id = await insertUser(tx, staff.person().email);
@@ -257,6 +263,27 @@ async function seedProfiles(tx: TransactionClient, keys: Keys): Promise<void> {
       );
     }
   }
+
+  // OZ ID de chaque joueur, émis par le chemin applicatif (oz_issue_oz_id) au nom d'un administrateur
+  // seedé, avec un aléa à graine fixe : mêmes seeds, mêmes OZ ID (sauf changement d'année).
+  if (!admin) throw new Error('Seeds : aucun administrateur pour émettre les OZ ID.');
+  await tx.$executeRaw`SELECT set_config('oz.user_id', ${admin}, true)`;
+  const source = seededSource(SEED);
+  for (const playerId of playerIds) await issueOzIdWithSource(tx, playerId, source);
+}
+
+/** Aléa déterministe (mulberry32) réservé aux seeds : jamais pour un OZ ID réel. */
+function seededSource(seed: number): RandomSource {
+  let state = seed >>> 0;
+  return (target) => {
+    for (let i = 0; i < target.length; i += 1) {
+      state = (state + 0x6d2b79f5) >>> 0;
+      let t = state;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      target[i] = ((t ^ (t >>> 14)) >>> 24) & 0xff;
+    }
+  };
 }
 
 async function insertGuardian(

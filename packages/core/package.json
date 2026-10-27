@@ -16,6 +16,12 @@
     "test": "vitest run"
   },
   "devDependencies": {
+    "@types/node": "^24.19.2",
+    "fast-check": "^4.10.2",
+    "jsqr": "^1.4.0",
     "typescript": "catalog:"
+  },
+  "dependencies": {
+    "qrcode-generator": "^2.0.4"
   }
 }

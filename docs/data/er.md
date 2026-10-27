@@ -162,10 +162,15 @@ erDiagram
     uuid updated_by FK
     uuid subscription_id FK
   }
+  oz_id_registry {
+    text oz_id PK
+    uuid player_id FK
+    timestamptz issued_at
+  }
   players {
-    uuid id PK
+    uuid id PK,FK
     uuid user_id FK
-    text oz_id
+    text oz_id FK
     text first_name
     text last_name
     date birth_date
@@ -288,8 +293,10 @@ erDiagram
   organizations }o--o| subscriptions : "subscription_id,id"
   organizations }o--o| users : "created_by"
   organizations }o--o| users : "updated_by"
+  oz_id_registry }o--|| players : "player_id"
   players }o--o| guardians : "guardian_id"
   players }o--o| organizations : "organization_id"
+  players }o--o| oz_id_registry : "oz_id,id"
   players }o--o| users : "created_by"
   players }o--o| users : "updated_by"
   players }o--o| users : "user_id"
