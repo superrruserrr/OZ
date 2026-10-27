@@ -1,0 +1,22 @@
+/*
+ * Aperçu Storybook : même chaîne CSS que web et admin (Tailwind 4, jetons, base), et polices OZ
+ * auto-hébergées (Fontsource, design.md §8.5). Les apps chargent les polices par next/font ; ici, les
+ * familles Fontsource alimentent les mêmes variables `--oz-font-*` que base.css enchaîne.
+ */
+@import 'tailwindcss';
+@import '@fontsource-variable/inter/index.css';
+@import '@fontsource-variable/inter-tight/index.css';
+@import '@fontsource-variable/jetbrains-mono/index.css';
+@import '../styles/tokens.css';
+@import '../styles/base.css';
+
+@source '../src';
+
+:root {
+  --oz-font-inter-latin: 'Inter Variable';
+  --oz-font-inter-latin-ext: 'Inter Variable';
+  --oz-font-inter-tight-latin: 'Inter Tight Variable';
+  --oz-font-inter-tight-latin-ext: 'Inter Tight Variable';
+  --oz-font-jetbrains-mono-latin: 'JetBrains Mono Variable';
+  --oz-font-jetbrains-mono-latin-ext: 'JetBrains Mono Variable';
+}

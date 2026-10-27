@@ -25,6 +25,11 @@
     "typecheck": {
       "dependsOn": ["^build", "generate"],
       "outputs": [".next/types/**", "next-env.d.ts"]
+    },
+    "build-storybook": {
+      "dependsOn": ["^build"],
+      "inputs": ["src/**", "styles/**", ".storybook/**", "package.json"],
+      "outputs": ["storybook-static/**"]
     }
   }
 }

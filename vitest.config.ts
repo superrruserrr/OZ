@@ -20,7 +20,14 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['apps/*/src/**', 'packages/*/src/**'],
-      exclude: ['**/*.test.{ts,tsx}', '**/src/test/**', '**/src/generated/**', '**/src/cli/**'],
+      exclude: [
+        '**/*.test.{ts,tsx}',
+        '**/*.stories.tsx',
+        '**/*.mdx',
+        '**/src/test/**',
+        '**/src/generated/**',
+        '**/src/cli/**',
+      ],
       reporter: ['text', 'html', 'json-summary'],
       // R6 / EX-T06 : seuils bloquants en CI (`pnpm test:coverage`). Un seuil par motif ne vaut
       // que pour les fichiers qui y correspondent ; il s'applique dès que le module existe.

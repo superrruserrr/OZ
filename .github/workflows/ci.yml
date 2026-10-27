@@ -18,6 +18,7 @@ concurrency:
 env:
   NEXT_TELEMETRY_DISABLED: '1'
   TURBO_TELEMETRY_DISABLED: '1'
+  STORYBOOK_DISABLE_TELEMETRY: '1'
   DO_NOT_TRACK: '1'
 
 jobs:
@@ -117,11 +118,23 @@ jobs:
       - run: pnpm build
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:e2e
+      # Lot 0.10 : chaque story rendue dans Chromium, interactions `play` et axe-core WCAG 2.1 AA
+      # bloquant, puis replis `prefers-reduced-motion` de Button et Field.
+      - run: pnpm test:stories
+      - run: pnpm --filter @oz/ui build-storybook
+      # Storybook n'est pas hébergé avant la recette (DEBT D-051) : build statique en artefact.
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: storybook-static
+          path: packages/ui/storybook-static/
+          retention-days: 14
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: failure()
         with:
           name: playwright-results
-          path: e2e/test-results/
+          path: |
+            e2e/test-results/
+            packages/ui/.vitest/
           retention-days: 14
 
   security:

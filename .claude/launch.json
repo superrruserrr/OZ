@@ -4,20 +4,44 @@
     {
       "name": "api",
       "runtimeExecutable": "env",
-      "runtimeArgs": ["FEATURE_CONTACT_FORM=true", "pnpm", "--filter", "@oz/api", "start"],
+      "runtimeArgs": [
+        "FEATURE_CONTACT_FORM=true",
+        "pnpm",
+        "--filter",
+        "@oz/api",
+        "start"
+      ],
       "port": 3001
     },
     {
       "name": "web",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["--filter", "@oz/web", "dev"],
+      "runtimeArgs": [
+        "--filter",
+        "@oz/web",
+        "dev"
+      ],
       "port": 3000
     },
     {
       "name": "admin",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["--filter", "@oz/admin", "dev"],
+      "runtimeArgs": [
+        "--filter",
+        "@oz/admin",
+        "dev"
+      ],
       "port": 3002
+    },
+    {
+      "name": "storybook",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": [
+        "--filter",
+        "@oz/ui",
+        "storybook"
+      ],
+      "port": 6006
     }
   ]
 }

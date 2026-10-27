@@ -11,6 +11,7 @@
     "typecheck": "turbo run typecheck",
     "lint": "eslint . --max-warnings=0 && node scripts/check-dependencies.mjs",
     "test": "turbo run generate --output-logs=errors-only && vitest run",
+    "test:stories": "pnpm --filter @oz/ui test:stories",
     "test:e2e": "playwright test --config e2e/playwright.config.ts",
     "test:containers": "scripts/containers-smoke.sh",
     "test:coverage": "turbo run generate --output-logs=errors-only && vitest run --coverage",

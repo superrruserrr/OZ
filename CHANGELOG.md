@@ -6,6 +6,7 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/). Versionnage :
 
 ### Ajouté
 
+- Lot 0.10 — design system `@oz/ui` : bouton (E3, E4), champ (E5), sélecteur, carte sélectionnable, badge de statut, tableau, modale et notification, adaptés de shadcn sur Radix, sans texte en dur ; Storybook 10 (stories de chaque état, documentation générée, nuancier des jetons) ; `pnpm test:stories` dans le job CI `build-e2e` : chaque story dans Chromium avec axe-core WCAG 2.1 AA bloquant et replis `prefers-reduced-motion` vérifiés ; build statique en artefact CI (hébergement reporté avec la recette, D-051) ; classes des composants servies par web et admin (`@source`).
 - Lot 0.8b — infrastructure Scaleway en Terraform : recette (réseau privé, instance d'accueil Coolify durcie, PostgreSQL 16 et Redis managés sans accès public, buckets privés et versionnés avec copies de secours à Amsterdam, application IAM limitée à ses buckets, secrets en écriture seule dans Secret Manager, protections contre la destruction) ; API : TLS épinglé vers PostgreSQL et Redis exigé en recette et en production (D-006), migrations par `DATABASE_MIGRATION_URL` à travers un relais TLS épinglé (D-039) ; recette et production écrites et testées, non appliquées (mise en ligne reportée en fin de projet, D-051) ; tests de sécurité `terraform test` et contrôles Terraform dans le job CI `security` ; runbooks de restauration et de reconstruction.
 - Lot 0.8a — images de conteneur : api, web et admin sur distroless Node 24, non-root, bases épinglées par condensé ; route `/health/live` ; serveur Next insensible à `HOSTNAME` dans les images (D-013 contournée) ; `APP_ENV` validé au démarrage (D-021) ; `robots.txt` selon l'environnement et icône ; fumée Playwright sur les conteneurs et Trivy sur les images dans le job CI `containers`.
 - Lot 0.7 — intégration continue GitHub Actions : cinq jobs exigés (`quality`, `test`, `build-e2e`, `security`, `migrations`), Node 24, seuils de couverture R6 bloquants, gitleaks (historique complet), `pnpm audit`, Trivy, Semgrep, vérification réelle des migrations ; actions épinglées par commit, outils aux empreintes figées, Dependabot avec délai de 14 jours ; règles de protection de `develop` et `main` versionnées.
@@ -16,6 +17,7 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/). Versionnage :
 
 ### Sécurité
 
+- Exception nominative à `trustPolicy` pour `semver@6.3.1`, exigée par Babel via Storybook (DEBT D-052) ; télémétrie de Storybook coupée.
 - Prisma ramené à 7.9.1 : la CLI 7.10.x est publiée sans attestation de provenance ; pnpm `trustPolicy: no-downgrade` et `blockExoticSubdeps` activés.
 - Dependabot n'ouvre plus de PR pour les montées majeures de `typescript`, `@types/node`, `postgres` et `redis` ; PostgreSQL 16.15 et Redis 7.4.11 rétablis (#10).
 - Override `multer` ^2.5.0 (GHSA-q7qp-rjg7-q26m) ; aucun script d'installation de dépendance exécuté (`allowBuilds`).
