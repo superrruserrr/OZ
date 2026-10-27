@@ -48,6 +48,10 @@ describe('proxy web : nonce et en-têtes', () => {
     ['/_next/image?url=%2Fa.png&w=64&q=75', false],
     ['/favicon.ico', false],
     ['/robots.txt', false],
+    ['/icon.svg', false],
+    ['/apple-icon.png', false],
+    ['/manifest.webmanifest', false],
+    ['/en/icon.svg', true],
   ] as const)('matcher : %s traité par le proxy → %s', (url, expected) => {
     expect(matches({ config, url })).toBe(expected);
   });

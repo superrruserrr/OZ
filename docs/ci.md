@@ -1,6 +1,6 @@
 # Intégration continue
 
-Lot 0.7 — EX-007, EX-T03, EX-T06. Workflow : [`.github/workflows/ci.yml`](../.github/workflows/ci.yml), déclenché sur chaque PR et chaque poussée vers `develop` et `main`. Une PR ne se merge que si les cinq jobs sont verts (règles [`.github/rulesets/`](../.github/rulesets/)).
+Lot 0.7 — EX-007, EX-T03, EX-T06. Workflow : [`.github/workflows/ci.yml`](../.github/workflows/ci.yml), déclenché sur chaque PR et chaque poussée vers `develop` et `main`. Une PR ne se merge que si les six jobs sont verts (règles [`.github/rulesets/`](../.github/rulesets/)).
 
 ## Jobs exigés
 
@@ -11,6 +11,7 @@ Lot 0.7 — EX-007, EX-T03, EX-T06. Workflow : [`.github/workflows/ci.yml`](../.
 | `build-e2e`  | Build de toutes les apps, fumée Playwright + axe sur les serveurs autonomes                                                                                                                                                                                                                        | `pnpm build && pnpm test:e2e`                                         |
 | `security`   | gitleaks sur l'historique de la branche, `pnpm audit` (≥ high), Trivy (vulnérabilités du lockfile et secrets ≥ HIGH ; l'analyse de configuration n'a pas encore de cible : Dockerfile et Terraform arriveront au lot 0.8), Semgrep (≥ WARNING ; le jeu `p/nextjs` ne contient encore aucune règle) | voir `scripts/install-ci-tools.sh` et la commande Semgrep du workflow |
 | `migrations` | PostgreSQL 16.15 : toutes les migrations en `up`, chacune en `down`, puis `up` (sortie vérifiée)                                                                                                                                                                                                   | `scripts/ci-migrations.sh` (avec `DATABASE_URL`, `APP_ENV=local`)     |
+| `containers` | Images api, web et admin construites, Trivy (vulnérabilités et secrets ≥ HIGH) sur chacune, puis fumée Playwright sur les conteneurs (PostgreSQL, Redis, S3 jetables ; `HOSTNAME` arbitraire)                                                                                                      | `pnpm test:containers`                                                |
 
 ## Note : gitleaks sur le poste
 
@@ -25,4 +26,4 @@ La CI analyse l'historique Git (`gitleaks git`). Sur le poste, `gitleaks dir .` 
 
 ## Protection des branches
 
-Les fichiers `.github/rulesets/develop.json` et `main.json` s'importent dans GitHub : _Settings → Rules → Rulesets → New ruleset → Import a ruleset_. Ils exigent une PR, les cinq contrôles à jour avec la base et la résolution des discussions, et interdisent suppression et poussée forcée. `develop` : squash seul, historique linéaire. `main` : merge commit des branches `release/*` et `hotfix/*`. Aucune approbation n'est exigée (TD-018) : développeur seul, GitHub refuse l'auto-approbation ; la revue passe par la revue adversariale et le merge de Gaëtan Wassu (R14 adapté). Sur un dépôt privé, l'application des règles demande GitHub Pro. **Aujourd'hui (compte gratuit, DEBT D-030), elles ne sont pas appliquées : ne merger qu'une PR dont les cinq contrôles sont verts.**
+Les fichiers `.github/rulesets/develop.json` et `main.json` s'importent dans GitHub : _Settings → Rules → Rulesets → New ruleset → Import a ruleset_. Ils exigent une PR, les six contrôles à jour avec la base et la résolution des discussions, et interdisent suppression et poussée forcée. `develop` : squash seul, historique linéaire. `main` : merge commit des branches `release/*` et `hotfix/*`. Aucune approbation n'est exigée (TD-018) : développeur seul, GitHub refuse l'auto-approbation ; la revue passe par la revue adversariale et le merge de Gaëtan Wassu (R14 adapté). Sur un dépôt privé, l'application des règles demande GitHub Pro. **Aujourd'hui (compte gratuit, DEBT D-030), elles ne sont pas appliquées : ne merger qu'une PR dont les six contrôles sont verts.**

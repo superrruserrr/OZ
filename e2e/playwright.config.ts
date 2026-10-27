@@ -7,6 +7,8 @@ export const ADMIN_URL = 'http://localhost:3102';
 
 export default defineConfig({
   testDir: '.',
+  // Specs des conteneurs : lancées par `pnpm test:containers` (e2e/containers.config.ts).
+  testIgnore: ['containers/**'],
   fullyParallel: true,
   forbidOnly: true,
   reporter: 'line',

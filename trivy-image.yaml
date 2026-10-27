@@ -1,0 +1,10 @@
+# Trivy sur les images (CI, job containers). Configuration distincte de trivy.yaml : celle-ci exclut
+# node_modules, qui contient dans une image les dépendances réellement livrées — elles doivent être analysées.
+exit-code: 1
+severity:
+  - HIGH
+  - CRITICAL
+scan:
+  scanners:
+    - vuln
+    - secret

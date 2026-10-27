@@ -1,0 +1,33 @@
+# Contexte de build des images (infra/docker/images) : ni secret, ni document confidentiel,
+# ni artefact local. Les images reconstruisent tout depuis les sources et le lockfile.
+.git
+.github
+.claude
+.husky
+.turbo
+**/.turbo
+**/node_modules
+**/.next
+**/dist
+**/coverage
+coverage
+**/test-results
+**/playwright-report
+packages/db/src/generated
+
+# Environnement (R8), à toute profondeur (apps/web/.env.local serait lu par next build) :
+# seul l'exemple est versionné et autorisé
+**/.env
+**/.env.*
+!.env.example
+
+# Documents confidentiels sous NDA
+OZ_Document_de_Projet.pdf
+EX CHART
+
+# Inutile aux images
+**/*.md
+phase*_plan.md
+docs
+e2e
+infra/terraform
