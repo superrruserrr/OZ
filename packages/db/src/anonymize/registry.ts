@@ -252,4 +252,6 @@ export const ANONYMIZATION_REGISTRY: Registry = {
     sent_at: 'technical',
     read_at: 'technical',
   },
+  // Lot 1.2 : l'OZ ID reste réservé après anonymisation (EX-102 n° 6, EX-118 n° 3).
+  oz_id_registry: { oz_id: 'technical', player_id: 'technical', issued_at: 'technical' },
 };

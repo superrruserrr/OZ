@@ -280,6 +280,9 @@ model Player {
   consents      Consent[]
   documents     Document[]
   kycCases      KycCase[]
+  /// OZ ID réservé à ce joueur par le registre, à lui et à nul autre (lot 1.2).
+  ozIdEntry     OzIdRegistry? @relation("PlayerOzId", fields: [ozId, id], references: [ozId, playerId], onDelete: Restrict, map: "players_oz_id_registry_fkey")
+  ozIdReserved  OzIdRegistry? @relation("OzIdRegistryPlayer")
   createdByUser User?         @relation("PlayerCreatedBy", fields: [createdBy], references: [id], onDelete: Restrict)
   updatedByUser User?         @relation("PlayerUpdatedBy", fields: [updatedBy], references: [id], onDelete: Restrict)
 
@@ -643,4 +646,19 @@ model Notification {
   @@index([recipientUserId])
   @@index([status, scheduledAt])
   @@map("notifications")
+}
+
+/// Registre des OZ ID émis (lot 1.2, EX-102) : jamais modifié ni supprimé, atteint par oz_issue_oz_id seulement.
+/// Contrôle de Damm vérifié en base (oz_ozid_is_valid).
+model OzIdRegistry {
+  ozId     String   @id @map("oz_id")
+  playerId String   @unique @map("player_id") @db.Uuid
+  issuedAt DateTime @default(now()) @map("issued_at") @db.Timestamptz(6)
+
+  player  Player   @relation("OzIdRegistryPlayer", fields: [playerId], references: [id], onDelete: Restrict)
+  /// Au plus un joueur (players.oz_id est unique) ; Prisma ne sait pas le dire sur une clé composite.
+  holders Player[] @relation("PlayerOzId")
+
+  @@unique([ozId, playerId])
+  @@map("oz_id_registry")
 }

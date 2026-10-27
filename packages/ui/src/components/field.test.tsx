@@ -40,11 +40,11 @@ describe('Field', () => {
   });
 
   it('désactivé : non modifiable', async () => {
-    render(<Field id="locked" label="OZ ID" disabled defaultValue="OZ-CM-26-7K4M9Q-3" />);
+    render(<Field id="locked" label="OZ ID" disabled defaultValue="OZ-CM-26-7K4M9Q-M" />);
     const input = screen.getByLabelText<HTMLInputElement>('OZ ID');
     expect(input.disabled).toBe(true);
     await userEvent.type(input, 'x');
-    expect(input.value).toBe('OZ-CM-26-7K4M9Q-3');
+    expect(input.value).toBe('OZ-CM-26-7K4M9Q-M');
   });
 
   it('chargement (vérification en cours) : aria-busy', () => {

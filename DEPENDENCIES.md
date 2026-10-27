@@ -116,6 +116,14 @@ Composants adaptés de shadcn/ui (code possédé, pas de paquet shadcn) sur les 
 | `@vitest/browser-playwright` | ^5.0.5 | MIT | ≈ 88 Ko | Tests Vitest dans Chromium sans affichage | jsdom : ni CSS calculé, ni axe-core fiable, ni `prefers-reduced-motion` | 0.10 |
 | `playwright` | ^1.64.1 | Apache-2.0 | ≈ 4,9 Mo (navigateur installé à part) | Pilote Chromium pour `@vitest/browser-playwright` ; même version que `@playwright/test` (racine) | — | 0.10 |
 
+## OZ ID (packages/core) — lot 1.2
+
+| Paquet | Version | Licence | Poids (décompressé) | Rôle | Alternative native envisagée | Ajouté |
+|---|---|---|---|---|---|---|
+| `qrcode-generator` | ^2.0.4 | MIT | ≈ 630 Ko, sans dépendance | Matrice du QR du profil (EX-102 n° 7) ; le SVG est écrit par `packages/core` | Encodeur QR maison (Reed-Solomon, masques) : long et risqué | 1.2 |
+| `fast-check` | ^4.10.2 (dev) | MIT | ≈ 1,5 Mo (+ `pure-rand` ≈ 240 Ko) | Tests de propriétés CP-01 et CP-04 (`design.md` §2) | Boucles aléatoires maison : ni réduction des contre-exemples ni graine rejouable | 1.2 |
+| `jsqr` | ^1.4.0 (dev) | Apache-2.0 | ≈ 330 Ko, sans dépendance | Décodage du QR dans les tests (preuve que le SVG se lit) | Aucune : pas de décodeur QR natif dans Node | 1.2 |
+
 ## Correctifs forcés (overrides pnpm) — lot 0.3
 
 | Paquet | Version | Licence | Poids (décompressé) | Rôle | Alternative native envisagée | Ajouté |

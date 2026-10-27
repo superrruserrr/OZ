@@ -27,6 +27,8 @@ const EXPOSED_TABLES = [
   'imports',
   'notifications',
   'subscriptions',
+  // Lot 1.2
+  'oz_id_registry',
 ];
 
 let db: TestDatabase;

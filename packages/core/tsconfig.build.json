@@ -1,4 +1,6 @@
 {
   "extends": "./tsconfig.json",
+  // Code livré sans types Node : il tourne aussi dans le navigateur (validation hors ligne).
+  "compilerOptions": { "types": [] },
   "exclude": ["src/**/*.test.ts"]
 }

@@ -1,3 +1,4 @@
+import { isValidOzId } from '@oz/core';
 import { isSyntheticPerson, ORGANIZATION_TYPES, REFERENCE_DATE } from '@oz/testing';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { seedDatabase } from '../src/seed.js';
@@ -36,6 +37,7 @@ const snapshot = async (): Promise<Record<string, number>> => ({
   players: await count('SELECT count(*) FROM players'),
   guardians: await count('SELECT count(*) FROM guardians'),
   consents: await count('SELECT count(*) FROM consents'),
+  ozIds: await count('SELECT count(*) FROM oz_id_registry'),
 });
 
 /** Mineur à la date de référence des fabriques : stable quel que soit le jour du test. */
@@ -103,6 +105,17 @@ describe('seedDatabase (EX-006.2, EX-101 n° 8, D7)', () => {
       await count(`SELECT count(*) FROM players
         WHERE document_number_hmac <> oz_blind_index(oz_decrypt(document_number_encrypted, '${KEYS.encryptionKey}'), '${KEYS.blindIndexKey}')`),
     ).toBe(0);
+  });
+
+  it('chaque joueur a un OZ ID valide, unique, au pays de rattachement, réservé au registre', async () => {
+    const rows = await db.query<{ oz_id: string | null; country: string }>(
+      'SELECT oz_id, country FROM players',
+    );
+    expect(rows).toHaveLength(500);
+    expect(rows.every((r) => r.oz_id !== null && isValidOzId(r.oz_id))).toBe(true);
+    expect(rows.every((r) => r.oz_id?.slice(3, 5) === r.country)).toBe(true);
+    expect(new Set(rows.map((r) => r.oz_id)).size).toBe(500);
+    expect(await count('SELECT count(*) FROM oz_id_registry')).toBe(500);
   });
 
   it('est idempotent : une seconde exécution ne change ni ne duplique rien', async () => {
