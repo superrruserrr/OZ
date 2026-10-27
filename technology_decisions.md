@@ -1,7 +1,7 @@
 # OZ — Décisions technologiques (technology_decisions.md)
 
 **Statut :** En cours (`/tech-stack` lancé le 2026-10-24)
-**Sources :** `OZ_Plan_Execution_Technique.md` §4 (stack de référence) · `requirements.md` · `design.md`
+**Sources :** `docs/PLAN.md` §4 (stack de référence) · `requirements.md` · `design.md`
 
 ## Objet
 

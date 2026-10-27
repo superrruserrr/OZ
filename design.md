@@ -1,6 +1,6 @@
 # OZ — Conception (design.md)
 
-**Sources :** `OZ_Document_de_Projet.pdf` (DP) · `OZ_Plan_Execution_Technique.md` · `requirements.md` · maquettes `EX CHART/` · **Statut :** Brouillon — à valider
+**Sources :** `OZ_Document_de_Projet.pdf` (DP) · `docs/PLAN.md` · `requirements.md` · maquettes `EX CHART/` · **Statut :** Brouillon — à valider
 **Références :** les identifiants `EX-xxx` renvoient à `requirements.md` ; les `§x.y` au plan technique.
 
 ---

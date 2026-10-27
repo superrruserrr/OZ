@@ -1,6 +1,6 @@
 # OZ — Exigences (requirements.md)
 
-**Sources :** `OZ_Document_de_Projet.pdf` (v1.0, juillet 2026 — le pourquoi, pour qui, quoi) · `OZ_Plan_Execution_Technique.md` (OZ-PETF-2026-001, v1.0 — le comment) · maquettes `EX CHART/` · séance `/kickoff` du 2026-10-24
+**Sources :** `OZ_Document_de_Projet.pdf` (v1.0, juillet 2026 — le pourquoi, pour qui, quoi) · `docs/PLAN.md` (OZ-PETF-2026-001, v1.0 — le comment) · maquettes `EX CHART/` · séance `/kickoff` du 2026-10-24
 **Porteur produit :** Fabrice Olinga · **Direction technique :** Gaëtan Wassu / EXISTE · **Contact technique cité par le Document de Projet :** Jean Armand Honyigloh
 **Statut :** Brouillon — à valider par le porteur produit
 **Périmètre :** Phases 0 à 5, en détail

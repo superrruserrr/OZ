@@ -1,5 +1,6 @@
 # Documents de référence du projet : rédigés à la main, non reformatés
 /*.md
+/docs/PLAN.md
 .claude/
 EX CHART/
 OZ_Document_de_Projet.pdf

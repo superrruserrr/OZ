@@ -16,7 +16,9 @@ Le hook pre-commit exige [gitleaks](https://github.com/gitleaks/gitleaks) instal
 
 | Document | Rôle |
 |---|---|
-| `OZ_Plan_Execution_Technique.md` | Référence d'exécution : règles R1-R14, lots, Git |
+| [docs/PLAN.md](docs/PLAN.md) | Plan d'exécution (OZ-PETF-2026-001), fait foi : règles R1-R14, lots, Git |
+| [CONTRIBUTING.md](CONTRIBUTING.md) · [SECURITY.md](SECURITY.md) | Contribuer ; signaler une vulnérabilité |
+| [docs/adr](docs/adr/README.md) · [docs/security](docs/security/README.md) | Décisions d'architecture ; politique et modèle de menaces |
 | `requirements.md` · `design.md` | Exigences (EX-xxx) et conception, issues de `/kickoff` |
 | `technology_decisions.md` | Décisions TD-001 à TD-017 |
 | `implementation_plan.md` | Une phase d'implémentation par lot |

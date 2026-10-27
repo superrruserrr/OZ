@@ -1,6 +1,6 @@
 # Projet OZ
 
-Document maître : `OZ_Plan_Execution_Technique.md` (référence OZ-PETF-2026-001). Il fait foi sur tout arbitrage technique, l'ordre des phases et la stratégie Git.
+Document maître : `docs/PLAN.md` (référence OZ-PETF-2026-001). Il fait foi sur tout arbitrage technique, l'ordre des phases et la stratégie Git.
 
 Références produit :
 - `OZ_Document_de_Projet.pdf` — le pourquoi, pour qui, quoi (personas, Annexe B des droits, univers visuels §12.2, paliers).
@@ -17,7 +17,7 @@ Toujours passer par le skill adapté plutôt que d'improviser un workflow.
 
 Workflow pour OZ (le plan technique existe déjà, l'idéation est donc couverte) :
 
-1. `/kickoff OZ_Plan_Execution_Technique.md` → `requirements.md` + `design.md`
+1. `/kickoff docs/PLAN.md` → `requirements.md` + `design.md`
 2. `/tech-stack` → valider la stack définie en §4 du plan (ne pas la réinventer)
 3. Pour chaque phase/lot du §8, dans l'ordre de merge du §9 :
    `/plan-phase N` → `/execute-phase N` → `/commit-phase N`
