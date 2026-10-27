@@ -38,6 +38,12 @@ const pemCert = z.preprocess(
     .optional(),
 );
 
+// Clé de chiffrement colonne (pgcrypto, plan §6.9) : 32 caractères au moins ; vide = absente.
+const columnKey = z.preprocess(
+  (value) => (value === '' ? undefined : value),
+  z.string().min(32).optional(),
+);
+
 const schema = z
   .object({
     NODE_ENV: z.enum(['development', 'test', 'production']),
@@ -56,6 +62,9 @@ const schema = z
     // Autorités Scaleway de la base et de Redis (PEM ; « \n » littéraux acceptés, D-006).
     DATABASE_CA_CERT: pemCert,
     REDIS_CA_CERT: pemCert,
+    // Chiffrement colonne et index aveugle (D2 du lot 1.1) ; exigées en recette et en production.
+    DATABASE_ENCRYPTION_KEY: columnKey,
+    DATABASE_BLIND_INDEX_KEY: columnKey,
     S3_ENDPOINT: z.url({ protocol: /^https?$/ }),
     S3_REGION: z.string().min(1),
     S3_BUCKET: z.string().regex(/^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$/),
@@ -74,6 +83,26 @@ const schema = z
     FEATURE_CONTACT_FORM: z.enum(['true', 'false']).default('false'),
   })
   .superRefine((env, ctx) => {
+    // Les deux clés vont ensemble, et diffèrent : un index aveugle ne doit rien révéler du chiffrement.
+    if (
+      (env.DATABASE_ENCRYPTION_KEY === undefined) !==
+      (env.DATABASE_BLIND_INDEX_KEY === undefined)
+    ) {
+      const missing =
+        env.DATABASE_ENCRYPTION_KEY === undefined
+          ? 'DATABASE_ENCRYPTION_KEY'
+          : 'DATABASE_BLIND_INDEX_KEY';
+      ctx.addIssue({ code: 'custom', path: [missing], message: 'les deux clés vont ensemble' });
+    } else if (
+      env.DATABASE_ENCRYPTION_KEY !== undefined &&
+      env.DATABASE_ENCRYPTION_KEY === env.DATABASE_BLIND_INDEX_KEY
+    ) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['DATABASE_BLIND_INDEX_KEY'],
+        message: 'clé distincte requise',
+      });
+    }
     // Recette et production : base et Redis managés joints en TLS épinglé (D-006, lot 0.8b).
     if (env.APP_ENV === 'staging' || env.APP_ENV === 'production') {
       const required = (path: string, message: string): void => {
@@ -81,6 +110,12 @@ const schema = z
       };
       if (!env.DATABASE_CA_CERT) required('DATABASE_CA_CERT', 'requis en recette et en production');
       if (!env.REDIS_CA_CERT) required('REDIS_CA_CERT', 'requis en recette et en production');
+      if (!env.DATABASE_ENCRYPTION_KEY) {
+        required('DATABASE_ENCRYPTION_KEY', 'requis en recette et en production');
+      }
+      if (!env.DATABASE_BLIND_INDEX_KEY) {
+        required('DATABASE_BLIND_INDEX_KEY', 'requis en recette et en production');
+      }
       if (!env.REDIS_URL.startsWith('rediss://')) required('REDIS_URL', 'rediss:// requis');
       if (/[?&]sslmode=disable(&|$)/.test(env.DATABASE_URL)) {
         required('DATABASE_URL', 'sslmode=disable interdit');
@@ -124,6 +159,8 @@ export interface ApiConfig {
   readonly redisUrl: string;
   readonly databaseCaCert: string | undefined;
   readonly redisCaCert: string | undefined;
+  /** Clés pgcrypto passées en paramètre des requêtes (oz_encrypt, oz_blind_index) ; absentes en local. */
+  readonly columnEncryption: { readonly key: string; readonly blindIndexKey: string } | undefined;
   readonly s3: {
     readonly endpoint: string;
     readonly region: string;
@@ -154,6 +191,13 @@ export function loadApiConfig(env: Readonly<Record<string, string | undefined>>)
     redisUrl: value.REDIS_URL,
     databaseCaCert: value.DATABASE_CA_CERT,
     redisCaCert: value.REDIS_CA_CERT,
+    columnEncryption:
+      value.DATABASE_ENCRYPTION_KEY !== undefined && value.DATABASE_BLIND_INDEX_KEY !== undefined
+        ? Object.freeze({
+            key: value.DATABASE_ENCRYPTION_KEY,
+            blindIndexKey: value.DATABASE_BLIND_INDEX_KEY,
+          })
+        : undefined,
     s3: Object.freeze({
       endpoint: value.S3_ENDPOINT,
       region: value.S3_REGION,

@@ -22,11 +22,13 @@ export function testConfig(overrides: Record<string, string> = {}): ApiConfig {
 
 const TEST_CA = '-----BEGIN CERTIFICATE-----\nMIIBfake\n-----END CERTIFICATE-----';
 
-/** TLS épinglé vers la base et Redis, exigé en recette et en production (D-006). */
+/** TLS épinglé vers la base et Redis (D-006) et clés de chiffrement colonne, exigés en recette et en production. */
 export const securedTransport: Record<string, string> = {
   REDIS_URL: 'rediss://127.0.0.1:1',
   DATABASE_CA_CERT: TEST_CA,
   REDIS_CA_CERT: TEST_CA,
+  DATABASE_ENCRYPTION_KEY: 'e'.repeat(40),
+  DATABASE_BLIND_INDEX_KEY: 'i'.repeat(40),
 };
 
 /** Surcharges d'une configuration de production valide (NODE_ENV, TLS et https partout). */

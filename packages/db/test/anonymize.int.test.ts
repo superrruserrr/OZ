@@ -5,6 +5,11 @@ import { ANONYMIZATION_REGISTRY, type Registry } from '../src/anonymize/registry
 import { migrateDeploy, startDatabase, type TestDatabase } from './database.js';
 
 let db: TestDatabase;
+// Clés de la copie (recette), distinctes de celles de la production.
+const COPY_KEYS = {
+  encryptionKey: 'e'.repeat(40),
+  blindIndexKey: 'i'.repeat(40),
+};
 const target = (): { targetHost: string; targetPort: number; targetDb: string } => {
   const url = new URL(db.url);
   return {
@@ -91,7 +96,7 @@ describe('registre d’anonymisation', () => {
         'unclassified_fixture.secret',
       ]);
       await expect(
-        anonymizeDatabase({ databaseUrl: db.url, appEnv: 'staging', ...target() }),
+        anonymizeDatabase({ databaseUrl: db.url, appEnv: 'staging', ...target(), ...COPY_KEYS }),
       ).rejects.toThrow(/unclassified_fixture\.secret/);
     } finally {
       await db.query('DROP TABLE unclassified_fixture');
@@ -161,6 +166,7 @@ describe('anonymizeDatabase (EX-T10.2-3)', () => {
       databaseUrl: db.url,
       appEnv: 'staging',
       ...target(),
+      ...COPY_KEYS,
       registry: FIXTURE_REGISTRY,
     });
     const after = await db.query<PersonRow & { whole: string }>(
@@ -186,6 +192,7 @@ describe('anonymizeDatabase (EX-T10.2-3)', () => {
         expect(row?.notes ?? '').not.toContain(name);
       }
     }
+    await db.query('DROP TABLE people_fixture');
   });
 
   it('refuse la production, avant toute connexion', async () => {
@@ -221,5 +228,90 @@ describe('anonymizeDatabase (EX-T10.2-3)', () => {
         targetHost: 'prod-host',
       }),
     ).rejects.toThrow(/cible/);
+  });
+});
+
+describe('anonymisation du socle (lot 1.1a, D-023)', () => {
+  const PROD_KEY = 'p'.repeat(40);
+  const ENCRYPTION_KEY = 'e'.repeat(40);
+  const BLIND_INDEX_KEY = 'i'.repeat(40);
+
+  it('remplace noms, contacts et pièces chiffrés, rechiffrés avec les clés de la recette', async () => {
+    const [user] = await db.query<{ id: string }>(
+      `INSERT INTO users (email) VALUES ('fatou.ndiaye@gmail.com') RETURNING id`,
+    );
+    const [guardian] = await db.query<{ id: string }>(
+      `INSERT INTO guardians (first_name, last_name, relationship, country, phone_encrypted, phone_hmac,
+         email_encrypted, email_hmac, document_number_encrypted, document_number_hmac)
+       VALUES ('Fatou', 'Ndiaye', 'mother', 'SN',
+         oz_encrypt('+221770000000', $1), oz_blind_index('+221770000000', $1),
+         oz_encrypt('fatou.ndiaye@gmail.com', $1), oz_blind_index('fatou.ndiaye@gmail.com', $1),
+         oz_encrypt('SN1234567', $1), oz_blind_index('SN1234567', $1)) RETURNING id`,
+      [PROD_KEY],
+    );
+    await db.query(
+      `INSERT INTO players (user_id, first_name, last_name, birth_date, nationality, country, guardian_id,
+         phone_encrypted, phone_hmac)
+       VALUES ($1, 'Moussa', 'Ndiaye', '2012-03-14', 'SN', 'SN', $2,
+         oz_encrypt('+221771111111', $3), oz_blind_index('+221771111111', $3))`,
+      [user?.id, guardian?.id, PROD_KEY],
+    );
+    await db.query(
+      `INSERT INTO audit_log (actor_user_id, action, target_type, reason, metadata)
+       VALUES ($1, 'player.profile.updated', 'player', 'Correction demandée par Fatou Ndiaye', '{"phone": "+221771111111"}')`,
+      [user?.id],
+    );
+
+    await anonymizeDatabase({
+      databaseUrl: db.url,
+      appEnv: 'staging',
+      ...target(),
+      encryptionKey: ENCRYPTION_KEY,
+      blindIndexKey: BLIND_INDEX_KEY,
+    });
+
+    const [g] = await db.query<{
+      first_name: string;
+      phone: string;
+      email: string;
+      doc: string;
+      ok: boolean;
+    }>(
+      `SELECT first_name, oz_decrypt(phone_encrypted, $1) AS phone, oz_decrypt(email_encrypted, $1) AS email,
+              oz_decrypt(document_number_encrypted, $1) AS doc,
+              phone_hmac = oz_blind_index(oz_decrypt(phone_encrypted, $1), $2) AS ok
+       FROM guardians WHERE id = $3`,
+      [ENCRYPTION_KEY, BLIND_INDEX_KEY, guardian?.id],
+    );
+    expect(g?.first_name).not.toBe('Fatou');
+    expect([g?.phone, g?.email, g?.doc]).not.toContain('+221770000000');
+    expect(g?.email).toMatch(/@example\.test$/);
+    expect(g?.doc).toMatch(/^SYN-/);
+    expect(g?.ok).toBe(true);
+    // L'ancienne clé ne déchiffre plus rien : les valeurs d'origine ont disparu.
+    await expect(
+      db.query('SELECT oz_decrypt(phone_encrypted, $1) FROM guardians WHERE id = $2', [
+        PROD_KEY,
+        guardian?.id,
+      ]),
+    ).rejects.toThrow(/Wrong key/);
+
+    const [p] = await db.query<{ last_name: string; email: string }>(
+      `SELECT p.last_name, u.email FROM players p JOIN users u ON u.id = p.user_id WHERE u.id = $1`,
+      [user?.id],
+    );
+    expect(p?.last_name).not.toBe('Ndiaye');
+    expect(p?.email).toMatch(/@example\.test$/);
+
+    const audit = await db.query<{ reason: string; metadata: unknown }>(
+      `SELECT reason, metadata FROM audit_log WHERE action = 'player.profile.updated'`,
+    );
+    expect(audit).toEqual([{ reason: '[anonymisé]', metadata: {} }]);
+  });
+
+  it('exige les clés de la recette dès qu’une colonne chiffrée est à réécrire', async () => {
+    await expect(
+      anonymizeDatabase({ databaseUrl: db.url, appEnv: 'staging', ...target() }),
+    ).rejects.toThrow(/DATABASE_ENCRYPTION_KEY/);
   });
 });

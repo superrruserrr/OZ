@@ -34,10 +34,16 @@ describe('rollbackLast (db:rollback)', () => {
     const result = await rollbackLast({ databaseUrl: db.url, appEnv: 'local' });
     expect(result.rolledBack).toBe(last);
     expect(await applied()).not.toContain(last);
-    expect(await tableExists('system_settings')).toBe(false);
+    // Dernière migration annulée, les précédentes intactes.
+    expect(await tableExists('users')).toBe(false);
+    expect(await tableExists('system_settings')).toBe(true);
   });
 
   it('ne fait rien et le dit quand aucune migration n’est appliquée', async () => {
+    while ((await rollbackLast({ databaseUrl: db.url, appEnv: 'local' })).rolledBack !== null) {
+      // Annule les migrations restantes, une par une.
+    }
+    expect(await tableExists('system_settings')).toBe(false);
     expect((await rollbackLast({ databaseUrl: db.url, appEnv: 'local' })).rolledBack).toBeNull();
   });
 

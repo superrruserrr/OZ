@@ -1,5 +1,7 @@
 // Schéma OZ (TD-002). Conventions : naming_conventions.md (tables snake_case au pluriel, @map),
 // migrations : docs/db/migrations.md (chaque migration a son down.sql).
+// Contraintes CHECK, déclencheurs, RLS, partitions et fonctions sont dans les migrations SQL (TD-002) :
+// Prisma ne les représente pas.
 
 generator client {
   provider            = "prisma-client"
@@ -21,4 +23,338 @@ model SystemSetting {
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   @@map("system_settings")
+}
+
+// ---------------------------------------------------------------------------------------------
+// Socle d'identité (lot 1.1a, EX-101). Colonnes *Encrypted : pgcrypto (oz_encrypt, clé en paramètre) ;
+// *Hmac : index aveugle (oz_blind_index). RLS forcée : contexte `oz.user_id` posé par transaction.
+// ---------------------------------------------------------------------------------------------
+
+enum UserStatus {
+  pending_verification
+  active
+  suspended
+  closed
+
+  @@map("user_status")
+}
+
+/// Sept profils d'inscription + administrateur interne (D-K03, D-K10).
+enum RoleKind {
+  player
+  guardian
+  academy
+  club
+  federation
+  center
+  recruiter
+  admin
+
+  @@map("role_kind")
+}
+
+enum OrganizationType {
+  academy
+  club
+  federation
+  center
+  recruiter
+  agency
+
+  @@map("organization_type")
+}
+
+/// Graphe de vérification du plan §5.4.
+enum VerificationStatus {
+  declared
+  pending
+  in_review
+  verified
+  rejected
+  suspended
+
+  @@map("verification_status")
+}
+
+enum GuardianRelationship {
+  mother
+  father
+  legal_guardian
+  other
+
+  @@map("guardian_relationship")
+}
+
+enum ConsentType {
+  terms_of_service
+  privacy_policy
+  guardian_data_processing
+  guardian_profile_publication
+
+  @@map("consent_type")
+}
+
+enum PlayerPosition {
+  goalkeeper
+  centre_back
+  full_back
+  defensive_midfielder
+  central_midfielder
+  attacking_midfielder
+  winger
+  striker
+
+  @@map("player_position")
+}
+
+enum DominantFoot {
+  left
+  right
+  both
+
+  @@map("dominant_foot")
+}
+
+/// Compte technique. Email stocké en minuscules ; suppression physique interdite.
+model User {
+  id                  String     @id @default(dbgenerated("oz_uuid_v7()")) @db.Uuid
+  email               String     @unique
+  passwordHash        String?    @map("password_hash")
+  status              UserStatus @default(pending_verification)
+  totpSecretEncrypted Bytes?     @map("totp_secret_encrypted")
+  totpEnabledAt       DateTime?  @map("totp_enabled_at") @db.Timestamptz(6)
+  emailVerifiedAt     DateTime?  @map("email_verified_at") @db.Timestamptz(6)
+  phoneVerifiedAt     DateTime?  @map("phone_verified_at") @db.Timestamptz(6)
+  lastSeenAt          DateTime?  @map("last_seen_at") @db.Timestamptz(6)
+  createdAt           DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  deletedAt           DateTime?  @map("deleted_at") @db.Timestamptz(6)
+
+  roles      UserRole[] @relation("UserRoleUser")
+  sessions   Session[]
+  player     Player?    @relation("PlayerUser")
+  guardians  Guardian[] @relation("GuardianUser")
+  consents   Consent[]  @relation("ConsentGrantedByUser")
+  auditTrail AuditLog[]
+
+  rolesCreated         UserRole[]     @relation("UserRoleCreatedBy")
+  rolesUpdated         UserRole[]     @relation("UserRoleUpdatedBy")
+  organizationsCreated Organization[] @relation("OrganizationCreatedBy")
+  organizationsUpdated Organization[] @relation("OrganizationUpdatedBy")
+  playersCreated       Player[]       @relation("PlayerCreatedBy")
+  playersUpdated       Player[]       @relation("PlayerUpdatedBy")
+  guardiansCreated     Guardian[]     @relation("GuardianCreatedBy")
+  guardiansUpdated     Guardian[]     @relation("GuardianUpdatedBy")
+  consentsCreated      Consent[]      @relation("ConsentCreatedBy")
+  consentsUpdated      Consent[]      @relation("ConsentUpdatedBy")
+
+  @@map("users")
+}
+
+/// Rôle et portée. Un rôle d'organisation exige `organizationId` ; unicité NULLS NOT DISTINCT (SQL).
+model UserRole {
+  id             String    @id @default(dbgenerated("oz_uuid_v7()")) @db.Uuid
+  userId         String    @map("user_id") @db.Uuid
+  role           RoleKind
+  organizationId String?   @map("organization_id") @db.Uuid
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  deletedAt      DateTime? @map("deleted_at") @db.Timestamptz(6)
+  createdBy      String?   @map("created_by") @db.Uuid
+  updatedBy      String?   @map("updated_by") @db.Uuid
+
+  user          User          @relation("UserRoleUser", fields: [userId], references: [id], onDelete: Restrict)
+  organization  Organization? @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  createdByUser User?         @relation("UserRoleCreatedBy", fields: [createdBy], references: [id], onDelete: Restrict)
+  updatedByUser User?         @relation("UserRoleUpdatedBy", fields: [updatedBy], references: [id], onDelete: Restrict)
+
+  @@unique([userId, role, organizationId])
+  @@index([organizationId])
+  @@map("user_roles")
+}
+
+/// Session de rafraîchissement : empreinte du jeton seulement, IP tronquée (/24, /48).
+model Session {
+  id                String    @id @default(dbgenerated("oz_uuid_v7()")) @db.Uuid
+  userId            String    @map("user_id") @db.Uuid
+  familyId          String    @map("family_id") @db.Uuid
+  refreshTokenHash  String    @unique @map("refresh_token_hash")
+  userAgent         String?   @map("user_agent")
+  deviceFingerprint String?   @map("device_fingerprint")
+  ip                String?   @db.Inet
+  expiresAt         DateTime  @map("expires_at") @db.Timestamptz(6)
+  lastUsedAt        DateTime? @map("last_used_at") @db.Timestamptz(6)
+  revokedAt         DateTime? @map("revoked_at") @db.Timestamptz(6)
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  deletedAt         DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([familyId])
+  @@index([userId])
+  @@map("sessions")
+}
+
+model Organization {
+  id                 String             @id @default(dbgenerated("oz_uuid_v7()")) @db.Uuid
+  type               OrganizationType
+  name               String
+  registrationNumber String?            @map("registration_number")
+  country            String
+  region             String?
+  city               String?
+  contactEmail       String?            @map("contact_email")
+  verificationStatus VerificationStatus @default(declared) @map("verification_status")
+  createdAt          DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime           @default(now()) @map("updated_at") @db.Timestamptz(6)
+  deletedAt          DateTime?          @map("deleted_at") @db.Timestamptz(6)
+  createdBy          String?            @map("created_by") @db.Uuid
+  updatedBy          String?            @map("updated_by") @db.Uuid
+
+  members       UserRole[]
+  players       Player[]
+  createdByUser User?      @relation("OrganizationCreatedBy", fields: [createdBy], references: [id], onDelete: Restrict)
+  updatedByUser User?      @relation("OrganizationUpdatedBy", fields: [updatedBy], references: [id], onDelete: Restrict)
+
+  @@map("organizations")
+}
+
+/// Fiche joueur. Âge minimal 6 ans et OZ ID immuable (déclencheur) ; minorité jamais stockée (CP-15).
+model Player {
+  id                      String             @id @default(dbgenerated("oz_uuid_v7()")) @db.Uuid
+  userId                  String?            @unique @map("user_id") @db.Uuid
+  ozId                    String?            @unique @map("oz_id")
+  firstName               String             @map("first_name")
+  lastName                String             @map("last_name")
+  birthDate               DateTime           @map("birth_date") @db.Date
+  nationality             String
+  country                 String
+  region                  String?
+  city                    String?
+  phoneEncrypted          Bytes?             @map("phone_encrypted")
+  phoneHmac               Bytes?             @map("phone_hmac")
+  documentNumberEncrypted Bytes?             @map("document_number_encrypted")
+  documentNumberHmac      Bytes?             @map("document_number_hmac")
+  primaryPosition         PlayerPosition?    @map("primary_position")
+  secondaryPosition       PlayerPosition?    @map("secondary_position")
+  dominantFoot            DominantFoot?      @map("dominant_foot")
+  heightCm                Int?               @map("height_cm") @db.SmallInt
+  weightKg                Int?               @map("weight_kg") @db.SmallInt
+  verificationStatus      VerificationStatus @default(declared) @map("verification_status")
+  guardianId              String?            @map("guardian_id") @db.Uuid
+  organizationId          String?            @map("organization_id") @db.Uuid
+  visibility              Json               @default("{}")
+  createdAt               DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime           @default(now()) @map("updated_at") @db.Timestamptz(6)
+  deletedAt               DateTime?          @map("deleted_at") @db.Timestamptz(6)
+  createdBy               String?            @map("created_by") @db.Uuid
+  updatedBy               String?            @map("updated_by") @db.Uuid
+
+  user          User?         @relation("PlayerUser", fields: [userId], references: [id], onDelete: Restrict)
+  guardian      Guardian?     @relation(fields: [guardianId], references: [id], onDelete: Restrict)
+  organization  Organization? @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  consents      Consent[]
+  createdByUser User?         @relation("PlayerCreatedBy", fields: [createdBy], references: [id], onDelete: Restrict)
+  updatedByUser User?         @relation("PlayerUpdatedBy", fields: [updatedBy], references: [id], onDelete: Restrict)
+
+  @@index([documentNumberHmac])
+  @@index([guardianId])
+  @@index([organizationId])
+  @@map("players")
+}
+
+/// Parent ou tuteur légal : contacts et pièce chiffrés.
+model Guardian {
+  id                      String               @id @default(dbgenerated("oz_uuid_v7()")) @db.Uuid
+  userId                  String?              @map("user_id") @db.Uuid
+  firstName               String               @map("first_name")
+  lastName                String               @map("last_name")
+  relationship            GuardianRelationship
+  country                 String
+  phoneEncrypted          Bytes?               @map("phone_encrypted")
+  phoneHmac               Bytes?               @map("phone_hmac")
+  emailEncrypted          Bytes?               @map("email_encrypted")
+  emailHmac               Bytes?               @map("email_hmac")
+  documentNumberEncrypted Bytes?               @map("document_number_encrypted")
+  documentNumberHmac      Bytes?               @map("document_number_hmac")
+  verificationStatus      VerificationStatus   @default(declared) @map("verification_status")
+  createdAt               DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime             @default(now()) @map("updated_at") @db.Timestamptz(6)
+  deletedAt               DateTime?            @map("deleted_at") @db.Timestamptz(6)
+  createdBy               String?              @map("created_by") @db.Uuid
+  updatedBy               String?              @map("updated_by") @db.Uuid
+
+  user          User?     @relation("GuardianUser", fields: [userId], references: [id], onDelete: Restrict)
+  players       Player[]
+  consents      Consent[]
+  createdByUser User?     @relation("GuardianCreatedBy", fields: [createdBy], references: [id], onDelete: Restrict)
+  updatedByUser User?     @relation("GuardianUpdatedBy", fields: [updatedBy], references: [id], onDelete: Restrict)
+
+  @@index([documentNumberHmac])
+  @@index([userId])
+  @@map("guardians")
+}
+
+/// Registre des consentements : horodatage serveur, immuable, révocation définitive (déclencheur).
+model Consent {
+  id                  String      @id @default(dbgenerated("oz_uuid_v7()")) @db.Uuid
+  type                ConsentType
+  textVersion         String      @map("text_version")
+  playerId            String?     @map("player_id") @db.Uuid
+  grantedByUserId     String?     @map("granted_by_user_id") @db.Uuid
+  grantedByGuardianId String?     @map("granted_by_guardian_id") @db.Uuid
+  grantedAt           DateTime    @default(now()) @map("granted_at") @db.Timestamptz(6)
+  revokedAt           DateTime?   @map("revoked_at") @db.Timestamptz(6)
+  createdAt           DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime    @default(now()) @map("updated_at") @db.Timestamptz(6)
+  deletedAt           DateTime?   @map("deleted_at") @db.Timestamptz(6)
+  createdBy           String?     @map("created_by") @db.Uuid
+  updatedBy           String?     @map("updated_by") @db.Uuid
+
+  player            Player?   @relation(fields: [playerId], references: [id], onDelete: Restrict)
+  grantedByUser     User?     @relation("ConsentGrantedByUser", fields: [grantedByUserId], references: [id], onDelete: Restrict)
+  grantedByGuardian Guardian? @relation(fields: [grantedByGuardianId], references: [id], onDelete: Restrict)
+  createdByUser     User?     @relation("ConsentCreatedBy", fields: [createdBy], references: [id], onDelete: Restrict)
+  updatedByUser     User?     @relation("ConsentUpdatedBy", fields: [updatedBy], references: [id], onDelete: Restrict)
+
+  @@index([grantedByGuardianId])
+  @@index([grantedByUserId])
+  @@index([playerId])
+  @@map("consents")
+}
+
+/// Journal d'audit (EX-T11) : partitionné par mois (SQL), chaîné par SHA-256 et immuable (déclencheurs).
+/// Position et hachages sont calculés par la base : toute valeur fournie est remplacée.
+model AuditLog {
+  id            String   @default(dbgenerated("oz_uuid_v7()")) @db.Uuid
+  chainPosition BigInt   @default(0) @map("chain_position")
+  actorUserId   String?  @map("actor_user_id") @db.Uuid
+  action        String
+  targetType    String   @map("target_type")
+  targetId      String?  @map("target_id") @db.Uuid
+  reason        String
+  requestId     String?  @map("request_id")
+  metadata      Json     @default("{}")
+  prevHash      Bytes    @default("") @map("prev_hash")
+  hash          Bytes    @default("")
+  /// Heure de la base : une heure envoyée par le client est refusée par le déclencheur.
+  createdAt     DateTime @default(dbgenerated("transaction_timestamp()")) @map("created_at") @db.Timestamptz(6)
+
+  actor User? @relation(fields: [actorUserId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@id([id, createdAt])
+  @@index([actorUserId])
+  @@index([chainPosition])
+  @@index([targetType, targetId], map: "audit_log_target_idx")
+  @@map("audit_log")
+}
+
+/// Tête de la chaîne d'audit : une seule ligne, écrite par le seul déclencheur `oz_audit_chain`.
+model AuditChainState {
+  id           Boolean @id @default(true)
+  lastPosition BigInt  @map("last_position")
+  lastHash     Bytes   @map("last_hash")
+
+  @@map("audit_chain_state")
 }

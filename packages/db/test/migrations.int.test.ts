@@ -57,7 +57,7 @@ describe('cycle up → down → up (EX-T09.2, R9)', () => {
 
   it.each([
     ['un schéma', 'CREATE SCHEMA extra', 'DROP SCHEMA extra'],
-    ['une énumération', "CREATE TYPE role_kind AS ENUM ('player')", 'DROP TYPE role_kind'],
+    ['une énumération', "CREATE TYPE probe_kind AS ENUM ('probe')", 'DROP TYPE probe_kind'],
     ['un domaine', 'CREATE DOMAIN short_text AS text', 'DROP DOMAIN short_text'],
     ['une séquence', 'CREATE SEQUENCE extra_seq', 'DROP SEQUENCE extra_seq'],
     ['une vue', 'CREATE VIEW extra_v AS SELECT 1 AS one', 'DROP VIEW extra_v'],

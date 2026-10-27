@@ -49,6 +49,48 @@ export async function startDatabase(): Promise<TestDatabase> {
   };
 }
 
+/** Connexion sous un rôle applicatif sans privilège, comme `oz_app` en recette (soumis à la RLS). */
+export interface AppConnection {
+  /** Exécute `fn` dans une transaction, avec le contexte utilisateur posé si `userId` est fourni. */
+  as<T>(userId: string | null, fn: (client: pg.PoolClient) => Promise<T>): Promise<T>;
+  end(): Promise<void>;
+}
+
+export async function connectAsAppRole(db: TestDatabase): Promise<AppConnection> {
+  await db.query(`DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'oz_app_test') THEN
+      CREATE ROLE oz_app_test LOGIN PASSWORD 'oz_app_test' NOSUPERUSER NOBYPASSRLS;
+    END IF; END $$`);
+  await db.query('GRANT USAGE ON SCHEMA public TO oz_app_test');
+  await db.query(
+    'GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO oz_app_test',
+  );
+  const url = new URL(db.url);
+  url.username = 'oz_app_test';
+  url.password = 'oz_app_test';
+  const pool = new pg.Pool({ connectionString: url.toString(), max: 4 });
+  return {
+    async as(userId, fn) {
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
+        if (userId !== null) {
+          await client.query("SELECT set_config('oz.user_id', $1, true)", [userId]);
+        }
+        const result = await fn(client);
+        await client.query('COMMIT');
+        return result;
+      } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+      } finally {
+        client.release();
+      }
+    },
+    end: () => pool.end(),
+  };
+}
+
 /** Applique toutes les migrations avec Prisma (up). */
 export const migrateDeploy = (db: TestDatabase): Promise<string> =>
   db.exec('pnpm', ['exec', 'prisma', 'migrate', 'deploy']);
