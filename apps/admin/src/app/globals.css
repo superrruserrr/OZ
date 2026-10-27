@@ -1,3 +1,7 @@
 @import 'tailwindcss';
 @import '@oz/ui/tokens.css';
 @import '@oz/ui/base.css';
+
+/* Composants de @oz/ui (lot 0.10) : leurs classes sont générées ici ; les stories n'en font pas partie. */
+@source '../../../../packages/ui/src';
+@source not '../../../../packages/ui/src/**/*.stories.tsx';

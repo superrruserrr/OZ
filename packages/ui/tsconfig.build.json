@@ -2,7 +2,9 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     // Le code livré tourne aussi dans le navigateur : pas de types Node hors tests.
-    "types": []
+    "types": [],
+    "rootDir": "src"
   },
-  "exclude": ["src/**/*.test.ts"]
+  "include": ["src"],
+  "exclude": ["src/**/*.test.ts", "src/**/*.test.tsx", "src/**/*.stories.tsx", "src/test/**"]
 }

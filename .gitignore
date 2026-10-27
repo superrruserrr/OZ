@@ -37,3 +37,6 @@ packages/db/src/generated/
 *.tfvars
 !*.tfvars.example
 crash.log
+storybook-static/
+# Captures d'échec des tests navigateur (Vitest, `test:stories`).
+.vitest/

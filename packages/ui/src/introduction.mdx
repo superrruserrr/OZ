@@ -1,0 +1,45 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Introduction" />
+
+# OZ · Design system
+
+Composants et jetons partagés par le site public, le back-office et l'application (lot 0.10). Thème
+sombre natif, aucun mode clair (TD-008). Tous les textes arrivent déjà traduits par les props : aucun
+composant ne contient de libellé.
+
+## Deux registres (design.md §8.2)
+
+|        | Émotion                                      | Pilotage                                                   |
+| ------ | -------------------------------------------- | ---------------------------------------------------------- |
+| Où     | Site public, landing, carte OZ ID, marketing | Formulaires, KYC, recherche, tableaux de bord, back-office |
+| Vert   | Lime `lime`, registre Émotion seulement      | Émeraude `primary` : actions, états validés                |
+| Effets | Halo, lumière, verre dépoli                  | Aucun dégradé décoratif                                    |
+
+**Règle d'or :** le registre Émotion ne descend jamais dans un écran où l'on saisit une donnée ou
+prend une décision. Les composants de ce lot relèvent du registre Pilotage.
+
+## Jetons (design.md §8.3)
+
+Une seule source, `src/tokens.ts`, reprise en variables CSS `--oz-*` par `styles/tokens.css` et en
+classes Tailwind `bg-oz-*`, `text-oz-*`, `border-oz-*`. Voir **Fondations / Jetons de couleur**. Le
+bleu légal n'existe qu'en `legal-icon` (icônes, grands titres) et `legal-text` (texte, AA).
+
+## Règles de couleur (design.md §8.4)
+
+1. Le vert ne s'allume que lorsque l'action est réellement possible (bouton inactif : fond plat).
+2. Le bleu marque tout ce qui relève du tuteur et du cadre légal.
+3. L'ambre annonce un niveau de vérification KYC, avant la saisie.
+4. Le rouge est réservé au bloquant et au danger.
+5. Le badge « Vérifié » n'apparaît qu'après confirmation serveur (CP-19).
+
+## Effets du lot (design.md §8.7)
+
+| #   | Effet                                                                             | Repli sous mouvements réduits  |
+| --- | --------------------------------------------------------------------------------- | ------------------------------ |
+| E3  | Dégradé du bouton principal ; survol plus lumineux avec ombre verte, appui à 0,98 | Sans ombre ni mise à l'échelle |
+| E4  | Activation du vert en 200 ms quand l'action devient possible                      | Bascule instantanée            |
+| E5  | Contour vert de 1,5 px en 150 ms au focus d'un champ                              | Contour seul                   |
+
+Seuls `transform` et `opacity` (et la couleur du contour) sont animés. Chaque story est contrôlée
+par axe-core (WCAG 2.1 AA, bloquant) avec `pnpm --filter @oz/ui test:stories`.

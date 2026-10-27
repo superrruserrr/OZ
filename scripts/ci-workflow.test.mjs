@@ -125,9 +125,10 @@ describe('ci.yml — durcissement', () => {
     expect(hardened).toBe(checkouts);
   });
 
-  it('coupe la télémétrie de Next et de Turbo', () => {
+  it('coupe la télémétrie de Next, de Turbo et de Storybook', () => {
     expect(text).toMatch(/NEXT_TELEMETRY_DISABLED: '1'/);
     expect(text).toMatch(/TURBO_TELEMETRY_DISABLED: '1'/);
+    expect(text).toMatch(/STORYBOOK_DISABLE_TELEMETRY: '1'/);
   });
 });
 
@@ -156,6 +157,18 @@ describe('ci.yml — contenu des jobs', () => {
     expect(job).toContain('pnpm build');
     expect(job).toContain('pnpm exec playwright install --with-deps chromium');
     expect(job).toContain('pnpm test:e2e');
+  });
+
+  it('build-e2e : stories Storybook dans Chromium (axe-core bloquant) puis build statique publié (lot 0.10)', () => {
+    const job = blocks.get('build-e2e') ?? '';
+    const at = (needle) => job.indexOf(needle);
+    expect(job).toContain('pnpm test:stories');
+    expect(job).toContain('pnpm --filter @oz/ui build-storybook');
+    expect(at('playwright install')).toBeLessThan(at('pnpm test:stories'));
+    expect(at('pnpm test:stories')).toBeLessThan(at('build-storybook'));
+    expect(job).toMatch(
+      /name: storybook-static\n\s+path: packages\/ui\/storybook-static\/\n\s+retention-days: 14/,
+    );
   });
 
   it('security : gitleaks sur tout l’historique, audit, Trivy et Semgrep épinglé', () => {

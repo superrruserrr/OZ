@@ -87,6 +87,7 @@ Ce fichier consigne chaque décision technologique d'OZ avec ses options, sa jus
 - **Bibliothèque de composants :** shadcn/ui (code possédé dans `packages/ui`) sur primitives Radix.
 - **Schéma de couleurs :** sombre natif (pas de thème clair en Phase 1).
 - **Compromis acceptés :** pas de thème clair → lisibilité en plein soleil à tester sur le terrain.
+- **Complément (lot 0.10, D4-D5) :** composants shadcn adaptés à la main (pas de CLI shadcn) sur Radix Slot, Label, Select, Dialog et Toast ; variantes `class-variance-authority`, fusion `clsx` + `tailwind-merge` étendu aux couleurs `oz-*` ; icônes en SVG inline (pas de bibliothèque d'icônes) ; aucun texte en dur, tous les libellés arrivent traduits par les props. Effets E3-E5 en CSS seul, ombre et mise à l'échelle sous `motion-safe`.
 
 ### TD-009 — Hébergement Phases 1-2 : Scaleway (Paris) — Instances + Coolify, PostgreSQL managé
 - **Date :** 2026-10-24 · **Statut :** Décidé par Gaëtan Wassu · **ADR :** ADR-003
@@ -209,6 +210,13 @@ Ce fichier consigne chaque décision technologique d'OZ avec ses options, sa jus
 - **Compromis acceptés :** la clé S3 de l'application reste dans l'état (D-037) ; production appliquée au lot 0.11 (D-036) ; copie hors région au lot 0.8d (D-034) ; RPO 15 min à confirmer (D-035) ; isolation des buckets par politique dans un projet partagé (D-040) ; verrou d'état à vérifier (D-042). Trivy n'a pas de règle propre à Scaleway : les propriétés de sécurité sont prouvées par `terraform test`.
 - **Mise en œuvre :** `infra/terraform`, tests de sécurité `modules/stack/tests` (fournisseur simulé) et `scripts/terraform.test.mjs`, vérifiés par le job CI `security`.
 
+### TD-020 — Banc d'essai du design system : Storybook 10, stories testées dans Chromium
+- **Date :** 2026-10-27 · **Statut :** Décidé par Gaëtan Wassu (lot 0.10, D1-D3) · Remplace « Storybook 8 » du plan (EX-010)
+- **Options considérées :** Storybook 8 (plan) · Storybook 10 · Ladle
+- **Justification :** Storybook 8 n'est plus maintenu et ne prend en charge ni Vite 8 ni Vitest 5 ; la version 10 exécute chaque story comme un test Vitest dans Chromium (`@storybook/addon-vitest`), avec axe-core WCAG 2.1 AA bloquant (`a11y.test: 'error'`) et les interactions `play`. Ladle n'a ni contrôle d'accessibilité ni exécution en test. Télémétrie coupée (R12). Build statique publié en artefact CI (rétention 14 jours) ; hébergement reporté avec la recette (D-051).
+- **Compromis acceptés :** chaîne Babel de Storybook qui tire `semver@6.3.1` sans attestation de provenance, exclu nominativement de `trustPolicy` (D-052) ; Chromium seul en test des stories (Firefox et WebKit couverts par les E2E à partir de la Phase 1).
+- **Mise en œuvre :** `packages/ui/.storybook`, `vitest.storybook.config.ts` (projets `storybook` et `motion`), `pnpm test:stories` dans le job CI `build-e2e`.
+
 ---
 
 ## Synthèse de la stack
@@ -232,3 +240,4 @@ Ce fichier consigne chaque décision technologique d'OZ avec ses options, sa jus
 | IA KYC | Fournisseur spécialisé (POC Veriff / Smile ID) | 015 |
 | Frontières IA | Option progressive | 016 |
 | OZ ID | Checksum de Damm base 32 | 017 |
+| Design system | Storybook 10, stories testées dans Chromium avec axe-core | 020 |

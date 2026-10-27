@@ -91,6 +91,31 @@ Audit : `pnpm audit --audit-level high` — aucune vulnérabilité connue au 202
 | `@prisma/adapter-pg` | 7.9.1 | Apache-2.0 | ≈ 72 Ko | Branche Prisma 7 sur le pilote `pg` déjà utilisé par l'API | Aucune : adaptateur requis par Prisma 7 | 0.6 |
 | `@faker-js/faker` | 10.6.0 (épinglé : les données synthétiques en dépendent) | MIT | ≈ 2,9 Mo | Données synthétiques déterministes (graine fixe) pour les fabriques, seeds et l'anonymisation (R10, D4) | Générateur maison : listes de noms à maintenir | 0.6 |
 
+## Design system et Storybook (packages/ui) — lot 0.10
+
+Composants adaptés de shadcn/ui (code possédé, pas de paquet shadcn) sur les primitives Radix (décision D4). Storybook 10 (TD-020) : télémétrie coupée par `core.disableTelemetry` et `STORYBOOK_DISABLE_TELEMETRY=1` (scripts et CI). Exception de chaîne d'approvisionnement : `semver@6.3.1`, tiré par Babel via Storybook, exclu nominativement de `trustPolicy` (DEBT D-052).
+
+| Paquet | Version | Licence | Poids (décompressé) | Rôle | Alternative native envisagée | Ajouté |
+|---|---|---|---|---|---|---|
+| `@radix-ui/react-dialog` | ^1.3.1 | MIT | ≈ 128 Ko | Modale accessible : piège du focus, Échap, `aria-modal` | `<dialog>` natif : retour du focus et blocage du défilement inégaux selon les navigateurs | 0.10 |
+| `@radix-ui/react-label` | ^2.1.17 | MIT | ≈ 36 Ko | Libellé de champ (évite la sélection au double clic) | `<label>` natif : retenu en repli, différence mineure | 0.10 |
+| `@radix-ui/react-select` | ^2.4.1 | MIT | ≈ 388 Ko | Sélecteur stylable, clavier complet, lecteurs d'écran | `<select>` natif : liste non stylable sur le thème sombre | 0.10 |
+| `@radix-ui/react-slot` | ^1.2.3 | MIT | ≈ 56 Ko | `asChild` : style du bouton sur un lien | Prop `href` dupliquant le composant : deux implémentations à maintenir | 0.10 |
+| `@radix-ui/react-toast` | ^1.3.1 | MIT | ≈ 208 Ko | Notifications annoncées (`aria-live`), fermeture, balayage | Région `aria-live` maison : file, durée et pause au survol à réécrire | 0.10 |
+| `class-variance-authority` | ^0.7.1 | Apache-2.0 | ≈ 44 Ko | Variantes typées des composants | Objets de classes manuels : pas de typage des variantes | 0.10 |
+| `clsx` | ^2.1.1 | MIT | ≈ 40 Ko | Classes conditionnelles | Gabarits de chaînes : illisibles au-delà de deux conditions | 0.10 |
+| `tailwind-merge` | ^3.7.0 | MIT | ≈ 1,1 Mo (≈ 8 Ko compressé servi) | Résout les conflits de classes Tailwind passées en `className` | Interdire `className` : composants non adaptables | 0.10 |
+| `storybook` | 10.6.3 (exact) | MIT | ≈ 22 Mo | Vitrine et banc d'essai du design system (EX-010, TD-020) | Ladle : pas d'addon a11y ni d'exécution des stories en test | 0.10 |
+| `@storybook/react-vite` | 10.6.3 (exact) | MIT | ≈ 140 Ko | Cadre React + Vite de Storybook | — | 0.10 |
+| `@storybook/addon-a11y` | 10.6.3 (exact) | MIT | ≈ 240 Ko | Contrôle axe-core de chaque story, bloquant en test | `@axe-core/playwright` sur des pages : ne couvre pas chaque état isolé | 0.10 |
+| `@storybook/addon-docs` | 10.6.3 (exact) | MIT | ≈ 1,3 Mo | Documentation générée (props, variantes) et pages MDX | README seul : pas de rendu vivant | 0.10 |
+| `@storybook/addon-vitest` | 10.6.3 (exact) | MIT | ≈ 572 Ko | Exécute les stories comme tests Vitest (`test:stories`) | test-runner Storybook : serveur à lancer, plus lent | 0.10 |
+| `vite` | ^8.3.5 | MIT | ≈ 2,4 Mo | Bundler de Storybook et des tests navigateur | Webpack : plus lent, configuration plus lourde | 0.10 |
+| `@vitejs/plugin-react` | ^6.1.2 | MIT | ≈ 72 Ko | JSX et rafraîchissement pour Vite (projet de tests `motion`) | — | 0.10 |
+| `@tailwindcss/vite` | ^4.3.3 | MIT | ≈ 36 Ko | Tailwind 4 dans Vite (Storybook, tests navigateur) | PostCSS : déjà utilisé par Next, plus lent sous Vite | 0.10 |
+| `@vitest/browser-playwright` | ^5.0.5 | MIT | ≈ 88 Ko | Tests Vitest dans Chromium sans affichage | jsdom : ni CSS calculé, ni axe-core fiable, ni `prefers-reduced-motion` | 0.10 |
+| `playwright` | ^1.64.1 | Apache-2.0 | ≈ 4,9 Mo (navigateur installé à part) | Pilote Chromium pour `@vitest/browser-playwright` ; même version que `@playwright/test` (racine) | — | 0.10 |
+
 ## Correctifs forcés (overrides pnpm) — lot 0.3
 
 | Paquet | Version | Licence | Poids (décompressé) | Rôle | Alternative native envisagée | Ajouté |
