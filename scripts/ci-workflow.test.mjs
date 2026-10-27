@@ -184,13 +184,16 @@ describe('ci.yml — contenu des jobs', () => {
     expect(job).toContain('pnpm test:containers');
   });
 
-  it('containers : ménage le disque du runner (ENOSPC à la première exécution, PR #17)', () => {
+  it('containers : ménage le disque du runner (ENOSPC aux deux premières exécutions, PR #17)', () => {
     const job = blocks.get('containers') ?? '';
     const at = (needle) => job.indexOf(needle);
-    // Chromium avant les images ; cache de construction vidé après l'analyse, avant la fumée.
+    // Outils préinstallés inutiles supprimés d'abord ; Chromium avant les images ; cache de
+    // construction vidé dès la fin de la construction, avant que Trivy télécharge sa base.
+    expect(at('sudo rm -rf /usr/share/dotnet')).toBeGreaterThan(-1);
+    expect(at('sudo rm -rf /usr/share/dotnet')).toBeLessThan(at('playwright install'));
     expect(at('playwright install')).toBeLessThan(at('compose.smoke.yml build'));
-    expect(at('docker builder prune --all --force')).toBeGreaterThan(at('oz-admin:smoke'));
-    expect(at('docker builder prune --all --force')).toBeLessThan(at('pnpm test:containers'));
+    expect(at('docker builder prune --all --force')).toBeGreaterThan(at('compose.smoke.yml build'));
+    expect(at('docker builder prune --all --force')).toBeLessThan(at('oz-api:smoke'));
     expect(job).toMatch(/df -h/);
   });
 
