@@ -1,3 +1,27 @@
 # docs/adr
 
-Architecture Decision Records, modèle en Annexe A du plan (lot 0.11).
+Architecture Decision Records : trace écrite de chaque décision structurante et de ses raisons.
+Modèle : Annexe A du [plan d'exécution](../PLAN.md). Les décisions courantes de la stack sont tenues
+dans [technology_decisions.md](../../technology_decisions.md) (TD-001 à TD-020) ; un ADR reprend et
+fige celles que le plan désigne au §4.3, et toute modification substantielle du plan fait l'objet
+d'un ADR.
+
+| ADR                                                 | Décision                                                          | Statut  | Date       |
+| --------------------------------------------------- | ----------------------------------------------------------------- | ------- | ---------- |
+| [ADR-001](ADR-001-nestjs.md)                        | NestJS plutôt que Fastify ou Express nu                           | Accepté | 2026-10-27 |
+| [ADR-002](ADR-002-authentification-proprietaire.md) | Authentification propriétaire plutôt que fournisseur externe      | Accepté | 2026-10-27 |
+| [ADR-003](ADR-003-postgresql-manage-residence.md)   | PostgreSQL managé, résidence des données à Paris                  | Accepté | 2026-10-27 |
+| [ADR-004](ADR-004-zod-contrat-unique.md)            | Zod comme contrat unique de validation                            | Accepté | 2026-10-27 |
+| [ADR-005](ADR-005-recherche-progressive.md)         | Recherche progressive : plein texte PostgreSQL, puis moteur dédié | Proposé | 2026-10-27 |
+| [ADR-006](ADR-006-abstraction-paiements.md)         | Abstraction des fournisseurs de paiement                          | Accepté | 2026-10-27 |
+| [ADR-007](ADR-007-uuidv7-oz-id.md)                  | UUIDv7 technique, OZ ID métier                                    | Accepté | 2026-10-27 |
+| [ADR-008](ADR-008-conservation-pieces-identite.md)  | Conservation et purge des documents d'identité                    | Proposé | 2026-10-27 |
+
+## Écrire un ADR
+
+1. Copier le modèle de l'Annexe A dans `ADR-NNN-titre-court.md` (numéro suivant, kebab-case).
+2. Statut `Proposé` tant que la décision n'est pas validée par Gaëtan Wassu, puis `Accepté` ; un ADR
+   remplacé garde son fichier avec le statut `Remplacé par ADR-NNN`.
+3. Citer les sources (§ du plan, TD, exigences) ; ajouter la ligne au tableau ci-dessus.
+
+`scripts/docs-foundation.test.mjs` vérifie le modèle et cet index.

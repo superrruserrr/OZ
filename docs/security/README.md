@@ -1,3 +1,9 @@
 # docs/security
 
-Politique, modèle de menaces, matrice RBAC, registre RGPD (lots 0.11, 1.4, 1.16).
+| Document                         | Contenu                                               | Lot  |
+| -------------------------------- | ----------------------------------------------------- | ---- |
+| [policy.md](policy.md)           | Politique de sécurité : mesures en place et prévues   | 0.11 |
+| [threats.md](threats.md)         | Modèle de menaces : les huit risques de la plateforme | 0.11 |
+| [SECURITY.md](../../SECURITY.md) | Signalement des vulnérabilités                        | 0.11 |
+| `rbac.md`                        | Matrice des rôles et permissions                      | 1.4  |
+| `rgpd.md`                        | Registre des traitements                              | 1.16 |

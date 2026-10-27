@@ -1,6 +1,6 @@
 # OZ — Plan d'implémentation (implementation_plan.md)
 
-**Sources :** `requirements.md` · `design.md` · `technology_decisions.md` · `OZ_Plan_Execution_Technique.md` (§8 lots, §9 dépendances)
+**Sources :** `requirements.md` · `design.md` · `technology_decisions.md` · `docs/PLAN.md` (§8 lots, §9 dépendances)
 **Date :** 2026-10-24 · **Statut :** Généré par `/tech-stack`
 
 ---
