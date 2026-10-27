@@ -28,6 +28,16 @@ const origin = z.string().refine((value) => {
   }
 });
 
+// Vide = absent : un .env copié de .env.example déclare ces variables sans valeur.
+const pemCert = z.preprocess(
+  (value) => (value === '' ? undefined : value),
+  z
+    .string()
+    .transform((value) => value.replaceAll('\\n', '\n').trim())
+    .pipe(z.string().regex(/^-----BEGIN CERTIFICATE-----\n[\s\S]+\n-----END CERTIFICATE-----$/))
+    .optional(),
+);
+
 const schema = z
   .object({
     NODE_ENV: z.enum(['development', 'test', 'production']),
@@ -43,6 +53,9 @@ const schema = z
       .default('info'),
     DATABASE_URL: z.string().regex(/^postgres(ql)?:\/\/.+/),
     REDIS_URL: z.string().regex(/^rediss?:\/\/.+/),
+    // Autorités Scaleway de la base et de Redis (PEM ; « \n » littéraux acceptés, D-006).
+    DATABASE_CA_CERT: pemCert,
+    REDIS_CA_CERT: pemCert,
     S3_ENDPOINT: z.url({ protocol: /^https?$/ }),
     S3_REGION: z.string().min(1),
     S3_BUCKET: z.string().regex(/^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$/),
@@ -61,6 +74,18 @@ const schema = z
     FEATURE_CONTACT_FORM: z.enum(['true', 'false']).default('false'),
   })
   .superRefine((env, ctx) => {
+    // Recette et production : base et Redis managés joints en TLS épinglé (D-006, lot 0.8b).
+    if (env.APP_ENV === 'staging' || env.APP_ENV === 'production') {
+      const required = (path: string, message: string): void => {
+        ctx.addIssue({ code: 'custom', path: [path], message });
+      };
+      if (!env.DATABASE_CA_CERT) required('DATABASE_CA_CERT', 'requis en recette et en production');
+      if (!env.REDIS_CA_CERT) required('REDIS_CA_CERT', 'requis en recette et en production');
+      if (!env.REDIS_URL.startsWith('rediss://')) required('REDIS_URL', 'rediss:// requis');
+      if (/[?&]sslmode=disable(&|$)/.test(env.DATABASE_URL)) {
+        required('DATABASE_URL', 'sslmode=disable interdit');
+      }
+    }
     if (env.APP_ENV !== 'production') return;
     // Formulaire de contact public : ni limitation de débit (lot 1.3) ni email (lot 1.15) avant ces lots.
     if (env.FEATURE_CONTACT_FORM === 'true') {
@@ -73,7 +98,7 @@ const schema = z
     if (env.NODE_ENV !== 'production') {
       ctx.addIssue({ code: 'custom', path: ['NODE_ENV'], message: 'production requis' });
     }
-    // TLS partout en production (§6.4 A02). Base et Redis : exigence posée au lot 0.8 (DEBT D-006).
+    // TLS partout en production (§6.4 A02) ; base et Redis : voir ci-dessus.
     if (!env.S3_ENDPOINT.startsWith('https://')) {
       ctx.addIssue({
         code: 'custom',
@@ -97,6 +122,8 @@ export interface ApiConfig {
   readonly logLevel: 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace' | 'silent';
   readonly databaseUrl: string;
   readonly redisUrl: string;
+  readonly databaseCaCert: string | undefined;
+  readonly redisCaCert: string | undefined;
   readonly s3: {
     readonly endpoint: string;
     readonly region: string;
@@ -125,6 +152,8 @@ export function loadApiConfig(env: Readonly<Record<string, string | undefined>>)
     logLevel: value.LOG_LEVEL,
     databaseUrl: value.DATABASE_URL,
     redisUrl: value.REDIS_URL,
+    databaseCaCert: value.DATABASE_CA_CERT,
+    redisCaCert: value.REDIS_CA_CERT,
     s3: Object.freeze({
       endpoint: value.S3_ENDPOINT,
       region: value.S3_REGION,

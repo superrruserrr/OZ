@@ -15,6 +15,7 @@ const SAFE_PARAMS = new Set([
   'sslcert',
   'sslkey',
   'sslpassword',
+  'sslaccept',
   'connect_timeout',
   'application_name',
   'connection_limit',

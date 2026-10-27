@@ -20,8 +20,18 @@ export function testConfig(overrides: Record<string, string> = {}): ApiConfig {
   return loadApiConfig({ ...validEnv, ...overrides });
 }
 
-/** Surcharges d'une configuration de production valide (NODE_ENV, https partout). */
+const TEST_CA = '-----BEGIN CERTIFICATE-----\nMIIBfake\n-----END CERTIFICATE-----';
+
+/** TLS épinglé vers la base et Redis, exigé en recette et en production (D-006). */
+export const securedTransport: Record<string, string> = {
+  REDIS_URL: 'rediss://127.0.0.1:1',
+  DATABASE_CA_CERT: TEST_CA,
+  REDIS_CA_CERT: TEST_CA,
+};
+
+/** Surcharges d'une configuration de production valide (NODE_ENV, TLS et https partout). */
 export const productionOverrides: Record<string, string> = {
+  ...securedTransport,
   NODE_ENV: 'production',
   APP_ENV: 'production',
   CORS_ORIGINS: 'https://www.oz.example',

@@ -202,6 +202,15 @@ Ce fichier consigne chaque décision technologique d'OZ avec ses options, sa jus
 
 ---
 
+### TD-019 — Infrastructure en code : Terraform, secrets en écriture seule, Redis managé
+- **Date :** 2026-10-26 · **Statut :** Décidé par Gaëtan Wassu (lot 0.8b, D1-D6) · Tranche le point ouvert Redis de TD-009
+- **Options considérées :** Terraform (plan §4) ou OpenTofu (MPL, chiffrement natif de l'état) · Redis managé Scaleway ou conteneur Coolify · secrets saisis à la main ou générés par Terraform
+- **Justification :** Terraform comme prévu au plan, état dans un bucket Scaleway privé et versionné (verrouillage natif `use_lockfile`). Redis managé en recette et en production (TLS, réseau privé, aucune exploitation) ; conteneur pour les prévisualisations. Mots de passe et secrets JWT générés comme valeurs **éphémères** et transmis en écriture seule (`password_wo`, `data_wo`) : ni dans l'état, ni en sortie, seulement dans Secret Manager ; les versions des secrets suivent l'instance, le cluster et la clé. Base et Redis sans point d'accès public, joints en TLS épinglé sur l'autorité de chaque instance (`verify-ca`, D-006) ; les migrations Prisma, dont le moteur ne sait pas épingler, passent par un relais local épinglé (D-039). `prevent_destroy` sur les données et l'état.
+- **Compromis acceptés :** la clé S3 de l'application reste dans l'état (D-037) ; production appliquée au lot 0.11 (D-036) ; copie hors région au lot 0.8d (D-034) ; RPO 15 min à confirmer (D-035) ; isolation des buckets par politique dans un projet partagé (D-040) ; verrou d'état à vérifier (D-042). Trivy n'a pas de règle propre à Scaleway : les propriétés de sécurité sont prouvées par `terraform test`.
+- **Mise en œuvre :** `infra/terraform`, tests de sécurité `modules/stack/tests` (fournisseur simulé) et `scripts/terraform.test.mjs`, vérifiés par le job CI `security`.
+
+---
+
 ## Synthèse de la stack
 
 | Couche | Choix | TD |
