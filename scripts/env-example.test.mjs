@@ -35,6 +35,10 @@ const REQUIRED = [
   'API_URL',
   'DATABASE_URL',
   'REDIS_URL',
+  // Recette et production (lot 0.8b) : rôle de migration, TLS épinglé (D-006)
+  'DATABASE_MIGRATION_URL',
+  'DATABASE_CA_CERT',
+  'REDIS_CA_CERT',
   'JWT_ACCESS_SECRET',
   'JWT_REFRESH_SECRET',
   'JWT_ACCESS_TTL',

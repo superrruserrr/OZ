@@ -20,7 +20,14 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['apps/*/src/**', 'packages/*/src/**'],
-      exclude: ['**/*.test.{ts,tsx}', '**/src/test/**', '**/src/generated/**', '**/src/cli/**'],
+      exclude: [
+        '**/*.test.{ts,tsx}',
+        '**/*.stories.tsx',
+        '**/*.mdx',
+        '**/src/test/**',
+        '**/src/generated/**',
+        '**/src/cli/**',
+      ],
       reporter: ['text', 'html', 'json-summary'],
       // R6 / EX-T06 : seuils bloquants en CI (`pnpm test:coverage`). Un seuil par motif ne vaut
       // que pour les fichiers qui y correspondent ; il s'applique dès que le module existe.
@@ -28,6 +35,8 @@ export default defineConfig({
         ...all(70),
         'apps/api/src/**/*.service.ts': all(80),
         'packages/core/src/**': all(80),
+        // EX-102 n° 8 : génération et validation de l'OZ ID couvertes à 100 %.
+        'packages/core/src/oz-id/**': all(100),
         'apps/api/src/auth/**': all(100),
         'apps/api/src/kyc/**': all(100),
         'apps/api/src/billing/**': all(100),

@@ -77,6 +77,9 @@ export interface AnonymizeOptions {
   readonly targetDb: string;
   readonly registry?: Registry;
   readonly seed?: number;
+  /** Clés de la copie (jamais celles de la production) : exigées si une colonne chiffrée est réécrite. */
+  readonly encryptionKey?: string | undefined;
+  readonly blindIndexKey?: string | undefined;
 }
 
 /** Date de naissance de même année, jour et mois différents de l'original. */
@@ -95,6 +98,13 @@ function replacement(
   person: SyntheticPerson,
 ): string | null {
   if (original === null || strategy === 'null') return null;
+  if (strategy.startsWith('encrypted:') || strategy.startsWith('blind_index:')) {
+    // Même valeur synthétique pour la colonne chiffrée et son index aveugle.
+    const kind = strategy.slice(strategy.indexOf(':') + 1);
+    if (kind === 'phone') return person.phone;
+    if (kind === 'email') return person.email;
+    return person.documentNumber;
+  }
   switch (strategy) {
     case 'first_name':
       return person.firstName;
@@ -110,7 +120,11 @@ function replacement(
       return person.documentNumber;
     case 'free_text':
       return FREE_TEXT;
-    case 'technical':
+    case 'empty_json':
+      return '{}';
+    case 'empty_json_array':
+      return '[]';
+    default:
       return original;
   }
 }
@@ -135,12 +149,24 @@ export async function anonymizeDatabase(options: AnonymizeOptions): Promise<{ ro
     );
   }
   const registry = options.registry ?? ANONYMIZATION_REGISTRY;
+  const strategies = Object.values(registry).flatMap((columns) => Object.values(columns));
+  const needsKeys = strategies.some(
+    (s) => s.startsWith('encrypted:') || s.startsWith('blind_index:'),
+  );
+  if (needsKeys && (!options.encryptionKey || !options.blindIndexKey)) {
+    throw new Error(
+      'Colonnes chiffrées à réécrire : DATABASE_ENCRYPTION_KEY et DATABASE_BLIND_INDEX_KEY de la copie sont exigées.',
+    );
+  }
   const factory = createPersonFactory(options.seed ?? 20_261_026);
   const client = new pg.Client({ connectionString: options.databaseUrl });
   await client.connect();
   let rows = 0;
   try {
     await client.query('BEGIN');
+    // Déclencheurs coupés pour cette transaction : journal d'audit immuable, horodatages et gardes
+    // métier ne s'appliquent pas à une réécriture de copie (exige un superutilisateur, DEBT D-054).
+    await client.query("SET LOCAL session_replication_role = 'replica'");
     const unclassified = await listUnclassified(client, registry);
     if (unclassified.length > 0) {
       throw new Error(
@@ -162,10 +188,25 @@ export async function anonymizeDatabase(options: AnonymizeOptions): Promise<{ ro
             : `${c}::text AS ${c}`;
         })
         .join(', ');
+      // Paramètres de clé ajoutés seulement si la table en a besoin (PostgreSQL refuse un paramètre inutilisé).
+      const usesKeys = personal.some(
+        ([, s]) => s.startsWith('encrypted:') || s.startsWith('blind_index:'),
+      );
+      const keys = usesKeys ? [options.encryptionKey ?? null, options.blindIndexKey ?? null] : [];
+      const encKey = `$${String(personal.length + 2)}`;
+      const blindKey = `$${String(personal.length + 3)}`;
       const assign = personal
         .map(([column, strategy], index) => {
           const c = client.escapeIdentifier(column);
-          return `${c} = $${String(index + 2)}${strategy === 'birth_date' ? '::date' : ''}`;
+          const value = `$${String(index + 2)}`;
+          if (strategy === 'birth_date') return `${c} = ${value}::date`;
+          if (strategy === 'empty_json' || strategy === 'empty_json_array')
+            return `${c} = ${value}::jsonb`;
+          if (strategy.startsWith('encrypted:'))
+            return `${c} = oz_encrypt(${value}::text, ${encKey}::text)`;
+          if (strategy.startsWith('blind_index:'))
+            return `${c} = oz_blind_index(${value}::text, ${blindKey}::text)`;
+          return `${c} = ${value}`;
         })
         .join(', ');
 
@@ -188,7 +229,11 @@ export async function anonymizeDatabase(options: AnonymizeOptions): Promise<{ ro
           const values = personal.map(([column, strategy]) =>
             replacement(strategy, row[column] ?? null, person),
           );
-          await client.query(`UPDATE ${t} SET ${assign} WHERE id = $1::uuid`, [row.id, ...values]);
+          await client.query(`UPDATE ${t} SET ${assign} WHERE id = $1::uuid`, [
+            row.id,
+            ...values,
+            ...keys,
+          ]);
           rows += 1;
         }
         if (batch.rows.length < BATCH) break;

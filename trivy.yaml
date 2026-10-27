@@ -14,5 +14,7 @@ scan:
     - '**/.next'
     - '**/dist'
     - coverage
+    # Fournisseurs Terraform téléchargés par `terraform init` (binaires tiers, lot 0.8b).
+    - '**/.terraform'
 vulnerability:
   ignore-unfixed: false

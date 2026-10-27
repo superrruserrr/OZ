@@ -2,6 +2,10 @@
 @import '@oz/ui/tokens.css';
 @import '@oz/ui/base.css';
 
+/* Composants de @oz/ui (lot 0.10) : leurs classes sont générées ici ; les stories n'en font pas partie. */
+@source '../../../../packages/ui/src';
+@source not '../../../../packages/ui/src/**/*.stories.tsx';
+
 /* E17 : néon lime, registre Émotion uniquement (design.md §8.7). Repli : base.css coupe les animations. */
 .oz-neon {
   text-shadow: 0 0 24px rgb(129 240 0 / 0.35);

@@ -125,9 +125,10 @@ describe('ci.yml — durcissement', () => {
     expect(hardened).toBe(checkouts);
   });
 
-  it('coupe la télémétrie de Next et de Turbo', () => {
+  it('coupe la télémétrie de Next, de Turbo et de Storybook', () => {
     expect(text).toMatch(/NEXT_TELEMETRY_DISABLED: '1'/);
     expect(text).toMatch(/TURBO_TELEMETRY_DISABLED: '1'/);
+    expect(text).toMatch(/STORYBOOK_DISABLE_TELEMETRY: '1'/);
   });
 });
 
@@ -138,11 +139,36 @@ describe('ci.yml — contenu des jobs', () => {
     expect(test).toContain('pnpm test:coverage');
   });
 
+  it('security : Terraform formaté, valide et testé, sans identifiant Scaleway (lot 0.8b)', () => {
+    const job = blocks.get('security') ?? '';
+    expect(job).toContain('terraform" fmt -check -recursive');
+    for (const root of ['bootstrap', 'envs/staging', 'envs/production']) {
+      expect(job).toContain(root);
+    }
+    // Lockfiles versionnés imposés ; aucun état distant (pas d'identifiant en CI).
+    expect(job).toMatch(/init -backend=false -input=false -lockfile=readonly/);
+    expect(job).toMatch(/terraform" -chdir="\$root" validate/);
+    expect(job).toMatch(/terraform" -chdir=modules\/stack test/);
+    expect(text).not.toMatch(/SCW_|AWS_ACCESS_KEY_ID|AWS_SECRET_ACCESS_KEY/);
+  });
+
   it('build-e2e : build complet puis fumée Playwright sur Chromium', () => {
     const job = blocks.get('build-e2e') ?? '';
     expect(job).toContain('pnpm build');
     expect(job).toContain('pnpm exec playwright install --with-deps chromium');
     expect(job).toContain('pnpm test:e2e');
+  });
+
+  it('build-e2e : stories Storybook dans Chromium (axe-core bloquant) puis build statique publié (lot 0.10)', () => {
+    const job = blocks.get('build-e2e') ?? '';
+    const at = (needle) => job.indexOf(needle);
+    expect(job).toContain('pnpm test:stories');
+    expect(job).toContain('pnpm --filter @oz/ui build-storybook');
+    expect(at('playwright install')).toBeLessThan(at('pnpm test:stories'));
+    expect(at('pnpm test:stories')).toBeLessThan(at('build-storybook'));
+    expect(job).toMatch(
+      /name: storybook-static\n\s+path: packages\/ui\/storybook-static\/\n\s+retention-days: 14/,
+    );
   });
 
   it('security : gitleaks sur tout l’historique, audit, Trivy et Semgrep épinglé', () => {

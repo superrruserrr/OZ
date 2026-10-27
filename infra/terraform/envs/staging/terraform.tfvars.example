@@ -1,0 +1,6 @@
+# Copier en terraform.tfvars (ignoré par Git) et remplir. Aucune de ces valeurs n'est secrète,
+# mais elles restent hors du dépôt (identifiants de projet, IP d'administration).
+project_id       = "<identifiant du projet Scaleway oz>"
+admin_principals = ["application_id:<application IAM oz-terraform>"]
+admin_cidrs      = ["<IP d'administration>/32"]
+ssh_public_keys  = ["ssh-ed25519 <clé publique> <commentaire>"]

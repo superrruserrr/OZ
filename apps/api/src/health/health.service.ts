@@ -1,6 +1,6 @@
 import { Inject, Injectable, type OnModuleDestroy } from '@nestjs/common';
 import { HeadBucketCommand, S3Client } from '@aws-sdk/client-s3';
-import type { ApiConfig } from '@oz/config';
+import { pgConnectionOptions, redisTlsOptions, type ApiConfig } from '@oz/config';
 import { Redis } from 'ioredis';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import pg from 'pg';
@@ -83,7 +83,7 @@ export class HealthService implements OnModuleDestroy {
 
   private async checkDatabase(): Promise<void> {
     const client = new pg.Client({
-      connectionString: this.config.databaseUrl,
+      ...pgConnectionOptions(this.config.databaseUrl, this.config.databaseCaCert),
       connectionTimeoutMillis: CHECK_TIMEOUT_MS,
       query_timeout: CHECK_TIMEOUT_MS,
     });
@@ -101,6 +101,7 @@ export class HealthService implements OnModuleDestroy {
 
   private async checkRedis(): Promise<void> {
     const redis = new Redis(this.config.redisUrl, {
+      ...redisTlsOptions(this.config.redisUrl, this.config.redisCaCert),
       lazyConnect: true,
       connectTimeout: CHECK_TIMEOUT_MS,
       commandTimeout: CHECK_TIMEOUT_MS,

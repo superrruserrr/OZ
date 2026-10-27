@@ -1,0 +1,1 @@
+admin_principals = ["application_id:<application IAM oz-terraform>"]

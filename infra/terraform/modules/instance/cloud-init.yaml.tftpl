@@ -1,0 +1,47 @@
+#cloud-config
+# Instance d'accueil de Coolify (lot 0.8b). Le filtrage réseau est fait en amont par le groupe de
+# sécurité Scaleway, que Docker ne peut pas contourner (contrairement à un pare-feu local).
+#
+# SSH : clé seulement. Depuis l'extérieur, seules les clés d'administration de Terraform
+# (/etc/ssh/authorized_keys/root) sont acceptées — pas celles que l'image Scaleway recopie depuis le
+# trousseau IAM dans ~/.ssh/authorized_keys. Ce dernier fichier ne vaut que depuis la machine et les
+# réseaux Docker, où Coolify y dépose sa propre clé pour piloter l'hôte.
+#
+# cloud-init ne s'exécute qu'au premier démarrage : changer de clé passe par le README (rotation).
+ssh_pwauth: false
+disable_root: false
+package_update: true
+package_upgrade: true
+packages:
+  - unattended-upgrades
+write_files:
+  - path: /etc/ssh/authorized_keys/root
+    permissions: '0644'
+    content: |
+%{ for key in ssh_public_keys ~}
+      ${key}
+%{ endfor ~}
+  - path: /etc/ssh/sshd_config.d/10-oz.conf
+    permissions: '0644'
+    content: |
+      PasswordAuthentication no
+      KbdInteractiveAuthentication no
+      PermitRootLogin prohibit-password
+      X11Forwarding no
+      MaxAuthTries 3
+      AuthorizedKeysFile /etc/ssh/authorized_keys/%u
+      Match Address 127.0.0.0/8,::1,172.16.0.0/12
+        AuthorizedKeysFile /etc/ssh/authorized_keys/%u .ssh/authorized_keys
+  - path: /etc/apt/apt.conf.d/20auto-upgrades
+    permissions: '0644'
+    content: |
+      APT::Periodic::Update-Package-Lists "1";
+      APT::Periodic::Unattended-Upgrade "1";
+  # Correctifs du noyau : redémarrage automatique la nuit (recette et production, fenêtre creuse).
+  - path: /etc/apt/apt.conf.d/52oz-unattended-upgrades
+    permissions: '0644'
+    content: |
+      Unattended-Upgrade::Automatic-Reboot "true";
+      Unattended-Upgrade::Automatic-Reboot-Time "04:00";
+runcmd:
+  - sshd -t && systemctl restart ssh

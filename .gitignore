@@ -29,3 +29,14 @@ playwright-report/
 
 # Client Prisma généré (pnpm --filter @oz/db generate)
 packages/db/src/generated/
+
+# Terraform : fournisseurs téléchargés, états et variables locales hors dépôt (R8)
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+crash.log
+storybook-static/
+# Captures d'échec des tests navigateur (Vitest, `test:stories`).
+.vitest/
