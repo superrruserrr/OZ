@@ -148,6 +148,20 @@ model User {
   consentsCreated      Consent[]      @relation("ConsentCreatedBy")
   consentsUpdated      Consent[]      @relation("ConsentUpdatedBy")
 
+  documentsUploaded    Document[]        @relation("DocumentUploadedBy")
+  documentsCreated     Document[]        @relation("DocumentCreatedBy")
+  documentsUpdated     Document[]        @relation("DocumentUpdatedBy")
+  kycDecisions         KycCase[]         @relation("KycCaseDecidedBy")
+  kycSecondDecisions   KycCase[]         @relation("KycCaseSecondDecidedBy")
+  kycCasesCreated      KycCase[]         @relation("KycCaseCreatedBy")
+  kycCasesUpdated      KycCase[]         @relation("KycCaseUpdatedBy")
+  kycCaseDocsCreated   KycCaseDocument[]
+  importsCreated       Import[]          @relation("ImportCreatedBy")
+  importsUpdated       Import[]          @relation("ImportUpdatedBy")
+  subscriptionsCreated Subscription[]    @relation("SubscriptionCreatedBy")
+  subscriptionsUpdated Subscription[]    @relation("SubscriptionUpdatedBy")
+  notifications        Notification[]
+
   @@map("users")
 }
 
@@ -211,56 +225,68 @@ model Organization {
   deletedAt          DateTime?          @map("deleted_at") @db.Timestamptz(6)
   createdBy          String?            @map("created_by") @db.Uuid
   updatedBy          String?            @map("updated_by") @db.Uuid
+  /// Souscription courante : clé composite, toujours une souscription de cette organisation.
+  subscriptionId     String?            @map("subscription_id") @db.Uuid
 
   members       UserRole[]
   players       Player[]
-  createdByUser User?      @relation("OrganizationCreatedBy", fields: [createdBy], references: [id], onDelete: Restrict)
-  updatedByUser User?      @relation("OrganizationUpdatedBy", fields: [updatedBy], references: [id], onDelete: Restrict)
+  createdByUser User?          @relation("OrganizationCreatedBy", fields: [createdBy], references: [id], onDelete: Restrict)
+  updatedByUser User?          @relation("OrganizationUpdatedBy", fields: [updatedBy], references: [id], onDelete: Restrict)
+  subscription  Subscription?  @relation("OrganizationCurrentSubscription", fields: [subscriptionId, id], references: [id, organizationId], onDelete: Restrict)
+  subscriptions Subscription[] @relation("SubscriptionOrganization")
+  documents     Document[]
+  kycCases      KycCase[]
+  imports       Import[]
 
   @@map("organizations")
 }
 
 /// Fiche joueur. Âge minimal 6 ans et OZ ID immuable (déclencheur) ; minorité jamais stockée (CP-15).
 model Player {
-  id                      String             @id @default(dbgenerated("oz_uuid_v7()")) @db.Uuid
-  userId                  String?            @unique @map("user_id") @db.Uuid
-  ozId                    String?            @unique @map("oz_id")
-  firstName               String             @map("first_name")
-  lastName                String             @map("last_name")
-  birthDate               DateTime           @map("birth_date") @db.Date
+  id                      String                   @id @default(dbgenerated("oz_uuid_v7()")) @db.Uuid
+  userId                  String?                  @unique @map("user_id") @db.Uuid
+  ozId                    String?                  @unique @map("oz_id")
+  firstName               String                   @map("first_name")
+  lastName                String                   @map("last_name")
+  birthDate               DateTime                 @map("birth_date") @db.Date
   nationality             String
   country                 String
   region                  String?
   city                    String?
-  phoneEncrypted          Bytes?             @map("phone_encrypted")
-  phoneHmac               Bytes?             @map("phone_hmac")
-  documentNumberEncrypted Bytes?             @map("document_number_encrypted")
-  documentNumberHmac      Bytes?             @map("document_number_hmac")
-  primaryPosition         PlayerPosition?    @map("primary_position")
-  secondaryPosition       PlayerPosition?    @map("secondary_position")
-  dominantFoot            DominantFoot?      @map("dominant_foot")
-  heightCm                Int?               @map("height_cm") @db.SmallInt
-  weightKg                Int?               @map("weight_kg") @db.SmallInt
-  verificationStatus      VerificationStatus @default(declared) @map("verification_status")
-  guardianId              String?            @map("guardian_id") @db.Uuid
-  organizationId          String?            @map("organization_id") @db.Uuid
-  visibility              Json               @default("{}")
-  createdAt               DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt               DateTime           @default(now()) @map("updated_at") @db.Timestamptz(6)
-  deletedAt               DateTime?          @map("deleted_at") @db.Timestamptz(6)
-  createdBy               String?            @map("created_by") @db.Uuid
-  updatedBy               String?            @map("updated_by") @db.Uuid
+  phoneEncrypted          Bytes?                   @map("phone_encrypted")
+  phoneHmac               Bytes?                   @map("phone_hmac")
+  documentNumberEncrypted Bytes?                   @map("document_number_encrypted")
+  documentNumberHmac      Bytes?                   @map("document_number_hmac")
+  primaryPosition         PlayerPosition?          @map("primary_position")
+  secondaryPosition       PlayerPosition?          @map("secondary_position")
+  dominantFoot            DominantFoot?            @map("dominant_foot")
+  heightCm                Int?                     @map("height_cm") @db.SmallInt
+  weightKg                Int?                     @map("weight_kg") @db.SmallInt
+  verificationStatus      VerificationStatus       @default(declared) @map("verification_status")
+  guardianId              String?                  @map("guardian_id") @db.Uuid
+  organizationId          String?                  @map("organization_id") @db.Uuid
+  visibility              Json                     @default("{}")
+  /// Recherche plein texte : colonne générée (SQL), index GIN ; trigrammes sur noms désaccentués.
+  searchVector            Unsupported("tsvector")? @default(dbgenerated("oz_player_search_document(first_name, last_name, city, primary_position)")) @map("search_vector")
+  createdAt               DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime                 @default(now()) @map("updated_at") @db.Timestamptz(6)
+  deletedAt               DateTime?                @map("deleted_at") @db.Timestamptz(6)
+  createdBy               String?                  @map("created_by") @db.Uuid
+  updatedBy               String?                  @map("updated_by") @db.Uuid
 
   user          User?         @relation("PlayerUser", fields: [userId], references: [id], onDelete: Restrict)
   guardian      Guardian?     @relation(fields: [guardianId], references: [id], onDelete: Restrict)
   organization  Organization? @relation(fields: [organizationId], references: [id], onDelete: Restrict)
   consents      Consent[]
+  documents     Document[]
+  kycCases      KycCase[]
   createdByUser User?         @relation("PlayerCreatedBy", fields: [createdBy], references: [id], onDelete: Restrict)
   updatedByUser User?         @relation("PlayerUpdatedBy", fields: [updatedBy], references: [id], onDelete: Restrict)
 
   @@index([documentNumberHmac])
   @@index([guardianId])
   @@index([organizationId])
+  @@index([searchVector], type: Gin)
   @@map("players")
 }
 
@@ -285,11 +311,12 @@ model Guardian {
   createdBy               String?              @map("created_by") @db.Uuid
   updatedBy               String?              @map("updated_by") @db.Uuid
 
-  user          User?     @relation("GuardianUser", fields: [userId], references: [id], onDelete: Restrict)
+  user          User?      @relation("GuardianUser", fields: [userId], references: [id], onDelete: Restrict)
   players       Player[]
   consents      Consent[]
-  createdByUser User?     @relation("GuardianCreatedBy", fields: [createdBy], references: [id], onDelete: Restrict)
-  updatedByUser User?     @relation("GuardianUpdatedBy", fields: [updatedBy], references: [id], onDelete: Restrict)
+  documents     Document[]
+  createdByUser User?      @relation("GuardianCreatedBy", fields: [createdBy], references: [id], onDelete: Restrict)
+  updatedByUser User?      @relation("GuardianUpdatedBy", fields: [updatedBy], references: [id], onDelete: Restrict)
 
   @@index([documentNumberHmac])
   @@index([userId])
@@ -357,4 +384,263 @@ model AuditChainState {
   lastHash     Bytes   @map("last_hash")
 
   @@map("audit_chain_state")
+}
+
+// ---------------------------------------------------------------------------------------------
+// Dossiers et opérations (lot 1.1b, plan §5.2). Déclencheurs (CP-16), RLS, recherche : SQL.
+// ---------------------------------------------------------------------------------------------
+
+enum DocumentType {
+  birth_certificate
+  identity_document
+  photo
+  license
+  video
+  organization_registration
+
+  @@map("document_type")
+}
+
+enum AvStatus {
+  pending
+  clean
+  infected
+  error
+
+  @@map("av_status")
+}
+
+enum KycStatus {
+  draft
+  submitted
+  in_review
+  approved
+  rejected
+  expired
+
+  @@map("kyc_status")
+}
+
+enum ImportSource {
+  csv
+  xlsx
+
+  @@map("import_source")
+}
+
+enum ImportStatus {
+  pending
+  processing
+  completed
+  failed
+
+  @@map("import_status")
+}
+
+enum NotificationChannel {
+  email
+  sms
+  in_app
+
+  @@map("notification_channel")
+}
+
+enum NotificationStatus {
+  queued
+  sent
+  failed
+  cancelled
+
+  @@map("notification_status")
+}
+
+enum SubscriptionStatus {
+  trialing
+  active
+  past_due
+  cancelled
+  expired
+
+  @@map("subscription_status")
+}
+
+enum PaymentProvider {
+  stripe
+  cinetpay
+  manual
+
+  @@map("payment_provider")
+}
+
+/// Pièce téléversée : clé de stockage (jamais d'URL), empreinte, statut antivirus, purge datée.
+model Document {
+  id                      String       @id @default(dbgenerated("oz_uuid_v7()")) @db.Uuid
+  type                    DocumentType
+  playerId                String?      @map("player_id") @db.Uuid
+  guardianId              String?      @map("guardian_id") @db.Uuid
+  organizationId          String?      @map("organization_id") @db.Uuid
+  uploadedBy              String       @map("uploaded_by") @db.Uuid
+  storageKey              String       @unique @map("storage_key")
+  mimeType                String       @map("mime_type")
+  sizeBytes               BigInt       @map("size_bytes")
+  sha256                  String
+  avStatus                AvStatus     @default(pending) @map("av_status")
+  avCheckedAt             DateTime?    @map("av_checked_at") @db.Timestamptz(6)
+  ocrExtractEncrypted     Bytes?       @map("ocr_extract_encrypted")
+  documentNumberEncrypted Bytes?       @map("document_number_encrypted")
+  documentNumberHmac      Bytes?       @map("document_number_hmac")
+  retentionUntil          DateTime     @map("retention_until") @db.Timestamptz(6)
+  createdAt               DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime     @default(now()) @map("updated_at") @db.Timestamptz(6)
+  deletedAt               DateTime?    @map("deleted_at") @db.Timestamptz(6)
+  createdBy               String?      @map("created_by") @db.Uuid
+  updatedBy               String?      @map("updated_by") @db.Uuid
+
+  player        Player?           @relation(fields: [playerId], references: [id], onDelete: Restrict)
+  guardian      Guardian?         @relation(fields: [guardianId], references: [id], onDelete: Restrict)
+  organization  Organization?     @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  uploader      User              @relation("DocumentUploadedBy", fields: [uploadedBy], references: [id], onDelete: Restrict)
+  createdByUser User?             @relation("DocumentCreatedBy", fields: [createdBy], references: [id], onDelete: Restrict)
+  updatedByUser User?             @relation("DocumentUpdatedBy", fields: [updatedBy], references: [id], onDelete: Restrict)
+  kycCases      KycCaseDocument[]
+
+  @@index([documentNumberHmac])
+  @@index([guardianId])
+  @@index([organizationId])
+  @@index([playerId])
+  @@index([sha256])
+  @@index([uploadedBy])
+  @@map("documents")
+}
+
+/// Dossier de vérification d'un joueur ou d'une organisation (§5.4) ; quatre yeux si sensible (CP-16).
+model KycCase {
+  id              String    @id @default(dbgenerated("oz_uuid_v7()")) @db.Uuid
+  playerId        String?   @map("player_id") @db.Uuid
+  organizationId  String?   @map("organization_id") @db.Uuid
+  level           Int       @db.SmallInt
+  status          KycStatus @default(draft)
+  checks          Json      @default("[]")
+  submittedAt     DateTime? @map("submitted_at") @db.Timestamptz(6)
+  decidedBy       String?   @map("decided_by") @db.Uuid
+  secondDecidedBy String?   @map("second_decided_by") @db.Uuid
+  decisionReason  String?   @map("decision_reason")
+  decidedAt       DateTime? @map("decided_at") @db.Timestamptz(6)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  deletedAt       DateTime? @map("deleted_at") @db.Timestamptz(6)
+  createdBy       String?   @map("created_by") @db.Uuid
+  updatedBy       String?   @map("updated_by") @db.Uuid
+
+  player        Player?           @relation(fields: [playerId], references: [id], onDelete: Restrict)
+  organization  Organization?     @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  decider       User?             @relation("KycCaseDecidedBy", fields: [decidedBy], references: [id], onDelete: Restrict)
+  secondDecider User?             @relation("KycCaseSecondDecidedBy", fields: [secondDecidedBy], references: [id], onDelete: Restrict)
+  createdByUser User?             @relation("KycCaseCreatedBy", fields: [createdBy], references: [id], onDelete: Restrict)
+  updatedByUser User?             @relation("KycCaseUpdatedBy", fields: [updatedBy], references: [id], onDelete: Restrict)
+  documents     KycCaseDocument[]
+
+  @@index([organizationId])
+  @@index([playerId])
+  @@index([status])
+  @@map("kyc_cases")
+}
+
+/// Pièce jointe à un dossier : elle concerne son sujet ou le tuteur du joueur (déclencheur).
+model KycCaseDocument {
+  kycCaseId  String   @map("kyc_case_id") @db.Uuid
+  documentId String   @map("document_id") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy  String?  @map("created_by") @db.Uuid
+
+  kycCase       KycCase  @relation(fields: [kycCaseId], references: [id], onDelete: Restrict)
+  document      Document @relation(fields: [documentId], references: [id], onDelete: Restrict)
+  createdByUser User?    @relation(fields: [createdBy], references: [id], onDelete: Restrict)
+
+  @@id([kycCaseId, documentId])
+  @@index([documentId])
+  @@map("kyc_case_documents")
+}
+
+/// Import en masse : un import terminé a classé chacune de ses lignes (CP-26).
+model Import {
+  id             String       @id @default(dbgenerated("oz_uuid_v7()")) @db.Uuid
+  organizationId String       @map("organization_id") @db.Uuid
+  source         ImportSource
+  fileName       String       @map("file_name")
+  fileSha256     String       @map("file_sha256")
+  fileStorageKey String?      @map("file_storage_key")
+  mapping        Json         @default("{}")
+  status         ImportStatus @default(pending)
+  rowsTotal      Int          @default(0) @map("rows_total")
+  rowsOk         Int          @default(0) @map("rows_ok")
+  rowsRejected   Int          @default(0) @map("rows_rejected")
+  rowsDuplicate  Int          @default(0) @map("rows_duplicate")
+  reportKey      String?      @map("report_key")
+  startedAt      DateTime?    @map("started_at") @db.Timestamptz(6)
+  finishedAt     DateTime?    @map("finished_at") @db.Timestamptz(6)
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime     @default(now()) @map("updated_at") @db.Timestamptz(6)
+  deletedAt      DateTime?    @map("deleted_at") @db.Timestamptz(6)
+  createdBy      String?      @map("created_by") @db.Uuid
+  updatedBy      String?      @map("updated_by") @db.Uuid
+
+  organization  Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  createdByUser User?        @relation("ImportCreatedBy", fields: [createdBy], references: [id], onDelete: Restrict)
+  updatedByUser User?        @relation("ImportUpdatedBy", fields: [updatedBy], references: [id], onDelete: Restrict)
+
+  @@index([organizationId])
+  @@map("imports")
+}
+
+/// Abonnement d'une organisation ; une seule souscription en cours (index unique partiel, SQL).
+model Subscription {
+  id                String             @id @default(dbgenerated("oz_uuid_v7()")) @db.Uuid
+  organizationId    String             @map("organization_id") @db.Uuid
+  tier              String             @default("free")
+  status            SubscriptionStatus
+  provider          PaymentProvider
+  providerReference String?            @map("provider_reference")
+  periodStart       DateTime           @map("period_start") @db.Timestamptz(6)
+  periodEnd         DateTime           @map("period_end") @db.Timestamptz(6)
+  quotas            Json               @default("{}")
+  cancelledAt       DateTime?          @map("cancelled_at") @db.Timestamptz(6)
+  createdAt         DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime           @default(now()) @map("updated_at") @db.Timestamptz(6)
+  deletedAt         DateTime?          @map("deleted_at") @db.Timestamptz(6)
+  createdBy         String?            @map("created_by") @db.Uuid
+  updatedBy         String?            @map("updated_by") @db.Uuid
+
+  organization  Organization   @relation("SubscriptionOrganization", fields: [organizationId], references: [id], onDelete: Restrict)
+  currentOf     Organization[] @relation("OrganizationCurrentSubscription")
+  createdByUser User?          @relation("SubscriptionCreatedBy", fields: [createdBy], references: [id], onDelete: Restrict)
+  updatedByUser User?          @relation("SubscriptionUpdatedBy", fields: [updatedBy], references: [id], onDelete: Restrict)
+
+  @@unique([id, organizationId])
+  @@index([organizationId])
+  @@map("subscriptions")
+}
+
+/// File et historique des notifications : la charge ne porte que des identifiants (CHECK).
+model Notification {
+  id              String              @id @default(dbgenerated("oz_uuid_v7()")) @db.Uuid
+  recipientUserId String              @map("recipient_user_id") @db.Uuid
+  channel         NotificationChannel
+  template        String
+  payload         Json                @default("{}")
+  status          NotificationStatus  @default(queued)
+  attempts        Int                 @default(0) @db.SmallInt
+  lastError       String?             @map("last_error")
+  scheduledAt     DateTime            @default(now()) @map("scheduled_at") @db.Timestamptz(6)
+  sentAt          DateTime?           @map("sent_at") @db.Timestamptz(6)
+  readAt          DateTime?           @map("read_at") @db.Timestamptz(6)
+  createdAt       DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime            @default(now()) @map("updated_at") @db.Timestamptz(6)
+  deletedAt       DateTime?           @map("deleted_at") @db.Timestamptz(6)
+
+  recipient User @relation(fields: [recipientUserId], references: [id], onDelete: Restrict)
+
+  @@index([recipientUserId])
+  @@index([status, scheduledAt])
+  @@map("notifications")
 }

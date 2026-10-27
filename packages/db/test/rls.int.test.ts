@@ -20,6 +20,13 @@ const EXPOSED_TABLES = [
   'guardians',
   'consents',
   'audit_log',
+  // Lot 1.1b
+  'documents',
+  'kyc_cases',
+  'kyc_case_documents',
+  'imports',
+  'notifications',
+  'subscriptions',
 ];
 
 let db: TestDatabase;

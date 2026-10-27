@@ -17,6 +17,8 @@ export type ColumnStrategy =
   | 'free_text'
   /** Objet JSON pouvant contenir n'importe quelle donnée : remplacé par `{}`. */
   | 'empty_json'
+  /** Liste JSON pouvant contenir n'importe quelle donnée : remplacée par `[]`. */
+  | 'empty_json_array'
   /** Effacée (NULL). */
   | 'null'
   /** Colonne `bytea` chiffrée par `oz_encrypt` : valeur synthétique rechiffrée avec la clé de la copie. */
@@ -91,6 +93,7 @@ export const ANONYMIZATION_REGISTRY: Registry = {
     city: 'technical',
     contact_email: 'email',
     verification_status: 'technical',
+    subscription_id: 'technical',
   },
   players: {
     ...TIMESTAMPS,
@@ -117,6 +120,8 @@ export const ANONYMIZATION_REGISTRY: Registry = {
     guardian_id: 'technical',
     organization_id: 'technical',
     visibility: 'technical',
+    // Colonne générée depuis les noms : recalculée par la base après leur remplacement.
+    search_vector: 'technical',
   },
   guardians: {
     ...TIMESTAMPS,
@@ -161,4 +166,90 @@ export const ANONYMIZATION_REGISTRY: Registry = {
     created_at: 'technical',
   },
   audit_chain_state: { id: 'technical', last_position: 'technical', last_hash: 'technical' },
+  // Lot 1.1b. Les fichiers restent dans le stockage de production : la copie n'a que des clés mortes.
+  documents: {
+    ...TIMESTAMPS,
+    ...AUTHORS,
+    type: 'technical',
+    player_id: 'technical',
+    guardian_id: 'technical',
+    organization_id: 'technical',
+    uploaded_by: 'technical',
+    storage_key: 'technical',
+    mime_type: 'technical',
+    size_bytes: 'technical',
+    sha256: 'technical',
+    av_status: 'technical',
+    av_checked_at: 'technical',
+    ocr_extract_encrypted: 'null',
+    document_number_encrypted: 'encrypted:document_number',
+    document_number_hmac: 'blind_index:document_number',
+    retention_until: 'technical',
+  },
+  kyc_cases: {
+    ...TIMESTAMPS,
+    ...AUTHORS,
+    player_id: 'technical',
+    organization_id: 'technical',
+    level: 'technical',
+    status: 'technical',
+    // Résultats de contrôles : peuvent recopier des données extraites des pièces.
+    checks: 'empty_json_array',
+    submitted_at: 'technical',
+    decided_by: 'technical',
+    second_decided_by: 'technical',
+    decision_reason: 'free_text',
+    decided_at: 'technical',
+  },
+  kyc_case_documents: {
+    kyc_case_id: 'technical',
+    document_id: 'technical',
+    created_at: 'technical',
+    created_by: 'technical',
+  },
+  imports: {
+    ...TIMESTAMPS,
+    ...AUTHORS,
+    organization_id: 'technical',
+    source: 'technical',
+    // Un nom de fichier peut contenir un nom de personne.
+    file_name: 'free_text',
+    file_sha256: 'technical',
+    file_storage_key: 'technical',
+    mapping: 'technical',
+    status: 'technical',
+    rows_total: 'technical',
+    rows_ok: 'technical',
+    rows_rejected: 'technical',
+    rows_duplicate: 'technical',
+    report_key: 'technical',
+    started_at: 'technical',
+    finished_at: 'technical',
+  },
+  subscriptions: {
+    ...TIMESTAMPS,
+    ...AUTHORS,
+    organization_id: 'technical',
+    tier: 'technical',
+    status: 'technical',
+    provider: 'technical',
+    provider_reference: 'technical',
+    period_start: 'technical',
+    period_end: 'technical',
+    quotas: 'technical',
+    cancelled_at: 'technical',
+  },
+  notifications: {
+    ...TIMESTAMPS,
+    recipient_user_id: 'technical',
+    channel: 'technical',
+    template: 'technical',
+    payload: 'empty_json',
+    status: 'technical',
+    attempts: 'technical',
+    last_error: 'null',
+    scheduled_at: 'technical',
+    sent_at: 'technical',
+    read_at: 'technical',
+  },
 };
