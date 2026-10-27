@@ -46,6 +46,33 @@ describe('toApiError (EX-003 n° 2, EX-T07 n° 2)', () => {
     expect(JSON.stringify(body)).not.toContain('secret-1');
   });
 
+  it('reprend le code métier qu’un contrat attache à une règle, sinon le code Zod', () => {
+    const schema = z.object({
+      metier: z.string().superRefine((_, ctx) => {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'cle.i18n',
+          params: { code: 'AUTH_PASSWORD_TOO_SHORT' },
+        });
+      }),
+      nonTexte: z.string().superRefine((_, ctx) => {
+        ctx.addIssue({ code: 'custom', message: 'cle.i18n', params: { code: 42 } });
+      }),
+      simple: z.string().refine(() => false),
+      sansParams: z.string().superRefine((_, ctx) => {
+        ctx.addIssue({ code: 'custom', message: 'cle.i18n' });
+      }),
+    });
+    const result = schema.safeParse({ metier: 'a', nonTexte: 'b', simple: 'c', sansParams: 'd' });
+    if (result.success) throw new Error('le schéma aurait dû échouer');
+    expect(toApiError(new InputValidationException(result.error), RID).body.details).toEqual([
+      { field: 'metier', code: 'AUTH_PASSWORD_TOO_SHORT' },
+      { field: 'nonTexte', code: 'custom' },
+      { field: 'simple', code: 'custom' },
+      { field: 'sansParams', code: 'custom' },
+    ]);
+  });
+
   it('n’écho pas une clé fournie par l’utilisateur qui n’a pas la forme d’un nom de champ', () => {
     const result = z.record(z.string(), z.number()).safeParse({ '<img src=x onerror=1>': 'a' });
     if (result.success) throw new Error('le schéma aurait dû échouer');

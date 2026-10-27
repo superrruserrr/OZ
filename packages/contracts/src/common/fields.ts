@@ -95,3 +95,51 @@ export function longText(min: number, max: number): z.ZodString {
 
 /** Consentement explicite : seule la valeur `true` est acceptée. */
 export const consent = z.literal(true, { error: 'validation.consent.required' });
+
+// Mots de passe et jetons (lot 1.3a, EX-103). Même politique que `@oz/auth` (serveur), dupliquée ici car
+// les contrats tournent aussi dans le navigateur ; le serveur revérifie toujours.
+
+/** Bornes du mot de passe, en caractères (points de code après NFKC) : seule exigence (EX-103 n° 2). */
+const PASSWORD_MIN_LENGTH = 12;
+const PASSWORD_MAX_LENGTH = 128;
+/** Taille maximale reçue, en unités UTF-16 : borne le coût avant toute normalisation. */
+const PASSWORD_MAX_INPUT_UNITS = PASSWORD_MAX_LENGTH * 4;
+
+/**
+ * Mot de passe choisi (inscription, réinitialisation) : jamais retaillé ni modifié. Chaque refus
+ * porte la clé i18n du formulaire (`message`) et le code renvoyé par l'API (`params.code`).
+ */
+export const newPassword = z
+  .string()
+  .superRefine((value, ctx) => {
+    const refuse = (message: string, code: string): void => {
+      ctx.addIssue({ code: 'custom', message, params: { code } });
+    };
+    if (value.length > PASSWORD_MAX_INPUT_UNITS) {
+      refuse('validation.password.tooLong', 'AUTH_PASSWORD_TOO_LONG');
+    } else if (LONE_SURROGATE.test(value)) {
+      refuse('validation.password.invalid', 'AUTH_PASSWORD_MALFORMED');
+    } else {
+      const length = Array.from(value.normalize('NFKC')).length;
+      if (length < PASSWORD_MIN_LENGTH) {
+        refuse('validation.password.tooShort', 'AUTH_PASSWORD_TOO_SHORT');
+      } else if (length > PASSWORD_MAX_LENGTH) {
+        refuse('validation.password.tooLong', 'AUTH_PASSWORD_TOO_LONG');
+      }
+    }
+  })
+  .meta({
+    description:
+      'De 12 à 128 caractères après normalisation NFKC, sans autre règle de composition ; refusé s’il figure dans une fuite connue (HaveIBeenPwned).',
+  });
+
+/** Mot de passe saisi à la connexion : la politique ne s'applique pas (anciens mots de passe). */
+export const currentPassword = z
+  .string()
+  .min(1, { error: 'validation.password.required' })
+  .max(PASSWORD_MAX_INPUT_UNITS, { error: 'validation.password.tooLong' });
+
+/** Jeton reçu par email : 32 octets en base64url, exactement 43 caractères. */
+export const oneTimeToken = z
+  .string()
+  .regex(/^[A-Za-z0-9_-]{43}$/, { error: 'validation.token.invalid' });

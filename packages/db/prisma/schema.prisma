@@ -130,11 +130,12 @@ model User {
   updatedAt           DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
   deletedAt           DateTime?  @map("deleted_at") @db.Timestamptz(6)
 
-  roles      UserRole[] @relation("UserRoleUser")
+  roles      UserRole[]  @relation("UserRoleUser")
   sessions   Session[]
-  player     Player?    @relation("PlayerUser")
-  guardians  Guardian[] @relation("GuardianUser")
-  consents   Consent[]  @relation("ConsentGrantedByUser")
+  authTokens AuthToken[]
+  player     Player?     @relation("PlayerUser")
+  guardians  Guardian[]  @relation("GuardianUser")
+  consents   Consent[]   @relation("ConsentGrantedByUser")
   auditTrail AuditLog[]
 
   rolesCreated         UserRole[]     @relation("UserRoleCreatedBy")
@@ -661,4 +662,28 @@ model OzIdRegistry {
 
   @@unique([ozId, playerId])
   @@map("oz_id_registry")
+}
+
+enum AuthTokenPurpose {
+  email_verification
+  password_reset
+
+  @@map("auth_token_purpose")
+}
+
+/// Jeton à usage unique envoyé par email (lot 1.3a) : empreinte SHA-256 seulement. Aucun accès
+/// direct : lecture et consommation par les fonctions `oz_auth_*` (chemin privilégié, D-059).
+model AuthToken {
+  id         String           @id @default(dbgenerated("oz_uuid_v7()")) @db.Uuid
+  userId     String           @map("user_id") @db.Uuid
+  purpose    AuthTokenPurpose
+  tokenHash  String           @unique @map("token_hash")
+  expiresAt  DateTime         @map("expires_at") @db.Timestamptz(6)
+  consumedAt DateTime?        @map("consumed_at") @db.Timestamptz(6)
+  createdAt  DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([userId, purpose])
+  @@map("auth_tokens")
 }

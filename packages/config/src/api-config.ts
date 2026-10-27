@@ -44,6 +44,16 @@ const columnKey = z.preprocess(
   z.string().min(32).optional(),
 );
 
+// Variable facultative : vide = absente (.env copié de .env.example).
+const optional = <T extends z.ZodType>(type: T) =>
+  z.preprocess((value) => (value === '' ? undefined : value), type.optional());
+
+// Expéditeur : « Nom <adresse> » ou adresse seule.
+const mailbox = z
+  .string()
+  .regex(/^(?:[^<>\r\n]{1,64} )?<?[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+>?$/)
+  .refine((value) => value.includes('<') === value.endsWith('>'));
+
 const schema = z
   .object({
     NODE_ENV: z.enum(['development', 'test', 'production']),
@@ -81,6 +91,22 @@ const schema = z
       .pipe(z.array(origin).min(1)),
     // Drapeaux (R13) : « true » ou « false » uniquement, désactivés par défaut.
     FEATURE_CONTACT_FORM: z.enum(['true', 'false']).default('false'),
+    // Comptes (lot 1.3a) : exigées seulement quand FEATURE_AUTH=true.
+    FEATURE_AUTH: z.enum(['true', 'false']).default('false'),
+    APP_URL: optional(origin),
+    SMTP_HOST: optional(z.string().regex(/^[A-Za-z0-9.-]{1,253}$/)),
+    SMTP_PORT: optional(
+      z
+        .string()
+        .regex(/^[1-9]\d{0,4}$/)
+        .transform(Number)
+        .pipe(z.number().max(65_535)),
+    ),
+    SMTP_USER: optional(z.string()),
+    SMTP_PASSWORD: optional(z.string()),
+    EMAIL_FROM: optional(mailbox),
+    // Clé des empreintes HMAC (compteurs d'échecs dans Redis sans email en clair).
+    AUTH_HMAC_KEY: optional(z.string().min(32)),
   })
   .superRefine((env, ctx) => {
     // Les deux clés vont ensemble, et diffèrent : un index aveugle ne doit rien révéler du chiffrement.
@@ -103,8 +129,34 @@ const schema = z
         message: 'clé distincte requise',
       });
     }
+    const hosted = env.APP_ENV === 'staging' || env.APP_ENV === 'production';
+    if (env.FEATURE_AUTH === 'true') {
+      // Hors local (prévisualisation comprise), les emails portent des jetons : SMTP authentifié et
+      // chiffré, liens en https.
+      const remote = env.APP_ENV !== 'local';
+      for (const name of [
+        'APP_URL',
+        'SMTP_HOST',
+        'SMTP_PORT',
+        'EMAIL_FROM',
+        'AUTH_HMAC_KEY',
+      ] as const) {
+        if (env[name] === undefined) {
+          ctx.addIssue({ code: 'custom', path: [name], message: 'requis quand FEATURE_AUTH=true' });
+        }
+      }
+      if ((env.SMTP_USER === undefined) !== (env.SMTP_PASSWORD === undefined)) {
+        const missing = env.SMTP_USER === undefined ? 'SMTP_USER' : 'SMTP_PASSWORD';
+        ctx.addIssue({ code: 'custom', path: [missing], message: 'les deux vont ensemble' });
+      } else if (remote && env.SMTP_USER === undefined) {
+        ctx.addIssue({ code: 'custom', path: ['SMTP_USER'], message: 'requis hors local' });
+      }
+      if (remote && env.APP_URL?.startsWith('https://') === false) {
+        ctx.addIssue({ code: 'custom', path: ['APP_URL'], message: 'https requis' });
+      }
+    }
     // Recette et production : base et Redis managés joints en TLS épinglé (D-006, lot 0.8b).
-    if (env.APP_ENV === 'staging' || env.APP_ENV === 'production') {
+    if (hosted) {
       const required = (path: string, message: string): void => {
         ctx.addIssue({ code: 'custom', path: [path], message });
       };
@@ -128,6 +180,14 @@ const schema = z
         code: 'custom',
         path: ['FEATURE_CONTACT_FORM'],
         message: 'interdit en production avant les lots 1.3 et 1.15',
+      });
+    }
+    // Inscription publique : pas avant la protection anti-robot et la limitation de débit (lot 1.3c).
+    if (env.FEATURE_AUTH === 'true') {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['FEATURE_AUTH'],
+        message: 'interdit en production avant le lot 1.3c',
       });
     }
     if (env.NODE_ENV !== 'production') {
@@ -169,7 +229,24 @@ export interface ApiConfig {
     readonly secretKey: string;
   };
   readonly corsOrigins: readonly string[];
-  readonly features: { readonly contactForm: boolean };
+  readonly features: { readonly contactForm: boolean; readonly auth: boolean };
+  /** Comptes (lot 1.3a) : présent seulement quand FEATURE_AUTH=true. */
+  readonly auth: AuthConfig | undefined;
+}
+
+export interface AuthConfig {
+  /** Origine du site web : liens des emails de confirmation et de réinitialisation. */
+  readonly appUrl: string;
+  readonly hmacKey: string;
+  readonly emailFrom: string;
+  readonly smtp: {
+    readonly host: string;
+    readonly port: number;
+    readonly user: string | undefined;
+    readonly password: string | undefined;
+    /** TLS exigé (implicite sur 465, STARTTLS obligatoire sinon) hors poste local et prévisualisation. */
+    readonly requireTls: boolean;
+  };
 }
 
 /** Charge et valide la configuration de l'API. Lève `ConfigError` au lieu de démarrer avec un état invalide. */
@@ -206,6 +283,29 @@ export function loadApiConfig(env: Readonly<Record<string, string | undefined>>)
       secretKey: value.S3_SECRET_KEY,
     }),
     corsOrigins: Object.freeze([...value.CORS_ORIGINS]),
-    features: Object.freeze({ contactForm: value.FEATURE_CONTACT_FORM === 'true' }),
+    features: Object.freeze({
+      contactForm: value.FEATURE_CONTACT_FORM === 'true',
+      auth: value.FEATURE_AUTH === 'true',
+    }),
+    auth:
+      value.FEATURE_AUTH === 'true' &&
+      value.APP_URL !== undefined &&
+      value.AUTH_HMAC_KEY !== undefined &&
+      value.EMAIL_FROM !== undefined &&
+      value.SMTP_HOST !== undefined &&
+      value.SMTP_PORT !== undefined
+        ? Object.freeze({
+            appUrl: value.APP_URL,
+            hmacKey: value.AUTH_HMAC_KEY,
+            emailFrom: value.EMAIL_FROM,
+            smtp: Object.freeze({
+              host: value.SMTP_HOST,
+              port: value.SMTP_PORT,
+              user: value.SMTP_USER,
+              password: value.SMTP_PASSWORD,
+              requireTls: value.APP_ENV !== 'local',
+            }),
+          })
+        : undefined,
   });
 }

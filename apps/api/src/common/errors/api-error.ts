@@ -1,5 +1,5 @@
 import { HttpException } from '@nestjs/common';
-import { ZodError } from 'zod';
+import { ZodError, type z } from 'zod';
 
 /** Corps d'erreur unique de l'API (naming_conventions.md, EX-003 n° 2). */
 export interface ApiError {
@@ -69,6 +69,12 @@ function clientErrorStatus(exception: unknown): number | null {
   return status >= 400 && status < 500 ? status : null;
 }
 
+/** Code d'un refus : celui que le contrat attache à une règle métier (`params.code`), sinon celui de Zod. */
+function issueCode(issue: z.core.$ZodIssue): string {
+  const code: unknown = issue.code === 'custom' ? issue.params?.code : undefined;
+  return typeof code === 'string' ? code : issue.code;
+}
+
 /** Convertit toute valeur lancée en statut HTTP et corps `ApiError`, sans jamais exposer de détail interne. */
 export function toApiError(
   exception: unknown,
@@ -87,7 +93,7 @@ export function toApiError(
     const details = exception.zodError.issues.flatMap((issue): { field: string; code: string }[] =>
       issue.code === 'unrecognized_keys'
         ? issue.keys.map((key) => ({ field: fieldName([...issue.path, key]), code: issue.code }))
-        : [{ field: fieldName(issue.path), code: issue.code }],
+        : [{ field: fieldName(issue.path), code: issueCode(issue) }],
     );
     return { status: 422, body: { code, message, requestId, details } };
   }

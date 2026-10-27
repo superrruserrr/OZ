@@ -75,3 +75,15 @@ Migration `20261028090000_registre_oz_id`, vérifiée par `oz-id-registry.int.te
 - **Pays figé** : une fois l'OZ ID émis, `players.country` ne change plus (`oz_players_freeze_country`).
 - **Partie aléatoire** : toujours tirée par le serveur (`issueOzId`, `crypto.getRandomValues`), jamais reçue d'un client, sinon un OZ ID « choisi » devient possible.
 - **Charge** : `oz-id-load.int.test.ts` (CI) émet 10 000 OZ ID sur 20 connexions sans doublon ; le million en base se lance à la main (`pnpm --filter @oz/db test:load`). Mesure du 2026-10-27 (poste de développement, PostgreSQL 16 en conteneur, 20 connexions) : 1 000 000 d'OZ ID émis par `oz_issue_oz_id` dans un même couple (pays, année), aucun doublon ni OZ ID invalide, en 17 minutes environ ; le nombre de reprises n'a pas été relevé lors de cette exécution.
+
+## Authentification (lot 1.3a)
+
+Migration `20261029100000_auth_comptes`, vérifiée par `auth-comptes.int.test.ts` ; règles de sécurité dans [docs/security/auth.md](../security/auth.md) :
+
+- **Jetons** : `auth_tokens` (titulaire, usage `email_verification` ou `password_reset`, empreinte SHA-256 en hexadécimal par `CHECK`, échéance, consommation). Jamais le jeton lui-même. RLS forcée, aucune politique hors du chemin privilégié ; classée `technical` dans le registre d'anonymisation.
+- **Chemin privilégié** : six fonctions `SECURITY DEFINER` (`oz_auth_register`, `oz_auth_credentials`, `oz_auth_verify_email`, `oz_auth_request_password_reset`, `oz_auth_reset_password`, `oz_auth_rehash_password`) et deux fonctions internes (`oz_auth_consume_token`, `oz_auth_mark_email_verified`). Appelants, contrôles et entrées d'audit : tableau de `docs/security/auth.md`. Les wrappers typés sont dans `packages/db/src/auth.ts`.
+- **Politiques** : `users_privileged`, `sessions_privileged`, `auth_tokens_privileged` et `audit_log_insert_privileged` ouvrent la RLS forcée pendant l'exécution d'une fonction `SECURITY DEFINER` (`oz_privileged()`) ; elles valent pour toute fonction de ce type, d'où la revue obligatoire de chacune (DEBT D-064).
+- **Droits d'exécution** : `REVOKE EXECUTE … FROM PUBLIC` sur chaque fonction, puis `GRANT EXECUTE` au rôle `oz_app` **s'il existe au moment de la migration**. Il doit donc être créé avant (Terraform en recette et en production, le test d'intégration le crée en `NOLOGIN`) ; sinon, rejouer les `GRANT` à la main (DEBT D-066). En local, l'API se connecte avec le propriétaire `oz`, qui les exécute déjà.
+- **Contrôles en base** : format Argon2id du hash (`oz_auth_is_password_hash`), empreinte de jeton (`oz_auth_check_token_hash`), durée de vie de 1 min à 7 jours (`oz_auth_check_ttl`). Les wrappers TypeScript vérifient les mêmes bornes avant l'appel.
+- **Email** : comparé après `lower(btrim(…))`, comme à l'inscription. Une adresse prise par un compte supprimé logiquement reste prise (DEBT D-065).
+- **Sessions** : la réinitialisation révoque toutes les sessions ouvertes du compte, dès ce lot (la table existe depuis 1.1a ; leur création arrive en 1.3b).

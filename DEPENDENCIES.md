@@ -124,6 +124,13 @@ Composants adaptés de shadcn/ui (code possédé, pas de paquet shadcn) sur les 
 | `fast-check` | ^4.10.2 (dev) | MIT | ≈ 1,5 Mo (+ `pure-rand` ≈ 240 Ko) | Tests de propriétés CP-01 et CP-04 (`design.md` §2) | Boucles aléatoires maison : ni réduction des contre-exemples ni graine rejouable | 1.2 |
 | `jsqr` | ^1.4.0 (dev) | Apache-2.0 | ≈ 330 Ko, sans dépendance | Décodage du QR dans les tests (preuve que le SVG se lit) | Aucune : pas de décodeur QR natif dans Node | 1.2 |
 
+## Authentification (packages/auth, apps/api) — lot 1.3a
+
+| Paquet | Version | Licence | Poids (décompressé) | Rôle | Alternative native envisagée | Ajouté |
+|---|---|---|---|---|---|---|
+| `@node-rs/argon2` | ^2.2.2 | MIT | ≈ 60 Ko (+ binaire précompilé par plateforme ≈ 600 Ko, paquet optionnel, aucun script d'installation) | Hachage Argon2id des mots de passe, m=19456, t=2, p=1 (EX-103 n° 2, TD-005) | `crypto.argon2` de Node : expérimental (Node ≥ 24.7), sans format PHC ni vérification, absent du Node 22 de certains postes ; `argon2` (node-gyp) : script d'installation, refusé par `allowBuilds` | 1.3a |
+| `nodemailer` | ^10.2.1 | MIT-0 | ≈ 2 Mo, sans dépendance, types inclus | Envoi SMTP des emails d'authentification : Mailpit en local, Scaleway TEM en recette et en production (D2 du lot 1.3a, TD-011) | Client SMTP maison sur `node:net`/`node:tls` : STARTTLS, authentification et encodage MIME à réécrire ; SDK HTTP de TEM : lie le code au fournisseur avant l'interface `EmailProvider` du lot 1.15 | 1.3a |
+
 ## Correctifs forcés (overrides pnpm) — lot 0.3
 
 | Paquet | Version | Licence | Poids (décompressé) | Rôle | Alternative native envisagée | Ajouté |

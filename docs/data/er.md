@@ -25,6 +25,15 @@ erDiagram
     bytea hash
     timestamptz created_at PK
   }
+  auth_tokens {
+    uuid id PK
+    uuid user_id FK
+    auth_token_purpose purpose
+    text token_hash
+    timestamptz expires_at
+    timestamptz consumed_at
+    timestamptz created_at
+  }
   consents {
     uuid id PK
     consent_type type
@@ -263,6 +272,7 @@ erDiagram
     timestamptz deleted_at
   }
   audit_log }o--o| users : "actor_user_id"
+  auth_tokens }o--|| users : "user_id"
   consents }o--o| guardians : "granted_by_guardian_id"
   consents }o--o| players : "player_id"
   consents }o--o| users : "created_by"

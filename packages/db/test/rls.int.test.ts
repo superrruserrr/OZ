@@ -29,6 +29,8 @@ const EXPOSED_TABLES = [
   'subscriptions',
   // Lot 1.2
   'oz_id_registry',
+  // Lot 1.3a
+  'auth_tokens',
 ];
 
 let db: TestDatabase;

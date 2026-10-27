@@ -256,3 +256,117 @@ describe('loadApiConfig (EX-003)', () => {
     ]);
   });
 });
+
+describe('authentification (lot 1.3a)', () => {
+  const AUTH = {
+    FEATURE_AUTH: 'true',
+    APP_URL: 'http://localhost:3000',
+    SMTP_HOST: 'localhost',
+    SMTP_PORT: '1025',
+    EMAIL_FROM: 'OZ <no-reply@oz.localhost>',
+    AUTH_HMAC_KEY: 'h'.repeat(40),
+  };
+  const CA = '-----BEGIN CERTIFICATE-----\nMIIBfake\n-----END CERTIFICATE-----';
+  const staging = {
+    ...valid,
+    ...KEYS,
+    APP_ENV: 'staging',
+    REDIS_URL: 'rediss://oz:pw@10.10.0.6:6379',
+    DATABASE_CA_CERT: CA,
+    REDIS_CA_CERT: CA,
+  };
+
+  it('désactivée par défaut : aucune variable d’email exigée', () => {
+    const config = loadApiConfig(valid);
+    expect(config.features.auth).toBe(false);
+    expect(config.auth).toBeUndefined();
+  });
+
+  it('activée en local : SMTP sans TLS vers Mailpit, adresse d’expédition analysée', () => {
+    const config = loadApiConfig({ ...valid, ...AUTH });
+    expect(config.features.auth).toBe(true);
+    expect(config.auth).toEqual({
+      appUrl: 'http://localhost:3000',
+      hmacKey: AUTH.AUTH_HMAC_KEY,
+      emailFrom: 'OZ <no-reply@oz.localhost>',
+      smtp: {
+        host: 'localhost',
+        port: 1025,
+        user: undefined,
+        password: undefined,
+        requireTls: false,
+      },
+    });
+  });
+
+  it('exige chaque variable quand elle est activée', () => {
+    expect(
+      errorOf({
+        ...valid,
+        FEATURE_AUTH: 'true',
+        AUTH_HMAC_KEY: 'courte',
+        EMAIL_FROM: 'pas une adresse',
+      }).invalidVariables,
+    ).toEqual(['APP_URL', 'AUTH_HMAC_KEY', 'EMAIL_FROM', 'SMTP_HOST', 'SMTP_PORT']);
+  });
+
+  it('va par paire pour l’identifiant SMTP', () => {
+    expect(errorOf({ ...valid, ...AUTH, SMTP_USER: 'oz' }).invalidVariables).toEqual([
+      'SMTP_PASSWORD',
+    ]);
+  });
+
+  it('exige TLS, identifiants SMTP et https en recette', () => {
+    expect(
+      errorOf({ ...staging, ...AUTH, APP_URL: 'http://recette.oz.example' }).invalidVariables,
+    ).toEqual(['APP_URL', 'SMTP_USER']);
+    const config = loadApiConfig({
+      ...staging,
+      ...AUTH,
+      APP_URL: 'https://recette.oz.example',
+      SMTP_HOST: 'smtp.tem.scaleway.com',
+      SMTP_PORT: '465',
+      SMTP_USER: 'projet',
+      SMTP_PASSWORD: 'secret',
+    });
+    expect(config.auth?.smtp.requireTls).toBe(true);
+  });
+
+  it('exige aussi TLS, identifiants SMTP et https en prévisualisation', () => {
+    const preview = { ...valid, APP_ENV: 'preview' };
+    expect(
+      errorOf({ ...preview, ...AUTH, APP_URL: 'http://pr-1.oz.example' }).invalidVariables,
+    ).toEqual(['APP_URL', 'SMTP_USER']);
+    const config = loadApiConfig({
+      ...preview,
+      ...AUTH,
+      APP_URL: 'https://pr-1.oz.example',
+      SMTP_USER: 'projet',
+      SMTP_PASSWORD: 'secret',
+    });
+    expect(config.auth?.smtp.requireTls).toBe(true);
+  });
+
+  it('interdite en production avant la protection anti-robot (lot 1.3c)', () => {
+    const production = {
+      ...staging,
+      NODE_ENV: 'production',
+      APP_ENV: 'production',
+      CORS_ORIGINS: 'https://www.oz.example',
+      S3_ENDPOINT: 'https://s3.fr-par.scw.cloud',
+    };
+    expect(
+      errorOf({
+        ...production,
+        ...AUTH,
+        APP_URL: 'https://www.oz.example',
+        SMTP_USER: 'projet',
+        SMTP_PASSWORD: 'secret',
+      }).invalidVariables,
+    ).toEqual(['FEATURE_AUTH']);
+  });
+
+  it('refuse une valeur de drapeau ambiguë', () => {
+    expect(errorOf({ ...valid, FEATURE_AUTH: 'oui' }).invalidVariables).toEqual(['FEATURE_AUTH']);
+  });
+});

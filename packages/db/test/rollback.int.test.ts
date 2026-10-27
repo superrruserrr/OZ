@@ -35,8 +35,8 @@ describe('rollbackLast (db:rollback)', () => {
     expect(result.rolledBack).toBe(last);
     expect(await applied()).not.toContain(last);
     // Dernière migration annulée, les précédentes intactes.
-    expect(await tableExists('oz_id_registry')).toBe(false);
-    expect(await tableExists('documents')).toBe(true);
+    expect(await tableExists('auth_tokens')).toBe(false);
+    expect(await tableExists('oz_id_registry')).toBe(true);
     expect(await tableExists('users')).toBe(true);
     expect(await tableExists('system_settings')).toBe(true);
   });
