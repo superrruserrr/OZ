@@ -21,13 +21,13 @@ Chaque mesure porte son état réel au 2026-10-27 :
 
 ## Cloisonnement (§3.5, §6.3)
 
-| Mesure                                                           | État                                    |
-| ---------------------------------------------------------------- | --------------------------------------- |
-| Row Level Security PostgreSQL sur chaque table exposée           | Prévue — lot 1.1, alignée au lot 1.4    |
-| Politiques CASL par rôle, refus par défaut, `@Roles` / `@Scope`  | Prévue — lot 1.4                        |
-| Sérialisation par vue (un DTO par rôle demandeur)                | Prévue — lot 1.4                        |
-| Test « rôle non autorisé → 403 » pour chaque endpoint (bloquant) | Prévue — lot 1.4 (matrice `rbac.md`)    |
-| Rôles PostgreSQL séparés : `oz_migrator` (DDL) et `oz_app` (DML) | Partielle — Terraform, lot 0.8b ; D-038 |
+| Mesure                                                           | État                                                                                                                                  |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Row Level Security PostgreSQL sur chaque table exposée           | Partielle — forcée, refus par défaut, lignes propres (lot 1.1a, `rls.int.test.ts`) ; matrice au lot 1.4 ; contournée en local (D-055) |
+| Politiques CASL par rôle, refus par défaut, `@Roles` / `@Scope`  | Prévue — lot 1.4                                                                                                                      |
+| Sérialisation par vue (un DTO par rôle demandeur)                | Prévue — lot 1.4                                                                                                                      |
+| Test « rôle non autorisé → 403 » pour chaque endpoint (bloquant) | Prévue — lot 1.4 (matrice `rbac.md`)                                                                                                  |
+| Rôles PostgreSQL séparés : `oz_migrator` (DDL) et `oz_app` (DML) | Partielle — Terraform, lot 0.8b ; D-038                                                                                               |
 
 ## Authentification (§6.2, [ADR-002](../adr/ADR-002-authentification-proprietaire.md))
 
@@ -56,18 +56,18 @@ Chaque mesure porte son état réel au 2026-10-27 :
 
 ## OWASP Top 10 (§6.4)
 
-| Risque                     | Mesures et état                                                                                                                                                                                                           |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| A01 Contrôle d'accès       | Voir « Cloisonnement » : prévu, lots 1.1 et 1.4                                                                                                                                                                           |
-| A02 Cryptographie          | En place : HSTS deux ans `preload` (API et web), TLS épinglé vers PostgreSQL (lot 0.8b, D-039 fermée). Partielle : TLS non imposé côté serveur PostgreSQL (D-041), Redis non testé (D-046). Prévue : `pgcrypto` (lot 1.1) |
-| A03 Injection              | En place : Prisma paramétré, contrats Zod stricts (`@oz/contracts`), Semgrep en CI. Aucune requête SQL concaténée (revue de chaque lot)                                                                                   |
-| A04 Conception             | En place : ce document, [modèle de menaces](threats.md), revue de sécurité en fin de lot (`/execute-phase`), ADR                                                                                                          |
-| A05 Configuration          | En place : images distroless non-root (UID 65532), CSP stricte à nonce, CORS en liste blanche, `/docs` désactivé en production. Écarts : D-014, D-015, D-017, D-022                                                       |
-| A06 Composants vulnérables | En place : Dependabot (sans auto-merge), `pnpm audit` ≥ high, Trivy (lockfile, images, IaC), `trustPolicy: no-downgrade`. Écarts : D-027, D-028, D-029, D-033                                                             |
-| A07 Identification         | Voir « Authentification » : prévue, lot 1.3                                                                                                                                                                               |
-| A08 Intégrité              | En place : lockfile figé, actions épinglées par empreinte, binaires CI vérifiés par SHA-256. Prévue : chaînage par hachage du journal d'audit (lot 1.16). Écart : CI non bloquante sur GitHub Free (D-030)                |
-| A09 Journalisation         | En place : logs JSON pino, `requestId`, champs sensibles masqués (`REDACT_PATHS`). Écart : D-007. Prévus : alertes Sentry, conservation 12 mois (lots 1.16, 1.17)                                                         |
-| A10 SSRF                   | Aucune récupération d'URL fournie par l'utilisateur ; toute exception future passera par une liste blanche                                                                                                                |
+| Risque                     | Mesures et état                                                                                                                                                                                                                                                                 |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A01 Contrôle d'accès       | Voir « Cloisonnement » : prévu, lots 1.1 et 1.4                                                                                                                                                                                                                                 |
+| A02 Cryptographie          | En place : HSTS deux ans `preload` (API et web), TLS épinglé vers PostgreSQL (lot 0.8b, D-039 fermée). Partielle : TLS non imposé côté serveur PostgreSQL (D-041), Redis non testé (D-046). En place : chiffrement colonne `pgcrypto` (lot 1.1a, `encryption.int.test.ts`)      |
+| A03 Injection              | En place : Prisma paramétré, contrats Zod stricts (`@oz/contracts`), Semgrep en CI. Aucune requête SQL concaténée (revue de chaque lot)                                                                                                                                         |
+| A04 Conception             | En place : ce document, [modèle de menaces](threats.md), revue de sécurité en fin de lot (`/execute-phase`), ADR                                                                                                                                                                |
+| A05 Configuration          | En place : images distroless non-root (UID 65532), CSP stricte à nonce, CORS en liste blanche, `/docs` désactivé en production. Écarts : D-014, D-015, D-017, D-022                                                                                                             |
+| A06 Composants vulnérables | En place : Dependabot (sans auto-merge), `pnpm audit` ≥ high, Trivy (lockfile, images, IaC), `trustPolicy: no-downgrade`. Écarts : D-027, D-028, D-029, D-033                                                                                                                   |
+| A07 Identification         | Voir « Authentification » : prévue, lot 1.3                                                                                                                                                                                                                                     |
+| A08 Intégrité              | En place : lockfile figé, actions épinglées par empreinte, binaires CI vérifiés par SHA-256. En place : journal d'audit chaîné par SHA-256 et immuable (lot 1.1a, `audit-log.int.test.ts`) ; consultation au lot 1.16 (D-057). Écart : CI non bloquante sur GitHub Free (D-030) |
+| A09 Journalisation         | En place : logs JSON pino, `requestId`, champs sensibles masqués (`REDACT_PATHS`). Écart : D-007. Prévus : alertes Sentry, conservation 12 mois (lots 1.16, 1.17)                                                                                                               |
+| A10 SSRF                   | Aucune récupération d'URL fournie par l'utilisateur ; toute exception future passera par une liste blanche                                                                                                                                                                      |
 
 ## En-têtes (§6.5)
 
@@ -96,16 +96,16 @@ déjà dans les services locaux (`pnpm dev:up`).
 
 ## Chiffrement, secrets, sauvegardes (§6.9)
 
-| Mesure                                                               | État                                                                                |
-| -------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| TLS en transit, certificats automatiques                             | En place pour les données (lot 0.8b) ; HTTPS public au lot 1.18                     |
-| Chiffrement disque chez l'hébergeur (Scaleway, Paris)                | En place — [ADR-003](../adr/ADR-003-postgresql-manage-residence.md)                 |
-| Chiffrement colonne `pgcrypto` des champs d'identité                 | Prévue — lot 1.1 ; anonymisation à adapter (D-023)                                  |
-| Secrets hors dépôt : gitleaks (hook pre-commit et CI), Trivy secrets | En place — contournable sur le poste (D-004)                                        |
-| Secrets en coffre, rotation trimestrielle                            | Partielle — variables de l'hébergeur ; clé S3 dans l'état Terraform (D-037)         |
-| Sauvegardes PostgreSQL quotidiennes, rétention                       | Partielle — RPO 15 min non garanti (D-035, bloquante pour la production)            |
-| Stockage objets : versioning et réplication                          | Partielle — buckets de secours vides (D-034)                                        |
-| Restauration testée, consignée en runbook                            | En place — [restauration-postgres.md](../runbooks/restauration-postgres.md) ; D-049 |
+| Mesure                                                               | État                                                                                                               |
+| -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| TLS en transit, certificats automatiques                             | En place pour les données (lot 0.8b) ; HTTPS public au lot 1.18                                                    |
+| Chiffrement disque chez l'hébergeur (Scaleway, Paris)                | En place — [ADR-003](../adr/ADR-003-postgresql-manage-residence.md)                                                |
+| Chiffrement colonne `pgcrypto` des champs d'identité                 | En place — lot 1.1a, clés en paramètre, index aveugle ; rotation non outillée (D-058), journaux à vérifier (D-056) |
+| Secrets hors dépôt : gitleaks (hook pre-commit et CI), Trivy secrets | En place — contournable sur le poste (D-004)                                                                       |
+| Secrets en coffre, rotation trimestrielle                            | Partielle — variables de l'hébergeur ; clé S3 dans l'état Terraform (D-037)                                        |
+| Sauvegardes PostgreSQL quotidiennes, rétention                       | Partielle — RPO 15 min non garanti (D-035, bloquante pour la production)                                           |
+| Stockage objets : versioning et réplication                          | Partielle — buckets de secours vides (D-034)                                                                       |
+| Restauration testée, consignée en runbook                            | En place — [restauration-postgres.md](../runbooks/restauration-postgres.md) ; D-049                                |
 
 ## Données et conformité (§6.8)
 

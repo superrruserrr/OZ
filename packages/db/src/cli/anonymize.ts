@@ -16,6 +16,9 @@ try {
     targetHost,
     targetPort,
     targetDb,
+    // Clés de la copie, jamais celles de la production : la copie ne doit pas pouvoir déchiffrer l'original.
+    encryptionKey: process.env.DATABASE_ENCRYPTION_KEY,
+    blindIndexKey: process.env.DATABASE_BLIND_INDEX_KEY,
   });
   process.stdout.write(
     `✓ ${String(rows)} lignes anonymisées dans ${targetHost}:${String(targetPort)}/${targetDb}.\n`,

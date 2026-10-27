@@ -27,6 +27,61 @@ function errorOf(env: Record<string, string | undefined>): ConfigError {
   throw new Error('loadApiConfig aurait dû échouer');
 }
 
+// Clés de chiffrement colonne factices (plan §6.9, D2 du lot 1.1).
+const KEYS = {
+  DATABASE_ENCRYPTION_KEY: 'e'.repeat(40),
+  DATABASE_BLIND_INDEX_KEY: 'i'.repeat(40),
+};
+
+describe('clés de chiffrement colonne (D2 du lot 1.1)', () => {
+  const staging = {
+    ...valid,
+    APP_ENV: 'staging',
+    REDIS_URL: 'rediss://oz:pw@10.10.0.6:6379',
+    DATABASE_CA_CERT: '-----BEGIN CERTIFICATE-----\nMIIBfake\n-----END CERTIFICATE-----',
+    REDIS_CA_CERT: '-----BEGIN CERTIFICATE-----\nMIIBfake\n-----END CERTIFICATE-----',
+  };
+
+  it('facultatives en local, transmises quand elles sont fournies', () => {
+    expect(loadApiConfig(valid).columnEncryption).toBeUndefined();
+    expect(loadApiConfig({ ...valid, ...KEYS }).columnEncryption).toEqual({
+      key: KEYS.DATABASE_ENCRYPTION_KEY,
+      blindIndexKey: KEYS.DATABASE_BLIND_INDEX_KEY,
+    });
+  });
+
+  it('exigées en recette et en production', () => {
+    expect(errorOf(staging).invalidVariables).toEqual([
+      'DATABASE_BLIND_INDEX_KEY',
+      'DATABASE_ENCRYPTION_KEY',
+    ]);
+    expect(() => loadApiConfig({ ...staging, ...KEYS })).not.toThrow();
+  });
+
+  it('refuse une clé trop courte, une seule des deux, ou deux clés identiques', () => {
+    expect(
+      errorOf({ ...valid, ...KEYS, DATABASE_ENCRYPTION_KEY: 'courte' }).invalidVariables,
+    ).toEqual(['DATABASE_ENCRYPTION_KEY']);
+    expect(
+      errorOf({ ...valid, DATABASE_ENCRYPTION_KEY: KEYS.DATABASE_ENCRYPTION_KEY }).invalidVariables,
+    ).toEqual(['DATABASE_BLIND_INDEX_KEY']);
+    expect(
+      errorOf({
+        ...valid,
+        ...KEYS,
+        DATABASE_BLIND_INDEX_KEY: KEYS.DATABASE_ENCRYPTION_KEY,
+      }).invalidVariables,
+    ).toEqual(['DATABASE_BLIND_INDEX_KEY']);
+  });
+
+  it('vide = absente (un .env copié de .env.example)', () => {
+    expect(
+      loadApiConfig({ ...valid, DATABASE_ENCRYPTION_KEY: '', DATABASE_BLIND_INDEX_KEY: '' })
+        .columnEncryption,
+    ).toBeUndefined();
+  });
+});
+
 describe('loadApiConfig (EX-003)', () => {
   it('renvoie une configuration typée, figée, avec les types convertis', () => {
     const config = loadApiConfig(valid);
@@ -74,6 +129,7 @@ describe('loadApiConfig (EX-003)', () => {
       REDIS_URL: 'rediss://oz:pw@10.10.0.6:6379',
       DATABASE_CA_CERT: '-----BEGIN CERTIFICATE-----\nMIIBfake\n-----END CERTIFICATE-----',
       REDIS_CA_CERT: '-----BEGIN CERTIFICATE-----\nMIIBfake\n-----END CERTIFICATE-----',
+      ...KEYS,
     };
     expect(errorOf(prod).invalidVariables).toEqual(['CORS_ORIGINS']);
     expect(() => loadApiConfig({ ...prod, CORS_ORIGINS: 'https://www.oz.example' })).not.toThrow();
@@ -103,6 +159,7 @@ describe('loadApiConfig (EX-003)', () => {
     REDIS_URL: 'rediss://oz:pw@10.10.0.6:6379',
     DATABASE_CA_CERT: CA,
     REDIS_CA_CERT: CA,
+    ...KEYS,
   };
 
   it('exige NODE_ENV=production quand APP_ENV=production', () => {
