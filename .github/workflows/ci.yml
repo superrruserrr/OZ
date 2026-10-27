@@ -202,10 +202,19 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Outils (Trivy) aux empreintes vérifiées
         run: scripts/install-ci-tools.sh "$RUNNER_TEMP/bin"
+      # Chromium avant les images : la construction remplit le disque du runner (ENOSPC, PR #17).
+      - run: pnpm exec playwright install --with-deps chromium
       # Images réelles (api, web, admin), analysées avant d'être lancées : HIGH/CRITICAL bloquants.
       - run: docker compose -f infra/docker/compose.smoke.yml build
       - run: '"$RUNNER_TEMP/bin/trivy" image --config trivy-image.yaml oz-api:smoke'
       - run: '"$RUNNER_TEMP/bin/trivy" image --config trivy-image.yaml oz-web:smoke'
       - run: '"$RUNNER_TEMP/bin/trivy" image --config trivy-image.yaml oz-admin:smoke'
-      - run: pnpm exec playwright install --with-deps chromium
-      - run: pnpm test:containers
+      # Cache de construction vidé (les images restent) : trois installations complètes des dépendances.
+      - name: Libérer le disque
+        run: |
+          df -h /
+          docker builder prune --all --force
+          df -h /
+      - env:
+          SMOKE_SKIP_BUILD: '1'
+        run: pnpm test:containers

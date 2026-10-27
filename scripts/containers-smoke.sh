@@ -15,5 +15,9 @@ cleanup() {
 }
 trap cleanup EXIT
 
-"${COMPOSE[@]}" up --detach --build --wait --wait-timeout 180
+# En CI, les images viennent d'être construites et analysées par Trivy : elles sont lancées telles quelles.
+if [ "${SMOKE_SKIP_BUILD:-0}" != "1" ]; then
+  "${COMPOSE[@]}" build
+fi
+"${COMPOSE[@]}" up --detach --no-build --wait --wait-timeout 180
 pnpm exec playwright test --config e2e/containers.config.ts

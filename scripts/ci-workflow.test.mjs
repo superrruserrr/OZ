@@ -184,6 +184,23 @@ describe('ci.yml — contenu des jobs', () => {
     expect(job).toContain('pnpm test:containers');
   });
 
+  it('containers : ménage le disque du runner (ENOSPC à la première exécution, PR #17)', () => {
+    const job = blocks.get('containers') ?? '';
+    const at = (needle) => job.indexOf(needle);
+    // Chromium avant les images ; cache de construction vidé après l'analyse, avant la fumée.
+    expect(at('playwright install')).toBeLessThan(at('compose.smoke.yml build'));
+    expect(at('docker builder prune --all --force')).toBeGreaterThan(at('oz-admin:smoke'));
+    expect(at('docker builder prune --all --force')).toBeLessThan(at('pnpm test:containers'));
+    expect(job).toMatch(/df -h/);
+  });
+
+  it('containers : la fumée lance les images déjà analysées par Trivy, sans les reconstruire', () => {
+    const job = blocks.get('containers') ?? '';
+    expect(job).toMatch(/SMOKE_SKIP_BUILD: '1'\s*\n\s+run: pnpm test:containers/);
+    const script = readFileSync(new URL('./containers-smoke.sh', import.meta.url), 'utf8');
+    expect(script).toMatch(/SMOKE_SKIP_BUILD/);
+  });
+
   it('migrations : PostgreSQL 16.15 du compose, script vérifié, APP_ENV explicite', () => {
     const job = blocks.get('migrations') ?? '';
     const compose = readFileSync(
