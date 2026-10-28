@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { newPassword, oneTimeToken } from '../common/fields.js';
 import {
+  accessTokenOutputSchema,
   loginSchema,
   registerSchema,
   requestPasswordResetSchema,
   resetPasswordSchema,
+  sessionListOutputSchema,
+  sessionParamsSchema,
   verifyEmailSchema,
 } from './auth.schema.js';
 
@@ -80,5 +83,52 @@ describe('contrats d’authentification', () => {
     expect(loginSchema.safeParse({ email: 'a@b.test', password: 'a'.repeat(513) }).success).toBe(
       false,
     );
+  });
+});
+
+describe('réponse du jeton d’accès (lot 1.3b)', () => {
+  it('jeton et durée en secondes, rien d’autre', () => {
+    expect(
+      accessTokenOutputSchema.safeParse({ accessToken: 'a.b.c', expiresIn: 900 }).success,
+    ).toBe(true);
+    expect(
+      accessTokenOutputSchema.safeParse({
+        accessToken: 'a.b.c',
+        expiresIn: 900,
+        refreshToken: 'x',
+      }).success,
+    ).toBe(false);
+    expect(accessTokenOutputSchema.safeParse({ accessToken: '', expiresIn: 900 }).success).toBe(
+      false,
+    );
+  });
+});
+
+describe('sessions (lot 1.3b)', () => {
+  const ID = '00000000-0000-4000-8000-000000000001';
+  const session = {
+    id: ID,
+    device: 'Firefox · macOS',
+    ip: '198.51.100.0/24',
+    createdAt: '2026-10-28T08:00:00.000Z',
+    lastUsedAt: null,
+    current: true,
+  };
+
+  it('identifiant de session : UUID seulement', () => {
+    expect(sessionParamsSchema.safeParse({ id: ID }).success).toBe(true);
+    expect(sessionParamsSchema.safeParse({ id: '1' }).success).toBe(false);
+    expect(sessionParamsSchema.safeParse({ id: ID, extra: 1 }).success).toBe(false);
+  });
+
+  it('liste sans champ technique', () => {
+    expect(sessionListOutputSchema.safeParse({ sessions: [session] }).success).toBe(true);
+    expect(
+      sessionListOutputSchema.safeParse({ sessions: [{ ...session, refreshTokenHash: 'x' }] })
+        .success,
+    ).toBe(false);
+    expect(
+      sessionListOutputSchema.safeParse({ sessions: [{ ...session, createdAt: 'hier' }] }).success,
+    ).toBe(false);
   });
 });

@@ -118,6 +118,9 @@ jobs:
       - run: pnpm build
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:e2e
+      # Lot 1.3b (D4) : parcours n° 7 et n° 8 contre l'API compilée, pile jetable via Testcontainers
+      # (Docker du runner). Aucun artefact : les réponses portent des jetons.
+      - run: pnpm test:e2e:api
       # Lot 0.10 : chaque story rendue dans Chromium, interactions `play` et axe-core WCAG 2.1 AA
       # bloquant, puis replis `prefers-reduced-motion` de Button et Field.
       - run: pnpm test:stories

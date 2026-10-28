@@ -130,6 +130,7 @@ Composants adaptés de shadcn/ui (code possédé, pas de paquet shadcn) sur les 
 |---|---|---|---|---|---|---|
 | `@node-rs/argon2` | ^2.2.2 | MIT | ≈ 60 Ko (+ binaire précompilé par plateforme ≈ 600 Ko, paquet optionnel, aucun script d'installation) | Hachage Argon2id des mots de passe, m=19456, t=2, p=1 (EX-103 n° 2, TD-005) | `crypto.argon2` de Node : expérimental (Node ≥ 24.7), sans format PHC ni vérification, absent du Node 22 de certains postes ; `argon2` (node-gyp) : script d'installation, refusé par `allowBuilds` | 1.3a |
 | `nodemailer` | ^10.2.1 | MIT-0 | ≈ 2 Mo, sans dépendance, types inclus | Envoi SMTP des emails d'authentification : Mailpit en local, Scaleway TEM en recette et en production (D2 du lot 1.3a, TD-011) | Client SMTP maison sur `node:net`/`node:tls` : STARTTLS, authentification et encodage MIME à réécrire ; SDK HTTP de TEM : lie le code au fournisseur avant l'interface `EmailProvider` du lot 1.15 | 1.3a |
+| `jose` | ^6.2.12 | MIT | ≈ 210 Ko, sans dépendance, types inclus, provenance SLSA | Signature et vérification HS256 du jeton d'accès de 15 minutes, algorithme imposé (EX-103 n° 3, TD-005, lot 1.3b) | JWT écrit à la main sur `node:crypto` : comparaison à temps constant, encodage, validation des claims et des en-têtes (`alg`, `crit`, `typ`) à réimplémenter et à auditer ; `jsonwebtoken` : dépendances multiples, CommonJS | 1.3b |
 
 ## Correctifs forcés (overrides pnpm) — lot 0.3
 

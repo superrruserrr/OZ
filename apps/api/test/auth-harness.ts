@@ -8,7 +8,13 @@ import { GenericContainer, Wait, type StartedTestContainer } from 'testcontainer
 import { configureApp } from '../src/app.js';
 import { AppModule } from '../src/app.module.js';
 import { AUTH_RESPONSE_FLOOR_MS, PWNED_CLIENT } from '../src/auth/auth.tokens.js';
-import { MAILPIT_IMAGE, startServices, type TestServices } from './containers.js';
+import {
+  MAILPIT_IMAGE,
+  smtpHost,
+  startServices,
+  testKey,
+  type TestServices,
+} from './containers.js';
 import { captureLogs, type LogCapture } from './log-capture.js';
 import { testConfig } from './support.js';
 
@@ -60,10 +66,13 @@ export async function startAuthHarness(
     LOG_LEVEL: 'info',
     FEATURE_AUTH: 'true',
     APP_URL: 'http://localhost:3000',
-    SMTP_HOST: mailpit.getHost(),
+    // IP : nodemailer résout le nom par DNS (resolve4), lent pour « localhost » sur certains postes.
+    SMTP_HOST: smtpHost(mailpit.getHost()),
     SMTP_PORT: String(mailpit.getMappedPort(1025)),
     EMAIL_FROM: 'OZ <no-reply@oz.localhost>',
     AUTH_HMAC_KEY: 'h'.repeat(40),
+    JWT_ACCESS_SECRET: testKey(1),
+    JWT_REFRESH_SECRET: testKey(2),
     ...overrides,
   });
   const harness = { pwned: 'clean' as PwnedResult };

@@ -16,14 +16,20 @@ export {
   type SendContactMessageInput,
 } from './contact/send-contact-message.schema.js';
 export {
+  accessTokenOutputSchema,
   loginSchema,
   registerSchema,
   requestPasswordResetSchema,
   resetPasswordSchema,
+  sessionListOutputSchema,
+  sessionParamsSchema,
   verifyEmailSchema,
+  type AccessTokenOutput,
   type LoginInput,
   type RegisterInput,
   type RequestPasswordResetInput,
   type ResetPasswordInput,
+  type SessionListOutput,
+  type SessionParamsInput,
   type VerifyEmailInput,
 } from './auth/auth.schema.js';

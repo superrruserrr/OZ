@@ -221,6 +221,8 @@ erDiagram
     timestamptz created_at
     timestamptz updated_at
     timestamptz deleted_at
+    text revoked_reason
+    timestamptz family_expires_at
   }
   subscriptions {
     uuid id PK

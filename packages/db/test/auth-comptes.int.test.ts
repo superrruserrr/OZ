@@ -428,6 +428,7 @@ describe('propriétaire sans privilège de superutilisateur (recette, production
     'oz_auth_verify_email(text)',
     'oz_auth_request_password_reset(text, text, interval)',
     'oz_auth_reset_password(text, text)',
+    'oz_sessions_lock_family(uuid)',
   ];
 
   it('les fonctions passent la RLS forcée par leurs seules politiques privilégiées', async () => {

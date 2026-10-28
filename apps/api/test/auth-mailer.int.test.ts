@@ -2,7 +2,7 @@ import { loadApiConfig, type AuthConfig } from '@oz/config';
 import { GenericContainer, Wait, type StartedTestContainer } from 'testcontainers';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { SmtpAuthMailer } from '../src/auth/mail/smtp-auth-mailer.js';
-import { MAILPIT_IMAGE } from './containers.js';
+import { MAILPIT_IMAGE, smtpHost, testKey } from './containers.js';
 import { validEnv } from './support.js';
 
 // Envoi réel par SMTP vers un Mailpit jetable (même image que le poste local).
@@ -33,10 +33,13 @@ beforeAll(async () => {
     ...validEnv,
     FEATURE_AUTH: 'true',
     APP_URL: 'http://localhost:3000',
-    SMTP_HOST: mailpit.getHost(),
+    // IP : nodemailer résout le nom par DNS (resolve4), lent pour « localhost » sur certains postes.
+    SMTP_HOST: smtpHost(mailpit.getHost()),
     SMTP_PORT: String(mailpit.getMappedPort(1025)),
     EMAIL_FROM: 'OZ <no-reply@oz.localhost>',
     AUTH_HMAC_KEY: 'h'.repeat(40),
+    JWT_ACCESS_SECRET: testKey(1),
+    JWT_REFRESH_SECRET: testKey(2),
   }).auth;
   if (auth === undefined) throw new Error('configuration auth absente');
   config = auth;

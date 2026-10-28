@@ -4,9 +4,10 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createApp } from '../src/app.js';
 import type { ApiError } from '../src/common/errors/api-error.js';
 import { PwnedPasswordsClient } from '@oz/auth';
-import { AuthService } from '../src/auth/auth.service.js';
+import { MailDispatcher } from '../src/auth/mail/mail-dispatcher.js';
 import { PWNED_CLIENT } from '../src/auth/auth.tokens.js';
 import { RESPONSE_FLOOR_MS, startAuthHarness, tokenIn, type AuthHarness } from './auth-harness.js';
+import { testKey } from './containers.js';
 import { testConfig } from './support.js';
 
 const PASSWORD = 'correct horse battery staple';
@@ -186,7 +187,7 @@ describe('journaux', () => {
   it('ne contiennent ni jeton, ni mot de passe, ni adresse', async () => {
     const { address, token } = await registerAndToken();
     await request(server).post('/auth/verify-email').send({ token }).expect(200);
-    await harness.app.get(AuthService).flushMail();
+    await harness.app.get(MailDispatcher).flush();
     const raw = harness.logs.raw();
     expect(raw).not.toContain(token);
     expect(raw).not.toContain(PASSWORD);
@@ -204,6 +205,8 @@ describe('drapeau FEATURE_AUTH (R13)', () => {
         SMTP_PORT: '1',
         EMAIL_FROM: 'no-reply@oz.localhost',
         AUTH_HMAC_KEY: 'h'.repeat(40),
+        JWT_ACCESS_SECRET: testKey(1),
+        JWT_REFRESH_SECRET: testKey(2),
       }),
     );
     await enabled.init();
@@ -223,7 +226,7 @@ describe('drapeau FEATURE_AUTH (R13)', () => {
         .send({ email: address, password: PASSWORD })
         .expect(202);
       expect(response.body).toEqual({ status: 'accepted' });
-      await broken.app.get(AuthService).flushMail();
+      await broken.app.get(MailDispatcher).flush();
       // nestjs-pino garde un seul logger racine par processus : celui du premier banc démarré.
       await harness.logs.waitFor('auth.mail.failed', 15_000);
       expect(harness.logs.raw()).toMatch(
@@ -244,6 +247,9 @@ describe('drapeau FEATURE_AUTH (R13)', () => {
         '/auth/verify-email',
         '/auth/password/forgot',
         '/auth/password/reset',
+        '/auth/login',
+        '/auth/refresh',
+        '/auth/logout',
       ]) {
         await request(disabled.getHttpServer()).post(path).send({}).expect(404);
       }

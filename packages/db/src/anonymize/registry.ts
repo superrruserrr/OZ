@@ -80,6 +80,8 @@ export const ANONYMIZATION_REGISTRY: Registry = {
     expires_at: 'technical',
     last_used_at: 'technical',
     revoked_at: 'technical',
+    revoked_reason: 'technical',
+    family_expires_at: 'technical',
   },
   // Personnes morales : nom et immatriculation publics, contact professionnel effacé.
   organizations: {

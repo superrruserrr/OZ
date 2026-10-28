@@ -5,7 +5,7 @@ Mise en œuvre de §6.2 et d'[ADR-002](../adr/ADR-002-authentification-proprieta
 | Partie | Contenu                                                                                         | État        |
 | ------ | ----------------------------------------------------------------------------------------------- | ----------- |
 | 1.3a   | Comptes : inscription, confirmation d'email, réinitialisation, vérification des identifiants    | Ce document |
-| 1.3b   | Connexion, JWT d'accès, rafraîchissement par rotation, sessions listées et révocables           | Prévue      |
+| 1.3b   | Connexion, JWT d'accès, rafraîchissement par rotation, sessions listées et révocables           | Ce document |
 | 1.3c   | 2FA TOTP, OTP SMS, anti-robot, limitation de débit par IP ; condition de `FEATURE_AUTH` en prod | Prévue      |
 
 Les routes sont montées seulement avec `FEATURE_AUTH=true`, refusé en production jusqu'à la fin de 1.3c (sans limitation de débit ni anti-robot, elles serviraient à envoyer des emails en masse).
@@ -82,3 +82,64 @@ Migration `20261029100000_auth_comptes`, détail dans [docs/db/migrations.md](..
 | `AUTH_HMAC_KEY`              | Clé des empreintes d'email dans Redis, 32 caractères au moins (`openssl rand -base64 32`) |
 
 Les valeurs sensibles restent vides dans `.env.example` ; elles sont exigées dès que `FEATURE_AUTH=true`.
+
+## Sessions (lot 1.3b)
+
+Décisions validées : D1 rafraîchissement de 30 jours glissants, plafond absolu de 90 jours par famille ; D2 révocation immédiate, la famille est relue à chaque requête ; D3 réutilisation stricte, sans fenêtre de grâce ; D4 parcours E2E par l'API ; D5 email « nouvel appareil » et alerte de réutilisation.
+
+### Jetons
+
+- **Accès** (`@oz/auth`, `AccessTokens`) : JWT HS256 (`jose`), 15 min, claims `sub` (utilisateur), `sid` (famille de sessions), `iat`, `exp`, `jti`, `iss=oz-api`, `aud=oz`, en-tête `typ: JWT` ; ni rôle ni âge (§6.7). Vérification : algorithme imposé, émetteur, audience, âge maximal, claims exigés au format UUID, tolérance d'horloge de 30 s, jeton de 1 024 caractères au plus. Rendu dans le corps uniquement, gardé en mémoire par le client.
+- **Rafraîchissement** : 32 octets aléatoires en base64url, stocké par empreinte HMAC-SHA-256 (`JWT_REFRESH_SECRET`). Cookie `__Host-oz_refresh` : `HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/`, sans `Domain`, `Max-Age` = durée restante de la session (bornée par la famille).
+- Les deux secrets font au moins 64 octets, diffèrent l'un de l'autre et sont exigés dès que `FEATURE_AUTH=true`.
+
+### Routes
+
+| Route                       | Authentification                   | Réponse                                                                                             |
+| --------------------------- | ---------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `POST /auth/login`          | Identifiants                       | 200 `{accessToken, expiresIn}` + cookie ; 401 générique ; 403 email à confirmer ; 429 `Retry-After` |
+| `POST /auth/refresh`        | Cookie + `Origin` en liste blanche | 200 nouveau couple ; 401 `AUTH_UNAUTHENTICATED` (cookie effacé) ; 403 origine refusée               |
+| `POST /auth/logout`         | Cookie + `Origin` en liste blanche | 204, même sans cookie ; famille révoquée, cookie effacé                                             |
+| `GET /auth/sessions`        | `Authorization: Bearer`            | Sessions actives : appareil, IP tronquée, ouverture, dernier usage, `current`                       |
+| `DELETE /auth/sessions/:id` | `Authorization: Bearer`            | 204 ; 404 `AUTH_SESSION_NOT_FOUND` si la session n'est pas active ou appartient à un autre compte   |
+| `POST /auth/logout-all`     | `Authorization: Bearer`            | 204 ; toutes les familles révoquées, cookie effacé                                                  |
+
+- **Connexion** : même durée plancher que l'inscription, corps et statut identiques pour un compte inconnu, supprimé, suspendu ou un mot de passe faux (test CP-28 : 50 essais par cas, écart des médianes inférieur à 25 %).
+- **Contrefaçon de requête** : le rafraîchissement et la déconnexion, seuls à lire le cookie, exigent un en-tête `Origin` de la liste `CORS_ORIGINS` (absent : refusé), en plus de `SameSite=Strict`. Les routes de sessions ne lisent que l'en-tête `Authorization`, qu'un navigateur n'envoie jamais d'office.
+- **Identifiant de session** : la famille, stable malgré les rotations (l'identifiant de ligne change toutes les 15 minutes).
+- **Garde** (`AccessTokenGuard`) : jeton valide, puis, en base et à chaque requête, famille active et compte actif, non supprimé et vérifié (`sessionAccess`). Tout refus : 401 `AUTH_UNAUTHENTICATED` au corps identique ; seul un email redevenu non vérifié (changement d'adresse) donne 403 `AUTH_EMAIL_UNVERIFIED`.
+- **IP** : une IPv4 reçue en notation mappée (`::ffff:a.b.c.d`) est ramenée en IPv4, puis tronquée en /24 (/48 pour IPv6) par la base. Derrière un mandataire, `trust proxy` reste à régler (DEBT D-070).
+
+### Rotation et réutilisation
+
+- Chaque rafraîchissement consomme la ligne (motif `rotated`) et en crée une dans la même famille, d'échéance `min(maintenant + 30 jours, plafond de la famille)`.
+- Un jeton déjà consommé présenté alors que la famille vit encore : toute la famille est révoquée (`reuse_detected`, audit `user.session.reuse_detected`), réponse 401 identique à un jeton inconnu, et alerte email au titulaire. Deux onglets qui rafraîchissent en même temps déclenchent ce cas (D3) : le client web devra sérialiser ses rafraîchissements.
+- Concurrence : la rotation lit la ligne sans verrou, prend le verrou consultatif de la famille, puis relit la ligne `FOR UPDATE`. Rejeu contre rotation, déconnexion contre rotation et révocation globale contre rotation sont testés.
+
+### Notifications (D5)
+
+- **Nouvel appareil** : à la connexion, si aucun libellé identique n'a ouvert de session du compte depuis 90 jours (familles `reuse_detected` exclues : un appareil vu dans une famille volée ne devient pas « connu »). Un client sans User-Agent reconnu porte le libellé « Appareil non identifié » et n'est signalé qu'une fois.
+- **Activité suspecte** : à chaque réutilisation détectée.
+- Envoyés après la réponse (`MailDispatcher`, partagé avec le lot 1.3a) ; ni jeton, ni IP, ni User-Agent brut ; lien vers la page de réinitialisation (une page de sessions n'existe pas encore, DEBT D-072). Aucun plafond d'envois par compte avant la limitation de débit du lot 1.3c (DEBT D-067).
+
+### Chemin privilégié
+
+Migration `20261030100000_auth_sessions`, détail dans [docs/db/migrations.md](../db/migrations.md#sessions-lot-13b).
+
+| Fonction                 | Appelant (API)                          | Contrôle                                                                                                           | Audit                                                   |
+| ------------------------ | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------- |
+| `oz_auth_open_session`   | `SessionService.login`                  | Compte actif, vérifié, non supprimé ; empreinte, durées (1 à 30 jours, famille ≤ 90 jours) ; IP tronquée en base   | `user.session.opened`                                   |
+| `oz_auth_rotate_session` | `SessionService.refresh`                | Verrou de famille ; ligne active, non expirée, compte pouvant tenir une session ; réutilisation → famille révoquée | `user.session.reuse_detected` (réutilisation seulement) |
+| `oz_auth_logout`         | `SessionService.logout`                 | Verrou de famille ; ligne active ou consommée (`rotated`)                                                          | `user.session.revoked`                                  |
+| `oz_auth_reset_password` | `AuthService.resetPassword` (remplacée) | Celui du lot 1.3a ; familles verrouillées dans l'ordre, motif `password_reset`                                     | `user.password.reset`                                   |
+
+Sous contexte utilisateur (`withUserContext`, RLS et garde `oz_sessions_guard`) : `listSessions`, `revokeSession` (audit `user.session.revoked`), `revokeAllSessions` (audit `user.session.logout_all`), `sessionAccess`, `accountEmail`.
+
+### Configuration
+
+| Variable             | Rôle                                                                                       |
+| -------------------- | ------------------------------------------------------------------------------------------ |
+| `JWT_ACCESS_SECRET`  | Clé HS256 des jetons d'accès, 64 octets au moins en base64 (`openssl rand -base64 64`)     |
+| `JWT_REFRESH_SECRET` | Clé HMAC des empreintes de rafraîchissement, 64 octets au moins, différente de la première |
+| `JWT_ACCESS_TTL`     | `15m` seulement                                                                            |
+| `JWT_REFRESH_TTL`    | De `1d` à `30d` (défaut `30d`)                                                             |

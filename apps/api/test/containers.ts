@@ -65,3 +65,9 @@ export async function startServices(): Promise<TestServices> {
     },
   };
 }
+
+/** Hôte SMTP d'un conteneur : « localhost » remplacé par 127.0.0.1 (aucune résolution DNS). */
+export const smtpHost = (host: string): string => (host === 'localhost' ? '127.0.0.1' : host);
+
+/** Clé de test de 64 octets constants (base64), jamais un secret réel. */
+export const testKey = (fill: number): string => Buffer.alloc(64, fill).toString('base64');

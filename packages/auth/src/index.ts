@@ -32,3 +32,16 @@ export {
   type TokenRandomSource,
 } from './one-time-token.js';
 export { BACKOFF_FREE_FAILURES, BACKOFF_MAX_SECONDS, backoffSeconds } from './backoff.js';
+export {
+  ACCESS_TOKEN_MIN_KEY_BYTES,
+  ACCESS_TOKEN_TTL_SECONDS,
+  AccessTokens,
+  type AccessTokenSubject,
+  type IssuedAccessToken,
+} from './access-token.js';
+export {
+  generateRefreshToken,
+  hashRefreshToken,
+  REFRESH_TOKEN_MIN_KEY_BYTES,
+  REFRESH_TOKEN_PATTERN,
+} from './refresh-token.js';

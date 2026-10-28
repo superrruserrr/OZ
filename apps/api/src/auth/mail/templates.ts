@@ -100,3 +100,44 @@ export function passwordChangedEmail(): MailContent {
     ]),
   };
 }
+
+// Alertes de sécurité (lot 1.3b, D5) : aucun jeton, aucune IP, aucun User-Agent brut ; le libellé
+// d'appareil vient de listes fermées (device.ts) et reste échappé dans le HTML.
+
+/** Date lisible, en UTC tant que le fuseau de l'utilisateur n'est pas connu (lot 1.15). */
+export function formatWhen(when: Date): string {
+  const formatted = new Intl.DateTimeFormat('fr-FR', {
+    dateStyle: 'long',
+    timeStyle: 'short',
+    timeZone: 'UTC',
+  }).format(when);
+  return `${formatted} (UTC)`;
+}
+
+export function newDeviceLoginEmail(device: string, when: Date, resetUrl: string): MailContent {
+  return {
+    subject: 'Nouvelle connexion à votre compte OZ',
+    ...layout(
+      [
+        `Une connexion à votre compte OZ a eu lieu le ${formatWhen(when)} depuis un appareil que nous ne connaissions pas : ${device}.`,
+        "Si c'est vous, il n'y a rien à faire.",
+        'Sinon, changez votre mot de passe : toutes les sessions ouvertes seront fermées.',
+      ],
+      { label: 'Changer mon mot de passe', href: resetUrl },
+    ),
+  };
+}
+
+export function sessionReuseAlertEmail(when: Date, resetUrl: string): MailContent {
+  return {
+    subject: 'Activité suspecte sur votre compte OZ',
+    ...layout(
+      [
+        `Le ${formatWhen(when)}, une session de votre compte OZ a été utilisée de façon anormale : un jeton de connexion déjà remplacé a été présenté de nouveau, ce qui peut indiquer qu'il a été copié.`,
+        'Par précaution, nous avons fermé la session concernée sur tous les appareils qui la partageaient.',
+        'Si vous ne reconnaissez pas cette activité, changez votre mot de passe : toutes vos sessions seront fermées.',
+      ],
+      { label: 'Changer mon mot de passe', href: resetUrl },
+    ),
+  };
+}
