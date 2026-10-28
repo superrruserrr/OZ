@@ -1,6 +1,7 @@
 import { execFile, spawn } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import { promisify } from 'node:util';
+import { request } from '@playwright/test';
 import { GenericContainer, Wait } from 'testcontainers';
 import { MAILPIT_IMAGE, smtpHost, startServices } from '../../apps/api/test/containers.js';
 
@@ -17,14 +18,19 @@ const root = new URL('../../', import.meta.url).pathname;
 const secret = (bytes: number) => randomBytes(bytes).toString('base64');
 
 async function waitForHealth(deadline: number): Promise<void> {
-  for (;;) {
-    try {
-      if ((await fetch(`${API_URL}/health`)).ok) return;
-    } catch {
-      // API pas encore à l'écoute.
+  const api = await request.newContext({ baseURL: API_URL });
+  try {
+    for (;;) {
+      try {
+        if ((await api.get('/health')).ok()) return;
+      } catch {
+        // API pas encore à l'écoute.
+      }
+      if (Date.now() > deadline) throw new Error(`API E2E injoignable sur ${API_URL}`);
+      await new Promise((resolve) => setTimeout(resolve, 250));
     }
-    if (Date.now() > deadline) throw new Error(`API E2E injoignable sur ${API_URL}`);
-    await new Promise((resolve) => setTimeout(resolve, 250));
+  } finally {
+    await api.dispose();
   }
 }
 
