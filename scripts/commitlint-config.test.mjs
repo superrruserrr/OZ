@@ -43,6 +43,37 @@ describe('commitlint.config.mjs', () => {
     ).toBe(false);
   });
 
+  it('accepte le corps d’une montée groupée d’images Docker (sans URL, PR #28 rebasée)', () => {
+    const message = [
+      'chore(deps): Bump distroless/nodejs24-debian13',
+      '',
+      'Bumps the docker-images group with 1 update in the /infra/docker/images directory: distroless/nodejs24-debian13.',
+      '',
+      '',
+      'Updates `distroless/nodejs24-debian13` from `cb60632` to `206cfba`',
+      '',
+      '---',
+      'updated-dependencies:',
+      '- dependency-name: distroless/nodejs24-debian13',
+      `  dependency-version: ${'2'.repeat(64)}`,
+      '  dependency-type: direct:production',
+      '  dependency-group: docker-images',
+      '...',
+      '',
+      'Signed-off-by: dependabot[bot] <support@github.com>',
+      '',
+    ].join('\n');
+    expect(valid(message)).toBe(true);
+  });
+
+  it('plafonne même une phrase Dependabot du corps à 200 caractères', () => {
+    expect(
+      valid(
+        `chore(deps): bump x\n\nBumps the docker-images group with 1 update in the / directory: ${'i'.repeat(150)}.\n`,
+      ),
+    ).toBe(false);
+  });
+
   it('refuse toujours une ligne de corps trop longue sans URL', () => {
     expect(valid(`chore(deps): mise à jour\n\n${'mot '.repeat(30)}\n`)).toBe(false);
   });
