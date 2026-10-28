@@ -6,6 +6,7 @@ import { GenericContainer, Wait, type StartedTestContainer } from 'testcontainer
 export const POSTGRES_IMAGE = 'postgres:16.15-alpine';
 export const REDIS_IMAGE = 'redis:7.4.11-alpine';
 export const SEAWEEDFS_IMAGE = 'chrislusf/seaweedfs:4.50';
+export const MAILPIT_IMAGE = 'axllent/mailpit:v1.32.0';
 
 export interface TestServices {
   readonly env: Record<string, string>;

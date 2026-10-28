@@ -31,16 +31,16 @@ Chaque mesure porte son état réel au 2026-10-27 :
 
 ## Authentification (§6.2, [ADR-002](../adr/ADR-002-authentification-proprietaire.md))
 
-| Mesure                                                                          | État                                |
-| ------------------------------------------------------------------------------- | ----------------------------------- |
-| Argon2id (m=19456, t=2, p=1), 12 caractères minimum, HaveIBeenPwned             | Prévue — lot 1.3                    |
-| JWT 15 min en mémoire ; rafraîchissement en cookie `httpOnly` `Secure` `Strict` | Prévue — lot 1.3                    |
-| Rotation du rafraîchissement, réutilisation = révocation de la famille          | Prévue — lot 1.3                    |
-| Sessions listées et révocables ; délai exponentiel sans verrouillage définitif  | Prévue — lot 1.3                    |
-| 2FA TOTP obligatoire : administrateurs, centres, fédérations                    | Prévue — lot 1.3                    |
-| Vérification email avant toute action, SMS avant le KYC                         | Prévue — lots 1.3, 1.10             |
-| Réponses indiscernables (compte existant ou non, CP-28)                         | Prévue — lot 1.3                    |
-| Couverture de tests 100 % sur l'authentification (seuil CI bloquant, R6)        | En place — seuil dans le job `test` |
+| Mesure                                                                          | État                                                             |
+| ------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| Argon2id (m=19456, t=2, p=1), 12 caractères minimum, HaveIBeenPwned             | En place — lot 1.3a ([auth.md](auth.md))                         |
+| JWT 15 min en mémoire ; rafraîchissement en cookie `httpOnly` `Secure` `Strict` | Prévue — lot 1.3                                                 |
+| Rotation du rafraîchissement, réutilisation = révocation de la famille          | Prévue — lot 1.3                                                 |
+| Sessions listées et révocables ; délai exponentiel sans verrouillage définitif  | Partielle — délai par compte, lot 1.3a ; sessions 1.3b ; IP 1.3c |
+| 2FA TOTP obligatoire : administrateurs, centres, fédérations                    | Prévue — lot 1.3                                                 |
+| Vérification email avant toute action, SMS avant le KYC                         | Partielle — confirmation d'email, lot 1.3a ; SMS 1.3c, 1.10      |
+| Réponses indiscernables (compte existant ou non, CP-28)                         | En place — lot 1.3a (connexion 1.3b)                             |
+| Couverture de tests 100 % sur l'authentification (seuil CI bloquant, R6)        | En place — seuil dans le job `test`                              |
 
 ## Protection des mineurs (§6.7, bloquant)
 

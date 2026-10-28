@@ -16,6 +16,11 @@
     "test": "vitest run"
   },
   "devDependencies": {
+    "@types/node": "^24.19.2",
+    "fast-check": "^4.10.2",
     "typescript": "catalog:"
+  },
+  "dependencies": {
+    "@node-rs/argon2": "^2.2.2"
   }
 }

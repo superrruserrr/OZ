@@ -254,4 +254,14 @@ export const ANONYMIZATION_REGISTRY: Registry = {
   },
   // Lot 1.2 : l'OZ ID reste réservé après anonymisation (EX-102 n° 6, EX-118 n° 3).
   oz_id_registry: { oz_id: 'technical', player_id: 'technical', issued_at: 'technical' },
+  // Lot 1.3a : empreintes de jetons à usage unique, sans valeur hors de la base d'origine.
+  auth_tokens: {
+    id: 'technical',
+    user_id: 'technical',
+    purpose: 'technical',
+    token_hash: 'technical',
+    expires_at: 'technical',
+    consumed_at: 'technical',
+    created_at: 'technical',
+  },
 };
