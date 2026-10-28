@@ -58,13 +58,38 @@ const headerLength = (parsed) => {
   ];
 };
 
+// Corps : une ligne contenant une URL échappe à la limite, comme dans commitlint. La phrase de
+// Dependabot qui liste un groupe d'images Docker n'a pas d'URL ; elle seule a droit à 200.
+const URL_IN_LINE = /\bhttps?:\/\/\S+/;
+const DEPENDABOT_BODY_LINE =
+  /^Bumps the [\w-]+ group with \d+ updates? in the \S+ director(?:y|ies): .+$/;
+
+const bodyLineLength = (parsed) => {
+  const lines = (parsed.body ?? '').split(/\r?\n/);
+  const ok = lines.every((line) =>
+    URL_IN_LINE.test(line)
+      ? true
+      : line.length <= (DEPENDABOT_BODY_LINE.test(line) ? DEPENDABOT_HEADER_MAX : HEADER_MAX),
+  );
+  return [ok, `body's lines must not be longer than ${String(HEADER_MAX)} characters`];
+};
+
 export default {
   extends: ['@commitlint/config-conventional'],
-  plugins: [{ rules: { 'oz/header-max-length': headerLength } }],
+  plugins: [
+    {
+      rules: {
+        'oz/header-max-length': headerLength,
+        'oz/body-max-line-length': bodyLineLength,
+      },
+    },
+  ],
   rules: {
     'scope-enum': [2, 'always', scopes],
     'subject-case': [0],
     'header-max-length': [0],
     'oz/header-max-length': [2, 'always'],
+    'body-max-line-length': [0],
+    'oz/body-max-line-length': [2, 'always'],
   },
 };
