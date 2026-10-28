@@ -47,7 +47,7 @@ const scopes = [
 const HEADER_MAX = 100;
 const DEPENDABOT_HEADER_MAX = 200;
 const DEPENDABOT_HEADER =
-  /^chore\(deps\): bump \S+ from \S+ to \S+(?: in \/\S*)?(?: in the [\w-]+ group)?$/i;
+  /^chore\(deps\): bump \S+ from \S+ to \S+(?: in \/\S*)?(?: in the [\w-]+ group)?(?: across \d+ director(?:y|ies))?$/i;
 
 const headerLength = (parsed) => {
   const header = parsed.header ?? '';
