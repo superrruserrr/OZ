@@ -4,6 +4,7 @@ import type { PrismaClient } from '@oz/db';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { CredentialsService } from './credentials.service.js';
 import type { AuthMailer } from './mail/auth-mailer.js';
+import type { RateLimiter } from '../common/rate-limit/rate-limiter.service.js';
 import type { MailDispatcher } from './mail/mail-dispatcher.js';
 import { SessionService } from './session.service.js';
 
@@ -29,7 +30,10 @@ const credentials = {
   verify: vi.fn().mockResolvedValue({ result: 'ok', userId: USER }),
 } as unknown as CredentialsService;
 const sendSessionReuseAlert = vi.fn();
-const mailer = { sendSessionReuseAlert } as unknown as AuthMailer;
+const sendNewDeviceLogin = vi.fn();
+const mailer = { sendSessionReuseAlert, sendNewDeviceLogin } as unknown as AuthMailer;
+const consume = vi.fn();
+const warn = vi.fn();
 const sent: Promise<void>[] = [];
 const service = new SessionService(
   {} as PrismaClient,
@@ -43,6 +47,8 @@ const service = new SessionService(
       sent.push(send());
     },
   } as unknown as MailDispatcher,
+  { consume } as unknown as RateLimiter,
+  { info: vi.fn(), warn },
 );
 const client = { userAgent: undefined, ip: undefined };
 
@@ -86,5 +92,21 @@ describe('SessionService', () => {
     await Promise.all(sent);
     expect(db.accountEmail).toHaveBeenCalledOnce();
     expect(sendSessionReuseAlert).not.toHaveBeenCalled();
+  });
+
+  it('plafond « nouvel appareil » illisible (Redis en panne) : email non envoyé, signalé à part', async () => {
+    db.openSession.mockResolvedValue({
+      familyId: FAMILY,
+      expiresAt: new Date(Date.now() + 86_400_000),
+      knownDevice: false,
+    });
+    consume.mockRejectedValue(new Error('redis'));
+    await service.login({ email: 'a@b.test', password: 'x' }, client);
+    await Promise.all(sent);
+    expect(sendNewDeviceLogin).not.toHaveBeenCalled();
+    expect(warn).toHaveBeenCalledWith(
+      { event: 'auth.mail.cap_unavailable', kind: 'new_device_login' },
+      expect.any(String),
+    );
   });
 });

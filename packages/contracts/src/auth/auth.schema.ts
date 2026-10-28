@@ -3,8 +3,24 @@ import { currentPassword, email, newPassword, oneTimeToken } from '../common/fie
 
 // Authentification (lot 1.3a, EX-103) : briques dans `common/fields.ts`.
 
-export const registerSchema = z.strictObject({ email, password: newPassword });
+/** Jeton de formulaire signé par le serveur (lot 1.3ca, D6) : `GET /auth/register/form`. */
+const formToken = z
+  .string()
+  .regex(/^[A-Za-z0-9_-]{32}\.[A-Za-z0-9_-]{43}$/, { error: 'validation.token.invalid' });
+
+export const registerSchema = z.strictObject({
+  email,
+  password: newPassword,
+  formToken,
+  /** Champ piège (D6) : invisible pour un humain, doit rester absent ou vide. */
+  website: z.string().max(200).optional(),
+  /** Jeton reCAPTCHA v3 (D4), action `register`. */
+  recaptchaToken: z.string().max(4_000).optional(),
+});
 export type RegisterInput = z.infer<typeof registerSchema>;
+
+export const formTokenOutputSchema = z.strictObject({ formToken });
+export type FormTokenOutput = z.infer<typeof formTokenOutputSchema>;
 
 export const verifyEmailSchema = z.strictObject({ token: oneTimeToken });
 export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;

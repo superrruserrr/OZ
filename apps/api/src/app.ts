@@ -13,6 +13,9 @@ import { setupSwagger } from './docs/swagger.js';
 export function configureApp(app: NestExpressApplication): void {
   const config = app.get<ApiConfig>(API_CONFIG);
   app.useLogger(app.get(Logger));
+  // `req.ip` : dernier client avant les mandataires de confiance (TRUST_PROXY), jamais un en-tête
+  // `X-Forwarded-For` envoyé par le client lui-même.
+  app.set('trust proxy', config.trustProxy);
   app.enableShutdownHooks();
   app.use(requestIdMiddleware);
   applySecurity(app, config);

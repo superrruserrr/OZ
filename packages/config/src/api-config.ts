@@ -90,6 +90,13 @@ const schema = z
     LOG_LEVEL: z
       .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
       .default('info'),
+    // Mandataires de confiance devant l'API (Traefik, Cloudflare) : nombre de sauts dont
+    // `X-Forwarded-For` est cru ; 0 = connexion directe, l'en-tête est ignoré (lot 1.3ca, D-070).
+    TRUST_PROXY: z
+      .string()
+      .regex(/^[0-5]$/)
+      .default('0')
+      .transform(Number),
     DATABASE_URL: z.string().regex(/^postgres(ql)?:\/\/.+/),
     REDIS_URL: z.string().regex(/^rediss?:\/\/.+/),
     // Autorités Scaleway de la base et de Redis (PEM ; « \n » littéraux acceptés, D-006).
@@ -136,6 +143,13 @@ const schema = z
     // Accès : 15 minutes, fixe (EX-103 n° 3) ; la variable n'existe que pour le dire.
     JWT_ACCESS_TTL: optional(z.literal('15m')),
     JWT_REFRESH_TTL: refreshTtl,
+    // reCAPTCHA v3 (lot 1.3ca, D4) : secret exigé hors local ; seuil entre 0 et 1 (2 décimales).
+    RECAPTCHA_SECRET_KEY: optional(z.string().min(20).max(200)),
+    RECAPTCHA_MIN_SCORE: z
+      .string()
+      .regex(/^(0(\.\d{1,2})?|1(\.0{1,2})?)$/)
+      .default('0.5')
+      .transform(Number),
   })
   .superRefine((env, ctx) => {
     // Les deux clés vont ensemble, et diffèrent : un index aveugle ne doit rien révéler du chiffrement.
@@ -193,6 +207,13 @@ const schema = z
         ctx.addIssue({ code: 'custom', path: [missing], message: 'les deux vont ensemble' });
       } else if (remote && env.SMTP_USER === undefined) {
         ctx.addIssue({ code: 'custom', path: ['SMTP_USER'], message: 'requis hors local' });
+      }
+      if (remote && env.RECAPTCHA_SECRET_KEY === undefined) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['RECAPTCHA_SECRET_KEY'],
+          message: 'requis hors local',
+        });
       }
       if (remote && env.APP_URL?.startsWith('https://') === false) {
         ctx.addIssue({ code: 'custom', path: ['APP_URL'], message: 'https requis' });
@@ -272,6 +293,8 @@ export interface ApiConfig {
     readonly secretKey: string;
   };
   readonly corsOrigins: readonly string[];
+  /** Sauts de mandataires de confiance (`trust proxy` d'Express). */
+  readonly trustProxy: number;
   readonly features: { readonly contactForm: boolean; readonly auth: boolean };
   /** Comptes (lot 1.3a) : présent seulement quand FEATURE_AUTH=true. */
   readonly auth: AuthConfig | undefined;
@@ -296,6 +319,8 @@ export interface AuthConfig {
     readonly refreshKey: Uint8Array;
     readonly refreshTtlSeconds: number;
   };
+  /** reCAPTCHA v3 (lot 1.3ca, D4) : absent en local sans secret, vérification alors sautée. */
+  readonly recaptcha: { readonly secretKey: string; readonly minScore: number } | undefined;
 }
 
 /** Charge et valide la configuration de l'API. Lève `ConfigError` au lieu de démarrer avec un état invalide. */
@@ -332,6 +357,7 @@ export function loadApiConfig(env: Readonly<Record<string, string | undefined>>)
       secretKey: value.S3_SECRET_KEY,
     }),
     corsOrigins: Object.freeze([...value.CORS_ORIGINS]),
+    trustProxy: value.TRUST_PROXY,
     features: Object.freeze({
       contactForm: value.FEATURE_CONTACT_FORM === 'true',
       auth: value.FEATURE_AUTH === 'true',
@@ -361,6 +387,13 @@ export function loadApiConfig(env: Readonly<Record<string, string | undefined>>)
               refreshKey: value.JWT_REFRESH_SECRET,
               refreshTtlSeconds: value.JWT_REFRESH_TTL ?? 30 * DAY_SECONDS,
             }),
+            recaptcha:
+              value.RECAPTCHA_SECRET_KEY === undefined
+                ? undefined
+                : Object.freeze({
+                    secretKey: value.RECAPTCHA_SECRET_KEY,
+                    minScore: value.RECAPTCHA_MIN_SCORE,
+                  }),
           })
         : undefined,
   });

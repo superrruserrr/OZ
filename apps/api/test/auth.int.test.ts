@@ -5,8 +5,14 @@ import { createApp } from '../src/app.js';
 import type { ApiError } from '../src/common/errors/api-error.js';
 import { PwnedPasswordsClient } from '@oz/auth';
 import { MailDispatcher } from '../src/auth/mail/mail-dispatcher.js';
-import { PWNED_CLIENT } from '../src/auth/auth.tokens.js';
-import { RESPONSE_FLOOR_MS, startAuthHarness, tokenIn, type AuthHarness } from './auth-harness.js';
+import { PWNED_CLIENT, RECAPTCHA_VERIFIER } from '../src/auth/auth.tokens.js';
+import {
+  formToken,
+  RESPONSE_FLOOR_MS,
+  startAuthHarness,
+  tokenIn,
+  type AuthHarness,
+} from './auth-harness.js';
 import { testKey } from './containers.js';
 import { testConfig } from './support.js';
 
@@ -18,7 +24,7 @@ let counter = 0;
 const email = (): string => `personne-${String(++counter)}@example.test`;
 
 const register = (address: string, password = PASSWORD) =>
-  request(server).post('/auth/register').send({ email: address, password });
+  request(server).post('/auth/register').send({ email: address, password, formToken: formToken() });
 
 async function registerAndToken(address = email()): Promise<{ address: string; token: string }> {
   await register(address).expect(202);
@@ -113,7 +119,7 @@ describe('POST /auth/register', () => {
   it('refuse une clé inconnue (aucun statut choisi par le client)', async () => {
     await request(server)
       .post('/auth/register')
-      .send({ email: email(), password: PASSWORD, status: 'active' })
+      .send({ email: email(), password: PASSWORD, formToken: formToken(), status: 'active' })
       .expect(422);
   });
 });
@@ -212,6 +218,8 @@ describe('drapeau FEATURE_AUTH (R13)', () => {
     await enabled.init();
     try {
       expect(enabled.get(PWNED_CLIENT)).toBeInstanceOf(PwnedPasswordsClient);
+      // Local sans secret : reCAPTCHA désactivé (D4 du lot 1.3ca).
+      expect(enabled.get(RECAPTCHA_VERIFIER)).toBeNull();
     } finally {
       await enabled.close();
     }
@@ -223,7 +231,7 @@ describe('drapeau FEATURE_AUTH (R13)', () => {
       const address = email();
       const response = await request(broken.app.getHttpServer())
         .post('/auth/register')
-        .send({ email: address, password: PASSWORD })
+        .send({ email: address, password: PASSWORD, formToken: formToken() })
         .expect(202);
       expect(response.body).toEqual({ status: 'accepted' });
       await broken.app.get(MailDispatcher).flush();

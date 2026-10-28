@@ -45,3 +45,29 @@ export {
   REFRESH_TOKEN_MIN_KEY_BYTES,
   REFRESH_TOKEN_PATTERN,
 } from './refresh-token.js';
+export {
+  RATE_LIMIT_DEFAULTS,
+  RATE_LIMIT_RULES,
+  resolveRateLimits,
+  slidingLogDecision,
+  SLIDING_LOG_SCRIPT,
+  type RateLimit,
+  type RateLimitDecision,
+  type RateLimitRule,
+  type RateLimits,
+} from './rate-limit.js';
+export {
+  checkFormToken,
+  FORM_TOKEN_MAX_AGE_MS,
+  FORM_TOKEN_MIN_AGE_MS,
+  FORM_TOKEN_PATTERN,
+  issueFormToken,
+  type FormTokenVerdict,
+} from './form-token.js';
+export {
+  RECAPTCHA_DEFAULT_TIMEOUT_MS,
+  RecaptchaVerifier,
+  type RecaptchaFetch,
+  type RecaptchaVerdict,
+  type RecaptchaVerifierOptions,
+} from './recaptcha.js';

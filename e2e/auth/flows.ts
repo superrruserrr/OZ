@@ -65,7 +65,14 @@ export async function registerAndConfirm(
   email: string,
   password: string,
 ): Promise<void> {
-  expect((await api.post('/auth/register', { data: { email, password } })).status()).toBe(202);
+  // Jeton de formulaire (D6 du lot 1.3ca) : l'inscription n'est acceptée qu'après 3 s.
+  const form = await api.get('/auth/register/form');
+  expect(form.status()).toBe(200);
+  const { formToken } = (await form.json()) as { formToken: string };
+  await new Promise((resolve) => setTimeout(resolve, 3_100));
+  expect(
+    (await api.post('/auth/register', { data: { email, password, formToken } })).status(),
+  ).toBe(202);
   const token = tokenIn(await mailTo(email, 'Confirmez votre adresse email'));
   expect((await api.post('/auth/verify-email', { data: { token } })).status()).toBe(200);
 }

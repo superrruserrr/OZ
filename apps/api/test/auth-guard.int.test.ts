@@ -3,7 +3,7 @@ import request from 'supertest';
 import type { App } from 'supertest/types.js';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { ApiError } from '../src/common/errors/api-error.js';
-import { startAuthHarness, tokenIn, type AuthHarness } from './auth-harness.js';
+import { formToken, startAuthHarness, tokenIn, type AuthHarness } from './auth-harness.js';
 
 // Garde d'accès et sessions de l'utilisateur (lot 1.3b, EX-103 n° 1, 6, 9 ; D2).
 
@@ -31,7 +31,7 @@ async function account(): Promise<string> {
   const address = `guard-${String(++counter)}@example.test`;
   await request(server)
     .post('/auth/register')
-    .send({ email: address, password: PASSWORD })
+    .send({ email: address, password: PASSWORD, formToken: formToken() })
     .expect(202);
   const token = tokenIn(await harness.mailTo(address, 'Confirmez votre adresse email'));
   await request(server).post('/auth/verify-email').send({ token }).expect(200);

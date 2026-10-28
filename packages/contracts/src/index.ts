@@ -17,6 +17,7 @@ export {
 } from './contact/send-contact-message.schema.js';
 export {
   accessTokenOutputSchema,
+  formTokenOutputSchema,
   loginSchema,
   registerSchema,
   requestPasswordResetSchema,
@@ -25,6 +26,7 @@ export {
   sessionParamsSchema,
   verifyEmailSchema,
   type AccessTokenOutput,
+  type FormTokenOutput,
   type LoginInput,
   type RegisterInput,
   type RequestPasswordResetInput,

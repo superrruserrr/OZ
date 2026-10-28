@@ -2,7 +2,16 @@ import { Catch, type ArgumentsHost, type ExceptionFilter } from '@nestjs/common'
 import type { Request, Response } from 'express';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import { requestIdOf } from '../logging/request-id.middleware.js';
-import { toApiError } from './api-error.js';
+import { AppException, toApiError } from './api-error.js';
+
+/** Attente annoncée par un refus 429 (délai exponentiel, limite de débit), en secondes. */
+function retryAfterOf(exception: unknown): number | null {
+  if (!(exception instanceof AppException) || exception.status !== 429) return null;
+  const { retryAfterSeconds } = exception as { retryAfterSeconds?: unknown };
+  return typeof retryAfterSeconds === 'number' && retryAfterSeconds >= 1
+    ? Math.ceil(retryAfterSeconds)
+    : null;
+}
 
 /** Filtre global : toute erreur sort au format `ApiError` ; le détail complet ne va qu'aux logs. */
 @Catch()
@@ -34,6 +43,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
       response.end();
       return;
     }
+    const retryAfter = retryAfterOf(exception);
+    if (retryAfter !== null) response.setHeader('Retry-After', String(retryAfter));
     response.status(status).json(body);
   }
 }

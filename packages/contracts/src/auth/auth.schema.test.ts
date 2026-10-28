@@ -3,6 +3,7 @@ import { newPassword, oneTimeToken } from '../common/fields.js';
 import {
   accessTokenOutputSchema,
   loginSchema,
+  formTokenOutputSchema,
   registerSchema,
   requestPasswordResetSchema,
   resetPasswordSchema,
@@ -12,6 +13,7 @@ import {
 } from './auth.schema.js';
 
 const TOKEN = 'A'.repeat(43);
+const FORM = `${'A'.repeat(32)}.${'B'.repeat(43)}`;
 const issues = (result: { success: boolean; error?: { issues: { message: string }[] } }) =>
   result.error?.issues.map((issue) => issue.message) ?? [];
 
@@ -51,16 +53,46 @@ describe('jeton à usage unique', () => {
 describe('contrats d’authentification', () => {
   it('inscription : email normalisé et mot de passe conforme', () => {
     expect(
-      registerSchema.parse({ email: ' Nouvelle@Example.TEST ', password: 'correct horse battery' }),
-    ).toEqual({ email: 'nouvelle@example.test', password: 'correct horse battery' });
-    expect(registerSchema.safeParse({ email: 'x@example.test', password: 'court' }).success).toBe(
+      registerSchema.parse({
+        email: ' Nouvelle@Example.TEST ',
+        password: 'correct horse battery',
+        formToken: FORM,
+      }),
+    ).toEqual({
+      email: 'nouvelle@example.test',
+      password: 'correct horse battery',
+      formToken: FORM,
+    });
+    expect(
+      registerSchema.safeParse({ email: 'x@example.test', password: 'court', formToken: FORM })
+        .success,
+    ).toBe(false);
+  });
+
+  it('jeton de formulaire exigé ; piège et jeton reCAPTCHA facultatifs et bornés (lot 1.3ca)', () => {
+    const base = { email: 'x@example.test', password: 'correct horse battery', formToken: FORM };
+    expect(registerSchema.safeParse(base).success).toBe(true);
+    expect(
+      registerSchema.safeParse({ ...base, website: '', recaptchaToken: 'r'.repeat(500) }).success,
+    ).toBe(true);
+    expect(registerSchema.safeParse({ ...base, formToken: undefined }).success).toBe(false);
+    expect(registerSchema.safeParse({ ...base, formToken: 'x' }).success).toBe(false);
+    expect(registerSchema.safeParse({ ...base, website: 'w'.repeat(201) }).success).toBe(false);
+    expect(registerSchema.safeParse({ ...base, recaptchaToken: 'r'.repeat(4_001) }).success).toBe(
       false,
     );
+    expect(registerSchema.safeParse({ ...base, website: 42 }).success).toBe(false);
+  });
+
+  it('jeton de formulaire rendu par GET /auth/register/form', () => {
+    expect(formTokenOutputSchema.safeParse({ formToken: FORM }).success).toBe(true);
+    expect(formTokenOutputSchema.safeParse({ formToken: FORM, extra: 1 }).success).toBe(false);
   });
 
   it('refuse toute clé inconnue', () => {
     expect(
       registerSchema.safeParse({
+        formToken: FORM,
         email: 'x@example.test',
         password: 'correct horse battery',
         status: 'active',
