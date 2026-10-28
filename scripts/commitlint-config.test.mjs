@@ -26,6 +26,10 @@ describe('commitlint.config.mjs', () => {
     expect(valid(`${header}\n`)).toBe(true);
     // Titre de la PR (contrôlé par la CI) : Dependabot y met les condensés entre accents graves.
     expect(valid(`${header.replace(/(cb60632|206cfba)/g, '`$1`')}\n`)).toBe(true);
+    // Variante observée après rebase (PR #28) : suffixe « across 1 directory », 144 caractères.
+    expect(valid(`${header.replace(/(cb60632|206cfba)/g, '`$1`')} across 1 directory\n`)).toBe(
+      true,
+    );
   });
 
   it('refuse toujours un titre de plus de 100 caractères qui n’a pas la forme Dependabot', () => {
