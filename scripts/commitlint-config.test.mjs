@@ -19,6 +19,30 @@ describe('commitlint.config.mjs', () => {
     ).toBe(true);
   });
 
+  it('accepte le titre long d’une montée groupée de Dependabot (chemin et groupe, PR #28)', () => {
+    const header =
+      'chore(deps): Bump distroless/nodejs24-debian13 from cb60632 to 206cfba in /infra/docker/images in the docker-images group';
+    expect(header.length).toBeGreaterThan(100);
+    expect(valid(`${header}\n`)).toBe(true);
+    // Titre de la PR (contrôlé par la CI) : Dependabot y met les condensés entre accents graves.
+    expect(valid(`${header.replace(/(cb60632|206cfba)/g, '`$1`')}\n`)).toBe(true);
+  });
+
+  it('refuse toujours un titre de plus de 100 caractères qui n’a pas la forme Dependabot', () => {
+    expect(valid(`chore(deps): ${'montée '.repeat(14)}\n`)).toBe(false);
+    expect(valid(`feat(auth): bump a from 1 to 2 in /x in the ${'g'.repeat(80)} group\n`)).toBe(
+      false,
+    );
+  });
+
+  it('plafonne même un titre Dependabot à 200 caractères', () => {
+    expect(
+      valid(
+        `chore(deps): Bump ${'p'.repeat(150)} from 1.0.0 to 2.0.0 in /infra in the npm group\n`,
+      ),
+    ).toBe(false);
+  });
+
   it('refuse toujours une ligne de corps trop longue sans URL', () => {
     expect(valid(`chore(deps): mise à jour\n\n${'mot '.repeat(30)}\n`)).toBe(false);
   });
