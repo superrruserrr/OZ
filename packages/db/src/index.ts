@@ -14,3 +14,17 @@ export {
   type AccountStatus,
   type AuthSqlClient,
 } from './auth.js';
+export {
+  accountEmail,
+  listSessions,
+  logoutSession,
+  openSession,
+  revokeAllSessions,
+  revokeSession,
+  rotateSession,
+  sessionAccess,
+  type OpenedSession,
+  type RotationResult,
+  type SessionAccess,
+  type SessionSummary,
+} from './sessions.js';

@@ -4,9 +4,11 @@ import { createTransport, type SMTPTransportOptions, type Transporter } from 'no
 import type { AuthMailer } from './auth-mailer.js';
 import {
   alreadyRegisteredEmail,
+  newDeviceLoginEmail,
   passwordChangedEmail,
   passwordResetEmail,
   resetLink,
+  sessionReuseAlertEmail,
   verificationEmail,
   verificationLink,
   type MailContent,
@@ -51,7 +53,7 @@ export class SmtpAuthMailer implements AuthMailer, OnApplicationShutdown {
   }
 
   sendAlreadyRegistered(to: string): Promise<void> {
-    return this.send(to, alreadyRegisteredEmail(`${this.config.appUrl}/auth/reset`));
+    return this.send(to, alreadyRegisteredEmail(this.resetUrl()));
   }
 
   sendPasswordReset(to: string, token: string): Promise<void> {
@@ -62,9 +64,22 @@ export class SmtpAuthMailer implements AuthMailer, OnApplicationShutdown {
     return this.send(to, passwordChangedEmail());
   }
 
-  /** Après `AuthService.beforeApplicationShutdown` : plus aucun envoi en cours. */
+  sendNewDeviceLogin(to: string, device: string, when: Date): Promise<void> {
+    return this.send(to, newDeviceLoginEmail(device, when, this.resetUrl()));
+  }
+
+  sendSessionReuseAlert(to: string, when: Date): Promise<void> {
+    return this.send(to, sessionReuseAlertEmail(when, this.resetUrl()));
+  }
+
+  /** Après `MailDispatcher.beforeApplicationShutdown` : plus aucun envoi en cours. */
   onApplicationShutdown(): void {
     this.transport.close();
+  }
+
+  /** Page de réinitialisation, sans jeton : changer de mot de passe ferme toutes les sessions. */
+  private resetUrl(): string {
+    return `${this.config.appUrl}/auth/reset`;
   }
 
   private async send(to: string, content: MailContent): Promise<void> {

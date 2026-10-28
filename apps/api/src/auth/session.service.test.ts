@@ -1,0 +1,90 @@
+import { AccessTokens } from '@oz/auth';
+import type { AuthConfig } from '@oz/config';
+import type { PrismaClient } from '@oz/db';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { CredentialsService } from './credentials.service.js';
+import type { AuthMailer } from './mail/auth-mailer.js';
+import type { MailDispatcher } from './mail/mail-dispatcher.js';
+import { SessionService } from './session.service.js';
+
+// Cas que le banc HTTP ne sait pas provoquer : course avec une suspension de compte, requête sans IP.
+const db = vi.hoisted(() => ({
+  openSession: vi.fn(),
+  rotateSession: vi.fn(),
+  accountEmail: vi.fn(),
+  withUserContext: vi.fn((_db: unknown, _user: string, fn: (tx: unknown) => unknown) => fn({})),
+}));
+vi.mock('@oz/db', () => db);
+
+const USER = '00000000-0000-4000-8000-000000000001';
+const FAMILY = '00000000-0000-4000-8000-000000000002';
+const config = {
+  tokens: {
+    accessKey: new Uint8Array(64).fill(1),
+    refreshKey: new Uint8Array(64).fill(2),
+    refreshTtlSeconds: 86_400,
+  },
+} as AuthConfig;
+const credentials = {
+  verify: vi.fn().mockResolvedValue({ result: 'ok', userId: USER }),
+} as unknown as CredentialsService;
+const sendSessionReuseAlert = vi.fn();
+const mailer = { sendSessionReuseAlert } as unknown as AuthMailer;
+const sent: Promise<void>[] = [];
+const service = new SessionService(
+  {} as PrismaClient,
+  new AccessTokens(config.tokens.accessKey),
+  config,
+  0,
+  credentials,
+  mailer,
+  {
+    sendLater: (_kind: string, send: () => Promise<void>) => {
+      sent.push(send());
+    },
+  } as unknown as MailDispatcher,
+);
+const client = { userAgent: undefined, ip: undefined };
+
+beforeEach(() => {
+  vi.clearAllMocks();
+});
+
+describe('SessionService', () => {
+  it('refuse génériquement si le compte ne peut plus ouvrir de session', async () => {
+    db.openSession.mockResolvedValue(null);
+    await expect(service.login({ email: 'a@b.test', password: 'x' }, client)).rejects.toMatchObject(
+      { code: 'AUTH_INVALID_CREDENTIALS' },
+    );
+    expect(db.openSession).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ ip: null, device: 'Appareil non identifié' }),
+    );
+  });
+
+  it('rafraîchit sans IP connue', async () => {
+    db.rotateSession.mockResolvedValue({
+      outcome: 'rotated',
+      userId: USER,
+      familyId: FAMILY,
+      expiresAt: new Date(Date.now() + 86_400_000),
+    });
+    const issued = await service.refresh('a'.repeat(43), client);
+    expect(issued.access.expiresIn).toBe(900);
+    expect(db.rotateSession).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ ip: null }),
+    );
+  });
+
+  it('réutilisation sur un compte supprimé entre-temps : aucun email', async () => {
+    db.rotateSession.mockResolvedValue({ outcome: 'reuse', userId: USER, familyId: FAMILY });
+    db.accountEmail.mockResolvedValue(null);
+    await expect(service.refresh('a'.repeat(43), client)).rejects.toMatchObject({
+      code: 'AUTH_UNAUTHENTICATED',
+    });
+    await Promise.all(sent);
+    expect(db.accountEmail).toHaveBeenCalledOnce();
+    expect(sendSessionReuseAlert).not.toHaveBeenCalled();
+  });
+});

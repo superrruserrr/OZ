@@ -1,4 +1,4 @@
-import { Inject, Injectable, type BeforeApplicationShutdown } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import {
   generateOneTimeToken,
   hashOneTimeToken,
@@ -23,7 +23,9 @@ import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import { AppException } from '../common/errors/api-error.js';
 import { API_CONFIG } from '../config/config.module.js';
 import { DB_CLIENT } from '../database/database.module.js';
-import { AUTH_MAILER, mailErrorCode, type AuthMailer } from './mail/auth-mailer.js';
+import { AUTH_MAILER, type AuthMailer } from './mail/auth-mailer.js';
+import { MailDispatcher } from './mail/mail-dispatcher.js';
+import { withResponseFloor } from './response-floor.js';
 import {
   AUTH_RESPONSE_FLOOR_MS,
   PWNED_CLIENT,
@@ -40,9 +42,7 @@ const INVALID_TOKEN = (): AppException =>
  * envoi des emails après la réponse.
  */
 @Injectable()
-export class AuthService implements BeforeApplicationShutdown {
-  private readonly pendingMail = new Set<Promise<void>>();
-
+export class AuthService {
   constructor(
     @Inject(DB_CLIENT) private readonly db: PrismaClient,
     @Inject(AUTH_MAILER) private readonly mailer: AuthMailer,
@@ -50,6 +50,7 @@ export class AuthService implements BeforeApplicationShutdown {
     @Inject(AUTH_RESPONSE_FLOOR_MS) private readonly floorMs: number,
     @Inject(API_CONFIG) private readonly config: ApiConfig,
     @InjectPinoLogger(AuthService.name) private readonly logger: PinoLogger,
+    private readonly mail: MailDispatcher,
   ) {}
 
   async register(input: RegisterInput): Promise<void> {
@@ -64,9 +65,11 @@ export class AuthService implements BeforeApplicationShutdown {
         ttlSeconds: VERIFICATION_TTL_SECONDS,
       });
       if (created === null) {
-        this.sendLater('already_registered', () => this.mailer.sendAlreadyRegistered(input.email));
+        this.mail.sendLater('already_registered', () =>
+          this.mailer.sendAlreadyRegistered(input.email),
+        );
       } else {
-        this.sendLater('verification', () => this.mailer.sendVerification(input.email, token));
+        this.mail.sendLater('verification', () => this.mailer.sendVerification(input.email, token));
       }
     });
   }
@@ -84,7 +87,9 @@ export class AuthService implements BeforeApplicationShutdown {
         ttlSeconds: RESET_TTL_SECONDS,
       });
       if (owner !== null) {
-        this.sendLater('password_reset', () => this.mailer.sendPasswordReset(input.email, token));
+        this.mail.sendLater('password_reset', () =>
+          this.mailer.sendPasswordReset(input.email, token),
+        );
       }
     });
   }
@@ -97,17 +102,7 @@ export class AuthService implements BeforeApplicationShutdown {
       passwordHash,
     });
     if (address === null) throw INVALID_TOKEN();
-    this.sendLater('password_changed', () => this.mailer.sendPasswordChanged(address));
-  }
-
-  /** Attend les envois en cours (arrêt propre, tests). */
-  async flushMail(): Promise<void> {
-    await Promise.allSettled([...this.pendingMail]);
-  }
-
-  /** Arrêt (SIGTERM d'un déploiement) : les emails déjà annoncés par une réponse partent. */
-  async beforeApplicationShutdown(): Promise<void> {
-    await this.flushMail();
+    this.mail.sendLater('password_changed', () => this.mailer.sendPasswordChanged(address));
   }
 
   /**
@@ -132,27 +127,8 @@ export class AuthService implements BeforeApplicationShutdown {
     }
   }
 
-  /** Envoie l'email sans retarder la réponse ; un échec est journalisé sans l'adresse. */
-  private sendLater(kind: string, send: () => Promise<void>): void {
-    // Ni le message d'erreur ni la réponse SMTP ne sont journalisés : ils peuvent citer l'adresse.
-    const pending = send().catch((error: unknown) => {
-      this.logger.error(
-        { event: 'auth.mail.failed', kind, code: mailErrorCode(error) },
-        "Échec d'envoi d'un email d'authentification",
-      );
-    });
-    this.pendingMail.add(pending);
-    void pending.finally(() => this.pendingMail.delete(pending));
-  }
-
   /** Exécute `work` et ne rend la main qu'après `floorMs`, succès ou échec. */
-  private async withFloor(work: () => Promise<void>): Promise<void> {
-    const started = performance.now();
-    try {
-      await work();
-    } finally {
-      const remaining = this.floorMs - (performance.now() - started);
-      await new Promise((resolve) => setTimeout(resolve, Math.max(0, remaining)));
-    }
+  private withFloor(work: () => Promise<void>): Promise<void> {
+    return withResponseFloor(this.floorMs, work);
   }
 }

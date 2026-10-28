@@ -258,6 +258,8 @@ describe('loadApiConfig (EX-003)', () => {
 });
 
 describe('authentification (lot 1.3a)', () => {
+  const accessKey = Buffer.alloc(64, 1).toString('base64');
+  const refreshKey = Buffer.alloc(64, 2).toString('base64');
   const AUTH = {
     FEATURE_AUTH: 'true',
     APP_URL: 'http://localhost:3000',
@@ -265,6 +267,8 @@ describe('authentification (lot 1.3a)', () => {
     SMTP_PORT: '1025',
     EMAIL_FROM: 'OZ <no-reply@oz.localhost>',
     AUTH_HMAC_KEY: 'h'.repeat(40),
+    JWT_ACCESS_SECRET: accessKey,
+    JWT_REFRESH_SECRET: refreshKey,
   };
   const CA = '-----BEGIN CERTIFICATE-----\nMIIBfake\n-----END CERTIFICATE-----';
   const staging = {
@@ -296,6 +300,11 @@ describe('authentification (lot 1.3a)', () => {
         password: undefined,
         requireTls: false,
       },
+      tokens: {
+        accessKey: new Uint8Array(64).fill(1),
+        refreshKey: new Uint8Array(64).fill(2),
+        refreshTtlSeconds: 30 * 86_400,
+      },
     });
   });
 
@@ -307,7 +316,74 @@ describe('authentification (lot 1.3a)', () => {
         AUTH_HMAC_KEY: 'courte',
         EMAIL_FROM: 'pas une adresse',
       }).invalidVariables,
-    ).toEqual(['APP_URL', 'AUTH_HMAC_KEY', 'EMAIL_FROM', 'SMTP_HOST', 'SMTP_PORT']);
+    ).toEqual([
+      'APP_URL',
+      'AUTH_HMAC_KEY',
+      'EMAIL_FROM',
+      'JWT_ACCESS_SECRET',
+      'JWT_REFRESH_SECRET',
+      'SMTP_HOST',
+      'SMTP_PORT',
+    ]);
+  });
+
+  describe('secrets et durées des jetons (lot 1.3b)', () => {
+    const short = Buffer.alloc(63, 1).toString('base64');
+
+    it('exige des secrets de 64 octets au moins, en base64', () => {
+      expect(
+        errorOf({
+          ...valid,
+          ...AUTH,
+          JWT_ACCESS_SECRET: short,
+          JWT_REFRESH_SECRET: 'pas-du-base64!',
+        }).invalidVariables,
+      ).toEqual(['JWT_ACCESS_SECRET', 'JWT_REFRESH_SECRET']);
+    });
+
+    it('accepte un secret coupé en lignes (sortie d’openssl rand -base64 64)', () => {
+      const wrapped = accessKey.replace(/(.{64})/, '$1\n') + '\n';
+      expect(
+        loadApiConfig({ ...valid, ...AUTH, JWT_ACCESS_SECRET: wrapped }).auth?.tokens.accessKey,
+      ).toEqual(new Uint8Array(64).fill(1));
+    });
+
+    it('exige deux secrets distincts', () => {
+      expect(
+        errorOf({ ...valid, ...AUTH, JWT_REFRESH_SECRET: accessKey }).invalidVariables,
+      ).toEqual(['JWT_REFRESH_SECRET']);
+    });
+
+    it('n’affiche jamais la valeur d’un secret refusé', () => {
+      const error = errorOf({ ...valid, ...AUTH, JWT_ACCESS_SECRET: short });
+      expect(error.message).not.toContain(short);
+    });
+
+    it('jeton d’accès de 15 minutes, et rien d’autre', () => {
+      expect(loadApiConfig({ ...valid, ...AUTH, JWT_ACCESS_TTL: '15m' }).auth).toBeDefined();
+      expect(errorOf({ ...valid, ...AUTH, JWT_ACCESS_TTL: '1h' }).invalidVariables).toEqual([
+        'JWT_ACCESS_TTL',
+      ]);
+    });
+
+    it('rafraîchissement de 1 à 30 jours, 30 par défaut', () => {
+      const ttl = (value: string) =>
+        loadApiConfig({ ...valid, ...AUTH, JWT_REFRESH_TTL: value }).auth?.tokens.refreshTtlSeconds;
+      expect(ttl('1d')).toBe(86_400);
+      expect(ttl('30d')).toBe(30 * 86_400);
+      expect(ttl('')).toBe(30 * 86_400);
+      for (const value of ['0d', '31d', '30', '2w', '1.5d']) {
+        expect(errorOf({ ...valid, ...AUTH, JWT_REFRESH_TTL: value }).invalidVariables).toEqual([
+          'JWT_REFRESH_TTL',
+        ]);
+      }
+    });
+
+    it('n’exige aucun secret quand l’authentification est désactivée', () => {
+      expect(
+        loadApiConfig({ ...valid, JWT_ACCESS_SECRET: '', JWT_REFRESH_SECRET: '' }).auth,
+      ).toBeUndefined();
+    });
   });
 
   it('va par paire pour l’identifiant SMTP', () => {

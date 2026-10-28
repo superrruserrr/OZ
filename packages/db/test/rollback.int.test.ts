@@ -25,6 +25,14 @@ const tableExists = async (name: string): Promise<boolean> =>
   (await db.query<{ t: string | null }>('SELECT to_regclass($1)::text AS t', [name]))[0]?.t !==
   null;
 
+const columnExists = async (table: string, column: string): Promise<boolean> =>
+  (
+    await db.query<{ n: number }>(
+      'SELECT count(*)::int AS n FROM information_schema.columns WHERE table_name = $1 AND column_name = $2',
+      [table, column],
+    )
+  )[0]?.n === 1;
+
 describe('rollbackLast (db:rollback)', () => {
   it('annule la dernière migration et retire sa trace dans _prisma_migrations', async () => {
     await migrateDeploy(db);
@@ -35,7 +43,8 @@ describe('rollbackLast (db:rollback)', () => {
     expect(result.rolledBack).toBe(last);
     expect(await applied()).not.toContain(last);
     // Dernière migration annulée, les précédentes intactes.
-    expect(await tableExists('auth_tokens')).toBe(false);
+    expect(await columnExists('sessions', 'revoked_reason')).toBe(false);
+    expect(await tableExists('auth_tokens')).toBe(true);
     expect(await tableExists('oz_id_registry')).toBe(true);
     expect(await tableExists('users')).toBe(true);
     expect(await tableExists('system_settings')).toBe(true);

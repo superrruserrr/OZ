@@ -54,6 +54,29 @@ const mailbox = z
   .regex(/^(?:[^<>\r\n]{1,64} )?<?[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+>?$/)
   .refine((value) => value.includes('<') === value.endsWith('>'));
 
+// Secret de jeton (lot 1.3b) : base64 standard, 64 octets décodés au moins (valeur Terraform).
+const JWT_SECRET_MIN_BYTES = 64;
+// Espaces et sauts de ligne retirés : `openssl rand -base64 64` coupe sa sortie en deux lignes.
+const jwtSecret = optional(
+  z
+    .string()
+    .transform((value) => value.replace(/\s+/g, ''))
+    .pipe(z.string().regex(/^[A-Za-z0-9+/]+={0,2}$/))
+    .transform((value) => new Uint8Array(Buffer.from(value, 'base64')))
+    .refine((bytes) => bytes.byteLength >= JWT_SECRET_MIN_BYTES),
+);
+const DAY_SECONDS = 86_400;
+// Rafraîchissement : de 1 à 30 jours (EX-103 n° 4, D1 du lot 1.3b), glissant à chaque rotation.
+const refreshTtl = optional(
+  z
+    .string()
+    .regex(/^([1-9]|[12]\d|30)d$/)
+    .transform((value) => Number.parseInt(value, 10) * DAY_SECONDS),
+);
+
+const sameBytes = (a: Uint8Array, b: Uint8Array): boolean =>
+  a.byteLength === b.byteLength && a.every((byte, index) => byte === b[index]);
+
 const schema = z
   .object({
     NODE_ENV: z.enum(['development', 'test', 'production']),
@@ -107,6 +130,12 @@ const schema = z
     EMAIL_FROM: optional(mailbox),
     // Clé des empreintes HMAC (compteurs d'échecs dans Redis sans email en clair).
     AUTH_HMAC_KEY: optional(z.string().min(32)),
+    // Jetons (lot 1.3b) : exigés seulement quand FEATURE_AUTH=true.
+    JWT_ACCESS_SECRET: jwtSecret,
+    JWT_REFRESH_SECRET: jwtSecret,
+    // Accès : 15 minutes, fixe (EX-103 n° 3) ; la variable n'existe que pour le dire.
+    JWT_ACCESS_TTL: optional(z.literal('15m')),
+    JWT_REFRESH_TTL: refreshTtl,
   })
   .superRefine((env, ctx) => {
     // Les deux clés vont ensemble, et diffèrent : un index aveugle ne doit rien révéler du chiffrement.
@@ -140,10 +169,24 @@ const schema = z
         'SMTP_PORT',
         'EMAIL_FROM',
         'AUTH_HMAC_KEY',
+        'JWT_ACCESS_SECRET',
+        'JWT_REFRESH_SECRET',
       ] as const) {
         if (env[name] === undefined) {
           ctx.addIssue({ code: 'custom', path: [name], message: 'requis quand FEATURE_AUTH=true' });
         }
+      }
+      // Deux secrets distincts : une fuite de l'un ne permet ni de signer ni d'empreinter avec l'autre.
+      if (
+        env.JWT_ACCESS_SECRET !== undefined &&
+        env.JWT_REFRESH_SECRET !== undefined &&
+        sameBytes(env.JWT_ACCESS_SECRET, env.JWT_REFRESH_SECRET)
+      ) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['JWT_REFRESH_SECRET'],
+          message: 'secret distinct requis',
+        });
       }
       if ((env.SMTP_USER === undefined) !== (env.SMTP_PASSWORD === undefined)) {
         const missing = env.SMTP_USER === undefined ? 'SMTP_USER' : 'SMTP_PASSWORD';
@@ -247,6 +290,12 @@ export interface AuthConfig {
     /** TLS exigé (implicite sur 465, STARTTLS obligatoire sinon) hors poste local et prévisualisation. */
     readonly requireTls: boolean;
   };
+  /** Jetons (lot 1.3b) : clés HS256 et HMAC décodées, durée du rafraîchissement en secondes. */
+  readonly tokens: {
+    readonly accessKey: Uint8Array;
+    readonly refreshKey: Uint8Array;
+    readonly refreshTtlSeconds: number;
+  };
 }
 
 /** Charge et valide la configuration de l'API. Lève `ConfigError` au lieu de démarrer avec un état invalide. */
@@ -293,7 +342,9 @@ export function loadApiConfig(env: Readonly<Record<string, string | undefined>>)
       value.AUTH_HMAC_KEY !== undefined &&
       value.EMAIL_FROM !== undefined &&
       value.SMTP_HOST !== undefined &&
-      value.SMTP_PORT !== undefined
+      value.SMTP_PORT !== undefined &&
+      value.JWT_ACCESS_SECRET !== undefined &&
+      value.JWT_REFRESH_SECRET !== undefined
         ? Object.freeze({
             appUrl: value.APP_URL,
             hmacKey: value.AUTH_HMAC_KEY,
@@ -304,6 +355,11 @@ export function loadApiConfig(env: Readonly<Record<string, string | undefined>>)
               user: value.SMTP_USER,
               password: value.SMTP_PASSWORD,
               requireTls: value.APP_ENV !== 'local',
+            }),
+            tokens: Object.freeze({
+              accessKey: value.JWT_ACCESS_SECRET,
+              refreshKey: value.JWT_REFRESH_SECRET,
+              refreshTtlSeconds: value.JWT_REFRESH_TTL ?? 30 * DAY_SECONDS,
             }),
           })
         : undefined,

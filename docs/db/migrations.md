@@ -87,3 +87,14 @@ Migration `20261029100000_auth_comptes`, vérifiée par `auth-comptes.int.test.t
 - **Contrôles en base** : format Argon2id du hash (`oz_auth_is_password_hash`), empreinte de jeton (`oz_auth_check_token_hash`), durée de vie de 1 min à 7 jours (`oz_auth_check_ttl`). Les wrappers TypeScript vérifient les mêmes bornes avant l'appel.
 - **Email** : comparé après `lower(btrim(…))`, comme à l'inscription. Une adresse prise par un compte supprimé logiquement reste prise (DEBT D-065).
 - **Sessions** : la réinitialisation révoque toutes les sessions ouvertes du compte, dès ce lot (la table existe depuis 1.1a ; leur création arrive en 1.3b).
+
+## Sessions (lot 1.3b)
+
+Migration `20261030100000_auth_sessions`, vérifiée par `auth-sessions.int.test.ts` ; règles de sécurité dans [docs/security/auth.md](../security/auth.md#sessions-lot-13b) :
+
+- **Colonnes** : `sessions.revoked_reason` (`rotated`, `logout`, `revoked_by_user`, `logout_all`, `reuse_detected`, `password_reset`, présente si et seulement si `revoked_at` l'est) et `sessions.family_expires_at` (plafond absolu de la famille, au moins égal à `expires_at`) ; `user_agent` borné à 100 caractères (libellé d'appareil, jamais l'en-tête brut). Classées `technical` dans le registre d'anonymisation.
+- **Politiques** : `sessions_self` (`FOR ALL`) remplacée par `sessions_self_read` (lecture) et `sessions_self_revoke` (mise à jour) : le titulaire ne crée ni ne supprime de session.
+- **Garde** `oz_sessions_guard` (déclencheur `BEFORE UPDATE`) : hors chemin privilégié, seule la révocation est permise (motifs `revoked_by_user` et `logout_all`, aucune autre colonne modifiée) ; pour tous, ni résurrection ni changement de titulaire, de famille, d'empreinte ou d'échéances.
+- **Verrou de famille** `oz_sessions_lock_family` (verrou consultatif de transaction) : pris par la rotation, la déconnexion, la révocation et la réinitialisation du mot de passe, toujours avant la ligne ; `EXECUTE` à `oz_app` seulement.
+- **Chemin privilégié** : `oz_auth_open_session`, `oz_auth_rotate_session`, `oz_auth_logout` (`SECURITY DEFINER`) et `oz_auth_reset_password` (remplacée : verrouille les familles et révoque avec le motif `password_reset`) ; fonctions internes `oz_auth_truncate_ip`, `oz_auth_check_session_ttl`, `oz_auth_can_hold_session` (`EXECUTE` retiré à `PUBLIC`). Mêmes droits que le lot 1.3a (`GRANT` à `oz_app` s'il existe, DEBT D-066). Wrappers typés : `packages/db/src/sessions.ts`.
+- **Retour arrière** : `down.sql` supprime fonctions, déclencheur et colonnes, rétablit `sessions_self` et l'ancienne `oz_auth_reset_password`.

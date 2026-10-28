@@ -4,6 +4,10 @@ export interface AuthMailer {
   sendAlreadyRegistered(to: string): Promise<void>;
   sendPasswordReset(to: string, token: string): Promise<void>;
   sendPasswordChanged(to: string): Promise<void>;
+  /** Connexion depuis un appareil inconnu depuis 90 jours (D5 du lot 1.3b). */
+  sendNewDeviceLogin(to: string, device: string, when: Date): Promise<void>;
+  /** Jeton de rafraîchissement rejoué : famille révoquée (EX-103 n° 5). */
+  sendSessionReuseAlert(to: string, when: Date): Promise<void>;
 }
 
 export const AUTH_MAILER = Symbol('AUTH_MAILER');
