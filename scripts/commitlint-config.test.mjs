@@ -24,6 +24,8 @@ describe('commitlint.config.mjs', () => {
       'chore(deps): Bump distroless/nodejs24-debian13 from cb60632 to 206cfba in /infra/docker/images in the docker-images group';
     expect(header.length).toBeGreaterThan(100);
     expect(valid(`${header}\n`)).toBe(true);
+    // Titre de la PR (contrôlé par la CI) : Dependabot y met les condensés entre accents graves.
+    expect(valid(`${header.replace(/(cb60632|206cfba)/g, '`$1`')}\n`)).toBe(true);
   });
 
   it('refuse toujours un titre de plus de 100 caractères qui n’a pas la forme Dependabot', () => {
