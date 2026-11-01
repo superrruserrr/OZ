@@ -246,20 +246,22 @@ export async function revokeAllSessions(tx: TransactionClient): Promise<number> 
 }
 
 /** État d'une session pour la garde d'accès. */
-export type SessionAccess = 'active' | 'email_unverified' | 'invalid';
+export type SessionAccess = 'active' | 'email_unverified' | 'enrollment_required' | 'invalid';
 
 /**
  * Garde d'accès (D2 du lot 1.3b) : `active` si la famille du jeton d'accès a encore une session
  * valide et si le compte de l'utilisateur du contexte est actif, vérifié et non supprimé ;
- * `email_unverified` si seule la vérification de l'email manque ; `invalid` sinon.
+ * `email_unverified` si seule la vérification de l'email manque ; `enrollment_required` si un rôle
+ * impose une 2FA pas encore active (D6 du lot 1.3cb) ; `invalid` sinon.
  */
 export async function sessionAccess(
   tx: TransactionClient,
   familyId: string,
 ): Promise<SessionAccess> {
   assertUuid(familyId);
-  const rows = await tx.$queryRaw<{ verified: boolean }[]>`
-    SELECT u.email_verified_at IS NOT NULL AS verified
+  const rows = await tx.$queryRaw<{ verified: boolean; enrollment: boolean }[]>`
+    SELECT u.email_verified_at IS NOT NULL AS verified,
+      u.totp_enabled_at IS NULL AND oz_auth_totp_required(u.id) AS enrollment
     FROM sessions s JOIN users u ON u.id = s.user_id
     WHERE s.family_id = ${familyId}::uuid AND s.user_id = oz_current_user_id()
       AND s.revoked_at IS NULL AND s.deleted_at IS NULL AND s.expires_at > now()
@@ -267,7 +269,8 @@ export async function sessionAccess(
     LIMIT 1`;
   const row = rows[0];
   if (row === undefined) return 'invalid';
-  return row.verified ? 'active' : 'email_unverified';
+  if (!row.verified) return 'email_unverified';
+  return row.enrollment ? 'enrollment_required' : 'active';
 }
 
 /** Adresse de l'utilisateur du contexte, pour une alerte de sécurité ; NULL si le compte est supprimé. */

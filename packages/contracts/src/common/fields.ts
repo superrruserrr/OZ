@@ -143,3 +143,6 @@ export const currentPassword = z
 export const oneTimeToken = z
   .string()
   .regex(/^[A-Za-z0-9_-]{43}$/, { error: 'validation.token.invalid' });
+
+/** Code TOTP à 6 chiffres (lot 1.3cb). */
+export const totpCode = z.string().regex(/^[0-9]{6}$/, { error: 'validation.token.invalid' });

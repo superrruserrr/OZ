@@ -18,3 +18,6 @@ export const ACCESS_TOKENS = Symbol('ACCESS_TOKENS');
 export const SESSION_FAMILY_TTL_SECONDS = 90 * 86_400;
 /** Vérificateur reCAPTCHA v3 (lot 1.3ca, D4) ; null quand aucun secret n'est configuré (local). */
 export const RECAPTCHA_VERIFIER = Symbol('RECAPTCHA_VERIFIER');
+/** Durée d'un défi de second facteur et nombre d'essais (D4 du lot 1.3cb). */
+export const LOGIN_CHALLENGE_TTL_SECONDS = 300;
+export const LOGIN_CHALLENGE_MAX_ATTEMPTS = 5;

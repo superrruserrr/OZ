@@ -43,6 +43,7 @@ import { openApiBodySchema } from '../docs/contract-schema.js';
 import { AccessTokenGuard } from './access-token.guard.js';
 import { CurrentUser } from './current-user.decorator.js';
 import { clearRefreshCookie } from './refresh-cookie.js';
+import { TwoFactorEnrollment } from './two-factor-exempt.decorator.js';
 
 /**
  * Sessions de l'utilisateur (lot 1.3b, EX-103 n° 1 et n° 6). Authentifiées par le seul jeton d'accès
@@ -95,6 +96,7 @@ export class SessionsController {
 
   @Post('logout-all')
   @HttpCode(204)
+  @TwoFactorEnrollment()
   @ApiOperation({ summary: 'Se déconnecter de tous ses appareils' })
   @ApiNoContentResponse({ description: 'Toutes les sessions révoquées, cookie effacé' })
   async logoutAll(

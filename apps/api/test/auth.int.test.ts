@@ -206,6 +206,8 @@ describe('drapeau FEATURE_AUTH (R13)', () => {
     const enabled = await createApp(
       testConfig({
         FEATURE_AUTH: 'true',
+        DATABASE_ENCRYPTION_KEY: 'e'.repeat(40),
+        DATABASE_BLIND_INDEX_KEY: 'b'.repeat(40),
         APP_URL: 'http://localhost:3000',
         SMTP_HOST: 'localhost',
         SMTP_PORT: '1',

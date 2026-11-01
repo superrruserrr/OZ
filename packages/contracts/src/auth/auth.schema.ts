@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { currentPassword, email, newPassword, oneTimeToken } from '../common/fields.js';
+import { currentPassword, email, newPassword, oneTimeToken, totpCode } from '../common/fields.js';
 
 // Authentification (lot 1.3a, EX-103) : briques dans `common/fields.ts`.
 
@@ -42,6 +42,66 @@ export const accessTokenOutputSchema = z.strictObject({
   expiresIn: z.number().int().positive(),
 });
 export type AccessTokenOutput = z.infer<typeof accessTokenOutputSchema>;
+
+// 2FA TOTP (lot 1.3cb, EX-103 n° 7).
+
+/** Code TOTP, ou code de secours (`ABCD-EFGH-IJKL-MNOP`, casse et séparateurs libres). */
+const secondFactorCode = z
+  .string()
+  .trim()
+  .regex(/^([0-9]{6}|[A-Za-z2-7 -]{16,19})$/, { error: 'validation.token.invalid' });
+
+/** Second temps de la connexion, après `{ status: '2fa_required' }`. */
+export const loginTwoFactorSchema = z.strictObject({
+  challengeToken: oneTimeToken,
+  code: secondFactorCode,
+});
+export type LoginTwoFactorInput = z.infer<typeof loginTwoFactorSchema>;
+
+/** Mot de passe juste, second facteur attendu : aucune session n'est encore ouverte. */
+export const twoFactorChallengeOutputSchema = z.strictObject({
+  status: z.literal('2fa_required'),
+  challengeToken: oneTimeToken,
+  /** Durée de vie du défi en secondes (300). */
+  expiresIn: z.number().int().positive(),
+});
+export type TwoFactorChallengeOutput = z.infer<typeof twoFactorChallengeOutputSchema>;
+
+export const loginOutputSchema = z.union([accessTokenOutputSchema, twoFactorChallengeOutputSchema]);
+export type LoginOutput = z.infer<typeof loginOutputSchema>;
+
+/** Enrôlement : à montrer une fois, jamais à conserver côté client. */
+export const twoFactorSetupOutputSchema = z.strictObject({
+  /** Secret en base32, pour une saisie manuelle. */
+  secret: z.string().regex(/^[A-Z2-7]{32}$/),
+  uri: z.string().startsWith('otpauth://totp/'),
+  /** QR de `uri`, en SVG autonome. */
+  qrSvg: z.string().startsWith('<svg'),
+});
+export type TwoFactorSetupOutput = z.infer<typeof twoFactorSetupOutputSchema>;
+
+export const twoFactorEnableSchema = z.strictObject({
+  code: totpCode,
+  /** Changement d'appareil : code de l'appareil actuel, ou code de secours. */
+  currentCode: secondFactorCode.optional(),
+});
+export type TwoFactorEnableInput = z.infer<typeof twoFactorEnableSchema>;
+
+export const twoFactorDisableSchema = z.strictObject({
+  password: currentPassword,
+  code: secondFactorCode,
+});
+export type TwoFactorDisableInput = z.infer<typeof twoFactorDisableSchema>;
+
+/** Code TOTP seul (D5) : perdre son appareil passe par le changement d'appareil. */
+export const twoFactorRecoveryCodesSchema = z.strictObject({ code: totpCode });
+export type TwoFactorRecoveryCodesInput = z.infer<typeof twoFactorRecoveryCodesSchema>;
+
+/** Codes de secours : montrés cette seule fois. */
+export const recoveryCodesOutputSchema = z.strictObject({
+  recoveryCodes: z.array(z.string().regex(/^[A-Z2-7]{4}(-[A-Z2-7]{4}){3}$/)).length(10),
+});
+export type RecoveryCodesOutput = z.infer<typeof recoveryCodesOutputSchema>;
 
 /** Session désignée par sa famille, identifiant stable malgré les rotations (lot 1.3b). */
 export const sessionParamsSchema = z.strictObject({ id: z.uuid() });

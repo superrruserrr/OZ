@@ -67,16 +67,7 @@ export class CredentialsService {
 
   async verify(email: string, password: string, now = Date.now()): Promise<CredentialsResult> {
     const key = this.failureKey(email);
-    const wait = Number(
-      await this.redis.eval(
-        RESERVE_ATTEMPT,
-        1,
-        key,
-        String(now),
-        String(FAILURE_WINDOW_SECONDS),
-        ...BACKOFF_TABLE,
-      ),
-    );
+    const wait = await this.reserve(key, now);
     if (wait > 0) return { result: 'retry_later', retryAfterSeconds: wait };
 
     const account = await credentialsFor(this.db, email);
@@ -95,6 +86,36 @@ export class CredentialsService {
       await this.upgradeHash(account.userId, account.passwordHash, password);
     if (!account.emailVerified) return { result: 'email_unverified' };
     return { result: 'ok', userId: account.userId };
+  }
+
+  /**
+   * Réserve un essai de second facteur (D8 du lot 1.3cb) : même délai exponentiel que le mot de
+   * passe, sur un compteur à part qu'un mot de passe juste n'efface pas. Renvoie l'attente, ou 0.
+   */
+  async reserveSecondFactor(userId: string, now = Date.now()): Promise<number> {
+    return this.reserve(this.secondFactorKey(userId), now);
+  }
+
+  async clearSecondFactor(userId: string): Promise<void> {
+    await this.redis.del(this.secondFactorKey(userId));
+  }
+
+  private async reserve(key: string, now: number): Promise<number> {
+    return Number(
+      await this.redis.eval(
+        RESERVE_ATTEMPT,
+        1,
+        key,
+        String(now),
+        String(FAILURE_WINDOW_SECONDS),
+        ...BACKOFF_TABLE,
+      ),
+    );
+  }
+
+  private secondFactorKey(userId: string): string {
+    const digest = createHmac('sha256', this.config.hmacKey).update(`totp:${userId}`).digest('hex');
+    return `oz:auth:failures:${digest}`;
   }
 
   private failureKey(email: string): string {

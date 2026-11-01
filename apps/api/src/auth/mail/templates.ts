@@ -141,3 +141,57 @@ export function sessionReuseAlertEmail(when: Date, resetUrl: string): MailConten
     ),
   };
 }
+
+// Alertes de la 2FA (lot 1.3cb) : ni secret, ni code, ni reste de codes de secours.
+
+export function twoFactorEnabledEmail(when: Date, resetUrl: string): MailContent {
+  return {
+    subject: 'Validation en deux étapes activée sur votre compte OZ',
+    ...layout(
+      [
+        `La validation en deux étapes a été activée sur votre compte OZ le ${formatWhen(when)}. Vos autres sessions ont été fermées.`,
+        "Si vous n'êtes pas à l'origine de ce changement, changez votre mot de passe et contactez le support OZ.",
+      ],
+      { label: 'Changer mon mot de passe', href: resetUrl },
+    ),
+  };
+}
+
+export function twoFactorDisabledEmail(when: Date, resetUrl: string): MailContent {
+  return {
+    subject: 'Validation en deux étapes désactivée sur votre compte OZ',
+    ...layout(
+      [
+        `La validation en deux étapes a été désactivée sur votre compte OZ le ${formatWhen(when)}. Vos autres sessions ont été fermées.`,
+        "Si vous n'êtes pas à l'origine de ce changement, changez votre mot de passe et contactez le support OZ.",
+      ],
+      { label: 'Changer mon mot de passe', href: resetUrl },
+    ),
+  };
+}
+
+export function recoveryCodeUsedEmail(when: Date, resetUrl: string): MailContent {
+  return {
+    subject: 'Code de secours utilisé sur votre compte OZ',
+    ...layout(
+      [
+        `Un code de secours de votre compte OZ a été utilisé le ${formatWhen(when)}. Il ne servira plus.`,
+        "Si ce n'est pas vous, votre mot de passe et vos codes sont compromis : changez votre mot de passe et contactez le support OZ.",
+      ],
+      { label: 'Changer mon mot de passe', href: resetUrl },
+    ),
+  };
+}
+
+export function recoveryCodesReplacedEmail(when: Date, resetUrl: string): MailContent {
+  return {
+    subject: 'Codes de secours régénérés sur votre compte OZ',
+    ...layout(
+      [
+        `De nouveaux codes de secours ont été créés pour votre compte OZ le ${formatWhen(when)}. Les anciens ne servent plus.`,
+        "Si vous n'êtes pas à l'origine de ce changement, changez votre mot de passe et contactez le support OZ.",
+      ],
+      { label: 'Changer mon mot de passe', href: resetUrl },
+    ),
+  };
+}

@@ -37,7 +37,7 @@ Chaque mesure porte son état réel au 2026-10-27 :
 | JWT 15 min en mémoire ; rafraîchissement en cookie `httpOnly` `Secure` `Strict` | En place — lot 1.3b ([auth.md](auth.md#sessions-lot-13b))   |
 | Rotation du rafraîchissement, réutilisation = révocation de la famille          | En place — lot 1.3b, alerte email au titulaire              |
 | Sessions listées et révocables ; délai exponentiel sans verrouillage définitif  | Partielle — délai par compte 1.3a, sessions 1.3b ; IP 1.3c  |
-| 2FA TOTP obligatoire : administrateurs, centres, fédérations                    | Prévue — lot 1.3                                            |
+| 2FA TOTP obligatoire : administrateurs, centres, fédérations                    | En place — lot 1.3cb ([auth.md](auth.md#2fa-totp-lot-13cb)) |
 | Vérification email avant toute action, SMS avant le KYC                         | Partielle — confirmation d'email, lot 1.3a ; SMS 1.3c, 1.10 |
 | Réponses indiscernables (compte existant ou non, CP-28)                         | En place — lots 1.3a et 1.3b (connexion)                    |
 | Couverture de tests 100 % sur l'authentification (seuil CI bloquant, R6)        | En place — seuil dans le job `test`                         |

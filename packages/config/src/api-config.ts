@@ -185,6 +185,8 @@ const schema = z
         'AUTH_HMAC_KEY',
         'JWT_ACCESS_SECRET',
         'JWT_REFRESH_SECRET',
+        // Secret TOTP chiffré en colonne (lot 1.3cb, D3), local compris.
+        'DATABASE_ENCRYPTION_KEY',
       ] as const) {
         if (env[name] === undefined) {
           ctx.addIssue({ code: 'custom', path: [name], message: 'requis quand FEATURE_AUTH=true' });
@@ -319,6 +321,8 @@ export interface AuthConfig {
     readonly refreshKey: Uint8Array;
     readonly refreshTtlSeconds: number;
   };
+  /** Clé `oz_encrypt` du secret TOTP (lot 1.3cb, D3) : `DATABASE_ENCRYPTION_KEY`. */
+  readonly totpEncryptionKey: string;
   /** reCAPTCHA v3 (lot 1.3ca, D4) : absent en local sans secret, vérification alors sautée. */
   readonly recaptcha: { readonly secretKey: string; readonly minScore: number } | undefined;
 }
@@ -370,10 +374,12 @@ export function loadApiConfig(env: Readonly<Record<string, string | undefined>>)
       value.SMTP_HOST !== undefined &&
       value.SMTP_PORT !== undefined &&
       value.JWT_ACCESS_SECRET !== undefined &&
-      value.JWT_REFRESH_SECRET !== undefined
+      value.JWT_REFRESH_SECRET !== undefined &&
+      value.DATABASE_ENCRYPTION_KEY !== undefined
         ? Object.freeze({
             appUrl: value.APP_URL,
             hmacKey: value.AUTH_HMAC_KEY,
+            totpEncryptionKey: value.DATABASE_ENCRYPTION_KEY,
             emailFrom: value.EMAIL_FROM,
             smtp: Object.freeze({
               host: value.SMTP_HOST,

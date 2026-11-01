@@ -266,6 +266,13 @@ describe('loadApiConfig (EX-003)', () => {
 });
 
 describe('authentification (lot 1.3a)', () => {
+  it('clé de chiffrement colonne exigée dès FEATURE_AUTH=true, local compris (lot 1.3cb, D3)', () => {
+    const withoutKeys = { ...AUTH, DATABASE_ENCRYPTION_KEY: '', DATABASE_BLIND_INDEX_KEY: '' };
+    expect(errorOf({ ...valid, ...withoutKeys }).invalidVariables).toEqual([
+      'DATABASE_ENCRYPTION_KEY',
+    ]);
+  });
+
   const RECAPTCHA = 'r'.repeat(40);
   const accessKey = Buffer.alloc(64, 1).toString('base64');
   const refreshKey = Buffer.alloc(64, 2).toString('base64');
@@ -278,6 +285,7 @@ describe('authentification (lot 1.3a)', () => {
     AUTH_HMAC_KEY: 'h'.repeat(40),
     JWT_ACCESS_SECRET: accessKey,
     JWT_REFRESH_SECRET: refreshKey,
+    ...KEYS,
   };
   const CA = '-----BEGIN CERTIFICATE-----\nMIIBfake\n-----END CERTIFICATE-----';
   const staging = {
@@ -301,6 +309,7 @@ describe('authentification (lot 1.3a)', () => {
     expect(config.auth).toEqual({
       appUrl: 'http://localhost:3000',
       hmacKey: AUTH.AUTH_HMAC_KEY,
+      totpEncryptionKey: AUTH.DATABASE_ENCRYPTION_KEY,
       emailFrom: 'OZ <no-reply@oz.localhost>',
       smtp: {
         host: 'localhost',
@@ -329,6 +338,7 @@ describe('authentification (lot 1.3a)', () => {
     ).toEqual([
       'APP_URL',
       'AUTH_HMAC_KEY',
+      'DATABASE_ENCRYPTION_KEY',
       'EMAIL_FROM',
       'JWT_ACCESS_SECRET',
       'JWT_REFRESH_SECRET',

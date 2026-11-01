@@ -3,7 +3,11 @@ import {
   alreadyRegisteredEmail,
   passwordChangedEmail,
   passwordResetEmail,
+  recoveryCodesReplacedEmail,
+  recoveryCodeUsedEmail,
   resetLink,
+  twoFactorDisabledEmail,
+  twoFactorEnabledEmail,
   verificationEmail,
   verificationLink,
 } from './templates.js';
@@ -51,5 +55,23 @@ describe('gabarits (français, texte et HTML)', () => {
     const mail = verificationEmail('https://x.example/?a=1&b="<script>');
     expect(mail.html).toContain('a=1&amp;b=&quot;&lt;script&gt;');
     expect(mail.html).not.toContain('<script>');
+  });
+});
+
+describe('alertes de la 2FA (lot 1.3cb)', () => {
+  const WHEN = new Date('2026-11-01T10:00:00Z');
+  const RESET = `${APP}/auth/forgot-password`;
+
+  it.each([
+    ['activée', twoFactorEnabledEmail],
+    ['désactivée', twoFactorDisabledEmail],
+    ['utilisé', recoveryCodeUsedEmail],
+    ['régénérés', recoveryCodesReplacedEmail],
+  ])('%s : date, lien de changement du mot de passe, texte et HTML', (word, template) => {
+    const mail = template(WHEN, RESET);
+    expect(mail.subject).toContain(word);
+    expect(mail.text).toContain('2026');
+    expect(mail.text).toContain(RESET);
+    expect(mail.html).toContain(RESET);
   });
 });

@@ -5,8 +5,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { CredentialsService } from './credentials.service.js';
 import type { AuthMailer } from './mail/auth-mailer.js';
 import type { RateLimiter } from '../common/rate-limit/rate-limiter.service.js';
+import type { LoginChallengeService } from './login-challenge.service.js';
 import type { MailDispatcher } from './mail/mail-dispatcher.js';
 import { SessionService } from './session.service.js';
+import type { TwoFactorService } from './two-factor.service.js';
 
 // Cas que le banc HTTP ne sait pas provoquer : course avec une suspension de compte, requête sans IP.
 const db = vi.hoisted(() => ({
@@ -29,6 +31,9 @@ const config = {
 const credentials = {
   verify: vi.fn().mockResolvedValue({ result: 'ok', userId: USER }),
 } as unknown as CredentialsService;
+const NO_TWO_FACTOR = { secret: null, pendingSecret: null, lastStep: null, required: false };
+const twoFactor = { state: vi.fn(), checkSecondFactor: vi.fn() };
+const challenges = { attempt: vi.fn(), consume: vi.fn() };
 const sendSessionReuseAlert = vi.fn();
 const sendNewDeviceLogin = vi.fn();
 const mailer = { sendSessionReuseAlert, sendNewDeviceLogin } as unknown as AuthMailer;
@@ -48,12 +53,15 @@ const service = new SessionService(
     },
   } as unknown as MailDispatcher,
   { consume } as unknown as RateLimiter,
+  twoFactor as unknown as TwoFactorService,
+  challenges as unknown as LoginChallengeService,
   { info: vi.fn(), warn },
 );
 const client = { userAgent: undefined, ip: undefined };
 
 beforeEach(() => {
   vi.clearAllMocks();
+  twoFactor.state.mockResolvedValue(NO_TWO_FACTOR);
 });
 
 describe('SessionService', () => {
@@ -108,5 +116,64 @@ describe('SessionService', () => {
       { event: 'auth.mail.cap_unavailable', kind: 'new_device_login' },
       expect.any(String),
     );
+  });
+
+  it('compte suspendu avant la lecture de l’état 2FA : refus générique, aucune session', async () => {
+    twoFactor.state.mockResolvedValueOnce(null);
+    await expect(service.login({ email: 'a@b.test', password: 'x' }, client)).rejects.toMatchObject(
+      { code: 'AUTH_INVALID_CREDENTIALS' },
+    );
+    expect(db.openSession).not.toHaveBeenCalled();
+  });
+
+  it('« nouvel appareil » sur un compte supprimé entre-temps : aucun email', async () => {
+    db.openSession.mockResolvedValue({
+      familyId: FAMILY,
+      expiresAt: new Date(Date.now() + 86_400_000),
+      knownDevice: false,
+    });
+    consume.mockResolvedValue({ allowed: true });
+    db.accountEmail.mockResolvedValue(null);
+    await service.login({ email: 'a@b.test', password: 'x' }, client);
+    await Promise.all(sent);
+    expect(sendNewDeviceLogin).not.toHaveBeenCalled();
+  });
+
+  describe('second temps de la connexion', () => {
+    const input = { challengeToken: 'a'.repeat(43), code: '123456' };
+    const challenge = { userId: USER, device: 'd', credentialStamp: 's' };
+    const state = { ...NO_TWO_FACTOR, secret: 'S', credentialStamp: 's' };
+
+    beforeEach(() => {
+      challenges.attempt.mockResolvedValue(challenge);
+      consume.mockResolvedValue({ allowed: true });
+      twoFactor.state.mockResolvedValue(state);
+      twoFactor.checkSecondFactor.mockResolvedValue(true);
+      challenges.consume.mockResolvedValue(true);
+    });
+
+    it('défi consommé par une requête concurrente : refus, aucune session', async () => {
+      challenges.consume.mockResolvedValue(false);
+      await expect(service.loginTwoFactor(input, client)).rejects.toMatchObject({
+        code: 'AUTH_2FA_INVALID',
+      });
+      expect(db.openSession).not.toHaveBeenCalled();
+    });
+
+    it('mot de passe changé depuis le défi : le code n’est pas évalué', async () => {
+      twoFactor.state.mockResolvedValue({ ...state, credentialStamp: 'autre' });
+      await expect(service.loginTwoFactor(input, client)).rejects.toMatchObject({
+        code: 'AUTH_2FA_INVALID',
+      });
+      expect(twoFactor.checkSecondFactor).not.toHaveBeenCalled();
+    });
+
+    it('quota du compte atteint : 429, le code n’est pas évalué', async () => {
+      consume.mockResolvedValue({ allowed: false, retryAfterSeconds: 30 });
+      await expect(service.loginTwoFactor(input, client)).rejects.toMatchObject({
+        code: 'RATE_LIMITED',
+      });
+      expect(twoFactor.checkSecondFactor).not.toHaveBeenCalled();
+    });
   });
 });

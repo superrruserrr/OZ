@@ -11,9 +11,13 @@ import {
 import type { ApiConfig } from '@oz/config';
 import {
   accessTokenOutputSchema,
+  loginOutputSchema,
   loginSchema,
+  loginTwoFactorSchema,
   type AccessTokenOutput,
   type LoginInput,
+  type LoginOutput,
+  type LoginTwoFactorInput,
 } from '@oz/contracts';
 import type { Request, Response } from 'express';
 import { AppException } from '../common/errors/api-error.js';
@@ -56,7 +60,10 @@ export class SessionController {
   @HttpCode(200)
   @ApiOperation({ summary: 'Se connecter', description: COOKIE_NOTE })
   @ApiBody({ schema: openApiBodySchema(loginSchema) })
-  @ApiOkResponse({ description: 'Connecté', ...tokenResponse })
+  @ApiOkResponse({
+    description: 'Connecté, ou second facteur attendu (`status: 2fa_required`)',
+    schema: openApiBodySchema(loginOutputSchema),
+  })
   @ApiUnauthorizedResponse({ type: ApiErrorDto, description: 'Email ou mot de passe incorrect' })
   @ApiForbiddenResponse({ type: ApiErrorDto, description: 'Adresse email à confirmer' })
   @RateLimit(
@@ -70,8 +77,30 @@ export class SessionController {
     @ValidatedBody(loginSchema) input: LoginInput,
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
+  ): Promise<LoginOutput> {
+    const result = await this.sessions.login(input, clientOf(req));
+    return 'status' in result ? result : this.respond(res, result);
+  }
+
+  @Post('login/2fa')
+  @HttpCode(200)
+  @ApiOperation({
+    summary: 'Terminer la connexion avec le second facteur',
+    description: COOKIE_NOTE,
+  })
+  @ApiBody({ schema: openApiBodySchema(loginTwoFactorSchema) })
+  @ApiOkResponse({ description: 'Connecté', ...tokenResponse })
+  @ApiUnauthorizedResponse({ type: ApiErrorDto, description: 'Code incorrect ou défi expiré' })
+  @RateLimit(
+    [{ rule: 'login_totp_ip', by: 'ip' }],
+    'Limite de débit (`RATE_LIMITED`) ou délai exponentiel après échecs (`AUTH_RETRY_LATER`)',
+  )
+  async loginTwoFactor(
+    @ValidatedBody(loginTwoFactorSchema) input: LoginTwoFactorInput,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
   ): Promise<AccessTokenOutput> {
-    return this.respond(res, await this.sessions.login(input, clientOf(req)));
+    return this.respond(res, await this.sessions.loginTwoFactor(input, clientOf(req)));
   }
 
   @Post('refresh')

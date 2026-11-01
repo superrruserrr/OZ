@@ -28,4 +28,15 @@ export {
   type SessionAccess,
   type SessionSummary,
 } from './sessions.js';
+export {
+  beginTotp,
+  consumeRecoveryCode,
+  consumeTotpStep,
+  disableTotp,
+  enableTotp,
+  replaceRecoveryCodes,
+  totpState,
+  type TotpDisableOutcome,
+  type TotpState,
+} from './totp.js';
 export { readSetting } from './settings.js';

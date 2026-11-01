@@ -177,6 +177,43 @@ Décisions validées : D1 limiteur maison dans Redis ; D2 limites réglables san
 - **Redis** : les clés `oz:rl:*` ne doivent pas être évincées (une éviction vaut un passage accordé) : politique `maxmemory-policy` `noeviction` ou `volatile-*` à vérifier avec la recette (D-051).
 - **Mandataires** : `TRUST_PROXY` = nombre de sauts de confiance devant l'API (0 en accès direct, 2 pour Cloudflare puis Traefik). La confiance par nombre de sauts suppose que l'origine n'est joignable que par ces mandataires (pare-feu limité aux plages Cloudflare) et que Traefik conserve `X-Forwarded-For` (`forwardedHeaders.trustedIPs` aux plages Cloudflare) : sinon un client choisit son IP. À poser avec la recette (D-051).
 
+## 2FA TOTP (lot 1.3cb)
+
+Second facteur RFC 6238 (EX-103 n° 7, D1 à D8 du plan), par `otplib` : SHA-1, 6 chiffres, 30 s, tolérance d'un pas de part et d'autre. Obligatoire pour les rôles `admin`, `center` et `federation`, facultatif ailleurs. Aucun écran avant le lot 1.7.
+
+### Routes
+
+| Route                           | Accès         | Effet                                                                                        |
+| ------------------------------- | ------------- | -------------------------------------------------------------------------------------------- |
+| `POST /auth/login`              | public        | Si la 2FA est active : `{ status: '2fa_required', challengeToken, expiresIn }`, sans session |
+| `POST /auth/login/2fa`          | défi          | Code TOTP ou de secours : ouvre la session. Défi inconnu, épuisé ou code faux : même 401     |
+| `POST /auth/2fa/setup`          | jeton d'accès | Crée un secret en attente, rend secret, URI et QR                                            |
+| `POST /auth/2fa/enable`         | jeton d'accès | Active avec un premier code, rend dix codes de secours. Déjà active : `currentCode` exigé    |
+| `POST /auth/2fa/disable`        | jeton d'accès | Mot de passe et code ; refusée si un rôle impose la 2FA                                      |
+| `POST /auth/2fa/recovery-codes` | jeton d'accès | Code TOTP exigé ; nouveau lot, l'ancien cesse de valoir, email envoyé                        |
+
+### Règles
+
+- **Secret** : chiffré par `oz_encrypt` avec `DATABASE_ENCRYPTION_KEY`, exigée dès `FEATURE_AUTH=true`, local compris. Jamais journalisé ; la réponse d'enrôlement n'est pas mise en cache.
+- **Anti-rejeu** : `users.totp_last_step`, mis à jour atomiquement. Un code déjà accepté est refusé, même avec un nouveau défi.
+- **Défi** : jeton opaque de 256 bits dans Redis, 5 minutes, 5 essais, usage unique à la réussite, invalidé par un changement de mot de passe. Redis garde une empreinte HMAC du jeton, l'identifiant du compte et le libellé d'appareil, aucune adresse.
+- **Indiscernabilité** : le défi n'apparaît qu'après un mot de passe juste. Aucun cookie, aucune session, aucun email « nouvel appareil » avant le second facteur.
+- **Codes de secours** : 10 codes de 80 bits, montrés une fois, conservés en empreinte HMAC (`AUTH_HMAC_KEY`). Chaque usage envoie une alerte.
+- **Rôle obligatoire sans 2FA** : session restreinte. `AccessTokenGuard` répond 403 `AUTH_2FA_ENROLLMENT_REQUIRED` hors routes marquées `@TwoFactorEnrollment()` (enrôlement, déconnexion). Rôles relus en base à chaque requête ; une route nouvelle est fermée par défaut.
+- **Changement d'état** : activation et désactivation révoquent les autres sessions (motif `two_factor_changed`) et envoient un email. La session courante reste.
+- **Réinitialisation du mot de passe** : ne touche pas à la 2FA.
+
+### Débit
+
+| Règle                 | Sujet  | Défaut      |
+| --------------------- | ------ | ----------- |
+| `login_totp_ip`       | IP     | 10 / 15 min |
+| `login_totp_account`  | compte | 5 / 15 min  |
+| `totp_setup_ip`       | IP     | 10 / 1 h    |
+| `totp_enroll_account` | compte | 10 / 1 h    |
+
+Les codes faux passent aussi par le délai exponentiel de la connexion, sur un compteur à part qu'un mot de passe juste n'efface pas.
+
 ## Anti-robot de l'inscription (lot 1.3ca)
 
 Décisions validées : D4 reCAPTCHA v3 ; D5 robot → même 202, rien de créé ni d'envoyé ; D6 jeton de formulaire signé et champ piège.

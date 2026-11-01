@@ -21,11 +21,14 @@ import {
 } from './auth.tokens.js';
 import { CredentialsService } from './credentials.service.js';
 import { AUTH_MAILER } from './mail/auth-mailer.js';
+import { LoginChallengeService } from './login-challenge.service.js';
 import { MailDispatcher } from './mail/mail-dispatcher.js';
 import { SmtpAuthMailer } from './mail/smtp-auth-mailer.js';
 import { SessionController } from './session.controller.js';
 import { SessionService } from './session.service.js';
 import { SessionsController } from './sessions.controller.js';
+import { TwoFactorController } from './two-factor.controller.js';
+import { TwoFactorService } from './two-factor.service.js';
 
 /**
  * Durée plancher par défaut : couvre le pire cas de l'inscription, appels HaveIBeenPwned et
@@ -51,13 +54,15 @@ export class AuthModule {
     return {
       module: AuthModule,
       imports: [DatabaseModule, RateLimitModule.forRoot(auth.hmacKey)],
-      controllers: [AuthController, SessionController, SessionsController],
+      controllers: [AuthController, SessionController, SessionsController, TwoFactorController],
       providers: [
         AccessTokenGuard,
         AuthService,
         CredentialsService,
+        LoginChallengeService,
         MailDispatcher,
         SessionService,
+        TwoFactorService,
         { provide: ACCESS_TOKENS, useFactory: () => new AccessTokens(auth.tokens.accessKey) },
         { provide: AUTH_CONFIG, useValue: auth },
         { provide: PWNED_CLIENT, useFactory: () => new PwnedPasswordsClient() },

@@ -31,6 +31,7 @@ const EXPOSED_TABLES = [
   'oz_id_registry',
   // Lot 1.3a
   'auth_tokens',
+  'auth_recovery_codes',
 ];
 
 let db: TestDatabase;
