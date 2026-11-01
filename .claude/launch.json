@@ -18,7 +18,7 @@
       "runtimeExecutable": "sh",
       "runtimeArgs": [
         "-c",
-        "FEATURE_CONTACT_FORM=true FEATURE_AUTH=true SMTP_HOST=127.0.0.1 AUTH_HMAC_KEY=$(openssl rand -base64 48) JWT_ACCESS_SECRET=$(openssl rand -base64 64 | tr -d '\\n') JWT_REFRESH_SECRET=$(openssl rand -base64 64 | tr -d '\\n') pnpm --filter @oz/api start"
+        "FEATURE_CONTACT_FORM=true FEATURE_AUTH=true SMTP_HOST=127.0.0.1 AUTH_HMAC_KEY=$(openssl rand -base64 48) DATABASE_ENCRYPTION_KEY=$(openssl rand -base64 48) DATABASE_BLIND_INDEX_KEY=$(openssl rand -base64 48) JWT_ACCESS_SECRET=$(openssl rand -base64 64 | tr -d '\\n') JWT_REFRESH_SECRET=$(openssl rand -base64 64 | tr -d '\\n') pnpm --filter @oz/api start"
       ],
       "port": 3001
     },

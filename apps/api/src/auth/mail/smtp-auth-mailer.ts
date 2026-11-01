@@ -8,7 +8,11 @@ import {
   passwordChangedEmail,
   passwordResetEmail,
   resetLink,
+  recoveryCodesReplacedEmail,
+  recoveryCodeUsedEmail,
   sessionReuseAlertEmail,
+  twoFactorDisabledEmail,
+  twoFactorEnabledEmail,
   verificationEmail,
   verificationLink,
   type MailContent,
@@ -70,6 +74,22 @@ export class SmtpAuthMailer implements AuthMailer, OnApplicationShutdown {
 
   sendSessionReuseAlert(to: string, when: Date): Promise<void> {
     return this.send(to, sessionReuseAlertEmail(when, this.resetUrl()));
+  }
+
+  sendTwoFactorEnabled(to: string, when: Date): Promise<void> {
+    return this.send(to, twoFactorEnabledEmail(when, this.resetUrl()));
+  }
+
+  sendTwoFactorDisabled(to: string, when: Date): Promise<void> {
+    return this.send(to, twoFactorDisabledEmail(when, this.resetUrl()));
+  }
+
+  sendRecoveryCodeUsed(to: string, when: Date): Promise<void> {
+    return this.send(to, recoveryCodeUsedEmail(when, this.resetUrl()));
+  }
+
+  sendRecoveryCodesReplaced(to: string, when: Date): Promise<void> {
+    return this.send(to, recoveryCodesReplacedEmail(when, this.resetUrl()));
   }
 
   /** Après `MailDispatcher.beforeApplicationShutdown` : plus aucun envoi en cours. */

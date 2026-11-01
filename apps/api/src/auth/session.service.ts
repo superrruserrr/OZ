@@ -1,7 +1,12 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { generateRefreshToken, hashRefreshToken, type AccessTokens } from '@oz/auth';
 import type { AuthConfig } from '@oz/config';
-import type { AccessTokenOutput, LoginInput } from '@oz/contracts';
+import type {
+  AccessTokenOutput,
+  LoginInput,
+  LoginTwoFactorInput,
+  TwoFactorChallengeOutput,
+} from '@oz/contracts';
 import {
   accountEmail,
   logoutSession,
@@ -11,20 +16,30 @@ import {
   type PrismaClient,
 } from '@oz/db';
 import { InjectPinoLogger, type PinoLogger } from 'nestjs-pino';
-import { AppException } from '../common/errors/api-error.js';
+import { RateLimitedException } from '../common/rate-limit/rate-limited.exception.js';
 import { RateLimiter } from '../common/rate-limit/rate-limiter.service.js';
 import { DB_CLIENT } from '../database/database.module.js';
 import {
   ACCESS_TOKENS,
   AUTH_CONFIG,
   AUTH_RESPONSE_FLOOR_MS,
+  LOGIN_CHALLENGE_TTL_SECONDS,
   SESSION_FAMILY_TTL_SECONDS,
 } from './auth.tokens.js';
 import { CredentialsService } from './credentials.service.js';
 import { deviceLabel } from './device.js';
 import { AUTH_MAILER, type AuthMailer } from './mail/auth-mailer.js';
 import { MailDispatcher } from './mail/mail-dispatcher.js';
+import {
+  EMAIL_UNVERIFIED,
+  INVALID_CREDENTIALS,
+  RetryLaterException,
+  TWO_FACTOR_INVALID,
+  UNAUTHENTICATED,
+} from './errors.js';
+import { LoginChallengeService } from './login-challenge.service.js';
 import { withResponseFloor } from './response-floor.js';
+import { TwoFactorService } from './two-factor.service.js';
 
 /** Contexte de la requête retenu pour la session : jamais l'IP complète ni le User-Agent brut en base. */
 export interface ClientContext {
@@ -45,28 +60,6 @@ export interface IssuedSession {
  */
 const UNIDENTIFIED_DEVICE = 'Appareil non identifié';
 
-/** Réponse générique : ne dit jamais si l'email existe ni pourquoi l'accès est refusé (CP-28). */
-const INVALID_CREDENTIALS = (): AppException =>
-  new AppException(401, 'AUTH_INVALID_CREDENTIALS', 'Email ou mot de passe incorrect.');
-/** Rafraîchissement impossible : même réponse pour un jeton absent, inconnu, expiré ou rejoué. */
-export const UNAUTHENTICATED = (): AppException =>
-  new AppException(401, 'AUTH_UNAUTHENTICATED', 'Session expirée : reconnectez-vous.');
-
-/** Accès refusé tant que l'adresse n'est pas confirmée (EX-103 n° 9). */
-export const EMAIL_UNVERIFIED = (): AppException =>
-  new AppException(
-    403,
-    'AUTH_EMAIL_UNVERIFIED',
-    'Adresse email à confirmer : suivez le lien reçu par email.',
-  );
-
-/** Attente imposée par le délai exponentiel, portée jusqu'à l'en-tête Retry-After. */
-export class RetryLaterException extends AppException {
-  constructor(readonly retryAfterSeconds: number) {
-    super(429, 'AUTH_RETRY_LATER', 'Trop de tentatives : réessayez plus tard.');
-  }
-}
-
 /**
  * Sessions (lot 1.3b, EX-103 n° 1, 3 à 5, 8 à 10) : connexion, rotation du jeton de rafraîchissement
  * avec détection de réutilisation, déconnexion. Le jeton de rafraîchissement n'est conservé qu'en
@@ -83,6 +76,8 @@ export class SessionService {
     @Inject(AUTH_MAILER) private readonly mailer: AuthMailer,
     private readonly mail: MailDispatcher,
     private readonly limiter: RateLimiter,
+    private readonly twoFactor: TwoFactorService,
+    private readonly challenges: LoginChallengeService,
     @InjectPinoLogger(SessionService.name)
     private readonly logger: Pick<PinoLogger, 'info' | 'warn'>,
   ) {}
@@ -91,7 +86,10 @@ export class SessionService {
    * Connexion : même réponse et même durée plancher que le compte existe ou non (CP-28). Un email non
    * vérifié n'est signalé qu'après un mot de passe juste (EX-103 n° 9).
    */
-  async login(input: LoginInput, client: ClientContext): Promise<IssuedSession> {
+  async login(
+    input: LoginInput,
+    client: ClientContext,
+  ): Promise<IssuedSession | TwoFactorChallengeOutput> {
     return withResponseFloor(this.floorMs, async () => {
       const verdict = await this.credentials.verify(input.email, input.password);
       switch (verdict.result) {
@@ -104,55 +102,93 @@ export class SessionService {
         case 'ok':
           break;
       }
-      const now = new Date();
-      const refreshToken = generateRefreshToken();
       const device = deviceLabel(client.userAgent) ?? UNIDENTIFIED_DEVICE;
-      const opened = await openSession(this.db, {
-        userId: verdict.userId,
-        tokenHash: hashRefreshToken(refreshToken, this.config.tokens.refreshKey),
-        device,
-        ip: client.ip ?? null,
-        ttlSeconds: this.config.tokens.refreshTtlSeconds,
-        familyTtlSeconds: SESSION_FAMILY_TTL_SECONDS,
-      });
-      // Compte suspendu entre la vérification du mot de passe et l'ouverture : même refus générique.
-      if (opened === null) throw INVALID_CREDENTIALS();
-      // D5 : appareil inconnu depuis 90 jours, le titulaire est prévenu (après la réponse), au plus
-      // `new_device_email` fois par jour et par compte (D7 du lot 1.3ca) ; la connexion réussit quand même.
-      if (!opened.knownDevice) {
-        const userId = verdict.userId;
-        this.mail.sendLater('new_device_login', async () => {
-          let capped: boolean;
-          try {
-            capped = !(await this.limiter.consume('new_device_email', userId)).allowed;
-          } catch {
-            // Redis en panne : alerte non envoyée (D3), signalée comme telle et non comme panne SMTP.
-            this.logger.warn(
-              { event: 'auth.mail.cap_unavailable', kind: 'new_device_login' },
-              'Plafond des emails « nouvel appareil » illisible : non envoyé',
-            );
-            return;
-          }
-          if (capped) {
-            this.logger.info(
-              { event: 'auth.mail.capped', kind: 'new_device_login' },
-              'Plafond des emails « nouvel appareil » atteint : non envoyé',
-            );
-            return;
-          }
-          await this.mailer.sendNewDeviceLogin(input.email, device, now);
+      const state = await this.twoFactor.state(verdict.userId);
+      // Compte suspendu entre la vérification du mot de passe et cette lecture.
+      if (state === null) throw INVALID_CREDENTIALS();
+      // 2FA active (D4) : aucune session, aucun email « nouvel appareil » avant le second facteur.
+      if (state.secret !== null) {
+        const challengeToken = await this.challenges.issue({
+          userId: verdict.userId,
+          device,
+          credentialStamp: state.credentialStamp,
         });
+        return {
+          status: '2fa_required' as const,
+          challengeToken,
+          expiresIn: LOGIN_CHALLENGE_TTL_SECONDS,
+        };
       }
-      const access = await this.accessTokens.issue(
-        { userId: verdict.userId, familyId: opened.familyId },
-        now,
-      );
-      return {
-        access: { accessToken: access.token, expiresIn: access.expiresIn },
-        refreshToken,
-        refreshExpiresAt: opened.expiresAt,
-      };
+      return this.open(verdict.userId, device, client);
     });
+  }
+
+  /** Second temps de la connexion (D4) : même refus pour un défi inconnu ou un code faux. */
+  async loginTwoFactor(input: LoginTwoFactorInput, client: ClientContext): Promise<IssuedSession> {
+    const challenge = await this.challenges.attempt(input.challengeToken);
+    if (challenge === null) throw TWO_FACTOR_INVALID();
+    const { userId, device, credentialStamp } = challenge;
+    const decision = await this.limiter.consume('login_totp_account', userId);
+    if (!decision.allowed) throw new RateLimitedException(decision.retryAfterSeconds);
+    const state = await this.twoFactor.state(userId);
+    // Compte suspendu, ou mot de passe changé depuis le défi : le code n'est pas évalué.
+    if (state === null || state.credentialStamp !== credentialStamp) throw TWO_FACTOR_INVALID();
+    if (!(await this.twoFactor.checkSecondFactor(userId, state, input.code))) {
+      throw TWO_FACTOR_INVALID();
+    }
+    if (!(await this.challenges.consume(input.challengeToken))) throw TWO_FACTOR_INVALID();
+    return this.open(userId, device, client);
+  }
+
+  private async open(
+    userId: string,
+    device: string,
+    client: ClientContext,
+  ): Promise<IssuedSession> {
+    const now = new Date();
+    const refreshToken = generateRefreshToken();
+    const opened = await openSession(this.db, {
+      userId,
+      tokenHash: hashRefreshToken(refreshToken, this.config.tokens.refreshKey),
+      device,
+      ip: client.ip ?? null,
+      ttlSeconds: this.config.tokens.refreshTtlSeconds,
+      familyTtlSeconds: SESSION_FAMILY_TTL_SECONDS,
+    });
+    // Compte suspendu entre la vérification du mot de passe et l'ouverture : même refus générique.
+    if (opened === null) throw INVALID_CREDENTIALS();
+    // D5 : appareil inconnu depuis 90 jours, le titulaire est prévenu (après la réponse), au plus
+    // `new_device_email` fois par jour et par compte (D7 du lot 1.3ca) ; la connexion réussit quand même.
+    if (!opened.knownDevice) {
+      this.mail.sendLater('new_device_login', async () => {
+        let capped: boolean;
+        try {
+          capped = !(await this.limiter.consume('new_device_email', userId)).allowed;
+        } catch {
+          // Redis en panne : alerte non envoyée (D3), signalée comme telle et non comme panne SMTP.
+          this.logger.warn(
+            { event: 'auth.mail.cap_unavailable', kind: 'new_device_login' },
+            'Plafond des emails « nouvel appareil » illisible : non envoyé',
+          );
+          return;
+        }
+        if (capped) {
+          this.logger.info(
+            { event: 'auth.mail.capped', kind: 'new_device_login' },
+            'Plafond des emails « nouvel appareil » atteint : non envoyé',
+          );
+          return;
+        }
+        const address = await withUserContext(this.db, userId, (tx) => accountEmail(tx));
+        if (address !== null) await this.mailer.sendNewDeviceLogin(address, device, now);
+      });
+    }
+    const access = await this.accessTokens.issue({ userId, familyId: opened.familyId }, now);
+    return {
+      access: { accessToken: access.token, expiresIn: access.expiresIn },
+      refreshToken,
+      refreshExpiresAt: opened.expiresAt,
+    };
   }
 
   /** Rotation : un jeton déjà consommé révoque toute la famille (EX-103 n° 5) et répond 401. */

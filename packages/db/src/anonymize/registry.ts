@@ -58,6 +58,8 @@ export const ANONYMIZATION_REGISTRY: Registry = {
     status: 'technical',
     totp_secret_encrypted: 'null',
     totp_enabled_at: 'null',
+    totp_pending_secret_encrypted: 'null',
+    totp_last_step: 'null',
     email_verified_at: 'technical',
     phone_verified_at: 'technical',
     last_seen_at: 'technical',
@@ -263,6 +265,14 @@ export const ANONYMIZATION_REGISTRY: Registry = {
     purpose: 'technical',
     token_hash: 'technical',
     expires_at: 'technical',
+    consumed_at: 'technical',
+    created_at: 'technical',
+  },
+  // Lot 1.3cb : empreintes HMAC à clé, inertes une fois le secret TOTP effacé (2FA inactive).
+  auth_recovery_codes: {
+    id: 'technical',
+    user_id: 'technical',
+    code_hash: 'technical',
     consumed_at: 'technical',
     created_at: 'technical',
   },

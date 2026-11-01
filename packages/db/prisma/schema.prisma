@@ -117,26 +117,29 @@ enum DominantFoot {
 
 /// Compte technique. Email stocké en minuscules ; suppression physique interdite.
 model User {
-  id                  String     @id @default(dbgenerated("oz_uuid_v7()")) @db.Uuid
-  email               String     @unique
-  passwordHash        String?    @map("password_hash")
-  status              UserStatus @default(pending_verification)
-  totpSecretEncrypted Bytes?     @map("totp_secret_encrypted")
-  totpEnabledAt       DateTime?  @map("totp_enabled_at") @db.Timestamptz(6)
-  emailVerifiedAt     DateTime?  @map("email_verified_at") @db.Timestamptz(6)
-  phoneVerifiedAt     DateTime?  @map("phone_verified_at") @db.Timestamptz(6)
-  lastSeenAt          DateTime?  @map("last_seen_at") @db.Timestamptz(6)
-  createdAt           DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt           DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
-  deletedAt           DateTime?  @map("deleted_at") @db.Timestamptz(6)
+  id                         String     @id @default(dbgenerated("oz_uuid_v7()")) @db.Uuid
+  email                      String     @unique
+  passwordHash               String?    @map("password_hash")
+  status                     UserStatus @default(pending_verification)
+  totpSecretEncrypted        Bytes?     @map("totp_secret_encrypted")
+  totpEnabledAt              DateTime?  @map("totp_enabled_at") @db.Timestamptz(6)
+  totpPendingSecretEncrypted Bytes?     @map("totp_pending_secret_encrypted")
+  totpLastStep               BigInt?    @map("totp_last_step")
+  emailVerifiedAt            DateTime?  @map("email_verified_at") @db.Timestamptz(6)
+  phoneVerifiedAt            DateTime?  @map("phone_verified_at") @db.Timestamptz(6)
+  lastSeenAt                 DateTime?  @map("last_seen_at") @db.Timestamptz(6)
+  createdAt                  DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                  DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  deletedAt                  DateTime?  @map("deleted_at") @db.Timestamptz(6)
 
-  roles      UserRole[]  @relation("UserRoleUser")
-  sessions   Session[]
-  authTokens AuthToken[]
-  player     Player?     @relation("PlayerUser")
-  guardians  Guardian[]  @relation("GuardianUser")
-  consents   Consent[]   @relation("ConsentGrantedByUser")
-  auditTrail AuditLog[]
+  roles             UserRole[]         @relation("UserRoleUser")
+  sessions          Session[]
+  authTokens        AuthToken[]
+  authRecoveryCodes AuthRecoveryCode[]
+  player            Player?            @relation("PlayerUser")
+  guardians         Guardian[]         @relation("GuardianUser")
+  consents          Consent[]          @relation("ConsentGrantedByUser")
+  auditTrail        AuditLog[]
 
   rolesCreated         UserRole[]     @relation("UserRoleCreatedBy")
   rolesUpdated         UserRole[]     @relation("UserRoleUpdatedBy")
@@ -690,4 +693,18 @@ model AuthToken {
 
   @@index([userId, purpose])
   @@map("auth_tokens")
+}
+
+/// Code de secours de la 2FA (lot 1.3cb) : empreinte HMAC seule, usage unique.
+model AuthRecoveryCode {
+  id         String    @id @default(dbgenerated("oz_uuid_v7()")) @db.Uuid
+  userId     String    @map("user_id") @db.Uuid
+  codeHash   String    @map("code_hash")
+  consumedAt DateTime? @map("consumed_at") @db.Timestamptz(6)
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@unique([userId, codeHash])
+  @@map("auth_recovery_codes")
 }

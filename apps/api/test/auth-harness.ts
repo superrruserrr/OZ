@@ -95,6 +95,8 @@ export async function startAuthHarness(
     SMTP_PORT: String(mailpit.getMappedPort(1025)),
     EMAIL_FROM: 'OZ <no-reply@oz.localhost>',
     AUTH_HMAC_KEY: HMAC_KEY,
+    DATABASE_ENCRYPTION_KEY: 'e'.repeat(40),
+    DATABASE_BLIND_INDEX_KEY: 'b'.repeat(40),
     JWT_ACCESS_SECRET: testKey(1),
     JWT_REFRESH_SECRET: testKey(2),
     ...overrides,

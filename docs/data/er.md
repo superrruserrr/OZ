@@ -25,6 +25,13 @@ erDiagram
     bytea hash
     timestamptz created_at PK
   }
+  auth_recovery_codes {
+    uuid id PK
+    uuid user_id FK
+    text code_hash
+    timestamptz consumed_at
+    timestamptz created_at
+  }
   auth_tokens {
     uuid id PK
     uuid user_id FK
@@ -272,8 +279,11 @@ erDiagram
     timestamptz created_at
     timestamptz updated_at
     timestamptz deleted_at
+    bytea totp_pending_secret_encrypted
+    bigint totp_last_step
   }
   audit_log }o--o| users : "actor_user_id"
+  auth_recovery_codes }o--|| users : "user_id"
   auth_tokens }o--|| users : "user_id"
   consents }o--o| guardians : "granted_by_guardian_id"
   consents }o--o| players : "player_id"

@@ -8,6 +8,14 @@ export interface AuthMailer {
   sendNewDeviceLogin(to: string, device: string, when: Date): Promise<void>;
   /** Jeton de rafraîchissement rejoué : famille révoquée (EX-103 n° 5). */
   sendSessionReuseAlert(to: string, when: Date): Promise<void>;
+  /** 2FA activée ou appareil changé (D7 du lot 1.3cb). */
+  sendTwoFactorEnabled(to: string, when: Date): Promise<void>;
+  /** 2FA désactivée (D7 du lot 1.3cb). */
+  sendTwoFactorDisabled(to: string, when: Date): Promise<void>;
+  /** Code de secours consommé (D5 du lot 1.3cb). */
+  sendRecoveryCodeUsed(to: string, when: Date): Promise<void>;
+  /** Lot de codes de secours régénéré (D7 du lot 1.3cb). */
+  sendRecoveryCodesReplaced(to: string, when: Date): Promise<void>;
 }
 
 export const AUTH_MAILER = Symbol('AUTH_MAILER');

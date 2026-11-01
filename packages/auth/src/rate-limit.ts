@@ -6,6 +6,10 @@
 export const RATE_LIMIT_RULES = [
   'login_ip',
   'login_account',
+  'login_totp_ip',
+  'login_totp_account',
+  'totp_setup_ip',
+  'totp_enroll_account',
   'register_ip',
   'register_email',
   'register_form_ip',
@@ -34,6 +38,10 @@ const HOUR = 3600;
 export const RATE_LIMIT_DEFAULTS: RateLimits = Object.freeze({
   login_ip: { limit: 5, windowSeconds: 15 * 60 },
   login_account: { limit: 10, windowSeconds: HOUR },
+  login_totp_ip: { limit: 10, windowSeconds: 15 * 60 },
+  login_totp_account: { limit: 5, windowSeconds: 15 * 60 },
+  totp_setup_ip: { limit: 10, windowSeconds: HOUR },
+  totp_enroll_account: { limit: 10, windowSeconds: HOUR },
   register_ip: { limit: 3, windowSeconds: HOUR },
   register_email: { limit: 1, windowSeconds: HOUR },
   register_form_ip: { limit: 20, windowSeconds: HOUR },

@@ -24,12 +24,12 @@ export function profileUrl(ozId: string, { baseUrl }: ProfileQrOptions): string 
 }
 
 /**
- * QR du profil en SVG autonome (EX-102 n° 7) : correction M, zone calme de 4 modules, un carré par
- * module sombre. Aucun script, lien ni texte : l'URL n'y figure qu'encodée, sans donnée personnelle.
+ * QR en SVG autonome : correction M, zone calme de 4 modules, un carré par module sombre. Aucun
+ * script, lien ni texte : la donnée n'y figure qu'encodée.
  */
-export function profileQrSvg(ozId: string, options: ProfileQrOptions): string {
+export function qrSvg(data: string): string {
   const qr = qrcode(0, 'M');
-  qr.addData(profileUrl(ozId, options), 'Byte');
+  qr.addData(data, 'Byte');
   qr.make();
   const count = qr.getModuleCount();
   const size = count + 2 * QUIET_ZONE;
@@ -45,4 +45,9 @@ export function profileQrSvg(ozId: string, options: ProfileQrOptions): string {
     `<rect width="${String(size)}" height="${String(size)}" fill="#fff"/>` +
     `<path fill="#000" d="${squares.join('')}"/></svg>`
   );
+}
+
+/** QR du profil (EX-102 n° 7) : l'URL ne porte aucune donnée personnelle. */
+export function profileQrSvg(ozId: string, options: ProfileQrOptions): string {
+  return qrSvg(profileUrl(ozId, options));
 }

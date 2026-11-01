@@ -32,6 +32,8 @@ beforeAll(async () => {
   const auth = loadApiConfig({
     ...validEnv,
     FEATURE_AUTH: 'true',
+    DATABASE_ENCRYPTION_KEY: 'e'.repeat(40),
+    DATABASE_BLIND_INDEX_KEY: 'b'.repeat(40),
     APP_URL: 'http://localhost:3000',
     // IP : nodemailer résout le nom par DNS (resolve4), lent pour « localhost » sur certains postes.
     SMTP_HOST: smtpHost(mailpit.getHost()),

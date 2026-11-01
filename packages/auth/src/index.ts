@@ -71,3 +71,19 @@ export {
   type RecaptchaVerdict,
   type RecaptchaVerifierOptions,
 } from './recaptcha.js';
+export {
+  generateTotpCode,
+  generateTotpSecret,
+  TOTP_DIGITS,
+  TOTP_PERIOD_SECONDS,
+  TOTP_WINDOW_STEPS,
+  totpStep,
+  totpUri,
+  verifyTotpCode,
+} from './totp.js';
+export {
+  generateRecoveryCodes,
+  hashRecoveryCode,
+  normalizeRecoveryCode,
+  RECOVERY_CODE_COUNT,
+} from './recovery-codes.js';

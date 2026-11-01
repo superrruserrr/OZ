@@ -27,4 +27,4 @@ export {
   randomOzIdPart,
   type RandomSource,
 } from './oz-id/generate.js';
-export { profileQrSvg, profileUrl, type ProfileQrOptions } from './oz-id/qr.js';
+export { profileQrSvg, profileUrl, qrSvg, type ProfileQrOptions } from './oz-id/qr.js';

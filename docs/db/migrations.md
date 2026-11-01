@@ -98,3 +98,14 @@ Migration `20261030100000_auth_sessions`, vérifiée par `auth-sessions.int.test
 - **Verrou de famille** `oz_sessions_lock_family` (verrou consultatif de transaction) : pris par la rotation, la déconnexion, la révocation et la réinitialisation du mot de passe, toujours avant la ligne ; `EXECUTE` à `oz_app` seulement.
 - **Chemin privilégié** : `oz_auth_open_session`, `oz_auth_rotate_session`, `oz_auth_logout` (`SECURITY DEFINER`) et `oz_auth_reset_password` (remplacée : verrouille les familles et révoque avec le motif `password_reset`) ; fonctions internes `oz_auth_truncate_ip`, `oz_auth_check_session_ttl`, `oz_auth_can_hold_session` (`EXECUTE` retiré à `PUBLIC`). Mêmes droits que le lot 1.3a (`GRANT` à `oz_app` s'il existe, DEBT D-066). Wrappers typés : `packages/db/src/sessions.ts`.
 - **Retour arrière** : `down.sql` supprime fonctions, déclencheur et colonnes, rétablit `sessions_self` et l'ancienne `oz_auth_reset_password`.
+
+## 2FA TOTP (lot 1.3cb)
+
+Migration `20261101100000_auth_totp`, vérifiée par `auth-totp.int.test.ts` ; règles de sécurité dans [docs/security/auth.md](../security/auth.md#2fa-totp-lot-13cb) :
+
+- **Colonnes** : `users.totp_pending_secret_encrypted` (secret d'un enrôlement en cours) et `users.totp_last_step` (dernier pas accepté, anti-rejeu), effacées à l'anonymisation ; `users_totp_enabled_check` lie `totp_enabled_at` et `totp_secret_encrypted`. Nouveau motif `two_factor_changed` pour `sessions.revoked_reason`.
+- **Codes de secours** : `auth_recovery_codes` (empreinte HMAC-SHA-256 en hexadécimal, usage unique), RLS forcée, aucun accès direct même au titulaire. Empreintes classées `technical` : à clé, et inertes une fois le secret effacé.
+- **Garde** `oz_users_guard_totp` (déclencheur séparé) : sous contexte utilisateur, aucune colonne TOTP ne change, titulaire compris.
+- **Chemin privilégié** : `oz_auth_totp_state`, `_begin`, `_enable`, `_disable`, `_consume_step`, `_consume_recovery`, `_replace_recovery` et `_required` (`SECURITY DEFINER`, `EXECUTE` réservé à `oz_app`). La clé de chiffrement est un paramètre : elle n'est stockée nulle part en base.
+- **Atomicité** : `_consume_step` et `_consume_recovery` sont une seule mise à jour conditionnelle : deux requêtes simultanées n'en valident qu'une.
+- **Retour arrière** : `down.sql` supprime fonctions, déclencheur, table et colonnes, et ramène le motif `two_factor_changed` à `revoked_by_user`. Les secrets actifs (`totp_secret_encrypted`) restent en place : la colonne existait avant ce lot.
