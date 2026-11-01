@@ -34,8 +34,8 @@
     "@oz/config": "workspace:*",
     "@oz/core": "workspace:*",
     "@oz/testing": "workspace:*",
-    "@prisma/adapter-pg": "7.10.0",
-    "@prisma/client": "7.10.0",
+    "@prisma/adapter-pg": "7.10.1",
+    "@prisma/client": "7.10.1",
     "pg": "^8.23.1"
   }
 }
