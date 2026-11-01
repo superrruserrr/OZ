@@ -16,3 +16,5 @@ export const RESET_TTL_SECONDS = 30 * 60;
 export const ACCESS_TOKENS = Symbol('ACCESS_TOKENS');
 /** Durée absolue d'une famille de sessions : reconnexion obligatoire ensuite (D1 du lot 1.3b). */
 export const SESSION_FAMILY_TTL_SECONDS = 90 * 86_400;
+/** Vérificateur reCAPTCHA v3 (lot 1.3ca, D4) ; null quand aucun secret n'est configuré (local). */
+export const RECAPTCHA_VERIFIER = Symbol('RECAPTCHA_VERIFIER');

@@ -6,7 +6,6 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiTags,
-  ApiTooManyRequestsResponse,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import type { ApiConfig } from '@oz/config';
@@ -18,6 +17,8 @@ import {
 } from '@oz/contracts';
 import type { Request, Response } from 'express';
 import { AppException } from '../common/errors/api-error.js';
+import { RateLimit } from '../common/rate-limit/rate-limit.decorator.js';
+import { clientIp } from '../common/security/client-ip.js';
 import { ApiErrorDto } from '../common/errors/api-error.dto.js';
 import { ValidatedBody } from '../common/validation/validated-body.decorator.js';
 import { API_CONFIG } from '../config/config.module.js';
@@ -28,24 +29,15 @@ import {
   readRefreshCookie,
   setRefreshCookie,
 } from './refresh-cookie.js';
-import {
-  RetryLaterException,
-  SessionService,
-  type ClientContext,
-  type IssuedSession,
-} from './session.service.js';
+import { SessionService, type ClientContext, type IssuedSession } from './session.service.js';
 
 const tokenResponse = { schema: openApiBodySchema(accessTokenOutputSchema) };
 const COOKIE_NOTE =
   'Pose le cookie `__Host-oz_refresh` (HttpOnly, Secure, SameSite=Strict) ; le jeton d’accès reste en mémoire côté client.';
 
-// Écoute en double pile : un client IPv4 arrive en `::ffff:a.b.c.d`, ramené en IPv4 pour que la
-// troncature (/24) s'applique et non celle d'IPv6 (/48), qui ne garderait que des zéros.
-const MAPPED_IPV4 = /^::ffff:(\d{1,3}(?:\.\d{1,3}){3})$/i;
-
 export const clientOf = (req: Request): ClientContext => ({
   userAgent: req.header('User-Agent'),
-  ip: req.ip?.replace(MAPPED_IPV4, '$1'),
+  ip: clientIp(req.ip) ?? undefined,
 });
 
 /**
@@ -67,28 +59,24 @@ export class SessionController {
   @ApiOkResponse({ description: 'Connecté', ...tokenResponse })
   @ApiUnauthorizedResponse({ type: ApiErrorDto, description: 'Email ou mot de passe incorrect' })
   @ApiForbiddenResponse({ type: ApiErrorDto, description: 'Adresse email à confirmer' })
-  @ApiTooManyRequestsResponse({
-    type: ApiErrorDto,
-    description: 'Délai exponentiel',
-    headers: { 'Retry-After': { description: 'Attente en secondes', schema: { type: 'integer' } } },
-  })
+  @RateLimit(
+    [
+      { rule: 'login_ip', by: 'ip' },
+      { rule: 'login_account', by: 'email' },
+    ],
+    'Limite de débit (`RATE_LIMITED`) ou délai exponentiel après échecs (`AUTH_RETRY_LATER`)',
+  )
   async login(
     @ValidatedBody(loginSchema) input: LoginInput,
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ): Promise<AccessTokenOutput> {
-    try {
-      return this.respond(res, await this.sessions.login(input, clientOf(req)));
-    } catch (error) {
-      if (error instanceof RetryLaterException) {
-        res.setHeader('Retry-After', String(error.retryAfterSeconds));
-      }
-      throw error;
-    }
+    return this.respond(res, await this.sessions.login(input, clientOf(req)));
   }
 
   @Post('refresh')
   @HttpCode(200)
+  @RateLimit([{ rule: 'refresh_ip', by: 'ip' }])
   @ApiOperation({
     summary: 'Prolonger la session (rotation du jeton de rafraîchissement)',
     description: `Lit et remplace le cookie \`__Host-oz_refresh\`. Un jeton déjà utilisé révoque toutes les sessions de cet appareil. ${COOKIE_NOTE}`,

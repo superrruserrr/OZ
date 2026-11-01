@@ -1,7 +1,13 @@
 import { issueWithRetry, isValidOzId, type RandomSource } from '@oz/core';
 import pg from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { connectAsAppRole, migrateDeploy, startDatabase, type TestDatabase } from './database.js';
+import {
+  connectAsAppRole,
+  migrateDeploy,
+  startDatabase,
+  testPool,
+  type TestDatabase,
+} from './database.js';
 
 // CP-02 sous concurrence : 20 connexions applicatives émettent 10 000 OZ ID dans un espace
 // volontairement réduit (32⁴ parties aléatoires), pour forcer des collisions sans risquer d'épuiser
@@ -42,7 +48,7 @@ beforeAll(async () => {
   const url = new URL(db.url);
   url.username = 'oz_app_test';
   url.password = 'oz_app_test';
-  pool = new pg.Pool({ connectionString: url.toString(), max: CONNECTIONS });
+  pool = testPool({ connectionString: url.toString(), max: CONNECTIONS });
 });
 afterAll(async () => {
   await pool.end();

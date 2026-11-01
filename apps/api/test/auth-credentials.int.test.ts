@@ -5,7 +5,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { CredentialsService } from '../src/auth/credentials.service.js';
 import { REDIS_CLIENT } from '../src/database/database.module.js';
 import type { Redis } from 'ioredis';
-import { startAuthHarness, tokenIn, type AuthHarness } from './auth-harness.js';
+import { formToken, startAuthHarness, tokenIn, type AuthHarness } from './auth-harness.js';
 
 const PASSWORD = 'correct horse battery staple';
 let harness: AuthHarness;
@@ -19,7 +19,7 @@ async function account({ verified = true } = {}): Promise<string> {
   const address = email();
   await request(server)
     .post('/auth/register')
-    .send({ email: address, password: PASSWORD })
+    .send({ email: address, password: PASSWORD, formToken: formToken() })
     .expect(202);
   if (verified) {
     const token = tokenIn(await harness.mailTo(address, 'Confirmez votre adresse email'));

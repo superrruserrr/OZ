@@ -84,9 +84,13 @@ En place, testés :
 
 ## Limitation de débit (§6.6)
 
-Prévue au lot 1.3 pour l'authentification et le KYC (valeurs §6.6), au lot 1.9 pour le
-téléversement, au lot 1.14 pour la recherche (quotas par palier). La limite globale par IP
-(Cloudflare) est posée avec la mise en ligne (lot 1.18).
+**En place pour les routes d'authentification** (lot 1.3ca, EX-T18 n° 1 à 3) : limites par IP et
+par compte ou adresse, 429 `RATE_LIMITED` avec `Retry-After`, réglables sans redéploiement
+(`system_settings`), Redis indisponible = refus ; anti-robot de l'inscription (jeton de formulaire,
+champ piège, reCAPTCHA v3). Détail dans [auth.md](auth.md#limitation-de-débit-lot-13ca-ex-t18).
+
+À poser avec leurs lots : KYC (lot 1.4, valeurs §6.6), téléversement (lot 1.9), recherche (lot 1.14,
+quotas par palier). La limite globale par IP (Cloudflare) est posée avec la mise en ligne (lot 1.18).
 
 ## Téléversements (§6.1 n° 7)
 

@@ -28,3 +28,4 @@ export {
   type SessionAccess,
   type SessionSummary,
 } from './sessions.js';
+export { readSetting } from './settings.js';

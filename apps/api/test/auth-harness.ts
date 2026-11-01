@@ -2,12 +2,22 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { Test } from '@nestjs/testing';
 import type { NestExpressApplication } from '@nestjs/platform-express';
-import type { PwnedResult } from '@oz/auth';
+import {
+  issueFormToken,
+  RATE_LIMIT_RULES,
+  type PwnedResult,
+  type RecaptchaVerdict,
+} from '@oz/auth';
 import pg from 'pg';
 import { GenericContainer, Wait, type StartedTestContainer } from 'testcontainers';
 import { configureApp } from '../src/app.js';
 import { AppModule } from '../src/app.module.js';
-import { AUTH_RESPONSE_FLOOR_MS, PWNED_CLIENT } from '../src/auth/auth.tokens.js';
+import {
+  AUTH_RESPONSE_FLOOR_MS,
+  PWNED_CLIENT,
+  RECAPTCHA_VERIFIER,
+} from '../src/auth/auth.tokens.js';
+import { RATE_LIMIT_CACHE_MS } from '../src/common/rate-limit/rate-limiter.service.js';
 import {
   MAILPIT_IMAGE,
   smtpHost,
@@ -26,12 +36,26 @@ const MIGRATE = new URL('../../../packages/db/dist/cli/migrate.js', import.meta.
 
 export const RESPONSE_FLOOR_MS = 150;
 
+const HMAC_KEY = 'h'.repeat(40);
+
+/** Jeton de formulaire déjà assez âgé (D6) : l'inscription des tests n'attend pas 3 s. */
+export const formToken = (): string => issueFormToken(HMAC_KEY, Date.now() - 10_000);
+
+/** Limites larges : les tests qui ne portent pas sur le débit ne les atteignent jamais. */
+export const RELAXED_RATE_LIMITS = Object.fromEntries(
+  RATE_LIMIT_RULES.map((rule) => [rule, { limit: 1_000, windowSeconds: 60 }]),
+);
+
 export interface AuthHarness {
   readonly app: NestExpressApplication;
   readonly logs: LogCapture;
   readonly db: pg.Pool;
+  /** Écrit le réglage `rate_limits` (relu à chaque requête dans le banc : cache désactivé). */
+  setRateLimits(value: unknown): Promise<void>;
   /** Réponse du double HaveIBeenPwned pour les prochains appels. */
   pwned: PwnedResult;
+  /** Verdict du double reCAPTCHA pour les prochains appels. */
+  recaptcha: RecaptchaVerdict;
   /** Dernier email reçu par `to` (texte), attendu jusqu'à 5 s. */
   mailTo(to: string, subject: string): Promise<string>;
   /** Emails reçus par `to`. */
@@ -70,12 +94,15 @@ export async function startAuthHarness(
     SMTP_HOST: smtpHost(mailpit.getHost()),
     SMTP_PORT: String(mailpit.getMappedPort(1025)),
     EMAIL_FROM: 'OZ <no-reply@oz.localhost>',
-    AUTH_HMAC_KEY: 'h'.repeat(40),
+    AUTH_HMAC_KEY: HMAC_KEY,
     JWT_ACCESS_SECRET: testKey(1),
     JWT_REFRESH_SECRET: testKey(2),
     ...overrides,
   });
-  const harness = { pwned: 'clean' as PwnedResult };
+  const harness = {
+    pwned: 'clean' as PwnedResult,
+    recaptcha: { verdict: 'human', score: 0.9 } as RecaptchaVerdict,
+  };
   const moduleRef = await Test.createTestingModule({
     imports: [AppModule.forRoot(config, { logStream: logs.stream })],
   })
@@ -83,11 +110,25 @@ export async function startAuthHarness(
     .useValue({ check: () => Promise.resolve(harness.pwned) })
     .overrideProvider(AUTH_RESPONSE_FLOOR_MS)
     .useValue(RESPONSE_FLOOR_MS)
+    .overrideProvider(RECAPTCHA_VERIFIER)
+    .useValue({ verify: () => Promise.resolve(harness.recaptcha) })
+    .overrideProvider(RATE_LIMIT_CACHE_MS)
+    .useValue(0)
     .compile();
   const app = moduleRef.createNestApplication<NestExpressApplication>({ bufferLogs: true });
   configureApp(app);
   await app.init();
   const db = new pg.Pool({ connectionString: services.env.DATABASE_URL, max: 2 });
+  // `end()` peut précéder la fermeture des sockets : l'arrêt du conteneur ne doit pas lever d'erreur.
+  db.on('error', () => undefined);
+  const setRateLimits = async (value: unknown): Promise<void> => {
+    await db.query(
+      `INSERT INTO system_settings (key, value) VALUES ('rate_limits', $1::jsonb)
+       ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = now()`,
+      [JSON.stringify(value)],
+    );
+  };
+  await setRateLimits(RELAXED_RATE_LIMITS);
 
   const search = async (to: string): Promise<MailpitSummary[]> => {
     const response = await fetch(
@@ -100,6 +141,7 @@ export async function startAuthHarness(
     app,
     logs,
     db,
+    setRateLimits,
     async mailTo(to: string, subject: string): Promise<string> {
       const deadline = Date.now() + 5_000;
       for (;;) {

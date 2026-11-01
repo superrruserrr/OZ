@@ -10,7 +10,9 @@ import {
   withUserContext,
   type PrismaClient,
 } from '@oz/db';
+import { InjectPinoLogger, type PinoLogger } from 'nestjs-pino';
 import { AppException } from '../common/errors/api-error.js';
+import { RateLimiter } from '../common/rate-limit/rate-limiter.service.js';
 import { DB_CLIENT } from '../database/database.module.js';
 import {
   ACCESS_TOKENS,
@@ -80,6 +82,9 @@ export class SessionService {
     private readonly credentials: CredentialsService,
     @Inject(AUTH_MAILER) private readonly mailer: AuthMailer,
     private readonly mail: MailDispatcher,
+    private readonly limiter: RateLimiter,
+    @InjectPinoLogger(SessionService.name)
+    private readonly logger: Pick<PinoLogger, 'info' | 'warn'>,
   ) {}
 
   /**
@@ -112,11 +117,31 @@ export class SessionService {
       });
       // Compte suspendu entre la vérification du mot de passe et l'ouverture : même refus générique.
       if (opened === null) throw INVALID_CREDENTIALS();
-      // D5 : appareil inconnu depuis 90 jours, le titulaire est prévenu (après la réponse).
+      // D5 : appareil inconnu depuis 90 jours, le titulaire est prévenu (après la réponse), au plus
+      // `new_device_email` fois par jour et par compte (D7 du lot 1.3ca) ; la connexion réussit quand même.
       if (!opened.knownDevice) {
-        this.mail.sendLater('new_device_login', () =>
-          this.mailer.sendNewDeviceLogin(input.email, device, now),
-        );
+        const userId = verdict.userId;
+        this.mail.sendLater('new_device_login', async () => {
+          let capped: boolean;
+          try {
+            capped = !(await this.limiter.consume('new_device_email', userId)).allowed;
+          } catch {
+            // Redis en panne : alerte non envoyée (D3), signalée comme telle et non comme panne SMTP.
+            this.logger.warn(
+              { event: 'auth.mail.cap_unavailable', kind: 'new_device_login' },
+              'Plafond des emails « nouvel appareil » illisible : non envoyé',
+            );
+            return;
+          }
+          if (capped) {
+            this.logger.info(
+              { event: 'auth.mail.capped', kind: 'new_device_login' },
+              'Plafond des emails « nouvel appareil » atteint : non envoyé',
+            );
+            return;
+          }
+          await this.mailer.sendNewDeviceLogin(input.email, device, now);
+        });
       }
       const access = await this.accessTokens.issue(
         { userId: verdict.userId, familyId: opened.familyId },

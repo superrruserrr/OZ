@@ -3,7 +3,7 @@ import type { App } from 'supertest/types.js';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { ApiError } from '../src/common/errors/api-error.js';
 import { MailDispatcher } from '../src/auth/mail/mail-dispatcher.js';
-import { startAuthHarness, tokenIn, type AuthHarness } from './auth-harness.js';
+import { formToken, startAuthHarness, tokenIn, type AuthHarness } from './auth-harness.js';
 
 // Connexion, rafraîchissement, déconnexion (lot 1.3b, EX-103 n° 1, 3, 4, 5, 8, 9, 10).
 
@@ -23,7 +23,7 @@ const email = (): string => `session-${String(++counter)}@example.test`;
 async function account(address = email()): Promise<string> {
   await request(server)
     .post('/auth/register')
-    .send({ email: address, password: PASSWORD })
+    .send({ email: address, password: PASSWORD, formToken: formToken() })
     .expect(202);
   const token = tokenIn(await harness.mailTo(address, 'Confirmez votre adresse email'));
   await request(server).post('/auth/verify-email').send({ token }).expect(200);
@@ -121,7 +121,7 @@ describe('POST /auth/login', () => {
       const address = email();
       await request(server)
         .post('/auth/register')
-        .send({ email: address, password: PASSWORD })
+        .send({ email: address, password: PASSWORD, formToken: formToken() })
         .expect(202);
       return address;
     };
@@ -158,7 +158,9 @@ describe('POST /auth/login', () => {
 
   it('email non vérifié : 403, seulement après un mot de passe juste (EX-103 n° 9)', async () => {
     const address = email();
-    await request(server).post('/auth/register').send({ email: address, password: PASSWORD });
+    await request(server)
+      .post('/auth/register')
+      .send({ email: address, password: PASSWORD, formToken: formToken() });
     const wrong = await login(address, 'mauvais mot de passe').expect(401);
     expect(errorOf(wrong).code).toBe('AUTH_INVALID_CREDENTIALS');
     const right = await login(address).expect(403);
@@ -264,7 +266,8 @@ describe('journaux', () => {
 describe('session ouverte', () => {
   it('IP du client tronquée en /24, même reçue en IPv4 mappée sur IPv6', async () => {
     const address = await account();
-    await login(address).expect(200);
+    // Sans mandataire de confiance (TRUST_PROXY=0), X-Forwarded-For est ignoré.
+    await login(address).set('X-Forwarded-For', '203.0.113.66').expect(200);
     const { rows } = await harness.db.query<{ ip: string }>(
       `SELECT s.ip::text AS ip FROM sessions s JOIN users u ON u.id = s.user_id WHERE u.email = $1`,
       [address],

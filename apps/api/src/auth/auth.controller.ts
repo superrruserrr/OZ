@@ -1,4 +1,4 @@
-import { Controller, HttpCode, Post } from '@nestjs/common';
+import { Controller, Get, Header, HttpCode, Inject, Post } from '@nestjs/common';
 import {
   ApiAcceptedResponse,
   ApiBadRequestResponse,
@@ -8,20 +8,26 @@ import {
   ApiTags,
   ApiUnprocessableEntityResponse,
 } from '@nestjs/swagger';
+import { issueFormToken } from '@oz/auth';
+import type { AuthConfig } from '@oz/config';
 import {
+  formTokenOutputSchema,
   registerSchema,
   requestPasswordResetSchema,
   resetPasswordSchema,
   verifyEmailSchema,
+  type FormTokenOutput,
   type RegisterInput,
   type RequestPasswordResetInput,
   type ResetPasswordInput,
   type VerifyEmailInput,
 } from '@oz/contracts';
 import { ApiErrorDto } from '../common/errors/api-error.dto.js';
+import { RateLimit } from '../common/rate-limit/rate-limit.decorator.js';
 import { ValidatedBody } from '../common/validation/validated-body.decorator.js';
 import { openApiBodySchema } from '../docs/contract-schema.js';
 import { AuthService } from './auth.service.js';
+import { AUTH_CONFIG } from './auth.tokens.js';
 
 const status = (value: string) => ({
   schema: { type: 'object', properties: { status: { type: 'string', enum: [value] } } },
@@ -34,10 +40,33 @@ const status = (value: string) => ({
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly auth: AuthService) {}
+  constructor(
+    private readonly auth: AuthService,
+    @Inject(AUTH_CONFIG) private readonly config: AuthConfig,
+  ) {}
+
+  @Get('register/form')
+  @Header('Cache-Control', 'no-store')
+  @RateLimit([{ rule: 'register_form_ip', by: 'ip' }])
+  @ApiOperation({
+    summary: "Ouvrir le formulaire d'inscription",
+    description:
+      'Jeton signé et daté par le serveur, à renvoyer avec l’inscription : accepté de 3 s à 2 h après son émission.',
+  })
+  @ApiOkResponse({
+    description: 'Jeton de formulaire',
+    schema: openApiBodySchema(formTokenOutputSchema),
+  })
+  registerForm(): FormTokenOutput {
+    return { formToken: issueFormToken(this.config.hmacKey, Date.now()) };
+  }
 
   @Post('register')
   @HttpCode(202)
+  @RateLimit(
+    [{ rule: 'register_ip', by: 'ip' }],
+    'Limite de débit atteinte (par IP, ou par adresse une fois la demande recevable)',
+  )
   @ApiOperation({ summary: 'Créer un compte (email de confirmation envoyé)' })
   @ApiBody({ schema: openApiBodySchema(registerSchema) })
   @ApiAcceptedResponse({ description: 'Demande prise en compte', ...status('accepted') })
@@ -54,6 +83,7 @@ export class AuthController {
 
   @Post('verify-email')
   @HttpCode(200)
+  @RateLimit([{ rule: 'verify_email_ip', by: 'ip' }])
   @ApiOperation({ summary: "Confirmer l'adresse email (jeton reçu par email)" })
   @ApiBody({ schema: openApiBodySchema(verifyEmailSchema) })
   @ApiOkResponse({ description: 'Adresse confirmée', ...status('verified') })
@@ -67,6 +97,10 @@ export class AuthController {
 
   @Post('password/forgot')
   @HttpCode(202)
+  @RateLimit([
+    { rule: 'forgot_ip', by: 'ip' },
+    { rule: 'forgot_email', by: 'email' },
+  ])
   @ApiOperation({ summary: 'Demander un lien de réinitialisation' })
   @ApiBody({ schema: openApiBodySchema(requestPasswordResetSchema) })
   @ApiAcceptedResponse({ description: 'Demande prise en compte', ...status('accepted') })
@@ -79,6 +113,7 @@ export class AuthController {
 
   @Post('password/reset')
   @HttpCode(200)
+  @RateLimit([{ rule: 'reset_ip', by: 'ip' }])
   @ApiOperation({ summary: 'Choisir un nouveau mot de passe (jeton reçu par email)' })
   @ApiBody({ schema: openApiBodySchema(resetPasswordSchema) })
   @ApiOkResponse({ description: 'Mot de passe modifié, sessions fermées', ...status('reset') })

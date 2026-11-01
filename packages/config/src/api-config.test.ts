@@ -143,6 +143,14 @@ describe('loadApiConfig (EX-003)', () => {
     expect(errorOf({ ...valid, API_PORT: port }).invalidVariables).toEqual(['API_PORT']);
   });
 
+  it('mandataires de confiance : 0 par défaut, nombre de sauts de 0 à 5 (lot 1.3ca)', () => {
+    expect(loadApiConfig(valid).trustProxy).toBe(0);
+    expect(loadApiConfig({ ...valid, TRUST_PROXY: '2' }).trustProxy).toBe(2);
+    for (const value of ['6', '-1', 'true', '1.5', ' 1']) {
+      expect(errorOf({ ...valid, TRUST_PROXY: value }).invalidVariables).toEqual(['TRUST_PROXY']);
+    }
+  });
+
   it('refuse un joker dans une origine, même partiel', () => {
     expect(errorOf({ ...valid, CORS_ORIGINS: 'https://*.example.com' }).invalidVariables).toEqual([
       'CORS_ORIGINS',
@@ -258,6 +266,7 @@ describe('loadApiConfig (EX-003)', () => {
 });
 
 describe('authentification (lot 1.3a)', () => {
+  const RECAPTCHA = 'r'.repeat(40);
   const accessKey = Buffer.alloc(64, 1).toString('base64');
   const refreshKey = Buffer.alloc(64, 2).toString('base64');
   const AUTH = {
@@ -305,6 +314,7 @@ describe('authentification (lot 1.3a)', () => {
         refreshKey: new Uint8Array(64).fill(2),
         refreshTtlSeconds: 30 * 86_400,
       },
+      recaptcha: undefined,
     });
   });
 
@@ -395,7 +405,7 @@ describe('authentification (lot 1.3a)', () => {
   it('exige TLS, identifiants SMTP et https en recette', () => {
     expect(
       errorOf({ ...staging, ...AUTH, APP_URL: 'http://recette.oz.example' }).invalidVariables,
-    ).toEqual(['APP_URL', 'SMTP_USER']);
+    ).toEqual(['APP_URL', 'RECAPTCHA_SECRET_KEY', 'SMTP_USER']);
     const config = loadApiConfig({
       ...staging,
       ...AUTH,
@@ -404,21 +414,24 @@ describe('authentification (lot 1.3a)', () => {
       SMTP_PORT: '465',
       SMTP_USER: 'projet',
       SMTP_PASSWORD: 'secret',
+      RECAPTCHA_SECRET_KEY: RECAPTCHA,
     });
     expect(config.auth?.smtp.requireTls).toBe(true);
+    expect(config.auth?.recaptcha).toEqual({ secretKey: RECAPTCHA, minScore: 0.5 });
   });
 
   it('exige aussi TLS, identifiants SMTP et https en prévisualisation', () => {
     const preview = { ...valid, APP_ENV: 'preview' };
     expect(
       errorOf({ ...preview, ...AUTH, APP_URL: 'http://pr-1.oz.example' }).invalidVariables,
-    ).toEqual(['APP_URL', 'SMTP_USER']);
+    ).toEqual(['APP_URL', 'RECAPTCHA_SECRET_KEY', 'SMTP_USER']);
     const config = loadApiConfig({
       ...preview,
       ...AUTH,
       APP_URL: 'https://pr-1.oz.example',
       SMTP_USER: 'projet',
       SMTP_PASSWORD: 'secret',
+      RECAPTCHA_SECRET_KEY: RECAPTCHA,
     });
     expect(config.auth?.smtp.requireTls).toBe(true);
   });
@@ -438,11 +451,45 @@ describe('authentification (lot 1.3a)', () => {
         APP_URL: 'https://www.oz.example',
         SMTP_USER: 'projet',
         SMTP_PASSWORD: 'secret',
+        RECAPTCHA_SECRET_KEY: RECAPTCHA,
       }).invalidVariables,
     ).toEqual(['FEATURE_AUTH']);
   });
 
   it('refuse une valeur de drapeau ambiguë', () => {
     expect(errorOf({ ...valid, FEATURE_AUTH: 'oui' }).invalidVariables).toEqual(['FEATURE_AUTH']);
+  });
+
+  describe('reCAPTCHA v3 (lot 1.3ca, D4)', () => {
+    it('facultatif en local : sans secret, vérification sautée', () => {
+      expect(loadApiConfig({ ...valid, ...AUTH }).auth?.recaptcha).toBeUndefined();
+    });
+
+    it('secret fourni en local : vérification active, seuil configurable', () => {
+      expect(
+        loadApiConfig({
+          ...valid,
+          ...AUTH,
+          RECAPTCHA_SECRET_KEY: RECAPTCHA,
+          RECAPTCHA_MIN_SCORE: '0.7',
+        }).auth?.recaptcha,
+      ).toEqual({ secretKey: RECAPTCHA, minScore: 0.7 });
+    });
+
+    it.each(['1.5', '-0.1', 'abc', '0,5', ' 0.5', '0.555'])('seuil invalide « %s »', (score) => {
+      expect(errorOf({ ...valid, ...AUTH, RECAPTCHA_MIN_SCORE: score }).invalidVariables).toEqual([
+        'RECAPTCHA_MIN_SCORE',
+      ]);
+    });
+
+    it.each(['0', '1', '0.3', '1.0'])('seuil accepté « %s »', (score) => {
+      expect(() => loadApiConfig({ ...valid, ...AUTH, RECAPTCHA_MIN_SCORE: score })).not.toThrow();
+    });
+
+    it('secret trop court refusé', () => {
+      expect(
+        errorOf({ ...valid, ...AUTH, RECAPTCHA_SECRET_KEY: 'court' }).invalidVariables,
+      ).toEqual(['RECAPTCHA_SECRET_KEY']);
+    });
   });
 });

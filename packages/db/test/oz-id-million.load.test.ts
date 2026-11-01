@@ -1,7 +1,13 @@
 import { issueWithRetry, isValidOzId } from '@oz/core';
 import pg from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { connectAsAppRole, migrateDeploy, startDatabase, type TestDatabase } from './database.js';
+import {
+  connectAsAppRole,
+  migrateDeploy,
+  startDatabase,
+  testPool,
+  type TestDatabase,
+} from './database.js';
 
 // EX-102 n° 8 en base : 1 000 000 d'OZ ID émis par oz_issue_oz_id, dans un même couple (pays,
 // année), sur 20 connexions applicatives. Hors CI (durée) ; résultat consigné dans docs/db/migrations.md.
@@ -35,7 +41,7 @@ beforeAll(async () => {
   const url = new URL(db.url);
   url.username = 'oz_app_test';
   url.password = 'oz_app_test';
-  pool = new pg.Pool({ connectionString: url.toString(), max: CONNECTIONS });
+  pool = testPool({ connectionString: url.toString(), max: CONNECTIONS });
 });
 afterAll(async () => {
   await pool.end();

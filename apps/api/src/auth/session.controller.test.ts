@@ -55,4 +55,11 @@ describe('SessionController', () => {
     expect(clientOf(request).ip).toBe('203.0.113.9');
     expect(clientOf({ ...request, ip: '2001:db8::1' } as Request).ip).toBe('2001:db8::1');
   });
+
+  it('client sans IP (socket fermée) : IP inconnue', () => {
+    expect(clientOf({ header: () => undefined, ip: undefined } as unknown as Request)).toEqual({
+      userAgent: undefined,
+      ip: undefined,
+    });
+  });
 });

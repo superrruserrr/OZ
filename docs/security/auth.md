@@ -2,13 +2,15 @@
 
 Mise en œuvre de §6.2 et d'[ADR-002](../adr/ADR-002-authentification-proprietaire.md), exigence EX-103. Le lot 1.3 est livré en trois parties :
 
-| Partie | Contenu                                                                                         | État        |
-| ------ | ----------------------------------------------------------------------------------------------- | ----------- |
-| 1.3a   | Comptes : inscription, confirmation d'email, réinitialisation, vérification des identifiants    | Ce document |
-| 1.3b   | Connexion, JWT d'accès, rafraîchissement par rotation, sessions listées et révocables           | Ce document |
-| 1.3c   | 2FA TOTP, OTP SMS, anti-robot, limitation de débit par IP ; condition de `FEATURE_AUTH` en prod | Prévue      |
+| Partie | Contenu                                                                                      | État        |
+| ------ | -------------------------------------------------------------------------------------------- | ----------- |
+| 1.3a   | Comptes : inscription, confirmation d'email, réinitialisation, vérification des identifiants | Ce document |
+| 1.3b   | Connexion, JWT d'accès, rafraîchissement par rotation, sessions listées et révocables        | Ce document |
+| 1.3ca  | Limitation de débit des routes, anti-robot de l'inscription, `TRUST_PROXY`                   | Ce document |
+| 1.3cb  | 2FA TOTP                                                                                     | Prévue      |
+| 1.3cc  | OTP SMS ; levée du refus de `FEATURE_AUTH` en production                                     | Prévue      |
 
-Les routes sont montées seulement avec `FEATURE_AUTH=true`, refusé en production jusqu'à la fin de 1.3c (sans limitation de débit ni anti-robot, elles serviraient à envoyer des emails en masse).
+Les routes sont montées seulement avec `FEATURE_AUTH=true`, refusé en production jusqu'à la fin de 1.3c (1.3cc).
 
 ## Mots de passe
 
@@ -39,7 +41,7 @@ Les routes sont montées seulement avec `FEATURE_AUTH=true`, refusé en producti
 ## Indiscernabilité (EX-103 n° 10, CP-28)
 
 - Corps et statut identiques pour une adresse libre ou prise (`register`), un compte existant ou non (`forgot`).
-- **Durée plancher** : ces deux routes ne répondent qu'après 2 000 ms (délai d'abandon de HaveIBeenPwned + 500 ms), succès comme échec : le pire cas de l'inscription tient sous le plancher. Le travail coûteux (Argon2, base) se fait dans les deux cas.
+- **Durée plancher** : ces deux routes ne répondent qu'après 3 500 ms (plus long délai d'abandon entre HaveIBeenPwned, 1,5 s, et reCAPTCHA, 3 s, appelés en parallèle, + 500 ms ; 2 000 ms avant le lot 1.3ca), succès comme échec : le pire cas de l'inscription tient sous le plancher, et la durée ne trahit pas le verdict anti-robot. Le travail coûteux (Argon2, base) se fait dans les deux cas.
 - **Emails envoyés après la réponse** : la durée de la réponse ne dépend pas du serveur SMTP. Un échec d'envoi est journalisé (`auth.mail.failed`, type d'email et code système comme `ESOCKET` ou `EAUTH`) sans le message d'erreur ni la réponse SMTP, qui peuvent citer l'adresse.
 - **Vérification des identifiants** (`CredentialsService.verify`, utilisée par la connexion en 1.3b) : compte inconnu ou supprimé → Argon2 sur un hash factice (`dummyPasswordHash()`, calculé une fois aux paramètres courants) ; résultat unique `invalid` pour un compte inconnu, supprimé, suspendu, clos ou sans mot de passe, ou un mot de passe faux. `email_unverified` n'est rendu qu'après un mot de passe juste (EX-103 n° 9). Test CP-28 : 50 essais de chaque côté, écart des médianes inférieur à 25 % (le plan visait 10 % ; seuil relâché pour le bruit des conteneurs de test, écart au plan consigné).
 
@@ -47,7 +49,7 @@ Les routes sont montées seulement avec `FEATURE_AUTH=true`, refusé en producti
 
 - Par compte : après 3 échecs, 1 s d'attente, puis le double à chaque nouvel échec (2^(n−3) s), plafonné à 900 s ; jamais de verrouillage définitif. Pendant le délai, `retry_later` est rendu sans évaluer le mot de passe ; un succès remet le compteur à zéro.
 - Compteurs Redis `oz:auth:failures:<HMAC-SHA-256(AUTH_HMAC_KEY, email normalisé)>` (champs `failures` et `last`), expirés 24 h après le dernier échec : aucune adresse en clair dans Redis. Chaque tentative est réservée par un script Redis atomique avant l'évaluation du mot de passe (comptée comme échec, effacée par un succès) : des requêtes parallèles n'évaluent pas plus de mots de passe que le délai n'en permet (testé). Un compteur illisible vaut zéro ; Redis indisponible fait échouer la vérification (erreur 500, jamais d'accès accordé).
-- Le délai par adresse IP et la limitation de débit des routes arrivent en 1.3c (DEBT D-067).
+- Le délai exponentiel reste appliqué en plus de la limitation de débit par IP et par compte (lot 1.3ca, ci-dessous).
 
 ## Base de données : chemin privilégié
 
@@ -74,7 +76,7 @@ Migration `20261029100000_auth_comptes`, détail dans [docs/db/migrations.md](..
 
 | Variable                     | Rôle                                                                                      |
 | ---------------------------- | ----------------------------------------------------------------------------------------- |
-| `FEATURE_AUTH`               | Monte les routes ; interdit à `true` en production jusqu'à 1.3c                           |
+| `FEATURE_AUTH`               | Monte les routes ; interdit à `true` en production jusqu'à 1.3cc                          |
 | `APP_URL`                    | Base des liens des emails (`https` hors local)                                            |
 | `SMTP_HOST`, `SMTP_PORT`     | Serveur d'envoi                                                                           |
 | `SMTP_USER`, `SMTP_PASSWORD` | Par paire ; exigés hors local                                                             |
@@ -143,3 +145,51 @@ Sous contexte utilisateur (`withUserContext`, RLS et garde `oz_sessions_guard`) 
 | `JWT_REFRESH_SECRET` | Clé HMAC des empreintes de rafraîchissement, 64 octets au moins, différente de la première |
 | `JWT_ACCESS_TTL`     | `15m` seulement                                                                            |
 | `JWT_REFRESH_TTL`    | De `1d` à `30d` (défaut `30d`)                                                             |
+
+## Limitation de débit (lot 1.3ca, EX-T18)
+
+Décisions validées : D1 limiteur maison dans Redis ; D2 limites réglables sans redéploiement ; D3 Redis indisponible → refus (500) ; D7 valeurs et clés ci-dessous. Écart d'exécution à D1 : **journal glissant exact** (ensemble trié des passages acceptés, horloge du serveur Redis, script Lua atomique) au lieu de deux compteurs approchés ; la mémoire par clé reste bornée par la limite (1 000 au plus).
+
+| Règle              | Route                             | Compte                            | Défaut     |
+| ------------------ | --------------------------------- | --------------------------------- | ---------- |
+| `login_ip`         | `POST /auth/login`                | IP                                | 5 / 15 min |
+| `login_account`    | `POST /auth/login`                | adresse saisie (existante ou non) | 10 / 1 h   |
+| `register_ip`      | `POST /auth/register`             | IP                                | 3 / 1 h    |
+| `register_email`   | `POST /auth/register`             | adresse, demande recevable seule  | 1 / 1 h    |
+| `register_form_ip` | `GET /auth/register/form`         | IP                                | 20 / 1 h   |
+| `forgot_ip`        | `POST /auth/password/forgot`      | IP                                | 3 / 1 h    |
+| `forgot_email`     | `POST /auth/password/forgot`      | adresse saisie                    | 1 / 15 min |
+| `verify_email_ip`  | `POST /auth/verify-email`         | IP                                | 10 / 1 h   |
+| `reset_ip`         | `POST /auth/password/reset`       | IP                                | 10 / 1 h   |
+| `refresh_ip`       | `POST /auth/refresh`              | IP                                | 60 / 1 min |
+| `new_device_email` | email « nouvelle connexion » (D5) | compte                            | 3 / 24 h   |
+
+- **Refus** : 429 `RATE_LIMITED`, en-tête `Retry-After` en secondes (temps jusqu'à ce qu'une place se libère, juste aussi après une limite abaissée — propriété testée), documenté dans OpenAPI sur chaque route. Le délai exponentiel garde son code `AUTH_RETRY_LATER`.
+- **Ordre** : la garde `@RateLimit` passe avant la validation (une requête invalide compte), règle IP d'abord, et s'arrête au premier refus : une IP déjà bloquée n'épuise pas le compteur d'un compte. `register_email` est compté dans le service, après HaveIBeenPwned : un mot de passe refusé ne bloque pas la tentative corrigée ; il l'est aussi pour un robot, pour que le 429 ne révèle pas le verdict. Au-delà du plafond `new_device_email`, la connexion réussit, l'email n'est pas envoyé (`auth.mail.capped`).
+- **Clés** : `oz:rl:<règle>:<HMAC-SHA-256(AUTH_HMAC_KEY, règle et sujet)>` : ni IP ni adresse en clair dans Redis. Adresse normalisée comme le contrat (espaces retirés, minuscules) ; IPv4 entière, IPv6 par /64, IPv4 mappée (toutes écritures) ramenée en IPv4 ; IP illisible → 400 `CLIENT_UNIDENTIFIED`, jamais de compteur commun.
+- **Réglage** : `system_settings`, clé `rate_limits`, objet partiel `{ "<règle>": { "limit": n, "windowSeconds": s } }` fusionné avec les défauts, relu au plus toutes les 30 s (une seule lecture à la fois). Entier de 1 à 1 000, fenêtre de 1 s à 7 jours, aucune clé inconnue : sinon tout le réglage est ignoré (`rate_limit.settings_invalid`). Base illisible → défauts (`rate_limit.settings_unavailable`). Écriture par SQL d'ici le back-office (lot 1.11) :
+
+  ```sql
+  INSERT INTO system_settings (key, value) VALUES ('rate_limits', '{"login_ip": {"limit": 10, "windowSeconds": 900}}')
+  ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = now();
+  ```
+
+- **Redis** : les clés `oz:rl:*` ne doivent pas être évincées (une éviction vaut un passage accordé) : politique `maxmemory-policy` `noeviction` ou `volatile-*` à vérifier avec la recette (D-051).
+- **Mandataires** : `TRUST_PROXY` = nombre de sauts de confiance devant l'API (0 en accès direct, 2 pour Cloudflare puis Traefik). La confiance par nombre de sauts suppose que l'origine n'est joignable que par ces mandataires (pare-feu limité aux plages Cloudflare) et que Traefik conserve `X-Forwarded-For` (`forwardedHeaders.trustedIPs` aux plages Cloudflare) : sinon un client choisit son IP. À poser avec la recette (D-051).
+
+## Anti-robot de l'inscription (lot 1.3ca)
+
+Décisions validées : D4 reCAPTCHA v3 ; D5 robot → même 202, rien de créé ni d'envoyé ; D6 jeton de formulaire signé et champ piège.
+
+- **Jeton de formulaire** : `GET /auth/register/form` → `{formToken}` (`Cache-Control: no-store`, limité par IP). 8 octets d'horodatage et 16 d'aléa signés par HMAC-SHA-256 (`AUTH_HMAC_KEY`, domaine séparé), comparaison à temps constant ; aucune donnée personnelle. `POST /auth/register` l'exige (422 sinon) et ne l'accepte qu'âgé de 3 s à 2 h.
+- **Champ piège** `website` : invisible pour un humain, absent ou vide.
+- **reCAPTCHA v3** (`recaptchaToken`) : `siteverify` en POST, sans l'IP du client ; action `register`, nom d'hôte d'`APP_URL`, score ≥ `RECAPTCHA_MIN_SCORE`. Délai 3 s ; panne, délai ou réponse illisible → inscription acceptée, `auth.recaptcha.unavailable` (piège, chronométrie et débit restent actifs). Secret refusé par Google : `auth.recaptcha.misconfigured` (erreur). Sans secret (local seulement) : vérification sautée, `auth.recaptcha.disabled` au démarrage. Avec un secret, une inscription sans `recaptchaToken` est traitée en robot (`recaptcha_missing`) : hors local, aucune inscription n'aboutit avant l'écran du lot 1.7 (DEBT D-076).
+- **Robot** (piège rempli, jeton absent du bon âge ou invalide, verdict reCAPTCHA) : 202 `{status: 'accepted'}`, dans la même durée plancher ; ni compte, ni email. Le contrôle HaveIBeenPwned (422) et la limite par adresse (429) s'appliquent avant le verdict, comme pour un humain : la réponse ne dit jamais au robot qu'il a été détecté ; `auth.bot.rejected` avec le seul motif (`honeypot`, `form_too_fast`, `form_expired`, `form_invalid`, `recaptcha_<motif>`). Durée humain / robot : écart des médianes inférieur à 25 % (testé).
+
+### Configuration
+
+| Variable               | Rôle                                                                       |
+| ---------------------- | -------------------------------------------------------------------------- |
+| `TRUST_PROXY`          | Sauts de mandataires de confiance, de 0 (défaut) à 5                       |
+| `RECAPTCHA_SECRET_KEY` | Secret serveur reCAPTCHA v3 ; exigé hors local quand `FEATURE_AUTH=true`   |
+| `RECAPTCHA_MIN_SCORE`  | Score minimal d'un humain, de 0 à 1, deux décimales au plus (défaut `0.5`) |

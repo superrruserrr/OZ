@@ -20,13 +20,24 @@ export interface TestDatabase {
 // Extensions provisionnées avec la base, comme `pnpm dev:up` (scripts/dev-env.mjs) et Terraform (lot 0.8).
 export const PROVISIONED_EXTENSIONS = ['pgcrypto', 'pg_trgm', 'unaccent'] as const;
 
+/**
+ * Pool de test. `pool.end()` peut rendre la main avant la fermeture des sockets : l'arrêt du
+ * conteneur coupe alors les connexions restantes (57P01), et le pool réémet l'erreur. Sans écouteur,
+ * elle deviendrait une exception non gérée qui fait échouer la suite alors que les tests passent.
+ */
+export function testPool(config: pg.PoolConfig): pg.Pool {
+  const pool = new pg.Pool(config);
+  pool.on('error', () => undefined);
+  return pool;
+}
+
 /** PostgreSQL 16 provisionné comme le poste : extensions présentes, aucune table. */
 export async function startDatabase(): Promise<TestDatabase> {
   const container: StartedPostgreSqlContainer = await new PostgreSqlContainer(
     POSTGRES_IMAGE,
   ).start();
   const url = container.getConnectionUri();
-  const pool = new pg.Pool({ connectionString: url, max: 2 });
+  const pool = testPool({ connectionString: url, max: 2 });
   for (const extension of PROVISIONED_EXTENSIONS) {
     await pool.query(`CREATE EXTENSION IF NOT EXISTS ${extension}`);
   }
@@ -68,7 +79,7 @@ export async function connectAsAppRole(db: TestDatabase): Promise<AppConnection>
   const url = new URL(db.url);
   url.username = 'oz_app_test';
   url.password = 'oz_app_test';
-  const pool = new pg.Pool({ connectionString: url.toString(), max: 4 });
+  const pool = testPool({ connectionString: url.toString(), max: 4 });
   return {
     async as(userId, fn) {
       const client = await pool.connect();
