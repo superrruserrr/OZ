@@ -126,6 +126,7 @@ describe('RateLimiter', () => {
       maxRetriesPerRequest: 0,
       retryStrategy: () => null,
     });
+    down.on('error', () => undefined);
     const rl = new RateLimiter(down, KEY, () => Promise.resolve(null), { warn }, 0);
     await expect(rl.consume('login_ip', 'e')).rejects.toThrow();
     down.disconnect();

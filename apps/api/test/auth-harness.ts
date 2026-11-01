@@ -119,6 +119,8 @@ export async function startAuthHarness(
   configureApp(app);
   await app.init();
   const db = new pg.Pool({ connectionString: services.env.DATABASE_URL, max: 2 });
+  // `end()` peut précéder la fermeture des sockets : l'arrêt du conteneur ne doit pas lever d'erreur.
+  db.on('error', () => undefined);
   const setRateLimits = async (value: unknown): Promise<void> => {
     await db.query(
       `INSERT INTO system_settings (key, value) VALUES ('rate_limits', $1::jsonb)

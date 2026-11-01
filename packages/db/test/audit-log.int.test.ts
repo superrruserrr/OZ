@@ -1,6 +1,6 @@
 import pg from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { migrateDeploy, startDatabase, type TestDatabase } from './database.js';
+import { migrateDeploy, startDatabase, testPool, type TestDatabase } from './database.js';
 
 // Journal d'audit immuable et chaîné (EX-T11, CP-23 ; décision D4 du lot 1.1).
 let db: TestDatabase;
@@ -96,7 +96,7 @@ describe('chaîne de hachage (EX-T11 n° 3, CP-23)', () => {
   });
 
   it('50 insertions concurrentes produisent une chaîne valide', async () => {
-    const pool = new pg.Pool({ connectionString: db.url, max: 10 });
+    const pool = testPool({ connectionString: db.url, max: 10 });
     try {
       await Promise.all(
         Array.from({ length: 50 }, (_, i) =>
