@@ -16,6 +16,8 @@ export interface AuthMailer {
   sendRecoveryCodeUsed(to: string, when: Date): Promise<void>;
   /** Lot de codes de secours régénéré (D7 du lot 1.3cb). */
   sendRecoveryCodesReplaced(to: string, when: Date): Promise<void>;
+  /** Numéro vérifié remplacé (D5 du lot 1.3cc). */
+  sendPhoneChanged(to: string, when: Date): Promise<void>;
 }
 
 export const AUTH_MAILER = Symbol('AUTH_MAILER');

@@ -44,7 +44,7 @@ const sendRecoveryCodeUsed = vi.fn();
 const sent: Promise<void>[] = [];
 const service = new TwoFactorService(
   {} as PrismaClient,
-  { hmacKey: 'h'.repeat(40), totpEncryptionKey: 'k'.repeat(40) } as AuthConfig,
+  { hmacKey: 'h'.repeat(40), columnEncryptionKey: 'k'.repeat(40) } as AuthConfig,
   { verify, reserveSecondFactor, clearSecondFactor } as unknown as CredentialsService,
   { consume } as unknown as RateLimiter,
   { sendRecoveryCodeUsed, sendTwoFactorDisabled: vi.fn() } as unknown as AuthMailer,

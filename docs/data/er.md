@@ -281,6 +281,8 @@ erDiagram
     timestamptz deleted_at
     bytea totp_pending_secret_encrypted
     bigint totp_last_step
+    bytea phone_encrypted
+    bytea phone_hmac
   }
   audit_log }o--o| users : "actor_user_id"
   auth_recovery_codes }o--|| users : "user_id"

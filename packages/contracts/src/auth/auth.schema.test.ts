@@ -3,6 +3,9 @@ import { newPassword, oneTimeToken } from '../common/fields.js';
 import {
   accessTokenOutputSchema,
   loginSchema,
+  phoneStartOutputSchema,
+  phoneStartSchema,
+  phoneVerifySchema,
   formTokenOutputSchema,
   registerSchema,
   requestPasswordResetSchema,
@@ -162,5 +165,34 @@ describe('sessions (lot 1.3b)', () => {
     expect(
       sessionListOutputSchema.safeParse({ sessions: [{ ...session, createdAt: 'hier' }] }).success,
     ).toBe(false);
+  });
+});
+
+describe('vérification du téléphone (lot 1.3cc)', () => {
+  it('numéro E.164, canal sms facultatif, champs inconnus refusés', () => {
+    expect(phoneStartSchema.parse({ phone: '+237650000001' })).toEqual({ phone: '+237650000001' });
+    expect(phoneStartSchema.safeParse({ phone: '+237650000001', channel: 'sms' }).success).toBe(
+      true,
+    );
+    for (const body of [
+      { phone: '650000001' },
+      { phone: '+237 650000001' },
+      { phone: '+237650000001', channel: 'whatsapp' },
+      { phone: '+237650000001', extra: 1 },
+    ]) {
+      expect(phoneStartSchema.safeParse(body).success).toBe(false);
+    }
+  });
+
+  it('code à six chiffres', () => {
+    expect(phoneVerifySchema.safeParse({ code: '042137' }).success).toBe(true);
+    expect(phoneVerifySchema.safeParse({ code: '42137' }).success).toBe(false);
+  });
+
+  it('sortie de start stricte', () => {
+    expect(phoneStartOutputSchema.parse({ expiresIn: 300, resendAfter: 60 })).toEqual({
+      expiresIn: 300,
+      resendAfter: 60,
+    });
   });
 });

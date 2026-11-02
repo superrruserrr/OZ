@@ -33,6 +33,19 @@ const KEYS = {
   DATABASE_BLIND_INDEX_KEY: 'i'.repeat(40),
 };
 
+const SMS = {
+  SMS_PROVIDER_PRIMARY: 'infobip',
+  SMS_PROVIDER_FALLBACK: 'twilio',
+  INFOBIP_BASE_URL: 'https://oz.api.infobip.example',
+  INFOBIP_API_KEY: 'i'.repeat(40),
+  INFOBIP_SMS_SENDER: 'OZ',
+  INFOBIP_WHATSAPP_SENDER: '237600000000',
+  INFOBIP_WHATSAPP_TEMPLATE: 'oz_otp',
+  TWILIO_ACCOUNT_SID: 'AC'.padEnd(34, 'a'),
+  TWILIO_AUTH_TOKEN: 't'.repeat(32),
+  TWILIO_FROM: '+15005550006',
+};
+
 describe('clés de chiffrement colonne (D2 du lot 1.1)', () => {
   const staging = {
     ...valid,
@@ -269,6 +282,7 @@ describe('authentification (lot 1.3a)', () => {
   it('clé de chiffrement colonne exigée dès FEATURE_AUTH=true, local compris (lot 1.3cb, D3)', () => {
     const withoutKeys = { ...AUTH, DATABASE_ENCRYPTION_KEY: '', DATABASE_BLIND_INDEX_KEY: '' };
     expect(errorOf({ ...valid, ...withoutKeys }).invalidVariables).toEqual([
+      'DATABASE_BLIND_INDEX_KEY',
       'DATABASE_ENCRYPTION_KEY',
     ]);
   });
@@ -309,7 +323,8 @@ describe('authentification (lot 1.3a)', () => {
     expect(config.auth).toEqual({
       appUrl: 'http://localhost:3000',
       hmacKey: AUTH.AUTH_HMAC_KEY,
-      totpEncryptionKey: AUTH.DATABASE_ENCRYPTION_KEY,
+      columnEncryptionKey: AUTH.DATABASE_ENCRYPTION_KEY,
+      blindIndexKey: AUTH.DATABASE_BLIND_INDEX_KEY,
       emailFrom: 'OZ <no-reply@oz.localhost>',
       smtp: {
         host: 'localhost',
@@ -324,6 +339,7 @@ describe('authentification (lot 1.3a)', () => {
         refreshTtlSeconds: 30 * 86_400,
       },
       recaptcha: undefined,
+      sms: { allowedPrefixes: ['+237'], fake: true, infobip: undefined, twilio: undefined },
     });
   });
 
@@ -338,6 +354,7 @@ describe('authentification (lot 1.3a)', () => {
     ).toEqual([
       'APP_URL',
       'AUTH_HMAC_KEY',
+      'DATABASE_BLIND_INDEX_KEY',
       'DATABASE_ENCRYPTION_KEY',
       'EMAIL_FROM',
       'JWT_ACCESS_SECRET',
@@ -414,11 +431,19 @@ describe('authentification (lot 1.3a)', () => {
 
   it('exige TLS, identifiants SMTP et https en recette', () => {
     expect(
-      errorOf({ ...staging, ...AUTH, APP_URL: 'http://recette.oz.example' }).invalidVariables,
+      errorOf({
+        ...staging,
+        ...AUTH,
+        ...SMS,
+        TRUST_PROXY: '2',
+        APP_URL: 'http://recette.oz.example',
+      }).invalidVariables,
     ).toEqual(['APP_URL', 'RECAPTCHA_SECRET_KEY', 'SMTP_USER']);
     const config = loadApiConfig({
       ...staging,
       ...AUTH,
+      ...SMS,
+      TRUST_PROXY: '2',
       APP_URL: 'https://recette.oz.example',
       SMTP_HOST: 'smtp.tem.scaleway.com',
       SMTP_PORT: '465',
@@ -433,11 +458,12 @@ describe('authentification (lot 1.3a)', () => {
   it('exige aussi TLS, identifiants SMTP et https en prévisualisation', () => {
     const preview = { ...valid, APP_ENV: 'preview' };
     expect(
-      errorOf({ ...preview, ...AUTH, APP_URL: 'http://pr-1.oz.example' }).invalidVariables,
+      errorOf({ ...preview, ...AUTH, ...SMS, APP_URL: 'http://pr-1.oz.example' }).invalidVariables,
     ).toEqual(['APP_URL', 'RECAPTCHA_SECRET_KEY', 'SMTP_USER']);
     const config = loadApiConfig({
       ...preview,
       ...AUTH,
+      ...SMS,
       APP_URL: 'https://pr-1.oz.example',
       SMTP_USER: 'projet',
       SMTP_PASSWORD: 'secret',
@@ -446,24 +472,125 @@ describe('authentification (lot 1.3a)', () => {
     expect(config.auth?.smtp.requireTls).toBe(true);
   });
 
-  it('interdite en production avant la protection anti-robot (lot 1.3c)', () => {
+  describe('SMS et levée du refus en production (lot 1.3cc, D10, D11)', () => {
     const production = {
       ...staging,
-      NODE_ENV: 'production',
+      ...AUTH,
+      ...SMS,
+      TRUST_PROXY: '2',
       APP_ENV: 'production',
-      CORS_ORIGINS: 'https://www.oz.example',
+      NODE_ENV: 'production',
       S3_ENDPOINT: 'https://s3.fr-par.scw.cloud',
+      CORS_ORIGINS: 'https://www.oz.example',
+      APP_URL: 'https://www.oz.example',
+      SMTP_USER: 'projet',
+      SMTP_PASSWORD: 'secret',
+      RECAPTCHA_SECRET_KEY: RECAPTCHA,
     };
-    expect(
-      errorOf({
-        ...production,
+
+    it('local : fournisseur factice par défaut, indicatif +237', () => {
+      const sms = loadApiConfig({ ...valid, ...AUTH }).auth?.sms;
+      expect(sms).toEqual({
+        allowedPrefixes: ['+237'],
+        fake: true,
+        infobip: undefined,
+        twilio: undefined,
+      });
+    });
+
+    it('production : démarre avec toutes les conditions, sans factice', () => {
+      const config = loadApiConfig(production);
+      expect(config.features.auth).toBe(true);
+      expect(config.auth?.sms).toEqual({
+        allowedPrefixes: ['+237'],
+        fake: false,
+        infobip: {
+          baseUrl: SMS.INFOBIP_BASE_URL,
+          apiKey: SMS.INFOBIP_API_KEY,
+          smsSender: 'OZ',
+          whatsappSender: SMS.INFOBIP_WHATSAPP_SENDER,
+          whatsappTemplate: 'oz_otp',
+        },
+        twilio: {
+          accountSid: SMS.TWILIO_ACCOUNT_SID,
+          authToken: SMS.TWILIO_AUTH_TOKEN,
+          from: SMS.TWILIO_FROM,
+        },
+      });
+    });
+
+    it.each([
+      'APP_URL',
+      'SMTP_USER',
+      'RECAPTCHA_SECRET_KEY',
+      'TRUST_PROXY',
+      'SMS_PROVIDER_FALLBACK',
+      'INFOBIP_BASE_URL',
+      'INFOBIP_API_KEY',
+      'INFOBIP_WHATSAPP_SENDER',
+      'INFOBIP_WHATSAPP_TEMPLATE',
+      'TWILIO_ACCOUNT_SID',
+      'TWILIO_AUTH_TOKEN',
+      'TWILIO_FROM',
+    ])('production : refuse sans %s', (name) => {
+      expect(errorOf({ ...production, [name]: '' }).invalidVariables).toContain(name);
+    });
+
+    it.each(['staging', 'preview', 'production'])('factice refusé en %s', (env) => {
+      expect(
+        errorOf({ ...production, APP_ENV: env, SMS_PROVIDER_PRIMARY: 'fake' }).invalidVariables,
+      ).toContain('SMS_PROVIDER_PRIMARY');
+    });
+
+    it('local : Infobip seul possible, mais complet', () => {
+      const infobipOnly = { ...SMS, SMS_PROVIDER_FALLBACK: '' };
+      expect(loadApiConfig({ ...valid, ...AUTH, ...infobipOnly }).auth?.sms.twilio).toBeUndefined();
+      expect(
+        errorOf({ ...valid, ...AUTH, SMS_PROVIDER_PRIMARY: 'infobip' }).invalidVariables,
+      ).toEqual([
+        'INFOBIP_API_KEY',
+        'INFOBIP_BASE_URL',
+        'INFOBIP_WHATSAPP_SENDER',
+        'INFOBIP_WHATSAPP_TEMPLATE',
+      ]);
+    });
+
+    it('INFOBIP_BASE_URL en https, sans chemin', () => {
+      for (const bad of ['http://oz.api.infobip.example', 'https://oz.example/chemin']) {
+        expect(errorOf({ ...production, INFOBIP_BASE_URL: bad }).invalidVariables).toEqual([
+          'INFOBIP_BASE_URL',
+        ]);
+      }
+    });
+
+    it('SMS_ALLOWED_PREFIXES : liste d’indicatifs validée', () => {
+      const sms = (value: string) =>
+        loadApiConfig({ ...valid, ...AUTH, SMS_ALLOWED_PREFIXES: value }).auth?.sms.allowedPrefixes;
+      expect(sms('+237, +33')).toEqual(['+237', '+33']);
+      for (const bad of ['237', '+0', '+', '+2', '+237,33']) {
+        expect(errorOf({ ...valid, ...AUTH, SMS_ALLOWED_PREFIXES: bad }).invalidVariables).toEqual([
+          'SMS_ALLOWED_PREFIXES',
+        ]);
+      }
+    });
+
+    it('variable vide = absente, même drapeau éteint', () => {
+      const config = loadApiConfig({
+        ...valid,
         ...AUTH,
-        APP_URL: 'https://www.oz.example',
-        SMTP_USER: 'projet',
-        SMTP_PASSWORD: 'secret',
-        RECAPTCHA_SECRET_KEY: RECAPTCHA,
-      }).invalidVariables,
-    ).toEqual(['FEATURE_AUTH']);
+        SMS_PROVIDER_PRIMARY: '',
+        INFOBIP_SMS_SENDER: '',
+        SMS_ALLOWED_PREFIXES: '',
+      });
+      expect(config.auth?.sms.fake).toBe(true);
+      expect(config.auth?.sms.allowedPrefixes).toEqual(['+237']);
+    });
+
+    it('les clés fournisseur ne paraissent pas dans le message d’erreur', () => {
+      const error = errorOf({ ...production, INFOBIP_BASE_URL: 'http://x.example' });
+      expect(error.message).not.toContain(SMS.INFOBIP_API_KEY);
+      expect(error.message).not.toContain(SMS.TWILIO_AUTH_TOKEN);
+    });
   });
 
   it('refuse une valeur de drapeau ambiguë', () => {

@@ -39,4 +39,5 @@ export {
   type TotpDisableOutcome,
   type TotpState,
 } from './totp.js';
+export { setVerifiedPhone, type PhoneOutcome } from './phone.js';
 export { readSetting } from './settings.js';

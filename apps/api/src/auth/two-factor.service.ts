@@ -65,7 +65,7 @@ export class TwoFactorService {
 
   /** État du compte ; `null` s'il ne peut plus tenir de session. */
   state(userId: string): Promise<TotpState | null> {
-    return totpState(this.db, userId, this.config.totpEncryptionKey);
+    return totpState(this.db, userId, this.config.columnEncryptionKey);
   }
 
   async setup(userId: string): Promise<TwoFactorSetupOutput> {
@@ -74,7 +74,7 @@ export class TwoFactorService {
     const begun = await beginTotp(this.db, {
       userId,
       secret,
-      key: this.config.totpEncryptionKey,
+      key: this.config.columnEncryptionKey,
     });
     if (!begun) throw UNAUTHENTICATED();
     const uri = totpUri({ secret, label: ACCOUNT_LABEL });
@@ -108,7 +108,7 @@ export class TwoFactorService {
       secret: state.pendingSecret,
       step,
       recoveryHashes: recoveryCodes.map((code) => this.recoveryHash(code)),
-      key: this.config.totpEncryptionKey,
+      key: this.config.columnEncryptionKey,
       keepFamilyId: familyId,
     });
     // Un enrôlement concurrent a remplacé le secret qui vient d'être vérifié.

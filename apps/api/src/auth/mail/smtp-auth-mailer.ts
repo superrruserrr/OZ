@@ -11,6 +11,7 @@ import {
   recoveryCodesReplacedEmail,
   recoveryCodeUsedEmail,
   sessionReuseAlertEmail,
+  phoneChangedEmail,
   twoFactorDisabledEmail,
   twoFactorEnabledEmail,
   verificationEmail,
@@ -90,6 +91,10 @@ export class SmtpAuthMailer implements AuthMailer, OnApplicationShutdown {
 
   sendRecoveryCodesReplaced(to: string, when: Date): Promise<void> {
     return this.send(to, recoveryCodesReplacedEmail(when, this.resetUrl()));
+  }
+
+  sendPhoneChanged(to: string, when: Date): Promise<void> {
+    return this.send(to, phoneChangedEmail(when, this.resetUrl()));
   }
 
   /** Après `MailDispatcher.beforeApplicationShutdown` : plus aucun envoi en cours. */

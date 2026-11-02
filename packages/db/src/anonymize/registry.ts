@@ -62,6 +62,8 @@ export const ANONYMIZATION_REGISTRY: Registry = {
     totp_last_step: 'null',
     email_verified_at: 'technical',
     phone_verified_at: 'technical',
+    phone_encrypted: 'encrypted:phone',
+    phone_hmac: 'blind_index:phone',
     last_seen_at: 'technical',
   },
   user_roles: {

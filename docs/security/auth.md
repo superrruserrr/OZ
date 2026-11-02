@@ -7,10 +7,10 @@ Mise en œuvre de §6.2 et d'[ADR-002](../adr/ADR-002-authentification-proprieta
 | 1.3a   | Comptes : inscription, confirmation d'email, réinitialisation, vérification des identifiants | Ce document |
 | 1.3b   | Connexion, JWT d'accès, rafraîchissement par rotation, sessions listées et révocables        | Ce document |
 | 1.3ca  | Limitation de débit des routes, anti-robot de l'inscription, `TRUST_PROXY`                   | Ce document |
-| 1.3cb  | 2FA TOTP                                                                                     | Prévue      |
-| 1.3cc  | OTP SMS ; levée du refus de `FEATURE_AUTH` en production                                     | Prévue      |
+| 1.3cb  | 2FA TOTP                                                                                     | Ce document |
+| 1.3cc  | OTP SMS ; levée du refus de `FEATURE_AUTH` en production                                     | Ce document |
 
-Les routes sont montées seulement avec `FEATURE_AUTH=true`, refusé en production jusqu'à la fin de 1.3c (1.3cc).
+Les routes sont montées seulement avec `FEATURE_AUTH=true`. Le refus inconditionnel en production est levé (1.3cc) au profit de conditions de configuration ; le drapeau y reste éteint jusqu'à D-083.
 
 ## Mots de passe
 
@@ -74,14 +74,14 @@ Migration `20261029100000_auth_comptes`, détail dans [docs/db/migrations.md](..
 
 ## Configuration
 
-| Variable                     | Rôle                                                                                      |
-| ---------------------------- | ----------------------------------------------------------------------------------------- |
-| `FEATURE_AUTH`               | Monte les routes ; interdit à `true` en production jusqu'à 1.3cc                          |
-| `APP_URL`                    | Base des liens des emails (`https` hors local)                                            |
-| `SMTP_HOST`, `SMTP_PORT`     | Serveur d'envoi                                                                           |
-| `SMTP_USER`, `SMTP_PASSWORD` | Par paire ; exigés hors local                                                             |
-| `EMAIL_FROM`                 | Expéditeur (`Nom <adresse>` ou adresse)                                                   |
-| `AUTH_HMAC_KEY`              | Clé des empreintes d'email dans Redis, 32 caractères au moins (`openssl rand -base64 32`) |
+| Variable                     | Rôle                                                                                         |
+| ---------------------------- | -------------------------------------------------------------------------------------------- |
+| `FEATURE_AUTH`               | Monte les routes ; en production, soumis aux conditions du lot 1.3cc et éteint jusqu'à D-083 |
+| `APP_URL`                    | Base des liens des emails (`https` hors local)                                               |
+| `SMTP_HOST`, `SMTP_PORT`     | Serveur d'envoi                                                                              |
+| `SMTP_USER`, `SMTP_PASSWORD` | Par paire ; exigés hors local                                                                |
+| `EMAIL_FROM`                 | Expéditeur (`Nom <adresse>` ou adresse)                                                      |
+| `AUTH_HMAC_KEY`              | Clé des empreintes d'email dans Redis, 32 caractères au moins (`openssl rand -base64 32`)    |
 
 Les valeurs sensibles restent vides dans `.env.example` ; elles sont exigées dès que `FEATURE_AUTH=true`.
 
@@ -213,6 +213,49 @@ Second facteur RFC 6238 (EX-103 n° 7, D1 à D8 du plan), par `otplib` : SHA-1, 
 | `totp_enroll_account` | compte | 10 / 1 h    |
 
 Les codes faux passent aussi par le délai exponentiel de la connexion, sur un compteur à part qu'un mot de passe juste n'efface pas.
+
+## Vérification du téléphone (lot 1.3cc)
+
+Prouve la possession d'un numéro (EX-111 n° 2, TD-012). Le KYC 1 du lot 1.10 lira `users.phone_verified_at`. Aucun écran avant le lot 1.7. Aucun appel réel n'a été fait aux fournisseurs (D-082).
+
+### Routes
+
+| Route                     | Accès         | Effet                                                                                    |
+| ------------------------- | ------------- | ---------------------------------------------------------------------------------------- |
+| `POST /auth/phone/start`  | jeton d'accès | 202 `{expiresIn, resendAfter}`. Envoi après la réponse ; `channel: 'sms'` saute WhatsApp |
+| `POST /auth/phone/verify` | jeton d'accès | 204 : numéro et date écrits. Code faux, expiré ou épuisé : même 422 `PHONE_CODE_INVALID` |
+
+Pas d'exemption 2FA : un compte à 2FA obligatoire non enrôlé reçoit 403 `AUTH_2FA_ENROLLMENT_REQUIRED`.
+
+### Règles
+
+- **Code** : 6 chiffres (`crypto.randomInt`), 5 min, 5 essais, usage unique, un seul code vivant par compte. Renvoi après 60 s.
+- **Redis** : empreinte HMAC du code liée au compte, clés empreintes. Essai et consommation tiennent dans un seul script Lua : un code dépassé par un nouvel envoi ne passe jamais. Le numéro y attend, scellé en AES-256-GCM (clé dérivée de `AUTH_HMAC_KEY`, compte en donnée associée) : il n'existe en base qu'une fois prouvé.
+- **Base** : `phone_encrypted` et `phone_hmac`, écrits par `oz_auth_set_verified_phone` seule. Pas d'unicité : un numéro peut être partagé (tuteur, famille) ; l'empreinte servira au contrôle de doublon du KYC.
+- **Changement** : l'ancien numéro reste vérifié jusqu'au code juste. Remplacer un numéro vérifié envoie une alerte par email, sans le numéro.
+- **Numéros** : E.164 strict et liste blanche `SMS_ALLOWED_PREFIXES` (défaut `+237`), parade au pompage de SMS. Hors liste : 422 `PHONE_COUNTRY_UNSUPPORTED`, avant tout envoi ; seul `otp_start_ip` est compté.
+
+### Envoi
+
+Chaîne de `SmsChain` : Infobip WhatsApp, Infobip SMS, Twilio SMS. Bascule sur erreur ou délai (5 s par essai) de l'appel API, dans `SmsDispatcher`, en mémoire et attendu à l'arrêt (D-081). Sans accusé de réception, un WhatsApp accepté et jamais livré ne bascule pas seul : l'utilisateur renvoie avec `channel: 'sms'` (D-080).
+
+Journal : `auth.otp.sent` et `auth.otp.failed`, avec canal, fournisseur et codes d'échec. Jamais le numéro, le code ni le corps d'une réponse.
+
+Le fournisseur factice écrit le code sur la sortie standard. Il n'est permis qu'avec `APP_ENV=local`.
+
+### Débit
+
+| Règle                | Clé    | Limite      |
+| -------------------- | ------ | ----------- |
+| `otp_start_ip`       | IP     | 10 / 1 h    |
+| `otp_start_account`  | compte | 3 / 15 min  |
+| `otp_start_phone`    | numéro | 5 / 24 h    |
+| `otp_verify_ip`      | IP     | 20 / 15 min |
+| `otp_verify_account` | compte | 10 / 1 h    |
+
+### Configuration
+
+`SMS_PROVIDER_PRIMARY` (`fake` ou `infobip`), `SMS_PROVIDER_FALLBACK` (`twilio`), `INFOBIP_*`, `TWILIO_*`, `SMS_ALLOWED_PREFIXES`. Hors local, avec `FEATURE_AUTH=true`, Infobip et Twilio complets sont exigés et le factice est refusé. En recette et en production, `TRUST_PROXY` doit aussi être non nul : sans lui, toutes les IP n'en font qu'une pour les limites. `DATABASE_BLIND_INDEX_KEY` est exigée dès `FEATURE_AUTH=true`.
 
 ## Anti-robot de l'inscription (lot 1.3ca)
 

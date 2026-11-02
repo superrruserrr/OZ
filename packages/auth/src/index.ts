@@ -87,3 +87,5 @@ export {
   normalizeRecoveryCode,
   RECOVERY_CODE_COUNT,
 } from './recovery-codes.js';
+export { generateOtpCode, otpDigest, phoneAllowed } from './otp.js';
+export * from './sms/index.js';
