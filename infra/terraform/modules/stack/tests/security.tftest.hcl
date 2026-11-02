@@ -189,18 +189,18 @@ run "postgres_prive_et_sauvegarde" {
   }
 
   assert {
-    condition     = scaleway_rdb_privilege.app.permission == "readwrite" && scaleway_rdb_privilege.migrator.permission == "all"
-    error_message = "oz_app lit et écrit les données ; seul oz_migrator modifie le schéma."
+    condition     = scaleway_rdb_privilege.app.permission == "readwrite" && scaleway_rdb_privilege.migrator.permission == "all" && scaleway_rdb_privilege.worker.permission == "readonly"
+    error_message = "oz_app lit et écrit les données ; seul oz_migrator modifie le schéma ; oz_worker ne fait que lire (verdicts par fonctions dédiées)."
   }
 
   assert {
-    condition     = scaleway_rdb_user.app.is_admin == false && scaleway_rdb_user.migrator.is_admin == false
+    condition     = scaleway_rdb_user.app.is_admin == false && scaleway_rdb_user.migrator.is_admin == false && scaleway_rdb_user.worker.is_admin == false
     error_message = "Aucun rôle applicatif n'est administrateur."
   }
 
   assert {
-    condition     = toset(keys(module.secret)) == toset(["DATABASE_URL", "DATABASE_MIGRATION_URL"]) && module.ca.id != ""
-    error_message = "URL de connexion des deux rôles et autorité de l'instance rangées dans Secret Manager."
+    condition     = toset(keys(module.secret)) == toset(["DATABASE_URL", "DATABASE_MIGRATION_URL", "WORKER_DATABASE_URL"]) && module.ca.id != ""
+    error_message = "URL de connexion des trois rôles et autorité de l'instance rangées dans Secret Manager."
   }
 
   assert {

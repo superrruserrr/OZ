@@ -21,13 +21,13 @@ Chaque mesure porte son état réel au 2026-10-27 :
 
 ## Cloisonnement (§3.5, §6.3)
 
-| Mesure                                                           | État                                                                                                                                               |
-| ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Row Level Security PostgreSQL sur chaque table exposée           | En place — forcée, refus par défaut (lot 1.1a) ; lecture des joueurs alignée sur CASL, prouvée par grille (lot 1.4b) ; contournée en local (D-055) |
-| Politiques CASL par rôle, refus par défaut, `@Roles` / `@Scope`  | En place — lot 1.4a (`rbac.md`, garde globale, rôles relus en base)                                                                                |
-| Sérialisation par vue (un DTO par rôle demandeur)                | En place — lot 1.4b (`Player*View`, propriétés CP-10 à CP-12, filet `PayloadGuardInterceptor`)                                                     |
-| Test « rôle non autorisé → 403 » pour chaque endpoint (bloquant) | En place — lot 1.4a, suite générée de `rbac.md` ; routes métier à leurs lots                                                                       |
-| Rôles PostgreSQL séparés : `oz_migrator` (DDL) et `oz_app` (DML) | Partielle — Terraform, lot 0.8b ; D-038                                                                                                            |
+| Mesure                                                                                                                                      | État                                                                                                                                               |
+| ------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Row Level Security PostgreSQL sur chaque table exposée                                                                                      | En place — forcée, refus par défaut (lot 1.1a) ; lecture des joueurs alignée sur CASL, prouvée par grille (lot 1.4b) ; contournée en local (D-055) |
+| Politiques CASL par rôle, refus par défaut, `@Roles` / `@Scope`                                                                             | En place — lot 1.4a (`rbac.md`, garde globale, rôles relus en base)                                                                                |
+| Sérialisation par vue (un DTO par rôle demandeur)                                                                                           | En place — lot 1.4b (`Player*View`, propriétés CP-10 à CP-12, filet `PayloadGuardInterceptor`)                                                     |
+| Test « rôle non autorisé → 403 » pour chaque endpoint (bloquant)                                                                            | En place — lot 1.4a, suite générée de `rbac.md` ; routes métier à leurs lots                                                                       |
+| Rôles PostgreSQL séparés : `oz_migrator` (DDL), `oz_app` (DML), `oz_worker` (lecture et verdicts d'analyse par fonctions dédiées, lot 1.9b) | Partielle — Terraform, lot 0.8b ; D-038                                                                                                            |
 
 ## Authentification (§6.2, [ADR-002](../adr/ADR-002-authentification-proprietaire.md))
 

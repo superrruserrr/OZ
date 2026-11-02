@@ -156,6 +156,26 @@ describe('parseLockfileSettings (R12) — réglages pnpm', () => {
     );
   });
 
+  it('lit les dépendances optionnelles écartées (aucune installée, rien à enregistrer)', () => {
+    const settings = parseLockfileSettings(
+      lockfile("\nignoredOptionalDependencies:\n  - '@napi-rs/canvas'\n  - fsevents\n"),
+    );
+    expect(settings.ignoredOptionalNames).toEqual(['@napi-rs/canvas', 'fsevents']);
+    expect(settings.overrideNames).toEqual([]);
+  });
+
+  it('refuse un bloc de dépendances optionnelles écartées qu’il ne sait pas lire', () => {
+    expect(() =>
+      parseLockfileSettings(lockfile('\nignoredOptionalDependencies:\n  x: 1.0.0\n')),
+    ).toThrow(/ignoredOptionalDependencies/);
+    expect(() =>
+      parseLockfileSettings(lockfile("\nignoredOptionalDependencies:\n  - '@a/*'\n")),
+    ).toThrow(/ignoredOptionalDependencies/);
+    expect(() =>
+      parseLockfileSettings(lockfile("\nignoredOptionalDependencies: ['@a/*']\n")),
+    ).toThrow(/ignoredOptionalDependencies/);
+  });
+
   it('refuse un bloc overrides qu’il ne sait pas lire', () => {
     expect(() => parseLockfileSettings(lockfile('\noverrides:\n  a:\n    b: 1.0.0\n'))).toThrow();
   });

@@ -1,7 +1,13 @@
 import { createHash } from 'node:crypto';
 import { GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { DocumentStorage, incomingKey, quarantineKey, StorageChangedError } from '../src/index.js';
+import {
+  cleanKey,
+  DocumentStorage,
+  incomingKey,
+  quarantineKey,
+  StorageChangedError,
+} from '../src/index.js';
 import { startStorage, type TestStorage } from './seaweed.js';
 
 const PNG = Buffer.from(
@@ -174,5 +180,31 @@ describe('lecture partielle, déplacement, suppression', () => {
     await ready().storage.remove(key);
     expect(await ready().storage.head(key)).toBeNull();
     await expect(ready().storage.remove(key)).resolves.toBeUndefined();
+  });
+});
+
+describe('lecture complète et écriture sous clean/ (lot 1.9b)', () => {
+  it('read rend l’objet entier ; ETag périmé : StorageChangedError ; absent : null', async () => {
+    const key = incomingKey(id());
+    const { url, headers } = await signed(key);
+    await put(url, headers, PNG);
+    const stored = await ready().storage.head(key);
+    expect(Buffer.from((await ready().storage.read(key, PNG.length, stored?.etag)) ?? [])).toEqual(
+      PNG,
+    );
+    await expect(ready().storage.read(key, PNG.length, '"autre"')).rejects.toBeInstanceOf(
+      StorageChangedError,
+    );
+    await expect(ready().storage.read(key, PNG.length - 1)).rejects.toThrow(/borne/);
+    expect(await ready().storage.read(quarantineKey(id()), 10)).toBeNull();
+  });
+
+  it('put écrit sous clean/ avec son type ; contenu relu à l’identique', async () => {
+    const key = cleanKey(id());
+    await ready().storage.put(key, PNG, 'image/png');
+    const { config, admin } = ready().s3;
+    const out = await admin.send(new GetObjectCommand({ Bucket: config.bucket, Key: key }));
+    expect(out.ContentType).toBe('image/png');
+    expect(Buffer.from((await out.Body?.transformToByteArray()) ?? [])).toEqual(PNG);
   });
 });

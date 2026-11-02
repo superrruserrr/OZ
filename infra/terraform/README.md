@@ -54,12 +54,12 @@ Toute application crée ou modifie des ressources facturées : elle est décidé
 
 Passer la variable à la valeur suivante dans `terraform.tfvars` de l'environnement (par exemple `postgres_password_version = 2`), puis `plan` et `apply`. **Coupure** : entre l'`apply` et le redéploiement, l'API tourne avec l'ancienne valeur et ses connexions échouent ; enchaîner immédiatement le redéploiement Coolify (lot 0.8d), en heure creuse.
 
-| Variable                    | Effet de l'`apply`                                                                                                      |
-| --------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `postgres_password_version` | Nouveaux mots de passe de `oz_admin`, `oz_app`, `oz_migrator`, réécrits dans `DATABASE_URL` et `DATABASE_MIGRATION_URL` |
-| `redis_password_version`    | Nouveau mot de passe Redis, réécrit dans `REDIS_URL`                                                                    |
-| `s3_key_version`            | Nouvelle clé de l'application créée, secrets `S3_ACCESS_KEY` et `S3_SECRET_KEY` réécrits, puis ancienne clé supprimée   |
-| `jwt_key_version`           | Nouveaux `JWT_ACCESS_SECRET` et `JWT_REFRESH_SECRET` : toutes les sessions sont invalidées                              |
+| Variable                    | Effet de l'`apply`                                                                                                                                          |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `postgres_password_version` | Nouveaux mots de passe de `oz_admin`, `oz_app`, `oz_migrator`, `oz_worker`, réécrits dans `DATABASE_URL`, `DATABASE_MIGRATION_URL` et `WORKER_DATABASE_URL` |
+| `redis_password_version`    | Nouveau mot de passe Redis, réécrit dans `REDIS_URL`                                                                                                        |
+| `s3_key_version`            | Nouvelle clé de l'application créée, secrets `S3_ACCESS_KEY` et `S3_SECRET_KEY` réécrits, puis ancienne clé supprimée                                       |
+| `jwt_key_version`           | Nouveaux `JWT_ACCESS_SECRET` et `JWT_REFRESH_SECRET` : toutes les sessions sont invalidées                                                                  |
 
 Les versions de secrets suivent aussi chaque rôle PostgreSQL, le cluster Redis et la clé S3 : un utilisateur ou une ressource recréés réécrivent leur secret dans le même `apply` (`tests/rotation.tftest.hcl`).
 

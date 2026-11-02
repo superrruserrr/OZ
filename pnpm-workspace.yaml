@@ -24,6 +24,11 @@ allowBuilds:
   # binaires de plateforme précompilés ; msgpackr retombe sur son code JavaScript sans lui.
   msgpackr-extract: false
 
+# pdfjs-dist (worker, lot 1.9b) ne sert qu'à compter les pages : aucun rendu, donc pas du binaire
+# natif de canvas qu'il propose en dépendance optionnelle.
+ignoredOptionalDependencies:
+  - '@napi-rs/canvas'
+
 # Correctifs de sécurité forcés sur des dépendances transitives (consignés dans DEPENDENCIES.md).
 overrides:
   # GHSA-q7qp-rjg7-q26m (déni de service), tiré par @nestjs/platform-express

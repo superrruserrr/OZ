@@ -32,6 +32,15 @@
       "port": 3001
     },
     {
+      "name": "worker",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": [
+        "-c",
+        "pnpm turbo run build --filter=@oz/worker --output-logs=errors-only && pnpm --filter @oz/worker start"
+      ],
+      "port": 3003
+    },
+    {
       "name": "web",
       "runtimeExecutable": "pnpm",
       "runtimeArgs": [

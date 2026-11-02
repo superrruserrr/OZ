@@ -53,15 +53,42 @@ describe('rollbackLast (db:rollback)', () => {
     await migrateDeploy(db);
     const last = listMigrations(MIGRATIONS_DIR).at(-1)?.name;
     expect(await applied()).toContain(last);
+    // Un document rejeté (lot 1.9b) ne bloque pas le retour arrière : il redevient `error`.
+    const [rejected] = await db.query<{ id: string }>(
+      `WITH u AS (INSERT INTO users (email) VALUES ('retour@example.test') RETURNING id),
+        p AS (INSERT INTO players (user_id, first_name, last_name, birth_date, nationality, country, verification_status)
+          SELECT id, 'Retour', 'Synthétique', '1995-03-04', 'CM', 'CM', 'declared' FROM u RETURNING id, user_id)
+       INSERT INTO documents (type, player_id, uploaded_by, storage_key, mime_type, size_bytes, sha256,
+         retention_until, av_status, rejection_reason)
+       SELECT 'photo', p.id, p.user_id, 'quarantine/retour', 'image/png', 10, repeat('a', 64),
+         now() + interval '1 day', 'rejected', 'dimensions' FROM p RETURNING id::text`,
+    );
 
     const result = await rollbackLast({ databaseUrl: db.url, appEnv: 'local' });
     expect(result.rolledBack).toBe(last);
     expect(await applied()).not.toContain(last);
     // Dernière migration annulée, les précédentes intactes.
-    expect(await tableExists('document_uploads')).toBe(false);
-    expect(await functionExists('oz_complete_document_upload')).toBe(false);
-    expect(await policyExists('documents', 'documents_privileged_insert')).toBe(false);
-    expect(await policyExists('documents', 'documents_subject_insert')).toBe(true);
+    expect(await functionExists('oz_document_scan_claim')).toBe(false);
+    expect(await functionExists('oz_document_scan_finish')).toBe(false);
+    expect(await columnExists('documents', 'perceptual_hash')).toBe(false);
+    expect(await tableExists('document_duplicates')).toBe(false);
+    const [guard] = await db.query<{ src: string }>(
+      `SELECT prosrc AS src FROM pg_proc WHERE proname = 'oz_documents_guard'`,
+    );
+    expect(guard?.src).toContain('NEW.storage_key, NEW.mime_type, NEW.size_bytes');
+    expect(guard?.src).not.toContain('définitif');
+    expect(await policyExists('documents', 'documents_privileged_update')).toBe(false);
+    const labels = await db.query<{ label: string }>(
+      `SELECT enumlabel AS label FROM pg_enum WHERE enumtypid = 'av_status'::regtype ORDER BY enumsortorder`,
+    );
+    expect(labels.map((l) => l.label)).toEqual(['pending', 'clean', 'infected', 'error']);
+    const [after] = await db.query<{ av_status: string }>(
+      'SELECT av_status::text FROM documents WHERE id = $1',
+      [rejected?.id],
+    );
+    expect(after?.av_status).toBe('error');
+    expect(await tableExists('document_uploads')).toBe(true);
+    expect(await policyExists('documents', 'documents_privileged_insert')).toBe(true);
     expect(await functionExists('oz_has_verified_role')).toBe(true);
     expect(await policyExists('players', 'players_third_party_read')).toBe(true);
     expect(await policyExists('players', 'players_owner')).toBe(true);

@@ -70,6 +70,13 @@ describe('compose.dev.yml', () => {
     expect(ports.filter((value) => !value.startsWith('127.0.0.1:'))).toEqual([]);
   });
 
+  it('ClamAV : flux et fichier jusqu’à 50 Mo (borne de dépôt), dépassement signalé (lot 1.9b)', () => {
+    const clamav = blocks.get('clamav') ?? '';
+    expect(clamav).toMatch(/CLAMD_CONF_StreamMaxLength: 50M/);
+    expect(clamav).toMatch(/CLAMD_CONF_MaxFileSize: 50M/);
+    expect(clamav).toMatch(/CLAMD_CONF_AlertExceedsMax: 'yes'/);
+  });
+
   it('stocke les données dans des volumes nommés', () => {
     for (const name of ['postgres', 'redis', 's3', 'clamav', 'mailpit']) {
       expect(blocks.get(name), name).toMatch(/^\s+- oz-[a-z0-9-]+:\//m);

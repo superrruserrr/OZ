@@ -238,7 +238,7 @@ jobs:
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
           df -h /
       - run: pnpm exec playwright install --with-deps chromium
-      # Images réelles (api, web, admin), analysées avant d'être lancées : HIGH/CRITICAL bloquants.
+      # Images réelles (api, web, admin, worker), analysées avant d'être lancées : HIGH/CRITICAL bloquants.
       - run: docker compose -f infra/docker/compose.smoke.yml build
       # Cache de construction vidé (les images restent) avant le téléchargement de la base Trivy.
       - name: Vider le cache de construction
@@ -248,6 +248,7 @@ jobs:
       - run: '"$RUNNER_TEMP/bin/trivy" image --config trivy-image.yaml oz-api:smoke'
       - run: '"$RUNNER_TEMP/bin/trivy" image --config trivy-image.yaml oz-web:smoke'
       - run: '"$RUNNER_TEMP/bin/trivy" image --config trivy-image.yaml oz-admin:smoke'
+      - run: '"$RUNNER_TEMP/bin/trivy" image --config trivy-image.yaml oz-worker:smoke'
       - env:
           SMOKE_SKIP_BUILD: '1'
         run: pnpm test:containers

@@ -2,7 +2,7 @@
   "name": "@oz/worker",
   "version": "0.0.0",
   "private": true,
-  "description": "Consommateurs de files BullMQ (lot 1.9)",
+  "description": "Worker d'analyse des documents : ClamAV, ré-encodage, contrôles (lot 1.9b)",
   "type": "module",
   "exports": {
     ".": {
@@ -13,9 +13,26 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "start": "node --env-file-if-exists=../../.env dist/main.js"
   },
   "devDependencies": {
+    "@aws-sdk/client-s3": "3.1156.0",
+    "@testcontainers/postgresql": "^12.2.1",
+    "@testcontainers/redis": "^12.2.1",
+    "@types/node": "^24.19.2",
+    "testcontainers": "^12.2.1",
     "typescript": "catalog:"
+  },
+  "dependencies": {
+    "@oz/config": "workspace:*",
+    "@oz/contracts": "workspace:*",
+    "@oz/db": "workspace:*",
+    "@oz/storage": "workspace:*",
+    "bullmq": "6.3.17",
+    "ioredis": "^6.0.0",
+    "pdfjs-dist": "6.4.299",
+    "pino": "^10.4.0",
+    "sharp": "0.35.5"
   }
 }

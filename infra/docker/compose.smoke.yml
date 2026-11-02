@@ -1,4 +1,4 @@
-# Fumée sur les images réelles (lot 0.8a) : api, web et admin construits depuis infra/docker/images,
+# Fumée sur les images réelles (lot 0.8a) : api, web, admin et worker (lot 1.9b) construits depuis infra/docker/images,
 # dépendances jetables (aucun volume), ports sur 127.0.0.1. Lancé par scripts/containers-smoke.sh.
 # Valeurs de test uniquement : aucune donnée ni identifiant réel (R8, R10).
 name: oz-smoke
@@ -79,6 +79,30 @@ services:
         condition: service_completed_successfully
     ports:
       - '127.0.0.1:3201:3001'
+
+  # Worker (lot 1.9b) : sain une fois connecté à Redis ; ClamAV n'est contacté qu'à la réception d'un job.
+  worker:
+    build:
+      context: ../..
+      dockerfile: infra/docker/images/worker.Dockerfile
+    image: oz-worker:smoke
+    environment:
+      <<: *s3-credentials
+      APP_ENV: preview
+      LOG_LEVEL: warn
+      WORKER_DATABASE_URL: postgresql://oz_smoke:oz_smoke@postgres:5432/oz_smoke
+      REDIS_URL: redis://redis:6379
+      S3_ENDPOINT: http://s3:8333
+      S3_REGION: fr-par
+      S3_BUCKET: oz-documents
+      CLAMAV_HOST: clamav
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      s3-init:
+        condition: service_completed_successfully
 
   web:
     build:

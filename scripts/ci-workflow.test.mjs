@@ -202,7 +202,7 @@ describe('ci.yml — contenu des jobs', () => {
   it('containers : images construites, Trivy bloquant sur chacune, fumée sur les conteneurs', () => {
     const job = blocks.get('containers') ?? '';
     expect(job).toContain('docker compose -f infra/docker/compose.smoke.yml build');
-    for (const image of ['oz-api:smoke', 'oz-web:smoke', 'oz-admin:smoke']) {
+    for (const image of ['oz-api:smoke', 'oz-web:smoke', 'oz-admin:smoke', 'oz-worker:smoke']) {
       // Configuration dédiée : trivy.yaml (racine) exclut node_modules, qui serait ignoré dans l'image.
       expect(job, image).toContain(`trivy" image --config trivy-image.yaml ${image}'`);
     }

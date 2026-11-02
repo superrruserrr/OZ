@@ -142,6 +142,15 @@ Composants adaptés de shadcn/ui (code possédé, pas de paquet shadcn) sur les 
 | `file-type` | 22.2.0 (exact ; 22.3.0 publiée depuis moins de 14 jours) | MIT | ≈ 140 Ko | Type réel d'un fichier déposé, lu sur ses octets de tête, jamais sur l'extension ni l'en-tête déclaré (D3 du lot 1.9a) | Lecture maison des signatures : à tenir à jour pour chaque format, PDF et WebP compris | 1.9a |
 | `bullmq` | 6.3.17 (exact ; versions suivantes publiées depuis moins de 14 jours) | MIT | ≈ 3 Mo | File `document-scan` entre l'API et le worker (TD-002, D2 du lot 1.9a), sur le Redis existant | Liste Redis maison : ni reprise, ni nouvel essai, ni verrou de traitement | 1.9a |
 
+## Worker d'analyse des documents (apps/worker) — lot 1.9b
+
+`pino`, `ioredis`, `bullmq` et `@aws-sdk/client-s3` (tests) sont déjà enregistrés ci-dessus. Client ClamAV écrit dans le dépôt (`apps/worker/src/clamav.ts`, protocole `zINSTREAM`) : aucune bibliothèque tierce.
+
+| Paquet | Version | Licence | Poids (décompressé) | Rôle | Alternative native envisagée | Ajouté |
+|---|---|---|---|---|---|---|
+| `sharp` | 0.35.5 (exact) | Apache-2.0 (libvips précompilée `@img/sharp-libvips-*` : LGPL-3.0-or-later, bibliothèque partagée non modifiée) | ≈ 1 Mo + ≈ 18 Mo de libvips par plateforme | Ré-encodage des images (EXIF, XMP, ICC et charges annexes détruits), bornes de dimensions lues sur l'en-tête, dHash (EX-110 n° 2 et 5, D5 du lot 1.9b) ; aucun script d'installation | Décodeurs JavaScript purs (jpeg-js, pngjs) : lents, sans WebP, surface de décodage maison | 1.9b |
+| `pdfjs-dist` | 6.4.299 (exact) | Apache-2.0 | ≈ 36 Mo | Lecture de la structure d'un PDF : nombre de pages réel, chiffré ou corrompu refusé, sans rendu ni JavaScript (EX-110 n° 2) ; dépendance optionnelle `@napi-rs/canvas` écartée (`ignoredOptionalDependencies`, aucun rendu) | Lecture maison de l'arbre des pages : flux compressés, références croisées et objets cassés à gérer, fragile face à un fichier hostile | 1.9b |
+
 ## Correctifs forcés (overrides pnpm) — lot 0.3
 
 | Paquet | Version | Licence | Poids (décompressé) | Rôle | Alternative native envisagée | Ajouté |

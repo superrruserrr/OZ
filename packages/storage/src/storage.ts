@@ -7,6 +7,7 @@ import {
   S3Client,
   S3ServiceException,
 } from '@aws-sdk/client-s3';
+import { createHash } from 'node:crypto';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { assertStorageKey } from './keys.js';
 
@@ -36,6 +37,8 @@ export interface PresignedPut {
 
 /** Plus que les octets de tête qu'exige la reconnaissance du type réel (4 100). */
 const MAX_HEAD_BYTES = 1_048_576;
+/** 50 Mo : borne du dépôt (contrat, base, signature). */
+const MAX_OBJECT_BYTES = 52_428_800;
 const SIGNED_HEADERS = ['content-type', 'content-length', 'x-amz-checksum-sha256'];
 const SHA256_HEX = /^[0-9a-f]{64}$/i;
 
@@ -51,7 +54,8 @@ const notFound = (error: unknown): boolean =>
 
 /**
  * Stockage des documents (lot 1.9a, TD-010) : dépôt direct par URL signée, l'API ne porte jamais le
- * binaire (EX-110 n° 1). Seules les clés `incoming/<uuid>` et `quarantine/<uuid>` sont admises.
+ * binaire (EX-110 n° 1). Seules les clés `incoming/<uuid>`, `quarantine/<uuid>` et `clean/<uuid>` sont
+ * admises ; le worker d'analyse (lot 1.9b) lit la quarantaine et écrit sous `clean/`.
  */
 export class DocumentStorage {
   private readonly client: S3Client;
@@ -162,6 +166,64 @@ export class DocumentStorage {
       if (notFound(error)) return null;
       if (preconditionFailed(error)) throw new StorageChangedError();
       throw storageError('GET', error);
+    }
+  }
+
+  /**
+   * Objet entier, au plus `maxBytes` octets, ou `null` s'il n'existe pas. Une taille annoncée au-delà
+   * est refusée avant toute lecture du corps. Avec `etag` : `StorageChangedError` si l'objet a changé.
+   */
+  async read(key: string, maxBytes: number, etag?: string): Promise<Uint8Array | null> {
+    assertStorageKey(key);
+    if (!Number.isInteger(maxBytes) || maxBytes < 1 || maxBytes > MAX_OBJECT_BYTES) {
+      throw new RangeError('borne de lecture invalide');
+    }
+    let body: Uint8Array | undefined;
+    try {
+      const out = await this.client.send(
+        new GetObjectCommand({ Bucket: this.bucket, Key: key, IfMatch: etag }),
+      );
+      if ((out.ContentLength ?? 0) > maxBytes) {
+        // Corps non lu : le flux est détruit pour libérer la connexion.
+        (out.Body as { destroy?: () => void } | undefined)?.destroy?.();
+        throw new RangeError('objet au-delà de la borne de lecture');
+      }
+      body = await out.Body?.transformToByteArray();
+    } catch (error) {
+      if (error instanceof RangeError) throw error;
+      if (notFound(error)) return null;
+      if (preconditionFailed(error)) throw new StorageChangedError();
+      throw storageError('GET', error);
+    }
+    if (body === undefined) return new Uint8Array();
+    if (body.byteLength > maxBytes) throw new RangeError('objet au-delà de la borne de lecture');
+    return body;
+  }
+
+  /**
+   * Écrit un fichier analysé sous `clean/` (seul préfixe accepté), avec son empreinte SHA-256 : le
+   * stockage refuse un contenu altéré en route.
+   */
+  async put(key: string, body: Uint8Array, contentType: string): Promise<void> {
+    assertStorageKey(key);
+    if (!key.startsWith('clean/')) throw new TypeError('écriture réservée aux clés clean/');
+    if (body.byteLength < 1 || body.byteLength > MAX_OBJECT_BYTES) {
+      throw new RangeError('taille du contenu invalide');
+    }
+    if (contentType.length === 0) throw new RangeError('type de contenu requis');
+    try {
+      await this.client.send(
+        new PutObjectCommand({
+          Bucket: this.bucket,
+          Key: key,
+          Body: body,
+          ContentType: contentType,
+          ContentLength: body.byteLength,
+          ChecksumSHA256: createHash('sha256').update(body).digest('base64'),
+        }),
+      );
+    } catch (error) {
+      throw storageError('PUT', error);
     }
   }
 

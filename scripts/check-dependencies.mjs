@@ -28,6 +28,8 @@ const SUPPORTED_LOCKFILE_KEYS = new Set([
   'settings',
   'catalogs',
   'overrides',
+  // Dépendances optionnelles jamais installées (liste de noms exacts) : rien à enregistrer.
+  'ignoredOptionalDependencies',
   'importers',
   'packages',
   'snapshots',
@@ -147,10 +149,12 @@ function overrideKeyName(key) {
 
 /**
  * Réglages pnpm enregistrés dans le lockfile (tous les documents YAML).
- * Retourne les paquets concernés par des overrides ; lève une erreur pour tout réglage inconnu.
+ * Retourne les paquets concernés par des overrides et les dépendances optionnelles écartées ;
+ * lève une erreur pour tout réglage inconnu ou illisible.
  */
 export function parseLockfileSettings(lockfileText) {
   const overrideNames = new Set();
+  const ignoredOptionalNames = new Set();
   let block = null;
 
   for (const line of lockfileText.split('\n')) {
@@ -166,7 +170,22 @@ export function parseLockfileSettings(lockfileText) {
           `réglage pnpm « ${key} » non pris en charge par le contrôle R12 : à valider en revue, puis à intégrer à ce contrôle`,
         );
       }
+      // Un bloc lu ligne à ligne ne doit pas porter de valeur en ligne (`clé: [...]`), ignorée sinon.
+      if ((key === 'overrides' || key === 'ignoredOptionalDependencies') && line !== `${key}:`) {
+        throw new Error(`réglage pnpm « ${key} » illisible dans pnpm-lock.yaml : bloc attendu`);
+      }
       block = key;
+      continue;
+    }
+    if (block === 'ignoredOptionalDependencies') {
+      // Noms exacts seulement : un motif (`@a/*`) écarterait des paquets non relus.
+      const ignored = /^ {2}- (['"]?)((?:@[a-z0-9][\w.-]*\/)?[a-z0-9][\w.-]*)\1\s*$/.exec(line);
+      if (!ignored?.[2]) {
+        throw new Error(
+          `ligne ignoredOptionalDependencies illisible dans pnpm-lock.yaml : « ${line.trim()} »`,
+        );
+      }
+      ignoredOptionalNames.add(ignored[2]);
       continue;
     }
     if (block !== 'overrides') continue;
@@ -178,7 +197,10 @@ export function parseLockfileSettings(lockfileText) {
     const target = aliasTarget(entry[4]);
     if (target) overrideNames.add(target);
   }
-  return { overrideNames: [...overrideNames].sort() };
+  return {
+    overrideNames: [...overrideNames].sort(),
+    ignoredOptionalNames: [...ignoredOptionalNames].sort(),
+  };
 }
 
 /** peerDependencies déclarées (non installées par le paquet qui les déclare, donc lues dans les manifestes). */

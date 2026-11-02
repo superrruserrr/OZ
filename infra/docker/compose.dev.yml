@@ -73,6 +73,12 @@ services:
   clamav:
     # Image Debian : seule variante publiée pour arm64 (Apple Silicon)
     image: clamav/clamav:1.5.4-debian13-slim
+    # Limites alignées sur la borne de dépôt (50 Mo, lot 1.9b) ; une analyse tronquée par une limite
+    # est signalée (Heuristics.Limits.Exceeded → `infected`) au lieu de répondre « OK ».
+    environment:
+      CLAMD_CONF_StreamMaxLength: 50M
+      CLAMD_CONF_MaxFileSize: 50M
+      CLAMD_CONF_AlertExceedsMax: 'yes'
     ports:
       - '127.0.0.1:${CLAMAV_PORT:-3310}:3310'
     volumes:

@@ -44,7 +44,7 @@ variable "secrets_path" {
   type = string
 }
 
-# Rotation des trois mots de passe : incrémenter (nouvelles valeurs envoyées à la base et aux secrets).
+# Rotation des quatre mots de passe : incrémenter (nouvelles valeurs envoyées à la base et aux secrets).
 variable "password_version" {
   type    = number
   default = 1
@@ -61,6 +61,11 @@ ephemeral "random_password" "migrator" {
 }
 
 ephemeral "random_password" "app" {
+  length  = 40
+  special = false
+}
+
+ephemeral "random_password" "worker" {
   length  = 40
   special = false
 }
@@ -115,6 +120,15 @@ resource "scaleway_rdb_user" "app" {
   is_admin            = false
 }
 
+# Worker d'analyse des documents (lot 1.9b) : seul rôle autorisé à exécuter oz_document_scan_*.
+resource "scaleway_rdb_user" "worker" {
+  instance_id         = scaleway_rdb_instance.this.id
+  name                = "oz_worker"
+  password_wo         = ephemeral.random_password.worker.result
+  password_wo_version = var.password_version
+  is_admin            = false
+}
+
 resource "scaleway_rdb_privilege" "migrator" {
   instance_id   = scaleway_rdb_instance.this.id
   database_name = scaleway_rdb_database.oz.name
@@ -127,6 +141,14 @@ resource "scaleway_rdb_privilege" "app" {
   database_name = scaleway_rdb_database.oz.name
   user_name     = scaleway_rdb_user.app.name
   permission    = "readwrite"
+}
+
+# Le worker n'écrit que par les fonctions SECURITY DEFINER qui lui sont accordées par la migration.
+resource "scaleway_rdb_privilege" "worker" {
+  instance_id   = scaleway_rdb_instance.this.id
+  database_name = scaleway_rdb_database.oz.name
+  user_name     = scaleway_rdb_user.worker.name
+  permission    = "readonly"
 }
 
 # Adresse attribuée par l'IPAM : une adresse vide produirait une URL invalide, invisible (écriture seule).
@@ -162,6 +184,12 @@ resource "terraform_data" "migrator_password_epoch" {
   }
 }
 
+resource "terraform_data" "worker_password_epoch" {
+  lifecycle {
+    replace_triggered_by = [scaleway_rdb_user.worker]
+  }
+}
+
 locals {
   endpoint = "${data.scaleway_ipam_ip.postgres.address}:${scaleway_rdb_instance.this.private_network[0].port}"
   # Version de chaque URL liée à son rôle : un mot de passe réécrit l'est aussi dans Secret Manager,
@@ -169,6 +197,7 @@ locals {
   secret_versions = {
     DATABASE_URL           = parseint(substr(sha256(terraform_data.app_password_epoch.id), 0, 12), 16)
     DATABASE_MIGRATION_URL = parseint(substr(sha256(terraform_data.migrator_password_epoch.id), 0, 12), 16)
+    WORKER_DATABASE_URL    = parseint(substr(sha256(terraform_data.worker_password_epoch.id), 0, 12), 16)
   }
 }
 
@@ -178,6 +207,7 @@ module "secret" {
   for_each = {
     DATABASE_URL           = scaleway_rdb_user.app.name
     DATABASE_MIGRATION_URL = scaleway_rdb_user.migrator.name
+    WORKER_DATABASE_URL    = scaleway_rdb_user.worker.name
   }
 
   env  = var.env
@@ -187,7 +217,9 @@ module "secret" {
   value = format(
     "postgresql://%s:%s@%s/%s?sslmode=require",
     each.value,
-    each.key == "DATABASE_URL" ? ephemeral.random_password.app.result : ephemeral.random_password.migrator.result,
+    (each.key == "DATABASE_URL" ? ephemeral.random_password.app.result
+      : each.key == "WORKER_DATABASE_URL" ? ephemeral.random_password.worker.result
+    : ephemeral.random_password.migrator.result),
     local.endpoint,
     scaleway_rdb_database.oz.name,
   )

@@ -1,5 +1,5 @@
-/** Stockage objet des documents (lot 1.9a) */
-export { assertStorageKey, incomingKey, quarantineKey } from './keys.js';
+/** Stockage objet des documents (lots 1.9a et 1.9b) */
+export { assertStorageKey, cleanKey, incomingKey, quarantineKey } from './keys.js';
 export {
   DocumentStorage,
   StorageChangedError,

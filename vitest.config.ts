@@ -27,6 +27,8 @@ export default defineConfig({
         '**/src/test/**',
         '**/src/generated/**',
         '**/src/cli/**',
+        // Point d'entrée du conteneur (trois lignes) : la logique est dans `worker.ts`, couverte.
+        'apps/worker/src/main.ts',
       ],
       reporter: ['text', 'html', 'json-summary'],
       // R6 / EX-T06 : seuils bloquants en CI (`pnpm test:coverage`). Un seuil par motif ne vaut
@@ -45,6 +47,8 @@ export default defineConfig({
         'packages/auth/src/**': all(100),
         // Coffre documentaire (lot 1.9a) : clés et présignature, surface d'attaque directe.
         'packages/storage/src/**': all(100),
+        // Worker d'analyse (lot 1.9b) : antivirus, ré-encodage et verdicts, surface d'attaque directe.
+        'apps/worker/src/**': all(100),
       },
     },
   },
