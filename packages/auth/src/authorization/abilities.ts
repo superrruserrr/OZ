@@ -169,7 +169,7 @@ export function abilityFor(actor: Actor): AppAbility {
 }
 
 /** Sujet de décision ; la minorité est recalculée ici, à la date de la requête (EX-T16 n° 1). */
-export function playerSubject(player: PlayerRecord, now: Date): object {
+export function playerSubject(player: PlayerRecord, now: Date): PlayerSubject {
   const { birthDate, verificationStatus, hasPublicationConsent, ...links } = player;
   const isVerified = verificationStatus === 'verified';
   return caslSubject('Player', {

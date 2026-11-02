@@ -56,8 +56,9 @@ qui reste une fois les mesures prévues en place.
   mineurs jamais envoyées à aucun rôle, chiffrement `pgcrypto` des champs d'identité, URL signées,
   journalisation des consultations, minimisation, purge, aucune donnée réelle hors production
   (R10), masquage des champs sensibles dans les logs (en place).
-- **État** : partiel (journalisation masquée, chiffrement disque, TLS vers les données) ; le reste
-  prévu.
+- **État** : partiel (journalisation masquée, chiffrement disque, TLS vers les données ; trois
+  couches de cloisonnement et coordonnées de mineurs réservées au tuteur et à l'admin, lot 1.4b) ;
+  journalisation des consultations, URL signées et purge prévues.
 - **Risque résiduel** : Moyen tant que les écarts D-035, D-041 et D-046 sont ouverts ; Faible ensuite.
 - **Lot de vérification** : 1.1, 1.4, 1.13, 1.16, test d'intrusion du lot 1.17.
 
@@ -108,8 +109,9 @@ qui reste une fois les mesures prévues en place.
   autorisé → 403 » obligatoire pour chaque endpoint, identifiants UUIDv7 non devinables, rôles
   PostgreSQL séparés pour l'application et les migrations, 2FA des rôles sensibles, revue
   adversariale de chaque lot.
-- **État** : partiel. Refus par défaut, CASL et test par route en place (lot 1.4a) ; RLS alignée
-  au lot 1.4b ; rôles PostgreSQL séparés, D-038.
+- **État** : partiel. Refus par défaut, CASL et test par route en place (lot 1.4a) ; RLS de
+  lecture des joueurs alignée et vues par rôle en place (lot 1.4b) ; rôles PostgreSQL séparés,
+  D-038.
 - **Risque résiduel** : Faible une fois la matrice exhaustive verte.
 - **Lot de vérification** : 1.1, 1.4, test d'intrusion du lot 1.17.
 

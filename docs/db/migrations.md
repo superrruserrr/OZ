@@ -118,3 +118,12 @@ Migration `20261102090000_auth_phone`, vérifiée par `auth-phone.int.test.ts` ;
 - **Garde** `oz_users_guard_phone` : sous contexte utilisateur, ni numéro ni empreinte ne changent, titulaire compris ; `phone_verified_at` relève déjà de `oz_guard_authority`.
 - **Chemin privilégié** : `oz_auth_set_verified_phone` (`SECURITY DEFINER`, `EXECUTE` réservé à `oz_app`, clés en paramètres) écrit tout en une fois et journalise sans le numéro.
 - **Retour arrière** : `down.sql` supprime fonction, déclencheur, index et colonnes ; les numéros sont perdus et `phone_verified_at` est remis à NULL.
+
+## RLS alignée sur la matrice des droits (lot 1.4b)
+
+Migration `20261102150000_rbac_rls`, vérifiée par `rbac-rls.int.test.ts` et `players.int.test.ts` ; matrice et vues dans [docs/security/rbac.md](../security/rbac.md) :
+
+- **Politiques** : `players_third_party_read` (union des règles CASL de lecture) et `players_admin_read` (lecture seule) ; aucune pour le recruteur et l'agence avant le KYC 3. `organizations_privileged_read`, `guardians_privileged_read` et `consents_privileged_read` ouvrent la lecture aux seules fonctions `SECURITY DEFINER` (`oz_privileged()`).
+- **Fonctions** : `oz_is_minor_at` et `oz_is_minor` (même règle que `isMinor`), `oz_has_verified_role`, `oz_is_verified_member`, `oz_player_published`. Aucune ne lit `players` : pas de récursion de politique.
+- **Droits d'exécution** : retirés à `PUBLIC`, accordés à `oz_app` (D-066). Tout rôle qui lit `players` en a besoin ; le banc de test crée `oz_app` avant les migrations, comme Terraform.
+- **Retour arrière** : `down.sql` supprime politiques et fonctions ; la lecture redevient celle du lot 1.1a (titulaire et tuteur).

@@ -468,7 +468,7 @@ Le marché de lancement est le **Cameroun**, avec une expansion prévue vers l'A
 12. LE module DOIT être couvert à 100 % ; un scénario Playwright complet et un test de non-régression sur la réutilisation de jeton DOIVENT exister.
 
 ### EX-104 — Rôles, permissions et cloisonnement
-**Source :** lot 1.4, §3.5, §6.3 · **Priorité :** P0 · **Statut :** Plan + matrice tranchée le 2026-11-02 (`docs/security/rbac.md`)
+**Source :** lot 1.4, §3.5, §6.3 · **Priorité :** P0 · **Statut :** Codé — matrice tranchée le 2026-11-02 (`docs/security/rbac.md`), CASL (lot 1.4a), RLS alignée et vues (lot 1.4b) ; déploiement en recette (§0.2) à vérifier, routes métier à leurs lots
 
 **Récit :** En tant que porteur produit, je veux que chaque rôle ne voie que ce qu'il a le droit de voir, afin que la base d'identité ne fuie jamais.
 

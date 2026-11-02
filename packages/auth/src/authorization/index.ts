@@ -21,7 +21,18 @@ export {
   type AppAbility,
   type AuthorizationReason,
   type PlayerRecord,
+  type PlayerSubject,
 } from './abilities.js';
+export {
+  PLAYER_VIEWS,
+  playerViewFor,
+  presentPlayer,
+  serializeView,
+  type PlayerView,
+  type PlayerViewData,
+  type PlayerViewField,
+  type PlayerViewName,
+} from './views.js';
 export {
   parseRbacMatrix,
   RBAC_ROUTE_ACCESS,
