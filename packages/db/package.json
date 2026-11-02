@@ -24,6 +24,7 @@
     "db:er": "turbo run build --filter=@oz/db --output-logs=errors-only && node dist/cli/er-diagram.js"
   },
   "devDependencies": {
+    "@oz/auth": "workspace:*",
     "@testcontainers/postgresql": "^12.2.1",
     "@types/pg": "^8.23.1",
     "prisma": "7.9.1",

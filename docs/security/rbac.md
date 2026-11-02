@@ -1,6 +1,6 @@
 # Matrice des droits (RBAC)
 
-Référence EX-104 n° 8, lot 1.4a. Ce document **fait foi** : `packages/auth/src/authorization/matrix.test.ts` et `apps/api/test/rbac-matrix.int.test.ts` lisent ces tableaux. Une route absente, une cellule vide ou inconnue fait échouer la CI. La matrice est dérivée de l'Annexe B du document de projet ; les cellules d'abord marquées [À CONFIRMER] ont été tranchées par Gaëtan Wassu le 2026-11-02 (décisions D1 à D7 du lot 1.4a).
+Référence EX-104 n° 8, lots 1.4a et 1.4b. Ce document **fait foi** : `packages/auth/src/authorization/matrix.test.ts` et `apps/api/test/rbac-matrix.int.test.ts` lisent ces tableaux. Une route absente, une cellule vide ou inconnue fait échouer la CI. La matrice est dérivée de l'Annexe B du document de projet ; les cellules d'abord marquées [À CONFIRMER] ont été tranchées par Gaëtan Wassu le 2026-11-02 (décisions D1 à D7 du lot 1.4a).
 
 ## Trois couches
 
@@ -57,6 +57,35 @@ La colonne `recruiter` vaut aussi pour l'agence. `player.read_public` ne porte q
 | `subscription.manage`       | Gérer un abonnement                           | deny       | deny     | org         | org   | org        | org    | kyc3+org    | allow  |
 
 Aucune action ne permet de modifier son rôle, son niveau KYC ou son statut (CP-07) : `profile.update` se décide sur une liste blanche de champs, la même pour tous, administrateur compris. La tutelle s'arrête à la majorité de l'enfant. La revue quatre yeux d'un dossier KYC et la portée exacte de `kyc.read` sont précisées au lot 1.10.
+
+## RLS de lecture des joueurs (lot 1.4b)
+
+Pour un tiers, la base ne rend une ligne de `players` que si CASL en permet la lecture (`profile.read`, `player.read_public` ou `player.read_minor`) au même instant ; seule `players_owner` (titulaire et tuteur déclaré) reste plus large, jusqu'au lot 1.7 (D-089). `playerRecord` rend l'instant de la base (`checkedAt`), à passer à `playerSubject`. L'équivalence est prouvée sur une grille acteurs × joueurs par `packages/db/test/rbac-rls.int.test.ts`, y compris sous un propriétaire de fonctions soumis à la RLS (recette, production).
+
+| Politique                  | Qui                                                               | Quelles lignes                                                                 |
+| -------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| `players_owner` (lot 1.1a) | Titulaire et tuteur déclaré                                       | Leur profil, leurs enfants ; plus large que CASL, pour l'inscription (lot 1.7) |
+| `players_third_party_read` | Joueur, tuteur, académie, club, fédération, centre                | Majeurs vérifiés, non supprimés                                                |
+|                            | Académie, club, fédération                                        | Mineurs vérifiés et publiés avec consentement actif d'un tuteur vérifié        |
+|                            | Académie, club                                                    | Mineurs rattachés à leur organisation                                          |
+| `players_admin_read`       | Administrateur                                                    | Toutes, en lecture seule ; journalisation au lot 1.16                          |
+| aucune                     | Recruteur, agence, compte sans rôle ou hors organisation vérifiée | Aucune ligne, tant que le KYC 3 n'existe pas (lot 1.10)                        |
+
+Le centre ne lit aucun mineur tant qu'aucun résultat de test n'est enregistré. La minorité est recalculée par `oz_is_minor` sur le calendrier UTC, avec la même règle que `isMinor`. Les fonctions d'appui (`oz_is_minor_at`, `oz_is_minor`, `oz_has_verified_role`, `oz_is_verified_member`, `oz_player_published`) ne rendent qu'un booléen ; leur exécution est retirée à `PUBLIC` et accordée à `oz_app` seul (D-066). Un rôle qui lit `players` sans ce droit reçoit une erreur, jamais une ligne. Les appels sans colonne sont évalués une fois par requête.
+
+## Vues (lot 1.4b)
+
+Un champ non autorisé n'est pas envoyé (EX-104 n° 3). Les vues sont des listes blanches figées dans `packages/auth/src/authorization/views.ts` ; aucune colonne chiffrée ni empreinte n'y figure, le téléphone sort déchiffré sous `phone`.
+
+| Vue                      | Pour                                                | Champs                                                            |
+| ------------------------ | --------------------------------------------------- | ----------------------------------------------------------------- |
+| `PlayerSelfView`         | Titulaire                                           | Identité, date de naissance, sport, statut, rattachement, `phone` |
+| `PlayerGuardianView`     | Tuteur vérifié d'un enfant mineur                   | Mêmes champs                                                      |
+| `PlayerAdminView`        | Administrateur                                      | Mêmes champs                                                      |
+| `PlayerOrganizationView` | Académie ou club de rattachement, sur un mineur     | Mêmes champs, sans `phone`                                        |
+| `PlayerPublicView`       | Tout autre lecteur permis (recruteur KYC 3 compris) | Identité, année de naissance (`birthYear`), sport                 |
+
+Le téléphone d'un mineur ne reste que pour qui a `player.read_minor_contact` : son tuteur et l'administrateur (CP-11). Aucun tiers ne reçoit la date de naissance complète. Sans lecture permise, aucune vue : l'appelant répond 403 ou 404. Un filet global (`PayloadGuardInterceptor`) bloque toute réponse portant une clé `*Encrypted`, `*Hmac` (hors booléens `isX`, `hasX`, `is_x`, `has_x`), `password`, `*passwordHash`, `*tokenHash`, `*codeHash`, `totpSecret` ou `documentNumber`, ou une valeur binaire hors `StreamableFile`, après `toJSON` : 500 sans le corps d'origine ni les cookies. Chaque vue exige en plus la relation qui la fonde : titulaire avec le rôle joueur, tuteur d'un mineur, administrateur, organisation de rattachement.
 
 ## Routes de l'API
 

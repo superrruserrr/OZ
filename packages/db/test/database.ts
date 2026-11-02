@@ -72,6 +72,8 @@ export async function connectAsAppRole(db: TestDatabase): Promise<AppConnection>
     IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'oz_app_test') THEN
       CREATE ROLE oz_app_test LOGIN PASSWORD 'oz_app_test' NOSUPERUSER NOBYPASSRLS;
     END IF; END $$`);
+  // Membre de `oz_app`, comme la connexion de l'API en recette : droits d'exécution des migrations.
+  await db.query('GRANT oz_app TO oz_app_test');
   await db.query('GRANT USAGE ON SCHEMA public TO oz_app_test');
   await db.query(
     'GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO oz_app_test',
@@ -102,6 +104,14 @@ export async function connectAsAppRole(db: TestDatabase): Promise<AppConnection>
   };
 }
 
-/** Applique toutes les migrations avec Prisma (up). */
-export const migrateDeploy = (db: TestDatabase): Promise<string> =>
-  db.exec('pnpm', ['exec', 'prisma', 'migrate', 'deploy']);
+/**
+ * Applique toutes les migrations avec Prisma (up). `oz_app` existe avant, comme en recette où
+ * Terraform le crée : les migrations lui accordent l'exécution de leurs fonctions (D-066).
+ */
+export async function migrateDeploy(db: TestDatabase): Promise<string> {
+  await db.query(`DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'oz_app') THEN
+      CREATE ROLE oz_app NOLOGIN NOSUPERUSER NOBYPASSRLS;
+    END IF; END $$`);
+  return db.exec('pnpm', ['exec', 'prisma', 'migrate', 'deploy']);
+}

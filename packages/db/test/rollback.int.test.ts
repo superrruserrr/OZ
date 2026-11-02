@@ -33,6 +33,21 @@ const columnExists = async (table: string, column: string): Promise<boolean> =>
     )
   )[0]?.n === 1;
 
+const functionExists = async (name: string): Promise<boolean> =>
+  (
+    await db.query<{ n: number }>('SELECT count(*)::int AS n FROM pg_proc WHERE proname = $1', [
+      name,
+    ])
+  )[0]?.n !== 0;
+
+const policyExists = async (table: string, name: string): Promise<boolean> =>
+  (
+    await db.query<{ n: number }>(
+      'SELECT count(*)::int AS n FROM pg_policies WHERE tablename = $1 AND policyname = $2',
+      [table, name],
+    )
+  )[0]?.n === 1;
+
 describe('rollbackLast (db:rollback)', () => {
   it('annule la dernière migration et retire sa trace dans _prisma_migrations', async () => {
     await migrateDeploy(db);
@@ -43,7 +58,10 @@ describe('rollbackLast (db:rollback)', () => {
     expect(result.rolledBack).toBe(last);
     expect(await applied()).not.toContain(last);
     // Dernière migration annulée, les précédentes intactes.
-    expect(await columnExists('users', 'phone_encrypted')).toBe(false);
+    expect(await functionExists('oz_has_verified_role')).toBe(false);
+    expect(await policyExists('players', 'players_third_party_read')).toBe(false);
+    expect(await policyExists('players', 'players_owner')).toBe(true);
+    expect(await columnExists('users', 'phone_encrypted')).toBe(true);
     expect(await columnExists('users', 'totp_last_step')).toBe(true);
     expect(await tableExists('auth_recovery_codes')).toBe(true);
     expect(await tableExists('auth_tokens')).toBe(true);

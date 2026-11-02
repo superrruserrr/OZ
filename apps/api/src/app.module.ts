@@ -1,9 +1,10 @@
 import { Module, type DynamicModule } from '@nestjs/common';
-import { APP_FILTER, APP_GUARD } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import type { ApiConfig } from '@oz/config';
 import type { DestinationStream } from 'pino';
 import { AuthModule } from './auth/auth.module.js';
 import { DefaultDenyGuard } from './authorization/default-deny.guard.js';
+import { PayloadGuardInterceptor } from './authorization/payload-guard.interceptor.js';
 import { AllExceptionsFilter } from './common/errors/all-exceptions.filter.js';
 import { LoggingModule } from './common/logging/logging.module.js';
 import { ConfigModule } from './config/config.module.js';
@@ -31,6 +32,7 @@ export class AppModule {
       providers: [
         { provide: APP_FILTER, useClass: AllExceptionsFilter },
         { provide: APP_GUARD, useClass: DefaultDenyGuard },
+        { provide: APP_INTERCEPTOR, useClass: PayloadGuardInterceptor },
       ],
     };
   }

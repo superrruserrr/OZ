@@ -291,6 +291,9 @@ describe('autorisation de l’émission (revue du lot 1.2)', () => {
         CREATE ROLE oz_reader_test NOLOGIN NOSUPERUSER NOBYPASSRLS;
       END IF; END $$`);
     await db.query('GRANT SELECT, UPDATE ON ALL TABLES IN SCHEMA public TO oz_reader_test');
+    // Les politiques de `players` appellent des fonctions réservées à `oz_app` (lot 1.4b, D-066) :
+    // sans ce droit, la lecture échoue au lieu de rendre zéro ligne.
+    await db.query('GRANT oz_app TO oz_reader_test');
     await db.query('GRANT oz_reader_test TO oz_app_test');
     try {
       const victim = await insertPlayer({ organization_id: club });
@@ -415,6 +418,8 @@ describe('propriétaire sans privilège de superutilisateur (recette, production
       END IF; END $$`);
     await db.query('GRANT USAGE ON SCHEMA public TO oz_owner_test');
     await db.query('GRANT SELECT, INSERT, UPDATE ON ALL TABLES IN SCHEMA public TO oz_owner_test');
+    // En recette, un même propriétaire possède aussi les fonctions des politiques de `players`.
+    await db.query('GRANT oz_app TO oz_owner_test');
     await db.query('ALTER FUNCTION oz_issue_oz_id(uuid, text) OWNER TO oz_owner_test');
     try {
       const player = await insertPlayer({ organization_id: club, country: 'NG' });
