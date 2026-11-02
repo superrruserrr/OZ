@@ -64,10 +64,28 @@ describe('rollbackLast (db:rollback)', () => {
          now() + interval '1 day', 'rejected', 'dimensions' FROM p RETURNING id::text`,
     );
 
+    // Une pièce purgée (lot 1.9ca) ne bloque pas le retour arrière : la colonne disparaît.
+    await db.query('UPDATE documents SET purged_at = now() WHERE id = $1', [rejected?.id]);
+
     const result = await rollbackLast({ databaseUrl: db.url, appEnv: 'local' });
     expect(result.rolledBack).toBe(last);
     expect(await applied()).not.toContain(last);
-    // Dernière migration annulée, les précédentes intactes.
+    // Dernière migration annulée (lot 1.9ca), les précédentes intactes.
+    expect(await columnExists('documents', 'purged_at')).toBe(false);
+    expect(await policyExists('documents', 'documents_admin_read')).toBe(false);
+    expect(await functionExists('oz_document_subject_live')).toBe(false);
+    const [readGuard] = await db.query<{ src: string }>(
+      `SELECT prosrc AS src FROM pg_proc WHERE proname = 'oz_documents_guard'`,
+    );
+    expect(readGuard?.src).toContain('définitif');
+    expect(readGuard?.src).not.toContain('purged_at');
+    expect(await functionExists('oz_document_scan_claim')).toBe(true);
+
+    // Avant-dernière (lot 1.9b) : un document rejeté redevient `error`.
+    const previous = listMigrations(MIGRATIONS_DIR).at(-2)?.name;
+    expect((await rollbackLast({ databaseUrl: db.url, appEnv: 'local' })).rolledBack).toBe(
+      previous,
+    );
     expect(await functionExists('oz_document_scan_claim')).toBe(false);
     expect(await functionExists('oz_document_scan_finish')).toBe(false);
     expect(await columnExists('documents', 'perceptual_hash')).toBe(false);

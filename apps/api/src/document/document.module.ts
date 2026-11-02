@@ -10,6 +10,8 @@ import { DocumentStorage } from '@oz/storage';
 import { RateLimitModule } from '../common/rate-limit/rate-limit.module.js';
 import { API_CONFIG } from '../config/config.module.js';
 import { DatabaseModule } from '../database/database.module.js';
+import { DocumentReadController } from './document-read.controller.js';
+import { DocumentReadService } from './document-read.service.js';
 import { DocumentController } from './document.controller.js';
 import { DocumentService } from './document.service.js';
 import { DOCUMENT_STORAGE } from './document.tokens.js';
@@ -25,16 +27,17 @@ class StorageLifecycle implements OnModuleDestroy {
   }
 }
 
-/** Coffre documentaire (lot 1.9a) : monté seulement si FEATURE_DOCUMENTS=true (R13, D7). */
+/** Coffre documentaire (lots 1.9a et 1.9ca : dépôt et lecture) : monté seulement si FEATURE_DOCUMENTS=true (R13, D7). */
 @Module({})
 export class DocumentModule {
   static forRoot(hmacKey: string): DynamicModule {
     return {
       module: DocumentModule,
       imports: [DatabaseModule, RateLimitModule.forRoot(hmacKey)],
-      controllers: [DocumentController],
+      controllers: [DocumentController, DocumentReadController],
       providers: [
         DocumentService,
+        DocumentReadService,
         ScanQueue,
         StorageLifecycle,
         {

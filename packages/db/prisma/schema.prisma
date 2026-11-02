@@ -525,6 +525,8 @@ model Document {
   /// dHash 64 bits des images ; comparé par distance de Hamming au KYC (lot 1.10).
   perceptualHash          BigInt?      @map("perceptual_hash")
   retentionUntil          DateTime     @map("retention_until") @db.Timestamptz(6)
+  /// Fichier purgé (lot 1.9cb) : posé une fois par le chemin privilégié ; la pièce n'est plus lisible.
+  purgedAt                DateTime?    @map("purged_at") @db.Timestamptz(6)
   createdAt               DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt               DateTime     @default(now()) @map("updated_at") @db.Timestamptz(6)
   deletedAt               DateTime?    @map("deleted_at") @db.Timestamptz(6)

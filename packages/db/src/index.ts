@@ -56,6 +56,7 @@ export {
   type UploadDocumentType,
   type UploadTarget,
 } from './document-uploads.js';
+export { readableDocumentFor, recordDocumentRead, type ReadableDocument } from './document-read.js';
 export {
   claimDocumentScan,
   finishDocumentScan,

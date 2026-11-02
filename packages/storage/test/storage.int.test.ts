@@ -208,3 +208,66 @@ describe('lecture complète et écriture sous clean/ (lot 1.9b)', () => {
     expect(Buffer.from((await out.Body?.transformToByteArray()) ?? [])).toEqual(PNG);
   });
 });
+
+// Lecture (lot 1.9ca, EX-110 n° 6) : aucune URL sans signature valide, ni au-delà de son échéance (CP-22).
+describe('lecture par GET présigné (CP-22)', () => {
+  const stored = async (): Promise<string> => {
+    const key = cleanKey(id());
+    await ready().storage.put(key, PNG, 'image/png');
+    return key;
+  };
+  const readUrl = (key: string, signingDate?: Date) =>
+    ready().storage.presignGet({
+      key,
+      contentType: 'image/png',
+      expiresInSeconds: 300,
+      ...(signingDate === undefined ? {} : { signingDate }),
+    });
+
+  it('sert les octets, en téléchargement, avec le type imposé et sans cache', async () => {
+    const key = await stored();
+    const res = await fetch((await readUrl(key)).url);
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-type')).toBe('image/png');
+    expect(res.headers.get('content-disposition')).toBe('attachment');
+    expect(res.headers.get('cache-control')).toBe('no-store');
+    expect(Buffer.from(await res.arrayBuffer())).toEqual(PNG);
+  });
+
+  it('refuse la requête sans signature', async () => {
+    const key = await stored();
+    const url = new URL((await readUrl(key)).url);
+    expect((await fetch(`${url.origin}${url.pathname}`)).status).toBe(403);
+  });
+
+  it('refuse une signature altérée', async () => {
+    const url = new URL((await readUrl(await stored())).url);
+    const signature = url.searchParams.get('X-Amz-Signature') ?? '';
+    url.searchParams.set(
+      'X-Amz-Signature',
+      `${signature.startsWith('0') ? '1' : '0'}${signature.slice(1)}`,
+    );
+    const res = await fetch(url);
+    expect(res.status).toBe(403);
+    expect(Buffer.from(await res.arrayBuffer()).includes(PNG)).toBe(false);
+  });
+
+  it('refuse un type de réponse ou une disposition modifiés', async () => {
+    const key = await stored();
+    for (const [name, value] of [
+      ['response-content-type', 'text/html'],
+      ['response-content-disposition', 'inline'],
+    ] as const) {
+      const url = new URL((await readUrl(key)).url);
+      url.searchParams.set(name, value);
+      expect((await fetch(url)).status).toBe(403);
+    }
+  });
+
+  it('refuse une URL signée il y a plus de 5 minutes', async () => {
+    const key = await stored();
+    const { url, expiresAt } = await readUrl(key, new Date(Date.now() - 301_000));
+    expect(expiresAt.getTime()).toBeLessThan(Date.now());
+    expect((await fetch(url)).status).toBe(403);
+  });
+});

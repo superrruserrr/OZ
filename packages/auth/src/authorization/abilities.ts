@@ -91,10 +91,15 @@ const inOrganizations = (ids: readonly string[]): { readonly $in: string[] } => 
 
 const PUBLIC_PROFILE = { isMinor: false, isVerified: true };
 const PERSON_DOCUMENT = { documentType: { $in: [...PERSON_DOCUMENT_TYPES] } };
+/** Qui dépose une pièce peut la relire, une fois saine (lot 1.9ca, décision du 2026-11-02). */
+const DOCUMENT_ACTIONS: ('document.upload' | 'document.read')[] = [
+  'document.upload',
+  'document.read',
+];
 
 /** Justificatif de sa propre organisation : toute organisation, avant même le KYC 3 (D5). */
 function organizationDocumentRules({ can }: Builder, ids: readonly string[]): void {
-  can('document.upload', 'Document', {
+  can(DOCUMENT_ACTIONS, 'Document', {
     kind: 'organization',
     organizationId: inOrganizations(ids),
     documentType: { $in: [...ORGANIZATION_DOCUMENT_TYPES] },
@@ -109,7 +114,7 @@ function attachedRules(builder: Builder, ids: readonly string[]): void {
   can('player.create', 'Organization', { id: organizationId });
   can('subscription.manage', 'Organization', { id: organizationId });
   // Pièces des joueurs rattachés et justificatif de l'organisation (D5 du lot 1.9a).
-  can('document.upload', 'Document', { ...PERSON_DOCUMENT, kind: 'player', organizationId });
+  can(DOCUMENT_ACTIONS, 'Document', { ...PERSON_DOCUMENT, kind: 'player', organizationId });
   organizationDocumentRules(builder, ids);
 }
 
@@ -120,7 +125,7 @@ const RULES: Readonly<Record<RbacRole, Rules>> = {
     can('player.read_public', 'Player', PUBLIC_PROFILE);
     can('player.read_minor', 'Player', { userId, isMinor: true });
     can('audit.read', 'Player', { userId });
-    can('document.upload', 'Document', { ...PERSON_DOCUMENT, ownerUserId: userId });
+    can(DOCUMENT_ACTIONS, 'Document', { ...PERSON_DOCUMENT, ownerUserId: userId });
   },
   guardian({ can }, { userId }) {
     // La tutelle s'arrête à la majorité : l'ancien enfant décide seul.
@@ -132,8 +137,8 @@ const RULES: Readonly<Record<RbacRole, Rules>> = {
     can('player.read_minor_contact', 'Player', child);
     can('audit.read', 'Player', child);
     // Ses propres pièces (fiche tuteur) et celles de l'enfant mineur.
-    can('document.upload', 'Document', { ...PERSON_DOCUMENT, ownerUserId: userId });
-    can('document.upload', 'Document', { ...PERSON_DOCUMENT, kind: 'player', ...child });
+    can(DOCUMENT_ACTIONS, 'Document', { ...PERSON_DOCUMENT, ownerUserId: userId });
+    can(DOCUMENT_ACTIONS, 'Document', { ...PERSON_DOCUMENT, kind: 'player', ...child });
   },
   academy(builder, _actor, ids) {
     const { can } = builder;
@@ -201,6 +206,8 @@ const RULES: Readonly<Record<RbacRole, Rules>> = {
     can('kyc.read', 'KycCase');
     can('audit.read', 'Player');
     can('subscription.manage', 'Organization');
+    // Revue KYC (lot 1.11) ; jamais de dépôt (D5 du lot 1.9a).
+    can('document.read', 'Document').because(AUDIT);
   },
 };
 

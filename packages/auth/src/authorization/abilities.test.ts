@@ -162,9 +162,9 @@ describe('abilityFor', () => {
     expect(verified.can('player.read_minor_contact', minor)).toBe(false);
   });
 
-  it('recruteur sans KYC 3 : aucun droit, sauf déposer le justificatif de son organisation (D5 du lot 1.9a)', () => {
+  it('recruteur sans KYC 3 : aucun droit, sauf déposer et relire le justificatif de son organisation (D5 du lot 1.9a, lot 1.9ca)', () => {
     const rules = abilityFor(actor('recruiter')).rules;
-    expect(rules.map((rule) => rule.action)).toEqual(['document.upload']);
+    expect(rules.map((rule) => rule.action)).toEqual([['document.upload', 'document.read']]);
     expect(rules[0]?.conditions).toMatchObject({
       kind: 'organization',
       documentType: { $in: ['organization_registration'] },

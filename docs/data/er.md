@@ -105,6 +105,7 @@ erDiagram
     integer height
     integer page_count
     bigint perceptual_hash
+    timestamptz purged_at
   }
   guardians {
     uuid id PK

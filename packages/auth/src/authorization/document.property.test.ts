@@ -2,6 +2,7 @@ import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 import {
   abilityFor,
+  authorizationReason,
   documentSubject,
   type Actor,
   type ActorRole,
@@ -165,5 +166,35 @@ describe('document.upload (D5)', () => {
     expect(ability.can('document.upload', registration('o1') as never)).toBe(true);
     expect(ability.can('document.upload', registration('o2') as never)).toBe(false);
     expect(ability.can('player.read_public', 'Player')).toBe(false);
+  });
+});
+
+// Lecture (lot 1.9ca, décision du 2026-11-02) : mêmes portées que le dépôt, plus l'administrateur,
+// toujours journalisé.
+describe('document.read', () => {
+  it('décision CASL = dépôt permis ou administrateur, pour tout acteur et toute cible', () => {
+    fc.assert(
+      fc.property(actor, target, (who, doc) => {
+        expect(abilityFor(who).can('document.read', documentSubject(doc, NOW) as never)).toBe(
+          expected(who, doc) || has(who, 'admin'),
+        );
+      }),
+      { numRuns: 2_000 },
+    );
+  });
+
+  it('administrateur : toute pièce, motif `audit`', () => {
+    fc.assert(
+      fc.property(target, (doc) => {
+        const admin = abilityFor({
+          userId: 'u1',
+          roles: [{ role: 'admin', organizationId: null }],
+          isKyc3Verified: false,
+        });
+        const subject = documentSubject(doc, NOW) as never;
+        expect(admin.can('document.read', subject)).toBe(true);
+        expect(authorizationReason(admin, 'document.read', subject)).toBe('audit');
+      }),
+    );
   });
 });

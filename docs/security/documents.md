@@ -1,6 +1,6 @@
 # Coffre documentaire
 
-Dépôt des pièces (EX-110), lot 1.9a ; analyse (antivirus, contrôles, ré-encodage), lot 1.9b ; la lecture signée et la purge relèvent du lot 1.9c. Décisions validées : D1 à D7 du lot 1.9a, D1 à D9 du lot 1.9b.
+Dépôt des pièces (EX-110), lot 1.9a ; analyse (antivirus, contrôles, ré-encodage), lot 1.9b ; lecture par URL signée, lot 1.9ca ; la purge relève du lot 1.9cb. Décisions validées : D1 à D7 du lot 1.9a, D1 à D9 du lot 1.9b.
 
 ## Flux
 
@@ -13,7 +13,7 @@ Dépôt des pièces (EX-110), lot 1.9a ; analyse (antivirus, contrôles, ré-enc
    - sinon, dans une seule transaction bornée à 60 s : `oz_complete_document_upload` (usage unique, verrou de ligne) crée le document `pending`, la version vérifiée est copiée de `incoming/<intention>` vers `quarantine/<document>`, puis un job `document-scan` est mis en file (charge : `{ documentId }`, identifiant de job = document). `incoming/` n'est supprimé qu'après la validation. Un échec de mise en file retire la copie et annule tout : **503** ; une copie impossible ou une transaction trop longue annule aussi ; dans tous ces cas l'envoi reste en `incoming/` et le dépôt peut être réceptionné à nouveau. Requêtes au stockage : 5 s pour se connecter, 15 s pour répondre, deux essais (erreur au-delà) ; copie terminée après 45 s : copie retirée, 503, aucun job ; mise en file abandonnée après 5 s. La connexion à la base reste tenue pendant la copie (D-092).
    - intention échue : **410** `DOCUMENT_UPLOAD_EXPIRED`, statut `expired` (journalisé), objet supprimé ; déjà réceptionnée ou rejetée : **409** `DOCUMENT_UPLOAD_USED`.
 
-Un identifiant mal formé reçoit le même 404 qu'un dépôt inconnu. Aucune réponse ne porte de clé de stockage (filet `PayloadGuardInterceptor` : `storageKey`, `storage_key`) ; aucun chemin du lot 1.9a ne produit d'URL de lecture (CP-21). Un document ne s'insère plus sous contexte utilisateur : la politique `documents_subject_insert` est supprimée, seule la réception l'écrit.
+Un identifiant mal formé reçoit le même 404 qu'un dépôt inconnu. Aucune réponse ne porte de clé de stockage (filet `PayloadGuardInterceptor` : `storageKey`, `storage_key`) ; seule la lecture (lot 1.9ca, ci-dessous) produit une URL de lecture, pour une pièce saine (CP-21). Un document ne s'insère plus sous contexte utilisateur : la politique `documents_subject_insert` est supprimée, seule la réception l'écrit.
 
 ## Analyse (lot 1.9b)
 
@@ -34,6 +34,12 @@ Le worker `@oz/worker` consomme la file `document-scan` (5 essais, délai expone
 
 Journaux du worker : JSON (pino), identifiant de document, type, motif ou type d'erreur — jamais le contenu, la clé de stockage, l'empreinte ni le message d'une erreur (démarrage impossible compris : type d'erreur seul). Sonde de vivacité `/health/live` sur 127.0.0.1 seulement.
 
+## Lecture (lot 1.9ca)
+
+`GET /documents/:id/url` (`@Can('document.read')`, `Cache-Control: no-store`). Dans une transaction sous la RLS du demandeur, `readableDocumentFor` ne rend qu'une pièce `clean`, ni supprimée ni purgée (`purged_at`), dont le sujet est visible ; CASL décide sur ce sujet (`documentSubject`, minorité à l'instant de la base). Puis, dans la même transaction, l'audit `document.read.granted` (acteur, pièce, type ; ni clé ni URL, `audit_log_insert_self`) ; **ensuite seulement**, `presignGet` signe une URL GET de 300 s sur `clean/<document>`, qui impose `Content-Type` (type réel vérifié), `Content-Disposition: attachment` et `Cache-Control: no-store` : le stockage refuse toute variante de ces paramètres, une signature altérée, une requête non signée ou échue (CP-22, prouvé sur SeaweedFS). Réponse : `{ url, expiresAt }`.
+
+Inconnue, mal formée, cachée, non saine (`pending`, `infected`, `rejected`, `error`), supprimée, purgée ou sans droit : **même 404** `NOT_FOUND`, sans audit (CP-21). Audit impossible : aucune URL. Journal applicatif : `document.read.granted` ou `document.read.refused` avec l'identifiant du document (s'il est bien formé), jamais l'URL ni la clé. L'administrateur lit toute pièce dont le sujet est encore en place (`documents_admin_read`, revue KYC ; `oz_document_subject_live`, fonction `SECURITY DEFINER` réservée à `oz_app` qui ne rend qu'un booléen) sans voir pour autant les fiches tuteur ni les organisations ; sa décision CASL ne porte sur aucun champ du sujet. Cette lecture n'ouvre aucun rattachement à un dossier KYC : la garde `oz_kyc_case_documents_guard` refuse une pièce d'un autre sujet. Une URL délivrée reste valable jusqu'à son échéance, même si la pièce est purgée entre-temps (D-101).
+
 ## Clés et états
 
 | Clé                     | Contenu                                                             |
@@ -46,7 +52,7 @@ Toute autre clé est refusée par `@oz/storage` ; seul le worker écrit sous `cl
 
 ## Droits (D5)
 
-`document.upload` : joueur sur lui-même ; tuteur sur lui-même et sur son enfant mineur (tuteur vérifié) ; académie et club sur leurs joueurs rattachés et le justificatif de leur organisation ; fédération, centre et recruteur (même sans KYC 3) sur le justificatif de leur organisation ; administrateur : jamais. Matrice : [rbac.md](rbac.md).
+`document.upload` : joueur sur lui-même ; tuteur sur lui-même et sur son enfant mineur (tuteur vérifié) ; académie et club sur leurs joueurs rattachés et le justificatif de leur organisation ; fédération, centre et recruteur (même sans KYC 3) sur le justificatif de leur organisation ; administrateur : jamais. `document.read` (lot 1.9ca, décision du 2026-11-02) : mêmes portées, plus l'administrateur sur toute pièce, toujours journalisé. Matrice : [rbac.md](rbac.md).
 
 ## Bornes
 
@@ -54,19 +60,21 @@ Toute autre clé est refusée par `@oz/storage` ; seul le worker écrit sous `cl
 | ----------------- | --------------------------------------------------------------------------------- |
 | Taille            | 1 octet à 50 Mo (contrat, base, signature)                                        |
 | Types (D4)        | photo : JPEG, PNG, WebP ; autres pièces : JPEG, PNG, WebP, PDF ; ni HEIC ni vidéo |
-| Validité de l'URL | 5 minutes, usage unique                                                           |
+| Validité de l'URL | dépôt : 5 minutes, usage unique ; lecture : 5 minutes                             |
 | Intentions        | 20 par heure et par compte (`document_upload_account`)                            |
 | Réceptions        | 60 par heure et par compte (`document_complete_account`)                          |
+| URL de lecture    | 120 par heure et par compte (`document_read_account`)                             |
 | Stockage local    | bucket privé (lecture anonyme : 403), CORS limité à `S3_ALLOWED_ORIGINS`          |
 | Images            | 200 à 8 000 px par côté, 40 Mpx au plus                                           |
 | PDF               | 1 à 20 pages                                                                      |
 
 ## Configuration
 
-`FEATURE_DOCUMENTS` (défaut `false`) exige `FEATURE_AUTH=true` et reste refusé en production tant que le lot 1.9c n'est pas livré et que D-092, D-093 et D-097 demeurent (D7). Worker : `WORKER_DATABASE_URL` (rôle `oz_worker`, exigé hors local et distinct de `DATABASE_URL` ; repli sur `DATABASE_URL` en local seulement), `REDIS_URL`, `S3_*`, `CLAMAV_HOST`, `CLAMAV_PORT`, `WORKER_CONCURRENCY` (1 à 8, 2 par défaut) ; configuration de lancement `worker`. `DOCUMENT_RETENTION_DAYS` : durée de conservation. En local, `docker compose` crée le bucket `S3_BUCKET` au démarrage du service `s3` ; configuration de lancement `api-documents`.
+`FEATURE_DOCUMENTS` (défaut `false`) exige `FEATURE_AUTH=true` et reste refusé en production tant que le lot 1.9cb (purge) n'est pas livré et que D-092, D-093 et D-097 demeurent (D7). Worker : `WORKER_DATABASE_URL` (rôle `oz_worker`, exigé hors local et distinct de `DATABASE_URL` ; repli sur `DATABASE_URL` en local seulement), `REDIS_URL`, `S3_*`, `CLAMAV_HOST`, `CLAMAV_PORT`, `WORKER_CONCURRENCY` (1 à 8, 2 par défaut) ; configuration de lancement `worker`. `DOCUMENT_RETENTION_DAYS` : durée de conservation. En local, `docker compose` crée le bucket `S3_BUCKET` au démarrage du service `s3` ; configuration de lancement `api-documents`.
 
 ## Menaces couvertes et restantes
 
 - **Couvertes** : fichier déguisé (type réel lu sur les octets), fichier substitué après l'intention (empreinte, taille et type signés) ou après sa vérification (ETag), rejeu d'une URL ou d'une réception (usage unique), dépôt pour autrui (RLS puis CASL, 404 indiscernable), saturation (limites par compte sur l'intention et la réception, 50 Mo, transaction et requêtes bornées), lecture publique (bucket privé, aucune URL de lecture).
 - **Couvertes au lot 1.9b** : fichier infecté (ClamAV, rien ne subsiste), charge cachée dans une image (ré-encodage, métadonnées et octets annexes détruits), bombe de décompression (dimensions lues sur l'en-tête), PDF hors bornes, chiffré ou corrompu, fichier remplacé en quarantaine (SHA-256 recomparée), pièce réutilisée pour un autre sujet (signal de doublon), verdict forgé par l'API ou un utilisateur (rôle `oz_worker` seul, refus sous contexte utilisateur, garde en base).
-- **Restantes** : lecture par URL signée de 5 minutes (EX-110 n° 6) et purge des objets orphelins et des documents échus (lot 1.9c, D-062, D-092) ; PDF hostile bloquant le worker (D-093) ; `/Count` sous-déclaré (D-094) ; comparaison perceptuelle (D-098) ; documents laissés `pending` par un job abandonné (D-099) ; privilège de lecture de `oz_worker` (D-100) ; déploiement en recette (D-097).
+- **Couvertes au lot 1.9ca** : lecture d'une pièce non analysée ou rejetée (sain seulement, 404 uniforme), lecture par un tiers (RLS puis CASL), URL réutilisée longtemps ou partagée (5 minutes, audit de chaque délivrance), réponse détournée en page web (type et `attachment` signés), lien deviné (aucun accès sans signature).
+- **Restantes** : purge des objets orphelins et des documents échus (lot 1.9cb, D-062, D-092) ; URL encore valable après une purge (D-101) ; PDF hostile bloquant le worker (D-093) ; `/Count` sous-déclaré (D-094) ; comparaison perceptuelle (D-098) ; documents laissés `pending` par un job abandonné (D-099) ; privilège de lecture de `oz_worker` (D-100) ; déploiement en recette (D-097).

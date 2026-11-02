@@ -57,10 +57,13 @@ La colonne `recruiter` vaut aussi pour l'agence. `player.read_public` ne porte q
 | `audit.read`                | Consulter le journal d'accès d'un profil      | self       | child      | deny        | deny  | deny       | deny   | deny        | allow  |
 | `subscription.manage`       | Gérer un abonnement                           | deny       | deny       | org         | org   | org        | org    | kyc3+org    | allow  |
 | `document.upload`           | Déposer une pièce ou un justificatif          | self       | self+child | org         | org   | org        | org    | org         | deny   |
+| `document.read`             | Obtenir l'URL de lecture d'une pièce saine    | self       | self+child | org         | org   | org        | org    | org         | logged |
 
 Aucune action ne permet de modifier son rôle, son niveau KYC ou son statut (CP-07) : `profile.update` se décide sur une liste blanche de champs, la même pour tous, administrateur compris. La tutelle s'arrête à la majorité de l'enfant. La revue quatre yeux d'un dossier KYC et la portée exacte de `kyc.read` sont précisées au lot 1.10.
 
 `document.upload` (lot 1.9a) : `self` vise les pièces de sa propre personne (fiche joueur ou fiche tuteur), `child` celles de l'enfant mineur dont le compte est le tuteur vérifié, `org` le justificatif de sa propre organisation, plus, pour l'académie et le club, les pièces de leurs joueurs rattachés. Seules les pièces d'identité, actes de naissance, photos et licences visent une personne ; le seul justificatif d'organisation est `organization_registration` ; la vidéo attend son lot (D4). Comme ailleurs, un rôle ne compte qu'une fois son organisation vérifiée : l'organisation en attente ne dépose pas encore son justificatif (D-091).
+
+`document.read` (lot 1.9ca, décision du 2026-11-02) : mêmes portées que `document.upload`, sur les pièces déjà déclarées saines ; l'administrateur lit toute pièce (revue KYC). Toute lecture délivrée, quel que soit le rôle, est inscrite au journal d'audit (`document.read.granted`).
 
 ## RLS de lecture des joueurs (lot 1.4b)
 
@@ -124,3 +127,4 @@ Les pages `/docs`, `/docs-json` et `/docs-yaml` (Swagger) sont servies hors cont
 | POST    | /auth/phone/verify             | authenticated     |
 | POST    | /documents/upload              | `document.upload` |
 | POST    | /documents/upload/:id/complete | `document.upload` |
+| GET     | /documents/:id/url             | `document.read`   |

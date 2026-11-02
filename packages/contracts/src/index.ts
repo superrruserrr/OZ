@@ -58,6 +58,12 @@ export {
   type VerifyEmailInput,
 } from './auth/auth.schema.js';
 export {
+  documentReadOutputSchema,
+  documentReadParamsSchema,
+  type DocumentReadOutput,
+  type DocumentReadParamsInput,
+} from './documents/read.schema.js';
+export {
   documentScanJobSchema,
   documentUploadCompleteOutputSchema,
   documentUploadOutputSchema,
