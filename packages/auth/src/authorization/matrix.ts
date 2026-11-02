@@ -11,7 +11,10 @@ import {
 } from './actions.js';
 
 export const RBAC_ROUTE_ACCESS = ['public', 'authenticated'] as const;
-export type RbacRouteAccess = (typeof RBAC_ROUTE_ACCESS)[number];
+/** `public`, `authenticated`, ou l'action de la matrice qu'exige la route (`@Can`). */
+export type RbacRouteAccess = (typeof RBAC_ROUTE_ACCESS)[number] | RbacAction;
+
+const ROUTE_ACCESS: readonly RbacRouteAccess[] = [...RBAC_ROUTE_ACCESS, ...RBAC_ACTIONS];
 
 export interface RbacRoute {
   readonly method: string;
@@ -75,7 +78,7 @@ function parseRoutes([, , ...rows]: readonly string[][]): RbacRoute[] {
     const key = `${method} ${path}`;
     if (seen.has(key)) throw new Error(`Matrice : route en double ${key}.`);
     seen.add(key);
-    if (!isOneOf(RBAC_ROUTE_ACCESS, access)) throw new Error(`Matrice : accès de ${key}.`);
+    if (!isOneOf(ROUTE_ACCESS, access)) throw new Error(`Matrice : accès de ${key}.`);
     return { method, path, access };
   });
 }

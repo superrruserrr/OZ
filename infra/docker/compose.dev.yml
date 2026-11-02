@@ -43,13 +43,22 @@ services:
     environment:
       S3_ACCESS_KEY: ${S3_ACCESS_KEY:?définir S3_ACCESS_KEY dans .env}
       S3_SECRET_KEY: ${S3_SECRET_KEY:?définir S3_SECRET_KEY dans .env}
+      # Dépôt direct depuis le navigateur (lot 1.9a) : l'origine web locale seule, jamais « * ».
+      S3_ALLOWED_ORIGINS: ${S3_ALLOWED_ORIGINS:-http://localhost:3000}
+      # Bucket privé des documents (lot 1.9a), créé en tâche de fond une fois le maître prêt ; sans
+      # effet s'il existe déjà. Aucune politique publique : toute lecture passe par une URL signée.
+      S3_BUCKET: ${S3_BUCKET:-oz-documents}
     entrypoint: ['/bin/sh', '-c']
     command:
       - >-
         printf '{"identities":[{"name":"oz-dev","credentials":[{"accessKey":"%s","secretKey":"%s"}],"actions":["Admin","Read","Write","List","Tagging"]}]}'
         "$$S3_ACCESS_KEY" "$$S3_SECRET_KEY" > /tmp/s3.json &&
+        (for i in $$(seq 1 60); do
+        echo "s3.bucket.create -name $$S3_BUCKET" | weed shell >/dev/null 2>&1;
+        echo 's3.bucket.list' | weed shell 2>/dev/null | grep -q "$$S3_BUCKET" && break;
+        sleep 1; done) &
         exec weed server -dir=/data -ip.bind=0.0.0.0 -master.volumeSizeLimitMB=256
-        -s3 -s3.port=8333 -s3.config=/tmp/s3.json
+        -s3 -s3.port=8333 -s3.config=/tmp/s3.json -s3.allowedOrigins="$$S3_ALLOWED_ORIGINS"
     ports:
       - '127.0.0.1:${S3_PORT:-8333}:8333'
     volumes:

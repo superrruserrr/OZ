@@ -39,6 +39,11 @@ describe('parseRbacMatrix', () => {
     expect(matrix.routes).toEqual([{ method: 'GET', path: '/a', access: 'public' }]);
   });
 
+  it('une route peut exiger une action de la matrice (`@Can`)', () => {
+    const matrix = parseRbacMatrix(document(ROWS, ['| POST | /b | `document.upload` |']));
+    expect(matrix.routes).toEqual([{ method: 'POST', path: '/b', access: 'document.upload' }]);
+  });
+
   it.each([
     ['marqueur absent', 'rien'],
     ['tableau absent', '<!-- rbac:actions -->\n\ntexte'],

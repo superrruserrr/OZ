@@ -20,6 +20,7 @@ Référence EX-104 n° 8, lots 1.4a et 1.4b. Ce document **fait foi** : `package
 | `allow`       | Permis                                                                                    |
 | `self`        | Sur son propre profil                                                                     |
 | `self-adult`  | Sur son propre profil, s'il est majeur                                                    |
+| `self+child`  | Sur son propre profil et sur un joueur mineur dont le compte est le tuteur vérifié        |
 | `child`       | Sur un joueur dont le compte est le tuteur                                                |
 | `org`         | Dans une organisation dont le compte est membre (joueurs rattachés ou organisation visée) |
 | `tested`      | Sur un joueur testé par le centre du compte                                               |
@@ -30,7 +31,7 @@ Référence EX-104 n° 8, lots 1.4a et 1.4b. Ce document **fait foi** : `package
 | `kyc3+org`    | Comme `org`, au niveau KYC 3 seulement                                                    |
 | `kyc3+logged` | Permis au niveau KYC 3 seulement, journalisé et visible du tuteur (EX-T16 n° 5)           |
 
-Le niveau KYC n'existe qu'au lot 1.10 : d'ici là, toute valeur `kyc3` est refusée, donc recruteurs et agences n'ont aucun droit (plan §7.3).
+Le niveau KYC n'existe qu'au lot 1.10 : d'ici là, toute valeur `kyc3` est refusée, donc recruteurs et agences n'ont aucun droit (plan §7.3), sauf déposer le justificatif de leur propre organisation (`document.upload`, D5 du lot 1.9a).
 
 ## Actions par rôle
 
@@ -38,25 +39,28 @@ La colonne `recruiter` vaut aussi pour l'agence. `player.read_public` ne porte q
 
 <!-- rbac:actions -->
 
-| Action                      | Libellé                                       | player     | guardian | academy     | club  | federation | center | recruiter   | admin  |
-| --------------------------- | --------------------------------------------- | ---------- | -------- | ----------- | ----- | ---------- | ------ | ----------- | ------ |
-| `profile.read`              | Voir le profil complet                        | self       | child    | deny        | deny  | deny       | deny   | deny        | logged |
-| `profile.update`            | Modifier un profil (hors KYC, rôle, statut)   | self-adult | child    | org         | org   | deny       | deny   | deny        | logged |
-| `player.create`             | Créer ou importer des joueurs                 | deny       | deny     | org         | org   | deny       | deny   | deny        | allow  |
-| `player.read_public`        | Voir un profil majeur vérifié                 | allow      | allow    | allow       | allow | allow      | allow  | kyc3        | allow  |
-| `player.search`             | Rechercher des joueurs                        | deny       | deny     | limited     | allow | allow      | deny   | kyc3        | allow  |
-| `player.read_club_contact`  | Voir les coordonnées du club ou de l'académie | deny       | deny     | tier        | tier  | allow      | deny   | tier        | allow  |
-| `player.read_minor`         | Voir un profil mineur                         | self       | child    | org+limited | allow | allow      | tested | kyc3+logged | logged |
-| `player.read_minor_contact` | Voir les coordonnées directes d'un mineur     | deny       | child    | deny        | deny  | deny       | deny   | never       | logged |
-| `list.manage`               | Créer des listes et shortlists                | deny       | deny     | allow       | allow | allow      | deny   | kyc3        | deny   |
-| `test.certify`              | Saisir et certifier des tests (Phase 2)       | deny       | deny     | deny        | deny  | deny       | allow  | deny        | deny   |
-| `test.review`               | Revoir des tests certifiés                    | deny       | deny     | deny        | deny  | deny       | deny   | deny        | allow  |
-| `kyc.decide`                | Décider un dossier KYC, valider un compte     | deny       | deny     | deny        | deny  | deny       | deny   | deny        | allow  |
-| `kyc.read`                  | Consulter un dossier KYC (appui licences)     | deny       | deny     | deny        | deny  | allow      | deny   | deny        | allow  |
-| `audit.read`                | Consulter le journal d'accès d'un profil      | self       | child    | deny        | deny  | deny       | deny   | deny        | allow  |
-| `subscription.manage`       | Gérer un abonnement                           | deny       | deny     | org         | org   | org        | org    | kyc3+org    | allow  |
+| Action                      | Libellé                                       | player     | guardian   | academy     | club  | federation | center | recruiter   | admin  |
+| --------------------------- | --------------------------------------------- | ---------- | ---------- | ----------- | ----- | ---------- | ------ | ----------- | ------ |
+| `profile.read`              | Voir le profil complet                        | self       | child      | deny        | deny  | deny       | deny   | deny        | logged |
+| `profile.update`            | Modifier un profil (hors KYC, rôle, statut)   | self-adult | child      | org         | org   | deny       | deny   | deny        | logged |
+| `player.create`             | Créer ou importer des joueurs                 | deny       | deny       | org         | org   | deny       | deny   | deny        | allow  |
+| `player.read_public`        | Voir un profil majeur vérifié                 | allow      | allow      | allow       | allow | allow      | allow  | kyc3        | allow  |
+| `player.search`             | Rechercher des joueurs                        | deny       | deny       | limited     | allow | allow      | deny   | kyc3        | allow  |
+| `player.read_club_contact`  | Voir les coordonnées du club ou de l'académie | deny       | deny       | tier        | tier  | allow      | deny   | tier        | allow  |
+| `player.read_minor`         | Voir un profil mineur                         | self       | child      | org+limited | allow | allow      | tested | kyc3+logged | logged |
+| `player.read_minor_contact` | Voir les coordonnées directes d'un mineur     | deny       | child      | deny        | deny  | deny       | deny   | never       | logged |
+| `list.manage`               | Créer des listes et shortlists                | deny       | deny       | allow       | allow | allow      | deny   | kyc3        | deny   |
+| `test.certify`              | Saisir et certifier des tests (Phase 2)       | deny       | deny       | deny        | deny  | deny       | allow  | deny        | deny   |
+| `test.review`               | Revoir des tests certifiés                    | deny       | deny       | deny        | deny  | deny       | deny   | deny        | allow  |
+| `kyc.decide`                | Décider un dossier KYC, valider un compte     | deny       | deny       | deny        | deny  | deny       | deny   | deny        | allow  |
+| `kyc.read`                  | Consulter un dossier KYC (appui licences)     | deny       | deny       | deny        | deny  | allow      | deny   | deny        | allow  |
+| `audit.read`                | Consulter le journal d'accès d'un profil      | self       | child      | deny        | deny  | deny       | deny   | deny        | allow  |
+| `subscription.manage`       | Gérer un abonnement                           | deny       | deny       | org         | org   | org        | org    | kyc3+org    | allow  |
+| `document.upload`           | Déposer une pièce ou un justificatif          | self       | self+child | org         | org   | org        | org    | org         | deny   |
 
 Aucune action ne permet de modifier son rôle, son niveau KYC ou son statut (CP-07) : `profile.update` se décide sur une liste blanche de champs, la même pour tous, administrateur compris. La tutelle s'arrête à la majorité de l'enfant. La revue quatre yeux d'un dossier KYC et la portée exacte de `kyc.read` sont précisées au lot 1.10.
+
+`document.upload` (lot 1.9a) : `self` vise les pièces de sa propre personne (fiche joueur ou fiche tuteur), `child` celles de l'enfant mineur dont le compte est le tuteur vérifié, `org` le justificatif de sa propre organisation, plus, pour l'académie et le club, les pièces de leurs joueurs rattachés. Seules les pièces d'identité, actes de naissance, photos et licences visent une personne ; le seul justificatif d'organisation est `organization_registration` ; la vidéo attend son lot (D4). Comme ailleurs, un rôle ne compte qu'une fois son organisation vérifiée : l'organisation en attente ne dépose pas encore son justificatif (D-091).
 
 ## RLS de lecture des joueurs (lot 1.4b)
 
@@ -89,32 +93,34 @@ Le téléphone d'un mineur ne reste que pour qui a `player.read_minor_contact` :
 
 ## Routes de l'API
 
-Toute route doit figurer ici. `public` : ouverte sans session. `authenticated` : session valide, sans droit particulier : la route n'agit que sur le compte de son titulaire. Une route métier portera ses rôles en plus de ces valeurs.
+Toute route doit figurer ici. `public` : ouverte sans session. `authenticated` : session valide, sans droit particulier : la route n'agit que sur le compte de son titulaire. Une action de la matrice (`document.upload`) : session valide et rôle dont la cellule n'est pas `deny` (`@Can`), 403 sinon ; le service décide ensuite sur la cible.
 
 Les pages `/docs`, `/docs-json` et `/docs-yaml` (Swagger) sont servies hors contrôleur et n'existent pas en production (EX-003 n° 4).
 
 <!-- rbac:routes -->
 
-| Méthode | Route                    | Accès         |
-| ------- | ------------------------ | ------------- |
-| GET     | /health                  | public        |
-| GET     | /health/live             | public        |
-| POST    | /contact                 | public        |
-| GET     | /auth/register/form      | public        |
-| POST    | /auth/register           | public        |
-| POST    | /auth/verify-email       | public        |
-| POST    | /auth/password/forgot    | public        |
-| POST    | /auth/password/reset     | public        |
-| POST    | /auth/login              | public        |
-| POST    | /auth/login/2fa          | public        |
-| POST    | /auth/refresh            | public        |
-| POST    | /auth/logout             | public        |
-| GET     | /auth/sessions           | authenticated |
-| DELETE  | /auth/sessions/:id       | authenticated |
-| POST    | /auth/logout-all         | authenticated |
-| POST    | /auth/2fa/setup          | authenticated |
-| POST    | /auth/2fa/enable         | authenticated |
-| POST    | /auth/2fa/disable        | authenticated |
-| POST    | /auth/2fa/recovery-codes | authenticated |
-| POST    | /auth/phone/start        | authenticated |
-| POST    | /auth/phone/verify       | authenticated |
+| Méthode | Route                          | Accès             |
+| ------- | ------------------------------ | ----------------- |
+| GET     | /health                        | public            |
+| GET     | /health/live                   | public            |
+| POST    | /contact                       | public            |
+| GET     | /auth/register/form            | public            |
+| POST    | /auth/register                 | public            |
+| POST    | /auth/verify-email             | public            |
+| POST    | /auth/password/forgot          | public            |
+| POST    | /auth/password/reset           | public            |
+| POST    | /auth/login                    | public            |
+| POST    | /auth/login/2fa                | public            |
+| POST    | /auth/refresh                  | public            |
+| POST    | /auth/logout                   | public            |
+| GET     | /auth/sessions                 | authenticated     |
+| DELETE  | /auth/sessions/:id             | authenticated     |
+| POST    | /auth/logout-all               | authenticated     |
+| POST    | /auth/2fa/setup                | authenticated     |
+| POST    | /auth/2fa/enable               | authenticated     |
+| POST    | /auth/2fa/disable              | authenticated     |
+| POST    | /auth/2fa/recovery-codes       | authenticated     |
+| POST    | /auth/phone/start              | authenticated     |
+| POST    | /auth/phone/verify             | authenticated     |
+| POST    | /documents/upload              | `document.upload` |
+| POST    | /documents/upload/:id/complete | `document.upload` |

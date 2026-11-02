@@ -155,6 +155,7 @@ model User {
   consentsUpdated      Consent[]      @relation("ConsentUpdatedBy")
 
   documentsUploaded    Document[]        @relation("DocumentUploadedBy")
+  documentUploads      DocumentUpload[]
   documentsCreated     Document[]        @relation("DocumentCreatedBy")
   documentsUpdated     Document[]        @relation("DocumentUpdatedBy")
   kycDecisions         KycCase[]         @relation("KycCaseDecidedBy")
@@ -239,15 +240,16 @@ model Organization {
   /// Souscription courante : clé composite, toujours une souscription de cette organisation.
   subscriptionId     String?            @map("subscription_id") @db.Uuid
 
-  members       UserRole[]
-  players       Player[]
-  createdByUser User?          @relation("OrganizationCreatedBy", fields: [createdBy], references: [id], onDelete: Restrict)
-  updatedByUser User?          @relation("OrganizationUpdatedBy", fields: [updatedBy], references: [id], onDelete: Restrict)
-  subscription  Subscription?  @relation("OrganizationCurrentSubscription", fields: [subscriptionId, id], references: [id, organizationId], onDelete: Restrict)
-  subscriptions Subscription[] @relation("SubscriptionOrganization")
-  documents     Document[]
-  kycCases      KycCase[]
-  imports       Import[]
+  members         UserRole[]
+  players         Player[]
+  createdByUser   User?            @relation("OrganizationCreatedBy", fields: [createdBy], references: [id], onDelete: Restrict)
+  updatedByUser   User?            @relation("OrganizationUpdatedBy", fields: [updatedBy], references: [id], onDelete: Restrict)
+  subscription    Subscription?    @relation("OrganizationCurrentSubscription", fields: [subscriptionId, id], references: [id, organizationId], onDelete: Restrict)
+  subscriptions   Subscription[]   @relation("SubscriptionOrganization")
+  documents       Document[]
+  documentUploads DocumentUpload[]
+  kycCases        KycCase[]
+  imports         Import[]
 
   @@map("organizations")
 }
@@ -285,17 +287,18 @@ model Player {
   createdBy               String?                  @map("created_by") @db.Uuid
   updatedBy               String?                  @map("updated_by") @db.Uuid
 
-  user          User?         @relation("PlayerUser", fields: [userId], references: [id], onDelete: Restrict)
-  guardian      Guardian?     @relation(fields: [guardianId], references: [id], onDelete: Restrict)
-  organization  Organization? @relation(fields: [organizationId], references: [id], onDelete: Restrict)
-  consents      Consent[]
-  documents     Document[]
-  kycCases      KycCase[]
+  user            User?            @relation("PlayerUser", fields: [userId], references: [id], onDelete: Restrict)
+  guardian        Guardian?        @relation(fields: [guardianId], references: [id], onDelete: Restrict)
+  organization    Organization?    @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  consents        Consent[]
+  documents       Document[]
+  documentUploads DocumentUpload[]
+  kycCases        KycCase[]
   /// OZ ID réservé à ce joueur par le registre, à lui et à nul autre (lot 1.2).
-  ozIdEntry     OzIdRegistry? @relation("PlayerOzId", fields: [ozId, id], references: [ozId, playerId], onDelete: Restrict, map: "players_oz_id_registry_fkey")
-  ozIdReserved  OzIdRegistry? @relation("OzIdRegistryPlayer")
-  createdByUser User?         @relation("PlayerCreatedBy", fields: [createdBy], references: [id], onDelete: Restrict)
-  updatedByUser User?         @relation("PlayerUpdatedBy", fields: [updatedBy], references: [id], onDelete: Restrict)
+  ozIdEntry       OzIdRegistry?    @relation("PlayerOzId", fields: [ozId, id], references: [ozId, playerId], onDelete: Restrict, map: "players_oz_id_registry_fkey")
+  ozIdReserved    OzIdRegistry?    @relation("OzIdRegistryPlayer")
+  createdByUser   User?            @relation("PlayerCreatedBy", fields: [createdBy], references: [id], onDelete: Restrict)
+  updatedByUser   User?            @relation("PlayerUpdatedBy", fields: [updatedBy], references: [id], onDelete: Restrict)
 
   @@index([documentNumberHmac])
   @@index([guardianId])
@@ -325,12 +328,13 @@ model Guardian {
   createdBy               String?              @map("created_by") @db.Uuid
   updatedBy               String?              @map("updated_by") @db.Uuid
 
-  user          User?      @relation("GuardianUser", fields: [userId], references: [id], onDelete: Restrict)
-  players       Player[]
-  consents      Consent[]
-  documents     Document[]
-  createdByUser User?      @relation("GuardianCreatedBy", fields: [createdBy], references: [id], onDelete: Restrict)
-  updatedByUser User?      @relation("GuardianUpdatedBy", fields: [updatedBy], references: [id], onDelete: Restrict)
+  user            User?            @relation("GuardianUser", fields: [userId], references: [id], onDelete: Restrict)
+  players         Player[]
+  consents        Consent[]
+  documents       Document[]
+  documentUploads DocumentUpload[]
+  createdByUser   User?            @relation("GuardianCreatedBy", fields: [createdBy], references: [id], onDelete: Restrict)
+  updatedByUser   User?            @relation("GuardianUpdatedBy", fields: [updatedBy], references: [id], onDelete: Restrict)
 
   @@index([documentNumberHmac])
   @@index([userId])
@@ -413,6 +417,15 @@ enum DocumentType {
   organization_registration
 
   @@map("document_type")
+}
+
+enum UploadStatus {
+  issued
+  completed
+  rejected
+  expired
+
+  @@map("upload_status")
 }
 
 enum AvStatus {
@@ -517,6 +530,7 @@ model Document {
   createdByUser User?             @relation("DocumentCreatedBy", fields: [createdBy], references: [id], onDelete: Restrict)
   updatedByUser User?             @relation("DocumentUpdatedBy", fields: [updatedBy], references: [id], onDelete: Restrict)
   kycCases      KycCaseDocument[]
+  upload        DocumentUpload?
 
   @@index([documentNumberHmac])
   @@index([guardianId])
@@ -525,6 +539,35 @@ model Document {
   @@index([sha256])
   @@index([uploadedBy])
   @@map("documents")
+}
+
+/// Intention de dépôt (lot 1.9a) : URL signée de 5 min à usage unique ; réception et rejet par le chemin privilégié.
+model DocumentUpload {
+  id             String       @id @default(dbgenerated("oz_uuid_v7()")) @db.Uuid
+  requestedBy    String       @map("requested_by") @db.Uuid
+  documentType   DocumentType @map("document_type")
+  playerId       String?      @map("player_id") @db.Uuid
+  guardianId     String?      @map("guardian_id") @db.Uuid
+  organizationId String?      @map("organization_id") @db.Uuid
+  contentType    String       @map("content_type")
+  sizeBytes      BigInt       @map("size_bytes")
+  sha256         String
+  status         UploadStatus @default(issued)
+  expiresAt      DateTime     @default(dbgenerated("(now() + '00:05:00'::interval)")) @map("expires_at") @db.Timestamptz(6)
+  completedAt    DateTime?    @map("completed_at") @db.Timestamptz(6)
+  documentId     String?      @unique @map("document_id") @db.Uuid
+  rejectReason   String?      @map("reject_reason")
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  requester    User          @relation(fields: [requestedBy], references: [id], onDelete: Restrict)
+  player       Player?       @relation(fields: [playerId], references: [id], onDelete: Restrict)
+  guardian     Guardian?     @relation(fields: [guardianId], references: [id], onDelete: Restrict)
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  document     Document?     @relation(fields: [documentId], references: [id], onDelete: Restrict)
+
+  @@index([requestedBy, createdAt])
+  @@index([status, expiresAt])
+  @@map("document_uploads")
 }
 
 /// Dossier de vérification d'un joueur ou d'une organisation (§5.4) ; quatre yeux si sensible (CP-16).

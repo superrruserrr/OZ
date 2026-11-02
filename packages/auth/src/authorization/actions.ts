@@ -30,6 +30,7 @@ export const RBAC_ACTION_SUBJECTS = {
   'kyc.read': 'KycCase',
   'audit.read': 'Player',
   'subscription.manage': 'Organization',
+  'document.upload': 'Document',
 } as const;
 export type RbacAction = keyof typeof RBAC_ACTION_SUBJECTS;
 export type RbacSubjectType = (typeof RBAC_ACTION_SUBJECTS)[RbacAction];
@@ -44,6 +45,7 @@ export const RBAC_CELLS = [
   'allow',
   'self',
   'self-adult',
+  'self+child',
   'child',
   'org',
   'tested',

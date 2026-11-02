@@ -124,7 +124,7 @@ qui reste une fois les mesures prévues en place.
 - **Mesures** : antivirus ClamAV en file d'attente, vérification du type MIME réel, ré-encodage des
   images, taille limitée (50 Mo), stockage hors du domaine applicatif, URL signées de 5 minutes,
   jamais d'URL publique.
-- **État** : prévu (ClamAV déjà présent dans les services locaux).
+- **État** : en cours. Lot 1.9a : dépôt direct par URL signée de 5 minutes (type, taille et SHA-256 signés), type réel lu sur les octets de tête, rejet et alerte d'un fichier déguisé, quarantaine, bucket privé ([documents.md](documents.md)). Restent l'antivirus et le ré-encodage (1.9b), la purge (1.9c).
 - **Risque résiduel** : Faible.
 - **Lot de vérification** : 1.9.
 

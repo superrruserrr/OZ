@@ -150,19 +150,21 @@ Sous contexte utilisateur (`withUserContext`, RLS et garde `oz_sessions_guard`) 
 
 Décisions validées : D1 limiteur maison dans Redis ; D2 limites réglables sans redéploiement ; D3 Redis indisponible → refus (500) ; D7 valeurs et clés ci-dessous. Écart d'exécution à D1 : **journal glissant exact** (ensemble trié des passages acceptés, horloge du serveur Redis, script Lua atomique) au lieu de deux compteurs approchés ; la mémoire par clé reste bornée par la limite (1 000 au plus).
 
-| Règle              | Route                             | Compte                            | Défaut     |
-| ------------------ | --------------------------------- | --------------------------------- | ---------- |
-| `login_ip`         | `POST /auth/login`                | IP                                | 5 / 15 min |
-| `login_account`    | `POST /auth/login`                | adresse saisie (existante ou non) | 10 / 1 h   |
-| `register_ip`      | `POST /auth/register`             | IP                                | 3 / 1 h    |
-| `register_email`   | `POST /auth/register`             | adresse, demande recevable seule  | 1 / 1 h    |
-| `register_form_ip` | `GET /auth/register/form`         | IP                                | 20 / 1 h   |
-| `forgot_ip`        | `POST /auth/password/forgot`      | IP                                | 3 / 1 h    |
-| `forgot_email`     | `POST /auth/password/forgot`      | adresse saisie                    | 1 / 15 min |
-| `verify_email_ip`  | `POST /auth/verify-email`         | IP                                | 10 / 1 h   |
-| `reset_ip`         | `POST /auth/password/reset`       | IP                                | 10 / 1 h   |
-| `refresh_ip`       | `POST /auth/refresh`              | IP                                | 60 / 1 min |
-| `new_device_email` | email « nouvelle connexion » (D5) | compte                            | 3 / 24 h   |
+| Règle                       | Route                                            | Compte                            | Défaut     |
+| --------------------------- | ------------------------------------------------ | --------------------------------- | ---------- |
+| `login_ip`                  | `POST /auth/login`                               | IP                                | 5 / 15 min |
+| `login_account`             | `POST /auth/login`                               | adresse saisie (existante ou non) | 10 / 1 h   |
+| `register_ip`               | `POST /auth/register`                            | IP                                | 3 / 1 h    |
+| `register_email`            | `POST /auth/register`                            | adresse, demande recevable seule  | 1 / 1 h    |
+| `register_form_ip`          | `GET /auth/register/form`                        | IP                                | 20 / 1 h   |
+| `forgot_ip`                 | `POST /auth/password/forgot`                     | IP                                | 3 / 1 h    |
+| `forgot_email`              | `POST /auth/password/forgot`                     | adresse saisie                    | 1 / 15 min |
+| `verify_email_ip`           | `POST /auth/verify-email`                        | IP                                | 10 / 1 h   |
+| `reset_ip`                  | `POST /auth/password/reset`                      | IP                                | 10 / 1 h   |
+| `refresh_ip`                | `POST /auth/refresh`                             | IP                                | 60 / 1 min |
+| `new_device_email`          | email « nouvelle connexion » (D5)                | compte                            | 3 / 24 h   |
+| `document_upload_account`   | `POST /documents/upload` (lot 1.9a)              | compte                            | 20 / 1 h   |
+| `document_complete_account` | `POST /documents/upload/:id/complete` (lot 1.9a) | compte                            | 60 / 1 h   |
 
 - **Refus** : 429 `RATE_LIMITED`, en-tête `Retry-After` en secondes (temps jusqu'à ce qu'une place se libère, juste aussi après une limite abaissée — propriété testée), documenté dans OpenAPI sur chaque route. Le délai exponentiel garde son code `AUTH_RETRY_LATER`.
 - **Ordre** : la garde `@RateLimit` passe avant la validation (une requête invalide compte), règle IP d'abord, et s'arrête au premier refus : une IP déjà bloquée n'épuise pas le compteur d'un compte. `register_email` est compté dans le service, après HaveIBeenPwned : un mot de passe refusé ne bloque pas la tentative corrigée ; il l'est aussi pour un robot, pour que le 429 ne révèle pas le verdict. Au-delà du plafond `new_device_email`, la connexion réussit, l'email n'est pas envoyé (`auth.mail.capped`).

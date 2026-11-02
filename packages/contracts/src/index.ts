@@ -57,3 +57,15 @@ export {
   type TwoFactorSetupOutput,
   type VerifyEmailInput,
 } from './auth/auth.schema.js';
+export {
+  documentScanJobSchema,
+  documentUploadCompleteOutputSchema,
+  documentUploadOutputSchema,
+  documentUploadParamsSchema,
+  documentUploadSchema,
+  type DocumentScanJobInput,
+  type DocumentUploadCompleteOutput,
+  type DocumentUploadInput,
+  type DocumentUploadOutput,
+  type DocumentUploadParamsInput,
+} from './documents/upload.schema.js';

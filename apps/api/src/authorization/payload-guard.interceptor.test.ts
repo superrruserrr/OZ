@@ -161,6 +161,8 @@ describe('forbiddenKey', () => {
     'tokenHash',
     'refresh_token_hash',
     'codeHash',
+    'storageKey',
+    'storage_key',
   ])('refuse %s', (key) => {
     expect(forbiddenKey({ nested: [{ [key]: null }] })).toBe(key);
   });

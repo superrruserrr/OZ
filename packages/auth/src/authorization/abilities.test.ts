@@ -162,8 +162,13 @@ describe('abilityFor', () => {
     expect(verified.can('player.read_minor_contact', minor)).toBe(false);
   });
 
-  it('recruteur sans KYC 3 : aucun droit, pas même sur un profil public', () => {
-    expect(abilityFor(actor('recruiter')).rules).toEqual([]);
+  it('recruteur sans KYC 3 : aucun droit, sauf déposer le justificatif de son organisation (D5 du lot 1.9a)', () => {
+    const rules = abilityFor(actor('recruiter')).rules;
+    expect(rules.map((rule) => rule.action)).toEqual(['document.upload']);
+    expect(rules[0]?.conditions).toMatchObject({
+      kind: 'organization',
+      documentType: { $in: ['organization_registration'] },
+    });
   });
 
   it('EX-T16 n° 3 : mineur non vérifié ou sans consentement fermé aux tiers', () => {
