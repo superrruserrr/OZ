@@ -1,5 +1,6 @@
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
+import type { Type } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import {
@@ -85,6 +86,7 @@ interface MailpitSummary {
 
 export async function startAuthHarness(
   overrides: Record<string, string> = {},
+  modules: readonly Type[] = [],
 ): Promise<AuthHarness> {
   const [services, mailpit] = await Promise.all<
     [Promise<TestServices>, Promise<StartedTestContainer>]
@@ -123,7 +125,7 @@ export async function startAuthHarness(
     smsFails: false,
   };
   const moduleRef = await Test.createTestingModule({
-    imports: [AppModule.forRoot(config, { logStream: logs.stream })],
+    imports: [AppModule.forRoot(config, { logStream: logs.stream }), ...modules],
   })
     .overrideProvider(PWNED_CLIENT)
     .useValue({ check: () => Promise.resolve(harness.pwned) })

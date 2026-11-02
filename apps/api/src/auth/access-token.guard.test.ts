@@ -36,7 +36,7 @@ beforeEach(() => {
 
 describe('AccessTokenGuard : session restreinte (D6)', () => {
   it('route ordinaire fermée par défaut', async () => {
-    sessionAccess.mockResolvedValue('enrollment_required');
+    sessionAccess.mockResolvedValue({ status: 'enrollment_required', roles: [] });
     await expect(guard.canActivate(contextFor(closed))).rejects.toMatchObject({
       code: 'AUTH_2FA_ENROLLMENT_REQUIRED',
       status: 403,
@@ -44,12 +44,12 @@ describe('AccessTokenGuard : session restreinte (D6)', () => {
   });
 
   it('route d’enrôlement ouverte', async () => {
-    sessionAccess.mockResolvedValue('enrollment_required');
+    sessionAccess.mockResolvedValue({ status: 'enrollment_required', roles: [] });
     await expect(guard.canActivate(contextFor(enrollment))).resolves.toBe(true);
   });
 
   it('session pleine : toute route ouverte', async () => {
-    sessionAccess.mockResolvedValue('active');
+    sessionAccess.mockResolvedValue({ status: 'active', roles: [] });
     await expect(guard.canActivate(contextFor(closed))).resolves.toBe(true);
   });
 });

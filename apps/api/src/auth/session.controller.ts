@@ -20,6 +20,7 @@ import {
   type LoginTwoFactorInput,
 } from '@oz/contracts';
 import type { Request, Response } from 'express';
+import { Public } from '../authorization/decorators.js';
 import { AppException } from '../common/errors/api-error.js';
 import { RateLimit } from '../common/rate-limit/rate-limit.decorator.js';
 import { clientIp } from '../common/security/client-ip.js';
@@ -49,6 +50,7 @@ export const clientOf = (req: Request): ClientContext => ({
  * cookie, donc protégés contre la falsification de requête par la liste blanche d'origines.
  */
 @ApiTags('auth')
+@Public()
 @Controller('auth')
 export class SessionController {
   constructor(

@@ -1,4 +1,5 @@
 import { isIP } from 'node:net';
+import type { RoleKind } from './generated/prisma/client.js';
 import type { AuthSqlClient } from './auth.js';
 import type { TransactionClient } from './session-context.js';
 
@@ -246,7 +247,19 @@ export async function revokeAllSessions(tx: TransactionClient): Promise<number> 
 }
 
 /** État d'une session pour la garde d'accès. */
-export type SessionAccess = 'active' | 'email_unverified' | 'enrollment_required' | 'invalid';
+export type SessionStatus = 'active' | 'email_unverified' | 'enrollment_required' | 'invalid';
+
+/** Rôle du titulaire : seule une organisation vérifiée donne des droits (plan §7.3). */
+export interface SessionRole {
+  readonly role: RoleKind;
+  readonly organizationId: string | null;
+}
+
+/** Relu à chaque requête, dans la même lecture : les rôles ne viennent jamais du jeton (CP-08). */
+export interface SessionAccess {
+  readonly status: SessionStatus;
+  readonly roles: readonly SessionRole[];
+}
 
 /**
  * Garde d'accès (D2 du lot 1.3b) : `active` si la famille du jeton d'accès a encore une session
@@ -259,18 +272,28 @@ export async function sessionAccess(
   familyId: string,
 ): Promise<SessionAccess> {
   assertUuid(familyId);
-  const rows = await tx.$queryRaw<{ verified: boolean; enrollment: boolean }[]>`
+  const rows = await tx.$queryRaw<
+    { verified: boolean; enrollment: boolean; roles: SessionRole[] }[]
+  >`
     SELECT u.email_verified_at IS NOT NULL AS verified,
-      u.totp_enabled_at IS NULL AND oz_auth_totp_required(u.id) AS enrollment
+      u.totp_enabled_at IS NULL AND oz_auth_totp_required(u.id) AS enrollment,
+      coalesce((
+        SELECT json_agg(json_build_object('role', r.role, 'organizationId', r.organization_id)
+          ORDER BY r.role, r.organization_id)
+        FROM user_roles r LEFT JOIN organizations o ON o.id = r.organization_id
+        WHERE r.user_id = u.id AND r.deleted_at IS NULL
+          AND (r.organization_id IS NULL
+            OR (o.deleted_at IS NULL AND o.verification_status = 'verified'))
+      ), '[]'::json) AS roles
     FROM sessions s JOIN users u ON u.id = s.user_id
     WHERE s.family_id = ${familyId}::uuid AND s.user_id = oz_current_user_id()
       AND s.revoked_at IS NULL AND s.deleted_at IS NULL AND s.expires_at > now()
       AND u.deleted_at IS NULL AND u.status = 'active'
     LIMIT 1`;
   const row = rows[0];
-  if (row === undefined) return 'invalid';
-  if (!row.verified) return 'email_unverified';
-  return row.enrollment ? 'enrollment_required' : 'active';
+  if (row === undefined) return { status: 'invalid', roles: [] };
+  if (!row.verified) return { status: 'email_unverified', roles: [] };
+  return { status: row.enrollment ? 'enrollment_required' : 'active', roles: row.roles };
 }
 
 /** Adresse de l'utilisateur du contexte, pour une alerte de sécurité ; NULL si le compte est supprimé. */

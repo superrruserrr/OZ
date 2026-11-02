@@ -1,4 +1,4 @@
-import { Controller, HttpCode, Post, UseGuards } from '@nestjs/common';
+import { Controller, HttpCode, Post } from '@nestjs/common';
 import {
   ApiAcceptedResponse,
   ApiBearerAuth,
@@ -23,7 +23,7 @@ import { ApiErrorDto } from '../common/errors/api-error.dto.js';
 import { RateLimit } from '../common/rate-limit/rate-limit.decorator.js';
 import { ValidatedBody } from '../common/validation/validated-body.decorator.js';
 import { openApiBodySchema } from '../docs/contract-schema.js';
-import { AccessTokenGuard } from './access-token.guard.js';
+import { Authenticated } from '../authorization/decorators.js';
 import { CurrentUser } from './current-user.decorator.js';
 import { PhoneService } from './phone.service.js';
 
@@ -36,7 +36,7 @@ import { PhoneService } from './phone.service.js';
 @ApiBearerAuth()
 @ApiUnauthorizedResponse({ type: ApiErrorDto, description: 'Session absente, expirée ou révoquée' })
 @ApiForbiddenResponse({ type: ApiErrorDto, description: 'Enrôlement 2FA obligatoire' })
-@UseGuards(AccessTokenGuard)
+@Authenticated()
 @Controller('auth/phone')
 export class PhoneController {
   constructor(private readonly phone: PhoneService) {}

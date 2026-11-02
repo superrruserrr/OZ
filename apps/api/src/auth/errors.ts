@@ -7,6 +7,10 @@ export const INVALID_CREDENTIALS = (): AppException =>
 export const UNAUTHENTICATED = (): AppException =>
   new AppException(401, 'AUTH_UNAUTHENTICATED', 'Session expirée : reconnectez-vous.');
 
+/** Refus d'autorisation : même réponse quelle que soit la règle qui refuse (CP-09). */
+export const AUTHZ_FORBIDDEN = (): AppException =>
+  new AppException(403, 'AUTHZ_FORBIDDEN', 'Accès refusé.');
+
 /** Accès refusé tant que l'adresse n'est pas confirmée (EX-103 n° 9). */
 export const EMAIL_UNVERIFIED = (): AppException =>
   new AppException(

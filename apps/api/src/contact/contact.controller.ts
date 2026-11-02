@@ -9,6 +9,7 @@ import {
   ApiUnprocessableEntityResponse,
 } from '@nestjs/swagger';
 import { sendContactMessageSchema, type SendContactMessageInput } from '@oz/contracts';
+import { Public } from '../authorization/decorators.js';
 import { ApiErrorDto } from '../common/errors/api-error.dto.js';
 import { ValidatedBody } from '../common/validation/validated-body.decorator.js';
 import { openApiBodySchema } from '../docs/contract-schema.js';
@@ -23,6 +24,7 @@ const contactBodySchema = openApiBodySchema(sendContactMessageSchema);
  * Rien n'est stocké ni journalisé du contenu : l'envoi réel arrive avec les emails (lot 1.15).
  */
 @ApiTags('contact')
+@Public()
 @Controller('contact')
 export class ContactController {
   @Post()

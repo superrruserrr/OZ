@@ -498,7 +498,10 @@ describe('sous contexte utilisateur (RLS sessions_self, EX-103 n° 6)', () => {
   it('garde d’accès : famille valide et compte actif seulement (D2)', async () => {
     const user = await account();
     const session = await open(user);
-    const access = () => withUserContext(client, user, (tx) => sessionAccess(tx, session.familyId));
+    const access = () =>
+      withUserContext(client, user, (tx) =>
+        sessionAccess(tx, session.familyId).then(({ status }) => status),
+      );
     expect(await access()).toBe('active');
     const next = hash();
     await rotate(session.tokenHash, next);
@@ -507,7 +510,7 @@ describe('sous contexte utilisateur (RLS sessions_self, EX-103 n° 6)', () => {
     const intruder = await account();
     expect(
       await withUserContext(client, intruder, (tx) => sessionAccess(tx, session.familyId)),
-    ).toBe('invalid');
+    ).toEqual({ status: 'invalid', roles: [] });
     await db.query(`UPDATE users SET email_verified_at = NULL WHERE id = $1`, [user]);
     expect(await access()).toBe('email_unverified');
     await db.query(

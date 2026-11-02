@@ -22,6 +22,7 @@ import {
   type ResetPasswordInput,
   type VerifyEmailInput,
 } from '@oz/contracts';
+import { Public } from '../authorization/decorators.js';
 import { ApiErrorDto } from '../common/errors/api-error.dto.js';
 import { RateLimit } from '../common/rate-limit/rate-limit.decorator.js';
 import { ValidatedBody } from '../common/validation/validated-body.decorator.js';
@@ -38,6 +39,7 @@ const status = (value: string) => ({
  * FEATURE_AUTH=true. Réponses identiques que le compte existe ou non (EX-103 n° 10).
  */
 @ApiTags('auth')
+@Public()
 @Controller('auth')
 export class AuthController {
   constructor(

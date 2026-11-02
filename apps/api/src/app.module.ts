@@ -1,8 +1,9 @@
 import { Module, type DynamicModule } from '@nestjs/common';
-import { APP_FILTER } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import type { ApiConfig } from '@oz/config';
 import type { DestinationStream } from 'pino';
 import { AuthModule } from './auth/auth.module.js';
+import { DefaultDenyGuard } from './authorization/default-deny.guard.js';
 import { AllExceptionsFilter } from './common/errors/all-exceptions.filter.js';
 import { LoggingModule } from './common/logging/logging.module.js';
 import { ConfigModule } from './config/config.module.js';
@@ -27,7 +28,10 @@ export class AppModule {
         ...(config.features.contactForm ? [ContactModule] : []),
         ...(config.auth ? [AuthModule.forRoot(config.auth)] : []),
       ],
-      providers: [{ provide: APP_FILTER, useClass: AllExceptionsFilter }],
+      providers: [
+        { provide: APP_FILTER, useClass: AllExceptionsFilter },
+        { provide: APP_GUARD, useClass: DefaultDenyGuard },
+      ],
     };
   }
 }

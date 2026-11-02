@@ -5,6 +5,7 @@ import { sendContactMessageSchema, type SendContactMessageInput } from '@oz/cont
 import request from 'supertest';
 import type { App } from 'supertest/types.js';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { Public } from '../src/authorization/decorators.js';
 import { configureApp, createApp } from '../src/app.js';
 import { AppModule } from '../src/app.module.js';
 import { ValidatedBody } from '../src/common/validation/validated-body.decorator.js';
@@ -21,6 +22,7 @@ const valid = {
 
 let calls: SendContactMessageInput[] = [];
 
+@Public()
 @Controller('espion')
 class SpyController {
   @Post()
