@@ -26,6 +26,8 @@ export {
   type OpenedSession,
   type RotationResult,
   type SessionAccess,
+  type SessionRole,
+  type SessionStatus,
   type SessionSummary,
 } from './sessions.js';
 export {

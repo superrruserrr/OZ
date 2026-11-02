@@ -24,9 +24,9 @@ Chaque mesure porte son état réel au 2026-10-27 :
 | Mesure                                                           | État                                                                                                                                  |
 | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
 | Row Level Security PostgreSQL sur chaque table exposée           | Partielle — forcée, refus par défaut, lignes propres (lot 1.1a, `rls.int.test.ts`) ; matrice au lot 1.4 ; contournée en local (D-055) |
-| Politiques CASL par rôle, refus par défaut, `@Roles` / `@Scope`  | Prévue — lot 1.4                                                                                                                      |
-| Sérialisation par vue (un DTO par rôle demandeur)                | Prévue — lot 1.4                                                                                                                      |
-| Test « rôle non autorisé → 403 » pour chaque endpoint (bloquant) | Prévue — lot 1.4 (matrice `rbac.md`)                                                                                                  |
+| Politiques CASL par rôle, refus par défaut, `@Roles` / `@Scope`  | En place — lot 1.4a (`rbac.md`, garde globale, rôles relus en base)                                                                   |
+| Sérialisation par vue (un DTO par rôle demandeur)                | Prévue — lot 1.4b                                                                                                                     |
+| Test « rôle non autorisé → 403 » pour chaque endpoint (bloquant) | En place — lot 1.4a, suite générée de `rbac.md` ; routes métier à leurs lots                                                          |
 | Rôles PostgreSQL séparés : `oz_migrator` (DDL) et `oz_app` (DML) | Partielle — Terraform, lot 0.8b ; D-038                                                                                               |
 
 ## Authentification (§6.2, [ADR-002](../adr/ADR-002-authentification-proprietaire.md))

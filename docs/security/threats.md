@@ -108,7 +108,8 @@ qui reste une fois les mesures prévues en place.
   autorisé → 403 » obligatoire pour chaque endpoint, identifiants UUIDv7 non devinables, rôles
   PostgreSQL séparés pour l'application et les migrations, 2FA des rôles sensibles, revue
   adversariale de chaque lot.
-- **État** : partiel (rôles PostgreSQL séparés, D-038) ; le reste prévu.
+- **État** : partiel. Refus par défaut, CASL et test par route en place (lot 1.4a) ; RLS alignée
+  au lot 1.4b ; rôles PostgreSQL séparés, D-038.
 - **Risque résiduel** : Faible une fois la matrice exhaustive verte.
 - **Lot de vérification** : 1.1, 1.4, test d'intrusion du lot 1.17.
 

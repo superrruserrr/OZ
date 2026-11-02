@@ -89,3 +89,4 @@ export {
 } from './recovery-codes.js';
 export { generateOtpCode, otpDigest, phoneAllowed } from './otp.js';
 export * from './sms/index.js';
+export * from './authorization/index.js';

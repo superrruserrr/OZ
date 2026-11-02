@@ -1,14 +1,4 @@
-import {
-  Controller,
-  Delete,
-  Get,
-  HttpCode,
-  Inject,
-  Param,
-  Post,
-  Res,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Delete, Get, HttpCode, Inject, Param, Post, Res } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiForbiddenResponse,
@@ -40,7 +30,7 @@ import { ApiErrorDto } from '../common/errors/api-error.dto.js';
 import { ZodValidationPipe } from '../common/validation/zod-validation.pipe.js';
 import { DB_CLIENT } from '../database/database.module.js';
 import { openApiBodySchema } from '../docs/contract-schema.js';
-import { AccessTokenGuard } from './access-token.guard.js';
+import { Authenticated } from '../authorization/decorators.js';
 import { CurrentUser } from './current-user.decorator.js';
 import { clearRefreshCookie } from './refresh-cookie.js';
 import { TwoFactorEnrollment } from './two-factor-exempt.decorator.js';
@@ -53,7 +43,7 @@ import { TwoFactorEnrollment } from './two-factor-exempt.decorator.js';
 @ApiBearerAuth()
 @ApiUnauthorizedResponse({ type: ApiErrorDto, description: 'Session absente, expirée ou révoquée' })
 @ApiForbiddenResponse({ type: ApiErrorDto, description: 'Adresse email à confirmer' })
-@UseGuards(AccessTokenGuard)
+@Authenticated()
 @Controller('auth')
 export class SessionsController {
   constructor(@Inject(DB_CLIENT) private readonly db: PrismaClient) {}

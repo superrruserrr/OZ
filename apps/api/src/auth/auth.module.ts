@@ -118,7 +118,9 @@ export class AuthModule {
         { provide: AUTH_RESPONSE_FLOOR_MS, useValue: DEFAULT_FLOOR_MS },
         { provide: AUTH_MAILER, useFactory: () => new SmtpAuthMailer(auth) },
       ],
-      exports: [CredentialsService],
+      // Global : les modules métier protègent leurs routes sans réimporter ce module configuré.
+      global: true,
+      exports: [CredentialsService, ACCESS_TOKENS],
     };
   }
 }

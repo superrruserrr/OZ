@@ -6,12 +6,14 @@ import request from 'supertest';
 import type { App } from 'supertest/types.js';
 import { z } from 'zod';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { Public } from '../src/authorization/decorators.js';
 import { configureApp } from '../src/app.js';
 import { AppModule } from '../src/app.module.js';
 import { AppException, InputValidationException } from '../src/common/errors/api-error.js';
 import { captureLogs, type LogCapture } from './log-capture.js';
 import { testConfig } from './support.js';
 
+@Public()
 @Controller('test-erreurs')
 class ThrowingController {
   @Get('inattendue')

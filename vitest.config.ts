@@ -38,6 +38,7 @@ export default defineConfig({
         // EX-102 n° 8 : génération et validation de l'OZ ID couvertes à 100 %.
         'packages/core/src/oz-id/**': all(100),
         'apps/api/src/auth/**': all(100),
+        'apps/api/src/authorization/**': all(100),
         'apps/api/src/kyc/**': all(100),
         'apps/api/src/billing/**': all(100),
         'packages/auth/src/**': all(100),

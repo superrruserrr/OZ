@@ -6,6 +6,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import type { Response } from 'express';
+import { Public } from '../authorization/decorators.js';
 import { HealthReportDto } from './health.dto.js';
 import { HealthService, type HealthReport } from './health.service.js';
 
@@ -15,6 +16,7 @@ import { HealthService, type HealthReport } from './health.service.js';
  * le résultat est partagé entre appels simultanés et réutilisé 2 s (pas d'amplification).
  */
 @ApiTags('santé')
+@Public()
 @Controller('health')
 export class HealthController {
   constructor(private readonly health: HealthService) {}

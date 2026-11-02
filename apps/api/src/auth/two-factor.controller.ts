@@ -1,4 +1,4 @@
-import { Controller, HttpCode, Post, UseGuards } from '@nestjs/common';
+import { Controller, HttpCode, Post } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -27,7 +27,7 @@ import { ApiErrorDto } from '../common/errors/api-error.dto.js';
 import { RateLimit } from '../common/rate-limit/rate-limit.decorator.js';
 import { ValidatedBody } from '../common/validation/validated-body.decorator.js';
 import { openApiBodySchema } from '../docs/contract-schema.js';
-import { AccessTokenGuard } from './access-token.guard.js';
+import { Authenticated } from '../authorization/decorators.js';
 import { CurrentUser } from './current-user.decorator.js';
 import { TwoFactorEnrollment } from './two-factor-exempt.decorator.js';
 import { TwoFactorService } from './two-factor.service.js';
@@ -44,7 +44,7 @@ const recoveryCodes = { schema: openApiBodySchema(recoveryCodesOutputSchema) };
 @ApiBearerAuth()
 @ApiUnauthorizedResponse({ type: ApiErrorDto, description: 'Session absente, expirée ou révoquée' })
 @ApiForbiddenResponse({ type: ApiErrorDto, description: REJECTED })
-@UseGuards(AccessTokenGuard)
+@Authenticated()
 @Controller('auth/2fa')
 export class TwoFactorController {
   constructor(private readonly twoFactor: TwoFactorService) {}

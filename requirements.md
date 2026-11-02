@@ -246,7 +246,7 @@ Le marché de lancement est le **Cameroun**, avec une expansion prévue vers l'A
 1. LE Système DOIT calculer la minorité à partir de la date de naissance à chaque requête, sans jamais la mettre en cache dans un jeton.
 2. AUCUN profil de mineur NE DOIT être accessible anonymement ni indexé par un moteur de recherche (`noindex` forcé, exclusion du sitemap).
 3. UN profil de mineur NE DOIT être publiable qu'après consentement horodaté et documenté d'un tuteur vérifié en KYC 2.
-4. LES coordonnées directes d'un mineur NE DOIVENT être envoyées à aucun rôle, à aucun palier ; le contact passe par l'organisation de rattachement ou le tuteur.
+4. LES coordonnées directes d'un mineur NE DOIVENT être envoyées à aucun rôle tiers, à aucun palier : seuls le tuteur de l'enfant et l'administrateur, journalisé, y accèdent (CP-11, décision D6 du lot 1.4a) ; le contact passe par l'organisation de rattachement ou le tuteur.
 5. TOUTE consultation d'un profil de mineur par un recruteur ou une agence DOIT être journalisée avec l'identité du consultant, et visible par le tuteur.
 6. UN recruteur ou une agence non vérifié(e) KYC 3 NE DOIT avoir accès à aucun profil de mineur, quel que soit son abonnement.
 7. LE Système NE DOIT collecter ni données de santé, ni données scolaires, ni géolocalisation précise.
@@ -468,7 +468,7 @@ Le marché de lancement est le **Cameroun**, avec une expansion prévue vers l'A
 12. LE module DOIT être couvert à 100 % ; un scénario Playwright complet et un test de non-régression sur la réutilisation de jeton DOIVENT exister.
 
 ### EX-104 — Rôles, permissions et cloisonnement
-**Source :** lot 1.4, §3.5, §6.3 · **Priorité :** P0 · **Statut :** Plan + matrice [À CONFIRMER] [BLOQUANT]
+**Source :** lot 1.4, §3.5, §6.3 · **Priorité :** P0 · **Statut :** Plan + matrice tranchée le 2026-11-02 (`docs/security/rbac.md`)
 
 **Récit :** En tant que porteur produit, je veux que chaque rôle ne voie que ce qu'il a le droit de voir, afin que la base d'identité ne fuie jamais.
 
@@ -493,7 +493,7 @@ Le marché de lancement est le **Cameroun**, avec une expansion prévue vers l'A
 | Scout / Recruteur | — | ✓ | — | — |
 | Administrateur OZ | ✓ | ✓ | — | ✓ |
 
-**Matrice détaillée dérivée** — conforme à l'Annexe B, étendue au tuteur et aux règles mineurs du plan ; les cellules marquées * sont des déductions **[À CONFIRMER]** :
+**Matrice détaillée dérivée** — conforme à l'Annexe B, étendue au tuteur et aux règles mineurs du plan ; les cellules marquées * étaient des déductions, tranchées le 2026-11-02 (décisions D1 à D7 du lot 1.4a) ; la matrice qui fait foi est `docs/security/rbac.md` :
 
 | Action | Joueur | Tuteur* | Académie | Club | Fédération | Centre | Recruteur / Agence (KYC 3) | Admin OZ |
 |---|---|---|---|---|---|---|---|---|
@@ -1077,7 +1077,7 @@ Le marché de lancement est le **Cameroun**, avec une expansion prévue vers l'A
 
 | # | Question | Impact | Responsable | Avant |
 |---|---|---|---|---|
-| Q1 | Les cellules déduites (*) de la matrice EX-104 — notamment ce que recouvre la recherche « (limité) » de l'académie — sont-elles correctes ? *(Annexe B intégrée)* | Tout le cloisonnement | Fabrice Olinga | Lot 1.4 |
+| Q1 | ~~Cellules déduites (*) de la matrice EX-104~~ — **Tranché par Gaëtan Wassu le 2026-11-02** (décisions D1 à D7 du lot 1.4a) | — | — | — |
 | Q2 | Le KYC 3 organisationnel est-il bien inclus en Phase 1 (EX-112) ? | Parcours recruteur, critère J2 n° 1 et n° 5 | Fabrice Olinga + Gaëtan Wassu | Lot 1.10 |
 | Q3 | ~~Contradiction §7.3 / §7.4 sur l'approbation automatique~~ — **Tranché par TD-016** : revue humaine au lancement, approbation automatique des majeurs activable par drapeau après preuve mesurée | — | — | — |
 | Q4 | ~~Checksum OZ ID~~ — **Tranché par TD-017** : Damm sur base 32 Crockford, identifiant entier | — | — | — |
