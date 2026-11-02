@@ -48,6 +48,13 @@ const columnKey = z.preprocess(
 const optional = <T extends z.ZodType>(type: T) =>
   z.preprocess((value) => (value === '' ? undefined : value), type.optional());
 
+// Valeur par défaut : vide = absente, comme `optional`.
+const orDefault = <T extends z.ZodType>(type: T) =>
+  z.preprocess((value) => (value === '' ? undefined : value), type);
+
+// Origine https exacte d'un prestataire.
+const httpsOrigin = origin.refine((value) => value.startsWith('https://'));
+
 // Expéditeur : « Nom <adresse> » ou adresse seule.
 const mailbox = z
   .string()
@@ -76,6 +83,14 @@ const refreshTtl = optional(
 
 const sameBytes = (a: Uint8Array, b: Uint8Array): boolean =>
   a.byteLength === b.byteLength && a.every((byte, index) => byte === b[index]);
+
+const INFOBIP_VARIABLES = [
+  'INFOBIP_BASE_URL',
+  'INFOBIP_API_KEY',
+  'INFOBIP_WHATSAPP_SENDER',
+  'INFOBIP_WHATSAPP_TEMPLATE',
+] as const;
+const TWILIO_VARIABLES = ['TWILIO_ACCOUNT_SID', 'TWILIO_AUTH_TOKEN', 'TWILIO_FROM'] as const;
 
 const schema = z
   .object({
@@ -150,6 +165,26 @@ const schema = z
       .regex(/^(0(\.\d{1,2})?|1(\.0{1,2})?)$/)
       .default('0.5')
       .transform(Number),
+    // SMS / OTP (lot 1.3cc, TD-012) : factice en local seulement (D10).
+    SMS_PROVIDER_PRIMARY: orDefault(z.enum(['fake', 'infobip']).default('fake')),
+    SMS_PROVIDER_FALLBACK: optional(z.literal('twilio')),
+    INFOBIP_BASE_URL: optional(httpsOrigin),
+    INFOBIP_API_KEY: optional(z.string().min(20).max(200)),
+    INFOBIP_SMS_SENDER: orDefault(z.string().min(2).max(15).default('OZ')),
+    INFOBIP_WHATSAPP_SENDER: optional(z.string().regex(/^[1-9]\d{7,14}$/)),
+    INFOBIP_WHATSAPP_TEMPLATE: optional(z.string().regex(/^[a-z0-9_]{1,512}$/)),
+    TWILIO_ACCOUNT_SID: optional(z.string().regex(/^AC[0-9a-zA-Z]{32}$/)),
+    TWILIO_AUTH_TOKEN: optional(z.string().min(32).max(200)),
+    TWILIO_FROM: optional(z.string().regex(/^\+[1-9]\d{7,14}$/)),
+    // Parade au pompage de SMS (D3) : tout indicatif hors liste est refusé avant envoi.
+    // Deux chiffres au moins : « +2 » ou « +1 » ouvriraient une zone entière (D3).
+    SMS_ALLOWED_PREFIXES: orDefault(
+      z
+        .string()
+        .default('+237')
+        .transform((value) => value.split(',').map((prefix) => prefix.trim()))
+        .pipe(z.array(z.string().regex(/^\+[1-9]\d{1,3}$/)).min(1)),
+    ),
   })
   .superRefine((env, ctx) => {
     // Les deux clés vont ensemble, et diffèrent : un index aveugle ne doit rien révéler du chiffrement.
@@ -187,6 +222,8 @@ const schema = z
         'JWT_REFRESH_SECRET',
         // Secret TOTP chiffré en colonne (lot 1.3cb, D3), local compris.
         'DATABASE_ENCRYPTION_KEY',
+        // Empreinte du numéro de téléphone (lot 1.3cc, D1).
+        'DATABASE_BLIND_INDEX_KEY',
       ] as const) {
         if (env[name] === undefined) {
           ctx.addIssue({ code: 'custom', path: [name], message: 'requis quand FEATURE_AUTH=true' });
@@ -220,12 +257,39 @@ const schema = z
       if (remote && env.APP_URL?.startsWith('https://') === false) {
         ctx.addIssue({ code: 'custom', path: ['APP_URL'], message: 'https requis' });
       }
+      // D10 : hors local, le principal réel et son secours, jamais le factice.
+      if (remote && env.SMS_PROVIDER_PRIMARY === 'fake') {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['SMS_PROVIDER_PRIMARY'],
+          message: 'fournisseur factice interdit hors local',
+        });
+      }
+      if (remote && env.SMS_PROVIDER_FALLBACK === undefined) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['SMS_PROVIDER_FALLBACK'],
+          message: 'requis hors local',
+        });
+      }
+      const missingSms = [
+        ...(env.SMS_PROVIDER_PRIMARY === 'infobip' ? INFOBIP_VARIABLES : []),
+        ...(env.SMS_PROVIDER_FALLBACK === 'twilio' ? TWILIO_VARIABLES : []),
+      ].filter((name) => env[name] === undefined);
+      for (const name of missingSms) {
+        ctx.addIssue({ code: 'custom', path: [name], message: 'requis par le fournisseur choisi' });
+      }
     }
     // Recette et production : base et Redis managés joints en TLS épinglé (D-006, lot 0.8b).
     if (hosted) {
       const required = (path: string, message: string): void => {
         ctx.addIssue({ code: 'custom', path: [path], message });
       };
+      // Derrière les mandataires, sans sauts déclarés, toutes les IP n'en font qu'une : une seule
+      // limite par IP bloquerait tout le monde.
+      if (env.FEATURE_AUTH === 'true' && env.TRUST_PROXY === 0) {
+        required('TRUST_PROXY', 'requis avec FEATURE_AUTH en recette et en production');
+      }
       if (!env.DATABASE_CA_CERT) required('DATABASE_CA_CERT', 'requis en recette et en production');
       if (!env.REDIS_CA_CERT) required('REDIS_CA_CERT', 'requis en recette et en production');
       if (!env.DATABASE_ENCRYPTION_KEY) {
@@ -246,14 +310,6 @@ const schema = z
         code: 'custom',
         path: ['FEATURE_CONTACT_FORM'],
         message: 'interdit en production avant les lots 1.3 et 1.15',
-      });
-    }
-    // Inscription publique : pas avant la protection anti-robot et la limitation de débit (lot 1.3c).
-    if (env.FEATURE_AUTH === 'true') {
-      ctx.addIssue({
-        code: 'custom',
-        path: ['FEATURE_AUTH'],
-        message: 'interdit en production avant le lot 1.3c',
       });
     }
     if (env.NODE_ENV !== 'production') {
@@ -321,10 +377,60 @@ export interface AuthConfig {
     readonly refreshKey: Uint8Array;
     readonly refreshTtlSeconds: number;
   };
-  /** Clé `oz_encrypt` du secret TOTP (lot 1.3cb, D3) : `DATABASE_ENCRYPTION_KEY`. */
-  readonly totpEncryptionKey: string;
+  /** Clé `oz_encrypt` du secret TOTP et du téléphone : `DATABASE_ENCRYPTION_KEY`. */
+  readonly columnEncryptionKey: string;
+  /** Clé `oz_blind_index` du téléphone (lot 1.3cc, D1) : `DATABASE_BLIND_INDEX_KEY`. */
+  readonly blindIndexKey: string;
   /** reCAPTCHA v3 (lot 1.3ca, D4) : absent en local sans secret, vérification alors sautée. */
   readonly recaptcha: { readonly secretKey: string; readonly minScore: number } | undefined;
+  /** Envoi des OTP (lot 1.3cc, TD-012). */
+  readonly sms: SmsConfig;
+}
+
+export interface SmsConfig {
+  /** Indicatifs autorisés (D3). */
+  readonly allowedPrefixes: readonly string[];
+  /** Fournisseur factice : local seulement (D10). */
+  readonly fake: boolean;
+  readonly infobip:
+    | {
+        readonly baseUrl: string;
+        readonly apiKey: string;
+        readonly smsSender: string;
+        readonly whatsappSender: string;
+        readonly whatsappTemplate: string;
+      }
+    | undefined;
+  readonly twilio:
+    { readonly accountSid: string; readonly authToken: string; readonly from: string } | undefined;
+}
+
+function smsConfig(value: z.output<typeof schema>): SmsConfig {
+  const infobip = {
+    baseUrl: value.INFOBIP_BASE_URL,
+    apiKey: value.INFOBIP_API_KEY,
+    smsSender: value.INFOBIP_SMS_SENDER,
+    whatsappSender: value.INFOBIP_WHATSAPP_SENDER,
+    whatsappTemplate: value.INFOBIP_WHATSAPP_TEMPLATE,
+  };
+  const twilio = {
+    accountSid: value.TWILIO_ACCOUNT_SID,
+    authToken: value.TWILIO_AUTH_TOKEN,
+    from: value.TWILIO_FROM,
+  };
+  return Object.freeze({
+    allowedPrefixes: Object.freeze([...value.SMS_ALLOWED_PREFIXES]),
+    fake: value.SMS_PROVIDER_PRIMARY === 'fake',
+    // Complets : le schéma les exige dès que le fournisseur est choisi.
+    infobip:
+      value.SMS_PROVIDER_PRIMARY === 'infobip'
+        ? Object.freeze(infobip as NonNullable<SmsConfig['infobip']>)
+        : undefined,
+    twilio:
+      value.SMS_PROVIDER_FALLBACK === 'twilio'
+        ? Object.freeze(twilio as NonNullable<SmsConfig['twilio']>)
+        : undefined,
+  });
 }
 
 /** Charge et valide la configuration de l'API. Lève `ConfigError` au lieu de démarrer avec un état invalide. */
@@ -375,11 +481,13 @@ export function loadApiConfig(env: Readonly<Record<string, string | undefined>>)
       value.SMTP_PORT !== undefined &&
       value.JWT_ACCESS_SECRET !== undefined &&
       value.JWT_REFRESH_SECRET !== undefined &&
-      value.DATABASE_ENCRYPTION_KEY !== undefined
+      value.DATABASE_ENCRYPTION_KEY !== undefined &&
+      value.DATABASE_BLIND_INDEX_KEY !== undefined
         ? Object.freeze({
             appUrl: value.APP_URL,
             hmacKey: value.AUTH_HMAC_KEY,
-            totpEncryptionKey: value.DATABASE_ENCRYPTION_KEY,
+            columnEncryptionKey: value.DATABASE_ENCRYPTION_KEY,
+            blindIndexKey: value.DATABASE_BLIND_INDEX_KEY,
             emailFrom: value.EMAIL_FROM,
             smtp: Object.freeze({
               host: value.SMTP_HOST,
@@ -400,6 +508,7 @@ export function loadApiConfig(env: Readonly<Record<string, string | undefined>>)
                     secretKey: value.RECAPTCHA_SECRET_KEY,
                     minScore: value.RECAPTCHA_MIN_SCORE,
                   }),
+            sms: smsConfig(value),
           })
         : undefined,
   });

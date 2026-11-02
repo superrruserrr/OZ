@@ -92,8 +92,10 @@ qui reste une fois les mesures prévues en place.
   dévaluer la recherche.
 - **Impact** : Moyen. Coûts SMS, données polluées.
 - **Mesures** : reCAPTCHA v3, champ piège et chronométrie, limitation de débit (3 inscriptions par
-  heure et par IP), vérification email puis SMS, score de risque, limite globale Cloudflare.
-- **État** : prévu.
+  heure et par IP), vérification email puis SMS, plafonds d'envoi par IP, compte et numéro, liste blanche d'indicatifs,
+  score de risque, limite globale Cloudflare.
+- **Limite connue** : le plafond par numéro peut servir à bloquer un tiers 24 h (D-084).
+- **État** : partiel (lots 1.3ca et 1.3cc) ; score de risque et Cloudflare prévus.
 - **Risque résiduel** : Faible.
 - **Lot de vérification** : 1.3, 1.17 (tests de charge), 1.18 (Cloudflare).
 

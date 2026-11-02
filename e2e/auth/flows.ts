@@ -1,4 +1,5 @@
 import { randomBytes, randomUUID } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import { expect, type APIRequestContext, type APIResponse } from '@playwright/test';
 import { WEB_ORIGIN } from './api-stack.js';
 
@@ -84,3 +85,17 @@ export const refresh = (api: APIRequestContext, cookie: string) =>
   api.post('/auth/refresh', {
     headers: { Origin: WEB_ORIGIN, Cookie: `${REFRESH_COOKIE}=${cookie}` },
   });
+
+/** Dernier OTP du fournisseur factice pour ce numéro, lu dans la sortie de l'API. */
+export async function otpFor(phone: string): Promise<string> {
+  const log = process.env.E2E_API_LOG;
+  if (log === undefined) throw new Error('E2E_API_LOG absent');
+  const deadline = Date.now() + 5_000;
+  for (;;) {
+    const codes = [...readFileSync(log, 'utf8').matchAll(/^\[sms-factice\] (\S+) (\d{6})$/gm)];
+    const code = codes.filter((match) => match[1] === phone).at(-1)?.[2];
+    if (code !== undefined) return code;
+    if (Date.now() > deadline) throw new Error('aucun OTP reçu');
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+}

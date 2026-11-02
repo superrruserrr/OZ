@@ -109,3 +109,12 @@ Migration `20261101100000_auth_totp`, vérifiée par `auth-totp.int.test.ts` ; r
 - **Chemin privilégié** : `oz_auth_totp_state`, `_begin`, `_enable`, `_disable`, `_consume_step`, `_consume_recovery`, `_replace_recovery` et `_required` (`SECURITY DEFINER`, `EXECUTE` réservé à `oz_app`). La clé de chiffrement est un paramètre : elle n'est stockée nulle part en base.
 - **Atomicité** : `_consume_step` et `_consume_recovery` sont une seule mise à jour conditionnelle : deux requêtes simultanées n'en valident qu'une.
 - **Retour arrière** : `down.sql` supprime fonctions, déclencheur, table et colonnes, et ramène le motif `two_factor_changed` à `revoked_by_user`. Les secrets actifs (`totp_secret_encrypted`) restent en place : la colonne existait avant ce lot.
+
+### Téléphone du compte (lot 1.3cc)
+
+Migration `20261102090000_auth_phone`, vérifiée par `auth-phone.int.test.ts` ; règles dans [docs/security/auth.md](../security/auth.md#vérification-du-téléphone-lot-13cc) :
+
+- **Colonnes** : `users.phone_encrypted` (`oz_encrypt`) et `users.phone_hmac` (`oz_blind_index`, index simple, sans unicité), toutes deux nulles ou non nulles ; `users_phone_verified_check` interdit une date sans numéro. Anonymisation : `encrypted:phone`, `blind_index:phone`.
+- **Garde** `oz_users_guard_phone` : sous contexte utilisateur, ni numéro ni empreinte ne changent, titulaire compris ; `phone_verified_at` relève déjà de `oz_guard_authority`.
+- **Chemin privilégié** : `oz_auth_set_verified_phone` (`SECURITY DEFINER`, `EXECUTE` réservé à `oz_app`, clés en paramètres) écrit tout en une fois et journalise sans le numéro.
+- **Retour arrière** : `down.sql` supprime fonction, déclencheur, index et colonnes ; les numéros sont perdus et `phone_verified_at` est remis à NULL.

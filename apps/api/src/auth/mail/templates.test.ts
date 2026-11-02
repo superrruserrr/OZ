@@ -4,6 +4,7 @@ import {
   passwordChangedEmail,
   passwordResetEmail,
   recoveryCodesReplacedEmail,
+  phoneChangedEmail,
   recoveryCodeUsedEmail,
   resetLink,
   twoFactorDisabledEmail,
@@ -63,6 +64,7 @@ describe('alertes de la 2FA (lot 1.3cb)', () => {
   const RESET = `${APP}/auth/forgot-password`;
 
   it.each([
+    ['modifié', phoneChangedEmail],
     ['activée', twoFactorEnabledEmail],
     ['désactivée', twoFactorDisabledEmail],
     ['utilisé', recoveryCodeUsedEmail],

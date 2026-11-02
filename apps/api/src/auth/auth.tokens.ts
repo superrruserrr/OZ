@@ -21,3 +21,9 @@ export const RECAPTCHA_VERIFIER = Symbol('RECAPTCHA_VERIFIER');
 /** Durée d'un défi de second facteur et nombre d'essais (D4 du lot 1.3cb). */
 export const LOGIN_CHALLENGE_TTL_SECONDS = 300;
 export const LOGIN_CHALLENGE_MAX_ATTEMPTS = 5;
+/** Chaîne d'envoi des OTP (lot 1.3cc, D6). */
+export const SMS_CHAIN = Symbol('SMS_CHAIN');
+/** Code de vérification du téléphone (D4 du lot 1.3cc). */
+export const PHONE_CHALLENGE_TTL_SECONDS = 300;
+export const PHONE_CHALLENGE_MAX_ATTEMPTS = 5;
+export const PHONE_RESEND_SECONDS = 60;

@@ -1,6 +1,9 @@
 import { execFile, spawn } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
+import { mkdtempSync, openSync } from 'node:fs';
 import { createRequire } from 'node:module';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { promisify } from 'node:util';
 import { request } from '@playwright/test';
 import { GenericContainer, Wait } from 'testcontainers';
@@ -59,18 +62,27 @@ export default async function startApiStack(): Promise<() => Promise<void>> {
     cwd: root,
     env: { ...process.env, DATABASE_URL: services.env.DATABASE_URL },
   });
-  // Tous les parcours partagent l'IP locale : `login_ip` (5 / 15 min) ne mesure rien ici.
+  // Tous les parcours partagent l'IP locale : `login_ip` et `register_ip` ne mesurent rien ici.
   const db = new pg.Client({ connectionString: services.env.DATABASE_URL });
   await db.connect();
   await db.query(
     `INSERT INTO system_settings (key, value) VALUES ('rate_limits', $1::jsonb)
      ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value`,
-    [JSON.stringify({ login_ip: { limit: 100, windowSeconds: 900 } })],
+    [
+      JSON.stringify({
+        login_ip: { limit: 100, windowSeconds: 900 },
+        register_ip: { limit: 100, windowSeconds: 3_600 },
+      }),
+    ],
   );
   await db.end();
+  // Le fournisseur factice écrit les OTP sur la sortie standard : les parcours les y lisent.
+  const smsLog = join(mkdtempSync(join(tmpdir(), 'oz-e2e-')), 'api.log');
+  const output = openSync(smsLog, 'a');
+  process.env.E2E_API_LOG = smsLog;
   const api = spawn(process.execPath, ['apps/api/dist/main.js'], {
     cwd: root,
-    stdio: 'ignore',
+    stdio: ['ignore', output, 'ignore'],
     env: {
       PATH: process.env.PATH,
       NODE_ENV: 'test',

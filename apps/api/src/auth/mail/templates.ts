@@ -170,6 +170,20 @@ export function twoFactorDisabledEmail(when: Date, resetUrl: string): MailConten
   };
 }
 
+// Alerte du téléphone (lot 1.3cc, D5) : jamais le numéro.
+export function phoneChangedEmail(when: Date, resetUrl: string): MailContent {
+  return {
+    subject: 'Numéro de téléphone modifié sur votre compte OZ',
+    ...layout(
+      [
+        `Un nouveau numéro de téléphone a été vérifié sur votre compte OZ le ${formatWhen(when)}.`,
+        "Si vous n'êtes pas à l'origine de ce changement, changez votre mot de passe et contactez le support OZ.",
+      ],
+      { label: 'Changer mon mot de passe', href: resetUrl },
+    ),
+  };
+}
+
 export function recoveryCodeUsedEmail(when: Date, resetUrl: string): MailContent {
   return {
     subject: 'Code de secours utilisé sur votre compte OZ',

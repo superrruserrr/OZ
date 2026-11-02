@@ -7,7 +7,9 @@ import {
   RATE_LIMIT_RULES,
   type PwnedResult,
   type RecaptchaVerdict,
+  type SmsDelivery,
 } from '@oz/auth';
+import type { Redis } from 'ioredis';
 import pg from 'pg';
 import { GenericContainer, Wait, type StartedTestContainer } from 'testcontainers';
 import { configureApp } from '../src/app.js';
@@ -16,7 +18,9 @@ import {
   AUTH_RESPONSE_FLOOR_MS,
   PWNED_CLIENT,
   RECAPTCHA_VERIFIER,
+  SMS_CHAIN,
 } from '../src/auth/auth.tokens.js';
+import { REDIS_CLIENT } from '../src/database/database.module.js';
 import { RATE_LIMIT_CACHE_MS } from '../src/common/rate-limit/rate-limiter.service.js';
 import {
   MAILPIT_IMAGE,
@@ -57,10 +61,21 @@ export interface AuthHarness {
   /** Verdict du double reCAPTCHA pour les prochains appels. */
   recaptcha: RecaptchaVerdict;
   /** Dernier email reçu par `to` (texte), attendu jusqu'à 5 s. */
+  /** OTP reçus par le fournisseur double, dans l'ordre. */
+  sms: SentOtp[];
+  /** Vrai : toute la chaîne échoue. */
+  smsFails: boolean;
+  redis: Redis;
   mailTo(to: string, subject: string): Promise<string>;
   /** Emails reçus par `to`. */
   subjectsTo(to: string): Promise<string[]>;
   stop(): Promise<void>;
+}
+
+export interface SentOtp {
+  readonly to: string;
+  readonly code: string;
+  readonly only: string | undefined;
 }
 
 interface MailpitSummary {
@@ -104,6 +119,8 @@ export async function startAuthHarness(
   const harness = {
     pwned: 'clean' as PwnedResult,
     recaptcha: { verdict: 'human', score: 0.9 } as RecaptchaVerdict,
+    sms: [] as SentOtp[],
+    smsFails: false,
   };
   const moduleRef = await Test.createTestingModule({
     imports: [AppModule.forRoot(config, { logStream: logs.stream })],
@@ -114,6 +131,19 @@ export async function startAuthHarness(
     .useValue(RESPONSE_FLOOR_MS)
     .overrideProvider(RECAPTCHA_VERIFIER)
     .useValue({ verify: () => Promise.resolve(harness.recaptcha) })
+    .overrideProvider(SMS_CHAIN)
+    .useValue({
+      deliver: (to: string, code: string, only?: string): Promise<SmsDelivery> => {
+        if (harness.smsFails) {
+          return Promise.resolve({
+            delivered: false,
+            failures: [{ provider: 'test', channel: 'sms', code: 'http_5xx' }],
+          });
+        }
+        harness.sms.push({ to, code, only });
+        return Promise.resolve({ delivered: true, provider: 'test', channel: 'sms', failures: [] });
+      },
+    })
     .overrideProvider(RATE_LIMIT_CACHE_MS)
     .useValue(0)
     .compile();
@@ -143,9 +173,11 @@ export async function startAuthHarness(
     app,
     logs,
     db,
+    redis: app.get<Redis>(REDIS_CLIENT),
     setRateLimits,
     async mailTo(to: string, subject: string): Promise<string> {
-      const deadline = Date.now() + 5_000;
+      // Large : sous la suite complète, plusieurs bancs se partagent le poste.
+      const deadline = Date.now() + 20_000;
       for (;;) {
         const found = (await search(to)).find((message) => message.Subject === subject);
         if (found) {

@@ -31,16 +31,16 @@ Chaque mesure porte son état réel au 2026-10-27 :
 
 ## Authentification (§6.2, [ADR-002](../adr/ADR-002-authentification-proprietaire.md))
 
-| Mesure                                                                          | État                                                        |
-| ------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| Argon2id (m=19456, t=2, p=1), 12 caractères minimum, HaveIBeenPwned             | En place — lot 1.3a ([auth.md](auth.md))                    |
-| JWT 15 min en mémoire ; rafraîchissement en cookie `httpOnly` `Secure` `Strict` | En place — lot 1.3b ([auth.md](auth.md#sessions-lot-13b))   |
-| Rotation du rafraîchissement, réutilisation = révocation de la famille          | En place — lot 1.3b, alerte email au titulaire              |
-| Sessions listées et révocables ; délai exponentiel sans verrouillage définitif  | Partielle — délai par compte 1.3a, sessions 1.3b ; IP 1.3c  |
-| 2FA TOTP obligatoire : administrateurs, centres, fédérations                    | En place — lot 1.3cb ([auth.md](auth.md#2fa-totp-lot-13cb)) |
-| Vérification email avant toute action, SMS avant le KYC                         | Partielle — confirmation d'email, lot 1.3a ; SMS 1.3c, 1.10 |
-| Réponses indiscernables (compte existant ou non, CP-28)                         | En place — lots 1.3a et 1.3b (connexion)                    |
-| Couverture de tests 100 % sur l'authentification (seuil CI bloquant, R6)        | En place — seuil dans le job `test`                         |
+| Mesure                                                                          | État                                                                                                |
+| ------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| Argon2id (m=19456, t=2, p=1), 12 caractères minimum, HaveIBeenPwned             | En place — lot 1.3a ([auth.md](auth.md))                                                            |
+| JWT 15 min en mémoire ; rafraîchissement en cookie `httpOnly` `Secure` `Strict` | En place — lot 1.3b ([auth.md](auth.md#sessions-lot-13b))                                           |
+| Rotation du rafraîchissement, réutilisation = révocation de la famille          | En place — lot 1.3b, alerte email au titulaire                                                      |
+| Sessions listées et révocables ; délai exponentiel sans verrouillage définitif  | Partielle — délai par compte 1.3a, sessions 1.3b ; IP 1.3c                                          |
+| 2FA TOTP obligatoire : administrateurs, centres, fédérations                    | En place — lot 1.3cb ([auth.md](auth.md#2fa-totp-lot-13cb))                                         |
+| Vérification email avant toute action, SMS avant le KYC                         | Partielle — confirmation d'email, lot 1.3a ; preuve du numéro, lot 1.3cc ; blocage du KYC, lot 1.10 |
+| Réponses indiscernables (compte existant ou non, CP-28)                         | En place — lots 1.3a et 1.3b (connexion)                                                            |
+| Couverture de tests 100 % sur l'authentification (seuil CI bloquant, R6)        | En place — seuil dans le job `test`                                                                 |
 
 ## Protection des mineurs (§6.7, bloquant)
 

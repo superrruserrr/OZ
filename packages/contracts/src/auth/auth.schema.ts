@@ -124,3 +124,21 @@ export const sessionListOutputSchema = z.strictObject({
   ),
 });
 export type SessionListOutput = z.infer<typeof sessionListOutputSchema>;
+
+/** Vérification du téléphone (lot 1.3cc). `channel: 'sms'` : renvoi qui saute WhatsApp (D6). */
+export const phoneStartSchema = z.strictObject({
+  phone: z.string().regex(/^\+[1-9]\d{7,14}$/, { error: 'validation.phone.invalid' }),
+  channel: z.literal('sms').optional(),
+});
+export type PhoneStartInput = z.infer<typeof phoneStartSchema>;
+
+export const phoneStartOutputSchema = z.strictObject({
+  /** Durée de vie du code, en secondes. */
+  expiresIn: z.number().int().positive(),
+  /** Attente avant un renvoi, en secondes. */
+  resendAfter: z.number().int().positive(),
+});
+export type PhoneStartOutput = z.infer<typeof phoneStartOutputSchema>;
+
+export const phoneVerifySchema = z.strictObject({ code: totpCode });
+export type PhoneVerifyInput = z.infer<typeof phoneVerifySchema>;

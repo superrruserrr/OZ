@@ -43,9 +43,9 @@ describe('rollbackLast (db:rollback)', () => {
     expect(result.rolledBack).toBe(last);
     expect(await applied()).not.toContain(last);
     // Dernière migration annulée, les précédentes intactes.
-    expect(await columnExists('users', 'totp_last_step')).toBe(false);
-    expect(await tableExists('auth_recovery_codes')).toBe(false);
-    expect(await columnExists('sessions', 'revoked_reason')).toBe(true);
+    expect(await columnExists('users', 'phone_encrypted')).toBe(false);
+    expect(await columnExists('users', 'totp_last_step')).toBe(true);
+    expect(await tableExists('auth_recovery_codes')).toBe(true);
     expect(await tableExists('auth_tokens')).toBe(true);
     expect(await tableExists('oz_id_registry')).toBe(true);
     expect(await tableExists('users')).toBe(true);
