@@ -111,11 +111,9 @@ export class PhoneChallengeService {
   private unseal(userId: string, value: string): string | null {
     const raw = Buffer.from(value, 'base64');
     try {
-      const decipher = createDecipheriv(
-        'aes-256-gcm',
-        this.sealKey(),
-        raw.subarray(0, IV_BYTES),
-      ).setAAD(Buffer.from(userId));
+      const decipher = createDecipheriv('aes-256-gcm', this.sealKey(), raw.subarray(0, IV_BYTES), {
+        authTagLength: TAG_BYTES,
+      }).setAAD(Buffer.from(userId));
       decipher.setAuthTag(raw.subarray(IV_BYTES, IV_BYTES + TAG_BYTES));
       const opened = Buffer.concat([
         decipher.update(raw.subarray(IV_BYTES + TAG_BYTES)),
