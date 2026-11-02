@@ -56,6 +56,11 @@ erDiagram
     uuid created_by FK
     uuid updated_by FK
   }
+  document_duplicates {
+    uuid document_id PK,FK
+    uuid duplicate_of_id FK
+    timestamptz created_at
+  }
   document_uploads {
     uuid id PK
     uuid requested_by FK
@@ -95,6 +100,11 @@ erDiagram
     timestamptz deleted_at
     uuid created_by FK
     uuid updated_by FK
+    text rejection_reason
+    integer width
+    integer height
+    integer page_count
+    bigint perceptual_hash
   }
   guardians {
     uuid id PK
@@ -309,6 +319,8 @@ erDiagram
   consents }o--o| users : "created_by"
   consents }o--o| users : "granted_by_user_id"
   consents }o--o| users : "updated_by"
+  document_duplicates }o--|| documents : "document_id"
+  document_duplicates }o--|| documents : "duplicate_of_id"
   document_uploads }o--o| documents : "document_id"
   document_uploads }o--o| guardians : "guardian_id"
   document_uploads }o--o| organizations : "organization_id"

@@ -51,6 +51,9 @@ const REQUIRED = [
   'SIGNED_URL_TTL',
   'CLAMAV_HOST',
   'CLAMAV_PORT',
+  // Worker d'analyse (lot 1.9b) : rôle dédié oz_worker, analyses simultanées
+  'WORKER_DATABASE_URL',
+  'WORKER_CONCURRENCY',
   'RECAPTCHA_SITE_KEY',
   'RECAPTCHA_SECRET_KEY',
   'RECAPTCHA_MIN_SCORE',

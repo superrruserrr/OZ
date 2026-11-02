@@ -56,5 +56,12 @@ export {
   type UploadDocumentType,
   type UploadTarget,
 } from './document-uploads.js';
+export {
+  claimDocumentScan,
+  finishDocumentScan,
+  type ClaimedDocument,
+  type ScanRejectionReason,
+  type ScanVerdict,
+} from './document-scan.js';
 export { playerRecord, type PlayerAccessRecord } from './players.js';
 export { readSetting } from './settings.js';

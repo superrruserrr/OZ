@@ -105,13 +105,34 @@ export async function connectAsAppRole(db: TestDatabase): Promise<AppConnection>
 }
 
 /**
- * Applique toutes les migrations avec Prisma (up). `oz_app` existe avant, comme en recette où
- * Terraform le crée : les migrations lui accordent l'exécution de leurs fonctions (D-066).
+ * URL d'un rôle de connexion membre de `oz_worker`, comme le worker en recette : lecture seule des
+ * tables (privilège Scaleway `readonly`) et exécution des fonctions d'analyse (lot 1.9b).
+ */
+export async function workerRoleUrl(db: TestDatabase): Promise<string> {
+  await db.query(`DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'oz_worker_test') THEN
+      CREATE ROLE oz_worker_test LOGIN PASSWORD 'oz_worker_test' NOSUPERUSER NOBYPASSRLS;
+    END IF; END $$`);
+  await db.query('GRANT oz_worker TO oz_worker_test');
+  await db.query('GRANT USAGE ON SCHEMA public TO oz_worker_test');
+  await db.query('GRANT SELECT ON ALL TABLES IN SCHEMA public TO oz_worker_test');
+  const url = new URL(db.url);
+  url.username = 'oz_worker_test';
+  url.password = 'oz_worker_test';
+  return url.toString();
+}
+
+/**
+ * Applique toutes les migrations avec Prisma (up). `oz_app` et `oz_worker` existent avant, comme en
+ * recette où Terraform les crée : les migrations leur accordent l'exécution de leurs fonctions (D-066).
  */
 export async function migrateDeploy(db: TestDatabase): Promise<string> {
   await db.query(`DO $$ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'oz_app') THEN
       CREATE ROLE oz_app NOLOGIN NOSUPERUSER NOBYPASSRLS;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'oz_worker') THEN
+      CREATE ROLE oz_worker NOLOGIN NOSUPERUSER NOBYPASSRLS;
     END IF; END $$`);
   return db.exec('pnpm', ['exec', 'prisma', 'migrate', 'deploy']);
 }

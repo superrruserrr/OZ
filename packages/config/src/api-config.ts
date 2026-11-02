@@ -29,7 +29,7 @@ const origin = z.string().refine((value) => {
 });
 
 // Vide = absent : un .env copié de .env.example déclare ces variables sans valeur.
-const pemCert = z.preprocess(
+export const pemCert = z.preprocess(
   (value) => (value === '' ? undefined : value),
   z
     .string()

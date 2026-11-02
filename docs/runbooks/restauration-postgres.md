@@ -38,7 +38,7 @@ scw rdb backup restore <backup-id> instance-id=<id> database-name=oz region=fr-p
 
 Ou console : _Backups_ → sauvegarde choisie → _Restore_ → même instance, base `oz`.
 
-On restaure **la base `oz` sur l'instance existante** : les rôles `oz_app` et `oz_migrator`, leurs mots de passe, l'adresse privée et le certificat appartiennent à l'instance et ne changent pas. Les secrets de Secret Manager restent donc valables et Terraform reste cohérent (aucune ressource recréée).
+On restaure **la base `oz` sur l'instance existante** : les rôles `oz_app`, `oz_migrator` et `oz_worker`, leurs mots de passe, l'adresse privée et le certificat appartiennent à l'instance et ne changent pas. Les secrets de Secret Manager restent donc valables et Terraform reste cohérent (aucune ressource recréée).
 
 Si l'instance elle-même est perdue ou inutilisable : suivre `reconstruction-infrastructure.md`.
 

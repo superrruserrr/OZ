@@ -1,6 +1,6 @@
 # Coffre documentaire
 
-Dépôt des pièces (EX-110), lot 1.9a. L'analyse antivirus et le ré-encodage relèvent du lot 1.9b, la lecture signée et la purge du lot 1.9c. Décisions validées : D1 à D7 du plan du lot 1.9a.
+Dépôt des pièces (EX-110), lot 1.9a ; analyse (antivirus, contrôles, ré-encodage), lot 1.9b ; la lecture signée et la purge relèvent du lot 1.9c. Décisions validées : D1 à D7 du lot 1.9a, D1 à D9 du lot 1.9b.
 
 ## Flux
 
@@ -15,14 +15,34 @@ Dépôt des pièces (EX-110), lot 1.9a. L'analyse antivirus et le ré-encodage r
 
 Un identifiant mal formé reçoit le même 404 qu'un dépôt inconnu. Aucune réponse ne porte de clé de stockage (filet `PayloadGuardInterceptor` : `storageKey`, `storage_key`) ; aucun chemin du lot 1.9a ne produit d'URL de lecture (CP-21). Un document ne s'insère plus sous contexte utilisateur : la politique `documents_subject_insert` est supprimée, seule la réception l'écrit.
 
+## Analyse (lot 1.9b)
+
+Le worker `@oz/worker` consomme la file `document-scan` (5 essais, délai exponentiel). Le message ne porte que `{ documentId }` ; un message hors contrat est abandonné sans nouvel essai (`document.scan.invalid_job`). Il se connecte sous le rôle **`oz_worker`**, seul autorisé à exécuter les deux fonctions `SECURITY DEFINER` de l'analyse ; l'API (`oz_app`) ne peut ni réclamer ni juger un document, et toute la chaîne est refusée sous un contexte utilisateur.
+
+1. **Réclamation** — `oz_document_scan_claim` rend le type, la clé de quarantaine, le type de contenu, la taille et la SHA-256 d'un document `pending` non supprimé ; rien sinon (déjà jugé, inconnu, supprimé : job ignoré).
+2. **Lecture** — fichier lu depuis `quarantine/` (50 Mo au plus, taille annoncée refusée avant toute lecture). Fichier absent : erreur, nouvel essai.
+3. **Empreinte** — SHA-256 recalculée ; différente de celle signée au dépôt : `rejected` (`hash_mismatch`), alerte.
+4. **Antivirus** — ClamAV (`zINSTREAM`, 5 s pour se connecter, 60 s pour l'analyse). `FOUND` : `infected`, signature enregistrée (caractères filtrés), alerte `document.scan.infected` (identifiant et type du document, signature, rien d'autre). Seule la réponse exacte `stream: OK` vaut « sain » ; toute autre réponse, délai ou coupure est une panne (nouvel essai). clamd est réglé sur la borne de dépôt (`StreamMaxLength` et `MaxFileSize` à 50 Mo) et signale une analyse tronquée par une limite (`AlertExceedsMax` : `infected`).
+5. **Contrôles et ré-encodage** :
+   - **Images** (JPEG, PNG, WebP) : format réel égal au type vérifié, dimensions lues sur l'en-tête avant décodage (200 à 8 000 px par côté, 40 Mpx au plus, orientation EXIF comprise) ; ré-encodage par sharp dans le même format (JPEG et WebP qualité 90, PNG compression 9), sRGB, orientation appliquée, **aucune métadonnée conservée** (EXIF, GPS, XMP, IPTC, ICC), octets annexes et segments de commentaire détruits ; 30 s au plus. WebP animé : seule la première image est conservée. Empreinte perceptuelle dHash 64 bits calculée sur l'image ré-encodée.
+   - **PDF** : structure lue par pdf.js sans rendu, sans police ni JavaScript ni accès réseau ; 1 à 20 pages, chaque page annoncée doit exister ; chiffré (même lisible sans mot de passe), tronqué ou corrompu : `rejected` (`unreadable`). Le fichier est conservé tel quel (risques restants : D-093, D-094).
+   - Hors bornes : `rejected` (`dimensions`, `pages`, `unreadable`).
+6. **Écriture** — fichier sain écrit sous `clean/<document>` (somme SHA-256 envoyée au stockage), **puis** verdict `clean` (`oz_document_scan_finish`), **puis** quarantaine retirée. Verdict impossible ou déjà écrit par un autre essai : `clean/` laissé en place (une réponse perdue peut cacher un verdict validé, et un autre essai écrit la même clé) ; un fichier sans verdict `clean` n'est servi par rien et sera purgé (lot 1.9c). `infected` et `rejected` : verdict, puis quarantaine retirée — aucun fichier ne subsiste.
+7. **Dernier essai en panne** — verdict `error` (document jamais accessible) et alerte `document.scan.failed`.
+
+`oz_document_scan_finish` ne juge qu'une fois (verrou de ligne ; un second verdict est ignoré : `skipped`), vérifie la cohérence du verdict (motif, dimensions réservées aux images, pages aux PDF, clé `clean/<document>` si et seulement si `clean`), et inscrit l'audit `document.scan.<verdict>` sans acteur. **Doublon** : une pièce d'un autre sujet de même SHA-256 (`pending` ou `clean`) crée un signal `document_duplicates` et l'audit `document.scan.duplicate`, sans rejet (revue KYC, lot 1.10 ; empreinte perceptuelle comparée au lot 1.10, D-098). Une garde en base fige le sujet, le type et l'empreinte, et n'autorise la clé `clean/`, la taille et les colonnes de verdict qu'au passage `pending` → verdict, par le chemin privilégié.
+
+Journaux du worker : JSON (pino), identifiant de document, type, motif ou type d'erreur — jamais le contenu, la clé de stockage, l'empreinte ni le message d'une erreur (démarrage impossible compris : type d'erreur seul). Sonde de vivacité `/health/live` sur 127.0.0.1 seulement.
+
 ## Clés et états
 
-| Clé                     | Contenu                                          |
-| ----------------------- | ------------------------------------------------ |
-| `incoming/<intention>`  | Fichier envoyé, pas encore réceptionné           |
-| `quarantine/<document>` | Fichier réceptionné, en attente d'analyse (1.9b) |
+| Clé                     | Contenu                                                             |
+| ----------------------- | ------------------------------------------------------------------- |
+| `incoming/<intention>`  | Fichier envoyé, pas encore réceptionné                              |
+| `quarantine/<document>` | Fichier réceptionné, en attente d'analyse ; retiré après le verdict |
+| `clean/<document>`      | Fichier analysé et sain (image ré-encodée, PDF tel quel)            |
 
-Toute autre clé est refusée par `@oz/storage`. Intention : `issued` → `completed` | `rejected` (`size_mismatch`, `type_mismatch`) | `expired`. Document : `pending` à la réception ; `retention_until` = réception + `DOCUMENT_RETENTION_DAYS` (90 par défaut, de 1 à 3 650).
+Toute autre clé est refusée par `@oz/storage` ; seul le worker écrit sous `clean/`. Intention : `issued` → `completed` | `rejected` (`size_mismatch`, `type_mismatch`) | `expired`. Document : `pending` à la réception → `clean` | `infected` | `rejected` (`dimensions`, `pages`, `unreadable`, `hash_mismatch`) | `error` ; `retention_until` = réception + `DOCUMENT_RETENTION_DAYS` (90 par défaut, de 1 à 3 650).
 
 ## Droits (D5)
 
@@ -38,12 +58,15 @@ Toute autre clé est refusée par `@oz/storage`. Intention : `issued` → `compl
 | Intentions        | 20 par heure et par compte (`document_upload_account`)                            |
 | Réceptions        | 60 par heure et par compte (`document_complete_account`)                          |
 | Stockage local    | bucket privé (lecture anonyme : 403), CORS limité à `S3_ALLOWED_ORIGINS`          |
+| Images            | 200 à 8 000 px par côté, 40 Mpx au plus                                           |
+| PDF               | 1 à 20 pages                                                                      |
 
 ## Configuration
 
-`FEATURE_DOCUMENTS` (défaut `false`) exige `FEATURE_AUTH=true` et reste refusé en production tant que les lots 1.9b et 1.9c ne sont pas livrés (D7). `DOCUMENT_RETENTION_DAYS` : durée de conservation. En local, `docker compose` crée le bucket `S3_BUCKET` au démarrage du service `s3` ; configuration de lancement `api-documents`.
+`FEATURE_DOCUMENTS` (défaut `false`) exige `FEATURE_AUTH=true` et reste refusé en production tant que le lot 1.9c n'est pas livré et que D-092, D-093 et D-097 demeurent (D7). Worker : `WORKER_DATABASE_URL` (rôle `oz_worker`, exigé hors local et distinct de `DATABASE_URL` ; repli sur `DATABASE_URL` en local seulement), `REDIS_URL`, `S3_*`, `CLAMAV_HOST`, `CLAMAV_PORT`, `WORKER_CONCURRENCY` (1 à 8, 2 par défaut) ; configuration de lancement `worker`. `DOCUMENT_RETENTION_DAYS` : durée de conservation. En local, `docker compose` crée le bucket `S3_BUCKET` au démarrage du service `s3` ; configuration de lancement `api-documents`.
 
 ## Menaces couvertes et restantes
 
 - **Couvertes** : fichier déguisé (type réel lu sur les octets), fichier substitué après l'intention (empreinte, taille et type signés) ou après sa vérification (ETag), rejeu d'une URL ou d'une réception (usage unique), dépôt pour autrui (RLS puis CASL, 404 indiscernable), saturation (limites par compte sur l'intention et la réception, 50 Mo, transaction et requêtes bornées), lecture publique (bucket privé, aucune URL de lecture).
-- **Restantes** : antivirus, ré-encodage des images, dimensions et nombre de pages, comparaison des empreintes aux documents déjà soumis (lot 1.9b) ; purge des objets `incoming/` jamais réceptionnés et des documents échus (lot 1.9c, D-062) ; voir D-092.
+- **Couvertes au lot 1.9b** : fichier infecté (ClamAV, rien ne subsiste), charge cachée dans une image (ré-encodage, métadonnées et octets annexes détruits), bombe de décompression (dimensions lues sur l'en-tête), PDF hors bornes, chiffré ou corrompu, fichier remplacé en quarantaine (SHA-256 recomparée), pièce réutilisée pour un autre sujet (signal de doublon), verdict forgé par l'API ou un utilisateur (rôle `oz_worker` seul, refus sous contexte utilisateur, garde en base).
+- **Restantes** : lecture par URL signée de 5 minutes (EX-110 n° 6) et purge des objets orphelins et des documents échus (lot 1.9c, D-062, D-092) ; PDF hostile bloquant le worker (D-093) ; `/Count` sous-déclaré (D-094) ; comparaison perceptuelle (D-098) ; documents laissés `pending` par un job abandonné (D-099) ; privilège de lecture de `oz_worker` (D-100) ; déploiement en recette (D-097).

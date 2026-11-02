@@ -56,6 +56,11 @@ run "utilisateur_app_recree" {
     condition     = output.secret_versions["DATABASE_MIGRATION_URL"] == run.initial.secret_versions["DATABASE_MIGRATION_URL"]
     error_message = "oz_migrator inchangé : DATABASE_MIGRATION_URL ne doit pas bouger."
   }
+
+  assert {
+    condition     = output.secret_versions["WORKER_DATABASE_URL"] == run.initial.secret_versions["WORKER_DATABASE_URL"]
+    error_message = "oz_worker inchangé : WORKER_DATABASE_URL ne doit pas bouger."
+  }
 }
 
 run "rotation" {
@@ -75,6 +80,11 @@ run "rotation" {
   assert {
     condition     = output.secret_versions["DATABASE_MIGRATION_URL"] != run.utilisateur_app_recree.secret_versions["DATABASE_MIGRATION_URL"]
     error_message = "Rotation : DATABASE_MIGRATION_URL doit être réécrite."
+  }
+
+  assert {
+    condition     = output.secret_versions["WORKER_DATABASE_URL"] != run.utilisateur_app_recree.secret_versions["WORKER_DATABASE_URL"]
+    error_message = "Rotation : WORKER_DATABASE_URL doit être réécrite."
   }
 }
 
@@ -98,6 +108,30 @@ run "utilisateur_migrator_recree" {
 
   assert {
     condition     = output.secret_versions["DATABASE_URL"] == run.rotation.secret_versions["DATABASE_URL"]
+    error_message = "oz_app inchangé : DATABASE_URL ne doit pas bouger."
+  }
+}
+
+run "utilisateur_worker_recree" {
+  module {
+    source = "../postgres"
+  }
+
+  variables {
+    password_version = 2
+  }
+
+  plan_options {
+    replace = [scaleway_rdb_user.worker]
+  }
+
+  assert {
+    condition     = output.secret_versions["WORKER_DATABASE_URL"] != run.utilisateur_migrator_recree.secret_versions["WORKER_DATABASE_URL"]
+    error_message = "oz_worker recréé : WORKER_DATABASE_URL doit être réécrite."
+  }
+
+  assert {
+    condition     = output.secret_versions["DATABASE_URL"] == run.utilisateur_migrator_recree.secret_versions["DATABASE_URL"]
     error_message = "oz_app inchangé : DATABASE_URL ne doit pas bouger."
   }
 }

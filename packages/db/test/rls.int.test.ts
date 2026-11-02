@@ -21,6 +21,7 @@ const EXPOSED_TABLES = [
   'consents',
   'audit_log',
   // Lot 1.1b
+  'document_duplicates',
   'document_uploads',
   'documents',
   'kyc_cases',

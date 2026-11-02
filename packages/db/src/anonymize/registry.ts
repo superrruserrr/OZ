@@ -191,6 +191,18 @@ export const ANONYMIZATION_REGISTRY: Registry = {
     document_number_encrypted: 'encrypted:document_number',
     document_number_hmac: 'blind_index:document_number',
     retention_until: 'technical',
+    // Lot 1.9b : verdict et mesures de l'analyse ; l'empreinte perceptuelle ne restitue pas l'image.
+    rejection_reason: 'technical',
+    width: 'technical',
+    height: 'technical',
+    page_count: 'technical',
+    perceptual_hash: 'technical',
+  },
+  // Lot 1.9b : lien entre deux pièces de même empreinte, sans contenu.
+  document_duplicates: {
+    document_id: 'technical',
+    duplicate_of_id: 'technical',
+    created_at: 'technical',
   },
   // Lot 1.9a : intentions de dépôt, sans contenu ; l'empreinte ne permet pas de retrouver la pièce.
   document_uploads: {

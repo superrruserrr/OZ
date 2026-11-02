@@ -433,6 +433,7 @@ enum AvStatus {
   clean
   infected
   error
+  rejected
 
   @@map("av_status")
 }
@@ -516,6 +517,13 @@ model Document {
   ocrExtractEncrypted     Bytes?       @map("ocr_extract_encrypted")
   documentNumberEncrypted Bytes?       @map("document_number_encrypted")
   documentNumberHmac      Bytes?       @map("document_number_hmac")
+  /// Verdict `rejected` : `dimensions`, `pages`, `unreadable` ou `hash_mismatch` (lot 1.9b).
+  rejectionReason         String?      @map("rejection_reason")
+  width                   Int?
+  height                  Int?
+  pageCount               Int?         @map("page_count")
+  /// dHash 64 bits des images ; comparé par distance de Hamming au KYC (lot 1.10).
+  perceptualHash          BigInt?      @map("perceptual_hash")
   retentionUntil          DateTime     @map("retention_until") @db.Timestamptz(6)
   createdAt               DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt               DateTime     @default(now()) @map("updated_at") @db.Timestamptz(6)
@@ -523,14 +531,16 @@ model Document {
   createdBy               String?      @map("created_by") @db.Uuid
   updatedBy               String?      @map("updated_by") @db.Uuid
 
-  player        Player?           @relation(fields: [playerId], references: [id], onDelete: Restrict)
-  guardian      Guardian?         @relation(fields: [guardianId], references: [id], onDelete: Restrict)
-  organization  Organization?     @relation(fields: [organizationId], references: [id], onDelete: Restrict)
-  uploader      User              @relation("DocumentUploadedBy", fields: [uploadedBy], references: [id], onDelete: Restrict)
-  createdByUser User?             @relation("DocumentCreatedBy", fields: [createdBy], references: [id], onDelete: Restrict)
-  updatedByUser User?             @relation("DocumentUpdatedBy", fields: [updatedBy], references: [id], onDelete: Restrict)
+  player        Player?             @relation(fields: [playerId], references: [id], onDelete: Restrict)
+  guardian      Guardian?           @relation(fields: [guardianId], references: [id], onDelete: Restrict)
+  organization  Organization?       @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  uploader      User                @relation("DocumentUploadedBy", fields: [uploadedBy], references: [id], onDelete: Restrict)
+  createdByUser User?               @relation("DocumentCreatedBy", fields: [createdBy], references: [id], onDelete: Restrict)
+  updatedByUser User?               @relation("DocumentUpdatedBy", fields: [updatedBy], references: [id], onDelete: Restrict)
   kycCases      KycCaseDocument[]
   upload        DocumentUpload?
+  duplicateOf   DocumentDuplicate?  @relation("DocumentDuplicateSubject")
+  duplicatedBy  DocumentDuplicate[] @relation("DocumentDuplicateOriginal")
 
   @@index([documentNumberHmac])
   @@index([guardianId])
@@ -539,6 +549,20 @@ model Document {
   @@index([sha256])
   @@index([uploadedBy])
   @@map("documents")
+}
+
+/// Doublon d'empreinte SHA-256 avec la pièce d'un autre sujet (lot 1.9b, D6) : signal pour le KYC,
+/// lisible par le seul chemin privilégié.
+model DocumentDuplicate {
+  documentId    String   @id @map("document_id") @db.Uuid
+  duplicateOfId String   @map("duplicate_of_id") @db.Uuid
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  document    Document @relation("DocumentDuplicateSubject", fields: [documentId], references: [id], onDelete: Restrict)
+  duplicateOf Document @relation("DocumentDuplicateOriginal", fields: [duplicateOfId], references: [id], onDelete: Restrict)
+
+  @@index([duplicateOfId])
+  @@map("document_duplicates")
 }
 
 /// Intention de dépôt (lot 1.9a) : URL signée de 5 min à usage unique ; réception et rejet par le chemin privilégié.

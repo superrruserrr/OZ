@@ -2,6 +2,7 @@
 export const PACKAGE_NAME = '@oz/config' as const;
 export { ConfigError, loadApiConfig } from './api-config.js';
 export type { ApiConfig, AuthConfig } from './api-config.js';
+export { loadWorkerConfig, type WorkerConfig } from './worker-config.js';
 export { pgConnectionOptions, redisTlsOptions } from './tls.js';
 export {
   createNonce,
