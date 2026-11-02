@@ -183,6 +183,12 @@ describe('loadApiConfig (EX-003)', () => {
     ...KEYS,
   };
 
+  it('refuse le coffre documentaire en production avant les lots 1.9b et 1.9c (D7 du lot 1.9a)', () => {
+    expect(errorOf({ ...production, FEATURE_DOCUMENTS: 'true' }).invalidVariables).toEqual([
+      'FEATURE_DOCUMENTS',
+    ]);
+  });
+
   it('exige NODE_ENV=production quand APP_ENV=production', () => {
     expect(errorOf({ ...production, NODE_ENV: 'development' }).invalidVariables).toEqual([
       'NODE_ENV',
@@ -628,5 +634,30 @@ describe('authentification (lot 1.3a)', () => {
         errorOf({ ...valid, ...AUTH, RECAPTCHA_SECRET_KEY: 'court' }).invalidVariables,
       ).toEqual(['RECAPTCHA_SECRET_KEY']);
     });
+  });
+});
+
+describe('coffre documentaire (lot 1.9a)', () => {
+  it('désactivé par défaut, conservation de 90 jours (D6)', () => {
+    const config = loadApiConfig(valid);
+    expect(config.features.documents).toBe(false);
+    expect(config.documentRetentionDays).toBe(90);
+  });
+
+  it('exige FEATURE_AUTH : sans session, aucun acteur à contrôler', () => {
+    expect(errorOf({ ...valid, FEATURE_DOCUMENTS: 'true' }).invalidVariables).toEqual([
+      'FEATURE_DOCUMENTS',
+    ]);
+  });
+
+  it('conservation bornée entre 1 et 3 650 jours', () => {
+    expect(loadApiConfig({ ...valid, DOCUMENT_RETENTION_DAYS: '30' }).documentRetentionDays).toBe(
+      30,
+    );
+    for (const days of ['0', '3651', '12.5', '-1']) {
+      expect(errorOf({ ...valid, DOCUMENT_RETENTION_DAYS: days }).invalidVariables).toEqual([
+        'DOCUMENT_RETENTION_DAYS',
+      ]);
+    }
   });
 });

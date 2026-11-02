@@ -20,6 +20,9 @@ allowBuilds:
   cpu-features: false
   protobufjs: false
   ssh2: false
+  # msgpackr-extract (tiré par bullmq via msgpackr, lot 1.9a) : accélérateur natif optionnel,
+  # binaires de plateforme précompilés ; msgpackr retombe sur son code JavaScript sans lui.
+  msgpackr-extract: false
 
 # Correctifs de sécurité forcés sur des dépendances transitives (consignés dans DEPENDENCIES.md).
 overrides:

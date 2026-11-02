@@ -14,10 +14,15 @@ export async function withUserContext<T>(
   db: PrismaClient,
   userId: string,
   fn: (tx: TransactionClient) => Promise<T>,
+  options: { readonly timeoutMs?: number } = {},
 ): Promise<T> {
   if (!UUID.test(userId)) throw new Error('Contexte RLS : identifiant utilisateur UUID attendu.');
-  return db.$transaction(async (tx) => {
-    await tx.$executeRaw`SELECT set_config('oz.user_id', ${userId}, true)`;
-    return fn(tx);
-  });
+  return db.$transaction(
+    async (tx) => {
+      await tx.$executeRaw`SELECT set_config('oz.user_id', ${userId}, true)`;
+      return fn(tx);
+    },
+    // Durée maximale de la transaction (Prisma : 5 s par défaut), au-delà de quoi elle est annulée.
+    options.timeoutMs === undefined ? undefined : { timeout: options.timeoutMs },
+  );
 }

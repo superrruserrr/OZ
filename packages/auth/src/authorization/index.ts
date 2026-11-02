@@ -14,12 +14,17 @@ export { isMinor } from './minor.js';
 export {
   abilityFor,
   authorizationReason,
+  documentSubject,
+  ORGANIZATION_DOCUMENT_TYPES,
   organizationSubject,
+  PERSON_DOCUMENT_TYPES,
   playerSubject,
   type Actor,
   type ActorRole,
   type AppAbility,
   type AuthorizationReason,
+  type DocumentSubject,
+  type DocumentTarget,
   type PlayerRecord,
   type PlayerSubject,
 } from './abilities.js';

@@ -42,5 +42,19 @@ export {
   type TotpState,
 } from './totp.js';
 export { setVerifiedPhone, type PhoneOutcome } from './phone.js';
+export {
+  completeDocumentUpload,
+  createDocumentUpload,
+  documentTargetFor,
+  documentUploadFor,
+  rejectDocumentUpload,
+  type CompleteOutcome,
+  type DocumentTargetRecord,
+  type DocumentUploadRow,
+  type NewDocumentUpload,
+  type RejectReason,
+  type UploadDocumentType,
+  type UploadTarget,
+} from './document-uploads.js';
 export { playerRecord, type PlayerAccessRecord } from './players.js';
 export { readSetting } from './settings.js';

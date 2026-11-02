@@ -59,10 +59,8 @@ const documentSql = (owner: string, player: string, extra = ''): string => {
 };
 
 describe('documents', () => {
-  it('dépose une pièce pour son propre profil, statut antivirus imposé', async () => {
-    const { rows } = await app.as(bob, (c) => c.query<{ id: string }>(documentSql(bob, bobPlayer)));
-    expect(rows).toHaveLength(1);
-    await expect(app.as(bob, (c) => c.query(documentSql(bob, bobPlayer, 'clean')))).rejects.toThrow(
+  it('aucun dépôt direct, même pour son propre profil : intention et réception seulement (lot 1.9a)', async () => {
+    await expect(app.as(bob, (c) => c.query(documentSql(bob, bobPlayer)))).rejects.toThrow(
       /row-level security/,
     );
   });

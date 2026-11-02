@@ -3,9 +3,11 @@ import { describe, expect, it } from 'vitest';
 import {
   abilityFor,
   authorizationReason,
+  documentSubject,
   organizationSubject,
   playerSubject,
   type Actor,
+  type DocumentTarget,
   type PlayerRecord,
 } from './abilities.js';
 import {
@@ -60,8 +62,42 @@ function player(action: RbacAction, overrides: Partial<PlayerRecord> = {}): obje
   );
 }
 
+/** Pièce d'un tiers : joueur majeur d'une autre organisation, tuteur d'un autre compte. */
+function document(overrides: Partial<DocumentTarget> = {}): object {
+  return documentSubject(
+    {
+      documentType: 'identity_document',
+      kind: 'player',
+      ownerUserId: 'tiers',
+      guardianUserId: 'tuteur-tiers',
+      organizationId: OTHER_ORG,
+      birthDate: ADULT,
+      ...overrides,
+    },
+    NOW,
+  );
+}
+
+/** Pièce « du compte » : la sienne, celle de son enfant mineur, ou le justificatif de son organisation. */
+function linkedDocument(link: 'self' | 'child' | 'org' | 'tested'): object {
+  if (link === 'self') return document({ ownerUserId: USER });
+  if (link === 'child') return document({ guardianUserId: USER, birthDate: MINOR });
+  if (link === 'org') {
+    return document({
+      documentType: 'organization_registration',
+      kind: 'organization',
+      ownerUserId: null,
+      guardianUserId: null,
+      organizationId: ORG,
+      birthDate: null,
+    });
+  }
+  return document();
+}
+
 /** Sujet « du compte » pour la cellule : profil lié, ou organisation pour une action de portée. */
 function linked(action: RbacAction, link: 'self' | 'child' | 'org' | 'tested'): object {
+  if (RBAC_ACTION_SUBJECTS[action] === 'Document') return linkedDocument(link);
   if (RBAC_ACTION_SUBJECTS[action] === 'Organization') return organizationSubject(ORG);
   if (link === 'self') return player(action, { userId: USER });
   if (link === 'child') return player(action, { guardianUserId: USER, birthDate: MINOR });
@@ -71,13 +107,16 @@ function linked(action: RbacAction, link: 'self' | 'child' | 'org' | 'tested'): 
 
 function stranger(action: RbacAction): object | string {
   const type = RBAC_ACTION_SUBJECTS[action];
+  if (type === 'Document') return document();
   if (type === 'Organization') return organizationSubject(OTHER_ORG);
   return type === 'Player' ? player(action) : type;
 }
 
 /** Tout sujet qu'une cellule fermée doit refuser. */
 const everySubject = (action: RbacAction): (object | string)[] =>
-  RBAC_ACTION_SUBJECTS[action] === 'Player' || RBAC_ACTION_SUBJECTS[action] === 'Organization'
+  RBAC_ACTION_SUBJECTS[action] === 'Player' ||
+  RBAC_ACTION_SUBJECTS[action] === 'Organization' ||
+  RBAC_ACTION_SUBJECTS[action] === 'Document'
     ? [
         stranger(action),
         linked(action, 'self'),
@@ -124,6 +163,12 @@ function expectCell(action: RbacAction, role: RbacRole, cell: RbacCell): void {
     case 'tested':
       allowed(linked(action, cell));
       denied(stranger(action));
+      return;
+    case 'self+child':
+      allowed(linked(action, 'self'));
+      allowed(linked(action, 'child'));
+      denied(stranger(action));
+      denied(linked(action, 'org'));
       return;
     case 'self-adult':
       allowed(player(action, { userId: USER }));

@@ -58,8 +58,12 @@ describe('rollbackLast (db:rollback)', () => {
     expect(result.rolledBack).toBe(last);
     expect(await applied()).not.toContain(last);
     // Dernière migration annulée, les précédentes intactes.
-    expect(await functionExists('oz_has_verified_role')).toBe(false);
-    expect(await policyExists('players', 'players_third_party_read')).toBe(false);
+    expect(await tableExists('document_uploads')).toBe(false);
+    expect(await functionExists('oz_complete_document_upload')).toBe(false);
+    expect(await policyExists('documents', 'documents_privileged_insert')).toBe(false);
+    expect(await policyExists('documents', 'documents_subject_insert')).toBe(true);
+    expect(await functionExists('oz_has_verified_role')).toBe(true);
+    expect(await policyExists('players', 'players_third_party_read')).toBe(true);
     expect(await policyExists('players', 'players_owner')).toBe(true);
     expect(await columnExists('users', 'phone_encrypted')).toBe(true);
     expect(await columnExists('users', 'totp_last_step')).toBe(true);

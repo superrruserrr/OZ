@@ -24,6 +24,8 @@ export const RATE_LIMIT_RULES = [
   'reset_ip',
   'refresh_ip',
   'new_device_email',
+  'document_upload_account',
+  'document_complete_account',
 ] as const;
 
 export type RateLimitRule = (typeof RATE_LIMIT_RULES)[number];
@@ -61,6 +63,10 @@ export const RATE_LIMIT_DEFAULTS: RateLimits = Object.freeze({
   reset_ip: { limit: 10, windowSeconds: HOUR },
   refresh_ip: { limit: 60, windowSeconds: 60 },
   new_device_email: { limit: 3, windowSeconds: 24 * HOUR },
+  // Intentions de dépôt de documents (lot 1.9a) : par compte, une URL signée chacune.
+  document_upload_account: { limit: 20, windowSeconds: HOUR },
+  // Réceptions : nouvel essai après 409 ou 503 compris, mais pas de quoi saturer les connexions.
+  document_complete_account: { limit: 60, windowSeconds: HOUR },
 });
 
 // Borne la taille d'un journal dans Redis (un membre par passage accepté).

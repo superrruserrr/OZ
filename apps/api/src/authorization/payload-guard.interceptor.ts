@@ -19,6 +19,8 @@ const FORBIDDEN = [
   /(password|token|code)_?hash$/i,
   /^totp_?secret/i,
   /^document_?number$/i,
+  // Clé d'objet du coffre documentaire (lot 1.9a) : jamais en réponse, seule une URL signée sort.
+  /^storage_?key$/i,
 ];
 
 // Un booléen `isEncrypted`, `has_hmac` décrit une donnée sans la porter. Sensible à la casse :

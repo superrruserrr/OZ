@@ -20,6 +20,11 @@ describe('limites par défaut (§6.6, D7 du lot 1.3ca)', () => {
     expect(RATE_LIMIT_DEFAULTS.refresh_ip).toEqual({ limit: 60, windowSeconds: 60 });
     expect(RATE_LIMIT_DEFAULTS.register_form_ip).toEqual({ limit: 20, windowSeconds: 3600 });
     expect(RATE_LIMIT_DEFAULTS.new_device_email).toEqual({ limit: 3, windowSeconds: 86_400 });
+    expect(RATE_LIMIT_DEFAULTS.document_upload_account).toEqual({ limit: 20, windowSeconds: 3600 });
+    expect(RATE_LIMIT_DEFAULTS.document_complete_account).toEqual({
+      limit: 60,
+      windowSeconds: 3600,
+    });
     expect(Object.keys(RATE_LIMIT_DEFAULTS).sort()).toEqual([...RATE_LIMIT_RULES].sort());
   });
 });

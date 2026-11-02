@@ -113,7 +113,9 @@ const errorCode = (response: { body: unknown }): string | undefined =>
   (response.body as Partial<ApiError>).code;
 
 beforeAll(async () => {
-  harness = await startAuthHarness({ FEATURE_CONTACT_FORM: 'true' }, [ProbeModule]);
+  harness = await startAuthHarness({ FEATURE_CONTACT_FORM: 'true', FEATURE_DOCUMENTS: 'true' }, [
+    ProbeModule,
+  ]);
   await harness.setRateLimits(RELAXED_RATE_LIMITS);
   server = harness.app.getHttpServer();
   const { rows } = await harness.db.query<{ id: string }>(
@@ -143,7 +145,7 @@ describe('matrice routes', () => {
       const response = await call(method, path);
       expect(errorCode(response)).not.toBe('AUTHZ_FORBIDDEN');
       expect(response.status).toBeLessThan(500);
-      if (access === 'authenticated') expect(response.status).toBe(401);
+      if (access !== 'public') expect(response.status).toBe(401);
       else expect(isMounted(response.status)).toBe(true);
     });
 
@@ -152,10 +154,20 @@ describe('matrice routes', () => {
       const token = await login(address);
       await grant(userId, role, GLOBAL_ROLES.includes(role) ? null : organizationId);
       const response = await call(method, path, token);
+      // Route à action (`@Can`) : la cellule `deny` du rôle refuse, toute autre laisse passer.
+      if (
+        access !== 'public' &&
+        access !== 'authenticated' &&
+        matrix.actions[access][role] === 'deny'
+      ) {
+        expect(response.status).toBe(403);
+        expect(errorCode(response)).toBe('AUTHZ_FORBIDDEN');
+        return;
+      }
       expect(REFUSALS).not.toContain(errorCode(response));
       expect(response.status).toBeLessThan(500);
       expect(isMounted(response.status)).toBe(true);
-      if (access === 'authenticated') expect(response.status).not.toBe(401);
+      if (access !== 'public') expect(response.status).not.toBe(401);
     });
   });
 });

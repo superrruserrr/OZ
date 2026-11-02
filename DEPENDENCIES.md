@@ -39,7 +39,7 @@ Audit : `pnpm audit --audit-level high` — aucune vulnérabilité connue au 202
 | `rxjs` | ^7.8.2 | Apache-2.0 | ≈ 4,3 Mo | Dépendance de pair de Nest | Aucune : requis par Nest | 0.3 |
 | `pg` | ^8.23.1 | MIT | ≈ 100 Ko | Sonde de santé PostgreSQL (Prisma au lot 0.6) | Prisma : pas encore en place | 0.3 |
 | `ioredis` | ^6.0.0 | MIT | ≈ 1,2 Mo | Sonde de santé Redis ; client de BullMQ plus tard | node-redis : BullMQ s'appuie sur ioredis | 0.3 |
-| `@aws-sdk/client-s3` | ^3.1156.0 | Apache-2.0 | ≈ 3,2 Mo | Sonde de santé du stockage ; URL signées au lot 1.9 | Signature SigV4 maison : risque de sécurité | 0.3 |
+| `@aws-sdk/client-s3` | ^3.1156.0 (exact dans `packages/storage`) | Apache-2.0 | ≈ 3,2 Mo | Sonde de santé du stockage ; coffre documentaire `@oz/storage` (lot 1.9a) | Signature SigV4 maison : risque de sécurité | 0.3 |
 | `zod` | ^4.6.7 | MIT | ≈ 6 Mo | Validation de la configuration ; contrats au lot 0.5 (TD-001 : 3.24+ minimum) | Validation manuelle : pas de schéma partagé client/serveur | 0.3 |
 | `@nestjs/testing` | ^12.2.0 | MIT | ≈ 45 Ko | Modules de test Nest | — | 0.3 |
 | `supertest` | ^7.3.1 | MIT | ≈ 47 Ko | Tests HTTP d'intégration (TD-006) | fetch sur un port réel : plus lent, ports à gérer | 0.3 |
@@ -134,6 +134,14 @@ Composants adaptés de shadcn/ui (code possédé, pas de paquet shadcn) sur les 
 | `@casl/ability` | 7.0.2 (exact) | MIT | ≈ 280 Ko (+ 4 sous-paquets `@ucast/*`) | Politiques d'autorisation de la matrice EX-104 (plan §4, D8 du lot 1.4a). 7.0.2 retenue : 7.0.3 à 7.1.1 ont moins de 14 jours au 2026-11-02 | Règles écrites à la main : écart au plan | 1.4a |
 | `otplib` | ^13.6.0 | MIT | ≈ 600 Ko (+ 6 sous-paquets `@otplib/*`, `@noble/hashes` et `@scure/base`, audités, ≈ 1,7 Mo) | TOTP RFC 6238 de la 2FA (TD-005, plan §4, D1 du lot 1.3cb), anti-rejeu par pas de temps | RFC 6238 écrite à la main sur `node:crypto` : écart au plan, code cryptographique à maintenir | 1.3cb |
 
+## Coffre documentaire (packages/storage, apps/api, apps/worker) — lot 1.9a
+
+| Paquet | Version | Licence | Poids (décompressé) | Rôle | Alternative native envisagée | Ajouté |
+|---|---|---|---|---|---|---|
+| `@aws-sdk/s3-request-presigner` | 3.1156.0 (exact) | Apache-2.0 | ≈ 80 Ko (mêmes sous-paquets que `@aws-sdk/client-s3`, déjà présent depuis le lot 0.3 ; même version que lui, une seule copie du SDK, quoique publiée depuis moins de 14 jours) | URL de dépôt PUT signée 5 min, type, taille et SHA-256 signés (EX-110 n° 1, D1 du lot 1.9a) | Présignature SigV4 maison : signature, encodage et expiration à réimplémenter et à auditer | 1.9a |
+| `file-type` | 22.2.0 (exact ; 22.3.0 publiée depuis moins de 14 jours) | MIT | ≈ 140 Ko | Type réel d'un fichier déposé, lu sur ses octets de tête, jamais sur l'extension ni l'en-tête déclaré (D3 du lot 1.9a) | Lecture maison des signatures : à tenir à jour pour chaque format, PDF et WebP compris | 1.9a |
+| `bullmq` | 6.3.17 (exact ; versions suivantes publiées depuis moins de 14 jours) | MIT | ≈ 3 Mo | File `document-scan` entre l'API et le worker (TD-002, D2 du lot 1.9a), sur le Redis existant | Liste Redis maison : ni reprise, ni nouvel essai, ni verrou de traitement | 1.9a |
+
 ## Correctifs forcés (overrides pnpm) — lot 0.3
 
 | Paquet | Version | Licence | Poids (décompressé) | Rôle | Alternative native envisagée | Ajouté |
@@ -142,7 +150,7 @@ Composants adaptés de shadcn/ui (code possédé, pas de paquet shadcn) sur les 
 | `mysql2` | ^3.24.4 (override, résolu 3.24.6, attesté) | MIT | ≈ 630 Ko | Correctif GHSA-3f6p-5ww8-9rcr (haute) sur la dépendance de `prisma@7.9.1` (DEBT D-028) ; version qu'embarque Prisma 7.10.x | Prisma 7.10.x : CLI sans attestation de provenance | 0.7 |
 | `deepmerge-ts` | ^8.0.2 (override, attesté) | BSD-3-Clause | ≈ 265 Ko | Correctif GHSA-ggr8-5vv4-36mx (haute) sur la dépendance de `@prisma/config@7.9.1` ; version qu'embarque Prisma 7.10.x | idem | 0.7 |
 
-**Scripts d'installation :** aucun n'est exécuté. Refus explicites dans `pnpm-workspace.yaml` (`allowBuilds`) : `@scarf/scarf` (télémétrie de swagger-ui-dist), `@swc/core`, `cpu-features`, `protobufjs`, `ssh2`, `@parcel/watcher` (tiré par next-intl, binaire précompilé fourni par un paquet optionnel), `prisma` (simple contrôle de version de Node). **Seule exception autorisée : `@prisma/engines`** (`true`), qui télécharge le moteur de migration publié par Prisma depuis `binaries.prisma.sh`, empreinte vérifiée par Prisma (D5 du lot 0.6).
+**Scripts d'installation :** aucun n'est exécuté. Refus explicites dans `pnpm-workspace.yaml` (`allowBuilds`) : `@scarf/scarf` (télémétrie de swagger-ui-dist), `@swc/core`, `cpu-features`, `protobufjs`, `ssh2`, `msgpackr-extract` (accélérateur natif optionnel de msgpackr, tiré par bullmq : repli JavaScript), `@parcel/watcher` (tiré par next-intl, binaire précompilé fourni par un paquet optionnel), `prisma` (simple contrôle de version de Node). **Seule exception autorisée : `@prisma/engines`** (`true`), qui télécharge le moteur de migration publié par Prisma depuis `binaries.prisma.sh`, empreinte vérifiée par Prisma (D5 du lot 0.6).
 
 ## Images Docker (développement local) — lot 0.2
 

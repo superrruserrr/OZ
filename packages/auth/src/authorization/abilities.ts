@@ -51,6 +51,32 @@ export type PlayerSubject = Omit<
   readonly isPublished: boolean;
 };
 
+/** Pièces d'une personne (joueur ou tuteur) ; la vidéo attend son lot (D4 du lot 1.9a). */
+export const PERSON_DOCUMENT_TYPES = [
+  'birth_certificate',
+  'identity_document',
+  'photo',
+  'license',
+] as const;
+/** Justificatif d'une organisation. */
+export const ORGANIZATION_DOCUMENT_TYPES = ['organization_registration'] as const;
+
+/** Cible d'un dépôt (lot 1.9a), lue en base sous la RLS du demandeur. */
+export interface DocumentTarget {
+  readonly documentType: string;
+  readonly kind: 'player' | 'guardian' | 'organization';
+  /** Compte titulaire : celui du joueur, ou celui de la fiche tuteur. */
+  readonly ownerUserId: string | null;
+  /** Joueur seulement : compte de son tuteur **vérifié**. */
+  readonly guardianUserId: string | null;
+  /** Organisation de rattachement du joueur, ou organisation visée. */
+  readonly organizationId: string | null;
+  /** Joueur seulement : la tutelle s'arrête à sa majorité. */
+  readonly birthDate: Date | null;
+}
+
+export type DocumentSubject = Omit<DocumentTarget, 'birthDate'> & { readonly isMinor: boolean };
+
 export type AuthorizationReason = 'audit' | 'limited';
 
 export type AppAbility = MongoAbility<[RbacAction, RbacSubjectType | object]>;
@@ -64,13 +90,27 @@ type Rules = (builder: Builder, actor: Actor, organizationIds: readonly string[]
 const inOrganizations = (ids: readonly string[]): { readonly $in: string[] } => ({ $in: [...ids] });
 
 const PUBLIC_PROFILE = { isMinor: false, isVerified: true };
+const PERSON_DOCUMENT = { documentType: { $in: [...PERSON_DOCUMENT_TYPES] } };
+
+/** Justificatif de sa propre organisation : toute organisation, avant même le KYC 3 (D5). */
+function organizationDocumentRules({ can }: Builder, ids: readonly string[]): void {
+  can('document.upload', 'Document', {
+    kind: 'organization',
+    organizationId: inOrganizations(ids),
+    documentType: { $in: [...ORGANIZATION_DOCUMENT_TYPES] },
+  });
+}
 const PUBLISHED_MINOR = { isMinor: true, isPublished: true };
 
-function attachedRules({ can }: Builder, ids: readonly string[]): void {
+function attachedRules(builder: Builder, ids: readonly string[]): void {
+  const { can } = builder;
   const organizationId = inOrganizations(ids);
   can('profile.update', 'Player', [...PLAYER_DECLARATIVE_FIELDS], { organizationId });
   can('player.create', 'Organization', { id: organizationId });
   can('subscription.manage', 'Organization', { id: organizationId });
+  // Pièces des joueurs rattachés et justificatif de l'organisation (D5 du lot 1.9a).
+  can('document.upload', 'Document', { ...PERSON_DOCUMENT, kind: 'player', organizationId });
+  organizationDocumentRules(builder, ids);
 }
 
 const RULES: Readonly<Record<RbacRole, Rules>> = {
@@ -80,6 +120,7 @@ const RULES: Readonly<Record<RbacRole, Rules>> = {
     can('player.read_public', 'Player', PUBLIC_PROFILE);
     can('player.read_minor', 'Player', { userId, isMinor: true });
     can('audit.read', 'Player', { userId });
+    can('document.upload', 'Document', { ...PERSON_DOCUMENT, ownerUserId: userId });
   },
   guardian({ can }, { userId }) {
     // La tutelle s'arrête à la majorité : l'ancien enfant décide seul.
@@ -90,6 +131,9 @@ const RULES: Readonly<Record<RbacRole, Rules>> = {
     can('player.read_minor', 'Player', child);
     can('player.read_minor_contact', 'Player', child);
     can('audit.read', 'Player', child);
+    // Ses propres pièces (fiche tuteur) et celles de l'enfant mineur.
+    can('document.upload', 'Document', { ...PERSON_DOCUMENT, ownerUserId: userId });
+    can('document.upload', 'Document', { ...PERSON_DOCUMENT, kind: 'player', ...child });
   },
   academy(builder, _actor, ids) {
     const { can } = builder;
@@ -109,7 +153,9 @@ const RULES: Readonly<Record<RbacRole, Rules>> = {
     can('player.read_minor', 'Player', { isMinor: true, organizationId: inOrganizations(ids) });
     can('list.manage', 'Shortlist');
   },
-  federation({ can }, _actor, ids) {
+  federation(builder, _actor, ids) {
+    const { can } = builder;
+    organizationDocumentRules(builder, ids);
     can('player.read_public', 'Player', PUBLIC_PROFILE);
     can('player.search', 'PlayerSearch');
     can('player.read_club_contact', 'Player');
@@ -118,7 +164,9 @@ const RULES: Readonly<Record<RbacRole, Rules>> = {
     can('kyc.read', 'KycCase');
     can('subscription.manage', 'Organization', { id: inOrganizations(ids) });
   },
-  center({ can }, _actor, ids) {
+  center(builder, _actor, ids) {
+    const { can } = builder;
+    organizationDocumentRules(builder, ids);
     can('player.read_public', 'Player', PUBLIC_PROFILE);
     can('player.read_minor', 'Player', {
       ...PUBLISHED_MINOR,
@@ -127,8 +175,11 @@ const RULES: Readonly<Record<RbacRole, Rules>> = {
     can('test.certify', 'TestResult');
     can('subscription.manage', 'Organization', { id: inOrganizations(ids) });
   },
-  recruiter({ can }, { isKyc3Verified }, ids) {
-    // KYC 3 obligatoire (plan §7.3) : aucun droit avant, pas même sur un profil public.
+  recruiter(builder, { isKyc3Verified }, ids) {
+    const { can } = builder;
+    // Seule exception avant le KYC 3 : déposer le justificatif qui le prépare (D5 du lot 1.9a).
+    organizationDocumentRules(builder, ids);
+    // KYC 3 obligatoire (plan §7.3) : aucun autre droit avant, pas même sur un profil public.
     if (!isKyc3Verified) return;
     can('player.read_public', 'Player', PUBLIC_PROFILE);
     can('player.search', 'PlayerSearch');
@@ -178,6 +229,15 @@ export function playerSubject(player: PlayerRecord, now: Date): PlayerSubject {
     isVerified,
     isPublished: isVerified && hasPublicationConsent,
   } satisfies PlayerSubject);
+}
+
+/** Sujet de dépôt ; la minorité est recalculée à la date de la requête, comme pour un joueur. */
+export function documentSubject(target: DocumentTarget, now: Date): DocumentSubject {
+  const { birthDate, ...rest } = target;
+  return caslSubject('Document', {
+    ...rest,
+    isMinor: birthDate !== null && isMinor(birthDate, now),
+  } satisfies DocumentSubject);
 }
 
 /** Sujet « organisation » d'une action de portée `org`. */

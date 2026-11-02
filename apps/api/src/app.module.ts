@@ -9,6 +9,7 @@ import { AllExceptionsFilter } from './common/errors/all-exceptions.filter.js';
 import { LoggingModule } from './common/logging/logging.module.js';
 import { ConfigModule } from './config/config.module.js';
 import { ContactModule } from './contact/contact.module.js';
+import { DocumentModule } from './document/document.module.js';
 import { HealthModule } from './health/health.module.js';
 
 export interface AppOptions {
@@ -28,6 +29,10 @@ export class AppModule {
         // Drapeau R13 : le module n'existe pas du tout quand il est désactivé (404).
         ...(config.features.contactForm ? [ContactModule] : []),
         ...(config.auth ? [AuthModule.forRoot(config.auth)] : []),
+        // FEATURE_DOCUMENTS exige FEATURE_AUTH (configuration) : les routes reposent sur la session.
+        ...(config.features.documents && config.auth
+          ? [DocumentModule.forRoot(config.auth.hmacKey)]
+          : []),
       ],
       providers: [
         { provide: APP_FILTER, useClass: AllExceptionsFilter },

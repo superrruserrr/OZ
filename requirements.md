@@ -566,7 +566,7 @@ Le marché de lancement est le **Cameroun**, avec une expansion prévue vers l'A
 5. UN compte de chaque type DOIT être créé et validé de bout en bout en recette.
 
 ### EX-110 — Téléversement et coffre documentaire
-**Source :** lot 1.9, §7.4 (étapes 1-3) · **Priorité :** P0 · **Statut :** Plan
+**Source :** lot 1.9, §7.4 (étapes 1-3) · **Priorité :** P0 · **Statut :** En cours — lot 1.9a : n° 1 ; n° 2 pour la signature, le type réel et la taille ; n° 7 pour `retention_until` (purge au lot 1.9c) ; reste au lot 1.9b : n° 2 (dimensions, pages), n° 3 à n° 5, n° 8
 
 1. LE client DOIT envoyer les fichiers directement au stockage par URL signée ; l'API NE DOIT PAS transporter le binaire.
 2. LE serveur DOIT vérifier la signature de téléversement, le type MIME réel (magic bytes), la taille, les dimensions et le nombre de pages ; l'extension NE DOIT JAMAIS être crue.

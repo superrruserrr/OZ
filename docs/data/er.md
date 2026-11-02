@@ -56,6 +56,23 @@ erDiagram
     uuid created_by FK
     uuid updated_by FK
   }
+  document_uploads {
+    uuid id PK
+    uuid requested_by FK
+    document_type document_type
+    uuid player_id FK
+    uuid guardian_id FK
+    uuid organization_id FK
+    text content_type
+    bigint size_bytes
+    text sha256
+    upload_status status
+    timestamptz expires_at
+    timestamptz completed_at
+    uuid document_id FK
+    text reject_reason
+    timestamptz created_at
+  }
   documents {
     uuid id PK
     document_type type
@@ -292,6 +309,11 @@ erDiagram
   consents }o--o| users : "created_by"
   consents }o--o| users : "granted_by_user_id"
   consents }o--o| users : "updated_by"
+  document_uploads }o--o| documents : "document_id"
+  document_uploads }o--o| guardians : "guardian_id"
+  document_uploads }o--o| organizations : "organization_id"
+  document_uploads }o--o| players : "player_id"
+  document_uploads }o--|| users : "requested_by"
   documents }o--o| guardians : "guardian_id"
   documents }o--o| organizations : "organization_id"
   documents }o--o| players : "player_id"

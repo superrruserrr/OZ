@@ -39,9 +39,12 @@ export default defineConfig({
         'packages/core/src/oz-id/**': all(100),
         'apps/api/src/auth/**': all(100),
         'apps/api/src/authorization/**': all(100),
+        'apps/api/src/document/**': all(100),
         'apps/api/src/kyc/**': all(100),
         'apps/api/src/billing/**': all(100),
         'packages/auth/src/**': all(100),
+        // Coffre documentaire (lot 1.9a) : clés et présignature, surface d'attaque directe.
+        'packages/storage/src/**': all(100),
       },
     },
   },

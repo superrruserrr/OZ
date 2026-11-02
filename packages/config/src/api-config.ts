@@ -138,6 +138,14 @@ const schema = z
     FEATURE_CONTACT_FORM: z.enum(['true', 'false']).default('false'),
     // Comptes (lot 1.3a) : exigées seulement quand FEATURE_AUTH=true.
     FEATURE_AUTH: z.enum(['true', 'false']).default('false'),
+    // Coffre documentaire (lot 1.9a) : exige FEATURE_AUTH ; durée de conservation par défaut (D6).
+    FEATURE_DOCUMENTS: z.enum(['true', 'false']).default('false'),
+    DOCUMENT_RETENTION_DAYS: z
+      .string()
+      .regex(/^[1-9]\d{0,3}$/)
+      .default('90')
+      .transform(Number)
+      .pipe(z.number().max(3650)),
     APP_URL: optional(origin),
     SMTP_HOST: optional(z.string().regex(/^[A-Za-z0-9.-]{1,253}$/)),
     SMTP_PORT: optional(
@@ -208,6 +216,14 @@ const schema = z
       });
     }
     const hosted = env.APP_ENV === 'staging' || env.APP_ENV === 'production';
+    // Les routes de dépôt reposent sur la session : sans comptes, aucun acteur à contrôler.
+    if (env.FEATURE_DOCUMENTS === 'true' && env.FEATURE_AUTH !== 'true') {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['FEATURE_DOCUMENTS'],
+        message: 'exige FEATURE_AUTH=true',
+      });
+    }
     if (env.FEATURE_AUTH === 'true') {
       // Hors local (prévisualisation comprise), les emails portent des jetons : SMTP authentifié et
       // chiffré, liens en https.
@@ -312,6 +328,14 @@ const schema = z
         message: 'interdit en production avant les lots 1.3 et 1.15',
       });
     }
+    // Documents en quarantaine sans antivirus ni purge avant les lots 1.9b et 1.9c (D7 du lot 1.9a).
+    if (env.FEATURE_DOCUMENTS === 'true') {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['FEATURE_DOCUMENTS'],
+        message: 'interdit en production avant les lots 1.9b et 1.9c',
+      });
+    }
     if (env.NODE_ENV !== 'production') {
       ctx.addIssue({ code: 'custom', path: ['NODE_ENV'], message: 'production requis' });
     }
@@ -353,7 +377,13 @@ export interface ApiConfig {
   readonly corsOrigins: readonly string[];
   /** Sauts de mandataires de confiance (`trust proxy` d'Express). */
   readonly trustProxy: number;
-  readonly features: { readonly contactForm: boolean; readonly auth: boolean };
+  readonly features: {
+    readonly contactForm: boolean;
+    readonly auth: boolean;
+    readonly documents: boolean;
+  };
+  /** Conservation d'un document déposé, en jours (D6 du lot 1.9a). */
+  readonly documentRetentionDays: number;
   /** Comptes (lot 1.3a) : présent seulement quand FEATURE_AUTH=true. */
   readonly auth: AuthConfig | undefined;
 }
@@ -471,7 +501,9 @@ export function loadApiConfig(env: Readonly<Record<string, string | undefined>>)
     features: Object.freeze({
       contactForm: value.FEATURE_CONTACT_FORM === 'true',
       auth: value.FEATURE_AUTH === 'true',
+      documents: value.FEATURE_DOCUMENTS === 'true',
     }),
+    documentRetentionDays: value.DOCUMENT_RETENTION_DAYS,
     auth:
       value.FEATURE_AUTH === 'true' &&
       value.APP_URL !== undefined &&
