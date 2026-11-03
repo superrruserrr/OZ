@@ -221,6 +221,17 @@ describe('verify-chain (CP-23)', () => {
       fields: { cause: 'Error' },
     });
   });
+  it('ancre illisible rejetée par une valeur qui n’est pas une Error : cause « inconnue »', async () => {
+    const { deps: d, anchors, logs } = deps();
+    const notAnError: unknown = 'illisible';
+    anchors.latest.mockRejectedValue(notAnError);
+    await expect(createAuditHandlers(d)['verify-chain']()).rejects.toBe(notAnError);
+    expect(logs).toContainEqual({
+      level: 'error',
+      event: 'audit.anchor.unreadable',
+      fields: { cause: 'inconnue' },
+    });
+  });
 });
 
 describe('createAuditProcessor', () => {

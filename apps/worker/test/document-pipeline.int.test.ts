@@ -565,7 +565,12 @@ describe('maintenance du coffre (lot 1.9cb)', () => {
   it('trois planifications, une seule fois même avec un second worker', async () => {
     const ids = async () => (await maintenance.getJobSchedulers()).map((s) => s.key).sort();
     expect(await ids()).toEqual([...MAINTENANCE_JOBS].sort());
-    const second = await serve(config, noSignals, 0);
+    // Le second worker porte aussi un bucket d'ancres : le magasin d'ancres est alors construit.
+    const second = await serve(
+      { ...config, audit: { ...config.audit, anchorBucket: BUCKET } },
+      noSignals,
+      0,
+    );
     try {
       expect(await ids()).toEqual([...MAINTENANCE_JOBS].sort());
     } finally {

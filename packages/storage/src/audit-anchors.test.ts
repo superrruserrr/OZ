@@ -14,6 +14,10 @@ const body = (value: unknown) => ({
   Body: { transformToString: () => Promise.resolve(JSON.stringify(value)) },
 });
 
+const raw = (text: string) => ({ Body: { transformToString: () => Promise.resolve(text) } });
+/** La clé est refusée avant toute lecture : aucun GET attendu. */
+const NO_GET = Symbol('aucune lecture');
+
 afterEach(() => {
   vi.restoreAllMocks();
 });
@@ -88,7 +92,7 @@ describe('AuditAnchorStore', () => {
   });
 
   it.each([
-    ['clé hors format', { Contents: [{ Key: 'anchors/x' }] }, null],
+    ['clé hors format', { Contents: [{ Key: 'anchors/x' }] }, NO_GET],
     [
       'contenu contredisant la clé',
       { Contents: [{ Key: anchorKey(7) }] },
@@ -104,12 +108,61 @@ describe('AuditAnchorStore', () => {
       { Contents: [{ Key: anchorKey(7) }] },
       { position: 7, hash: 'zz', anchoredAt: '2026-11-07T10:00:00.000Z' },
     ],
+    ['position nulle', { Contents: [{ Key: 'anchors/99999999999999999999' }] }, NO_GET],
+    ['JSON invalide', { Contents: [{ Key: anchorKey(7) }] }, '{'],
+    ['contenu trop long', { Contents: [{ Key: anchorKey(7) }] }, 'x'.repeat(1_025)],
+    ['valeur nulle', { Contents: [{ Key: anchorKey(7) }] }, null],
+    ['tableau', { Contents: [{ Key: anchorKey(7) }] }, []],
+    ['nombre', { Contents: [{ Key: anchorKey(7) }] }, 7],
+    [
+      'position non numérique',
+      { Contents: [{ Key: anchorKey(7) }] },
+      { position: '7', hash: HASH, anchoredAt: '2026-11-07T10:00:00.000Z' },
+    ],
+    [
+      'hachage non textuel',
+      { Contents: [{ Key: anchorKey(7) }] },
+      { position: 7, hash: 7, anchoredAt: '2026-11-07T10:00:00.000Z' },
+    ],
+    [
+      'date non textuelle',
+      { Contents: [{ Key: anchorKey(7) }] },
+      { position: 7, hash: HASH, anchoredAt: 1 },
+    ],
+    [
+      'date illisible',
+      { Contents: [{ Key: anchorKey(7) }] },
+      { position: 7, hash: HASH, anchoredAt: 'hier' },
+    ],
   ])('ancre illisible (%s) : erreur, jamais « aucune ancre »', async (_case, listed, content) => {
     const send = vi.spyOn(S3Client.prototype, 'send').mockResolvedValueOnce(listed as never);
-    if (content !== null) send.mockResolvedValueOnce(body(content) as never);
+    if (content !== NO_GET) {
+      send.mockResolvedValueOnce(
+        (typeof content === 'string' ? raw(content) : body(content)) as never,
+      );
+    }
     await expect(new AuditAnchorStore({ ...CONFIG, lockDays: 0 }).latest()).rejects.toThrow(
       StorageError,
     );
+  });
+
+  it('objet sans corps : illisible', async () => {
+    vi.spyOn(S3Client.prototype, 'send')
+      .mockResolvedValueOnce({ Contents: [{ Key: anchorKey(7) }] } as never)
+      .mockResolvedValueOnce({} as never);
+    await expect(new AuditAnchorStore({ ...CONFIG, lockDays: 0 }).latest()).rejects.toThrow(
+      StorageError,
+    );
+  });
+
+  it('erreur du stockage à l’écriture ou à la lecture : StorageError', async () => {
+    const send = vi.spyOn(S3Client.prototype, 'send').mockRejectedValueOnce(new Error('réseau'));
+    const store = new AuditAnchorStore({ ...CONFIG, lockDays: 0 });
+    await expect(store.put({ position: 1, hash: HASH })).rejects.toThrow(StorageError);
+    send
+      .mockResolvedValueOnce({ Contents: [{ Key: anchorKey(7) }] } as never)
+      .mockRejectedValueOnce(new Error('réseau'));
+    await expect(store.latest()).rejects.toThrow(StorageError);
   });
 
   it('erreur du stockage : StorageError sans clé ni secret', async () => {
