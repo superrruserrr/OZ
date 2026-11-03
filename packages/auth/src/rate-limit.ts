@@ -31,6 +31,7 @@ export const RATE_LIMIT_RULES = [
   'player_profile_read_account',
   'player_visibility_update_account',
   'data_export_request_account',
+  'data_export_download_account',
 ] as const;
 
 export type RateLimitRule = (typeof RATE_LIMIT_RULES)[number];
@@ -82,6 +83,8 @@ export const RATE_LIMIT_DEFAULTS: RateLimits = Object.freeze({
   player_visibility_update_account: { limit: 30, windowSeconds: HOUR },
   // Demande d'export (lot 1.16ba) : ré-authentification par mot de passe, quelques essais seulement.
   data_export_request_account: { limit: 10, windowSeconds: HOUR },
+  // Délivrance de l'URL de l'archive (lot 1.16bb) : URL de 5 minutes, auditée à chaque fois.
+  data_export_download_account: { limit: 30, windowSeconds: HOUR },
 });
 
 // Borne la taille d'un journal dans Redis (un membre par passage accepté).

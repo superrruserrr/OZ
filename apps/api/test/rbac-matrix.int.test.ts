@@ -115,6 +115,11 @@ const call = (method: string, path: string, token?: string) => {
   return token === undefined ? pending : pending.set('Authorization', `Bearer ${token}`);
 };
 
+/** Routes sans paramètre dont le 404 dit « aucune ressource » (lot 1.16bb : aucune archive prête). */
+const MOUNTED_NOT_FOUND: Readonly<Record<string, string>> = {
+  'GET /account/data-export/download': 'DATA_EXPORT_NOT_FOUND',
+};
+
 const errorCode = (response: { body: unknown }): string | undefined =>
   (response.body as Partial<ApiError>).code;
 
@@ -144,15 +149,19 @@ describe('matrice routes', () => {
   });
 
   describe.each(matrix.routes)('$method $path ($access)', ({ method, path, access }) => {
-    // Un paramètre désigne un enregistrement absent : 404 attendu, jamais un autre motif de route absente.
-    const isMounted = (status: number): boolean => status !== 404 || path.includes(':');
+    // Un paramètre désigne un enregistrement absent : 404 attendu, jamais un autre motif de route
+    // absente. Seul un 404 à code métier déclaré ici prouve un traitement monté sans paramètre.
+    const isMounted = (response: { status: number; body: unknown }): boolean =>
+      response.status !== 404 ||
+      path.includes(':') ||
+      MOUNTED_NOT_FOUND[`${method} ${path}`] === errorCode(response);
 
     it('sans session', async () => {
       const response = await call(method, path);
       expect(errorCode(response)).not.toBe('AUTHZ_FORBIDDEN');
       expect(response.status).toBeLessThan(500);
       if (access !== 'public') expect(response.status).toBe(401);
-      else expect(isMounted(response.status)).toBe(true);
+      else expect(isMounted(response)).toBe(true);
     });
 
     it.each(RBAC_ROLES)('rôle %s', async (role) => {
@@ -171,7 +180,7 @@ describe('matrice routes', () => {
       }
       expect(REFUSALS).not.toContain(errorCode(response));
       expect(response.status).toBeLessThan(500);
-      expect(isMounted(response.status)).toBe(true);
+      expect(isMounted(response)).toBe(true);
       if (access !== 'public') expect(response.status).not.toBe(401);
     });
   });

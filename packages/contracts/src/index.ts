@@ -98,9 +98,13 @@ export {
 } from './players/profile.schema.js';
 export {
   DATA_EXPORT_STATUSES,
+  dataExportDownloadOutputSchema,
+  dataExportJobSchema,
   dataExportOutputSchema,
   dataExportRequestInputSchema,
   dataExportStatusOutputSchema,
+  type DataExportDownloadOutput,
+  type DataExportJobInput,
   type DataExportOutput,
   type DataExportRequestInput,
   type DataExportStatusOutput,

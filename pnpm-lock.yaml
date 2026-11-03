@@ -489,6 +489,9 @@ importers:
       ioredis:
         specifier: ^6.0.0
         version: 6.0.0
+      nodemailer:
+        specifier: ^10.2.1
+        version: 10.2.1
       pdfjs-dist:
         specifier: 6.4.299
         version: 6.4.299

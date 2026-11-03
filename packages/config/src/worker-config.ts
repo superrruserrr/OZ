@@ -1,9 +1,10 @@
 import { z } from 'zod';
-import { ConfigError, pemCert } from './api-config.js';
+import { columnKey, ConfigError, mailbox, origin, pemCert } from './api-config.js';
 import { APP_ENVS } from './security-headers.js';
 
-// Configuration du worker (lots 1.9b, 1.9cb et 1.16a) : base, Redis, stockage, ClamAV, maintenance du
-// coffre et du journal d'audit. Mêmes règles que l'API pour
+// Configuration du worker (lots 1.9b, 1.9cb, 1.16a et 1.16bb) : base, Redis, stockage, ClamAV,
+// maintenance du coffre et du journal d'audit, export des données personnelles (clé de chiffrement
+// colonne, SMTP de l'email « archive prête »). Mêmes règles que l'API pour
 // les variables partagées (TLS épinglé en recette et en production, D-006). En recette et en
 // production, le worker se connecte sous son rôle dédié `oz_worker` (`WORKER_DATABASE_URL`, seul
 // autorisé à juger un document) ; l'URL de l'API n'y sert jamais. En local seulement, repli sur
@@ -101,6 +102,28 @@ const schema = z
         .transform(Number)
         .pipe(z.number().max(3_650)),
     ),
+    // Export des données personnelles (lot 1.16bb) : sans clé, la file `data-export` n'est pas
+    // consommée (local) ; sans SMTP, l'archive est produite sans email (local).
+    DATABASE_ENCRYPTION_KEY: columnKey,
+    DATA_EXPORT_EVERY_MINUTES: everyMinutes(5, '15'),
+    APP_URL: orDefault(origin.optional()),
+    SMTP_HOST: orDefault(
+      z
+        .string()
+        .regex(/^[A-Za-z0-9.-]{1,253}$/)
+        .optional(),
+    ),
+    SMTP_PORT: orDefault(
+      z
+        .string()
+        .regex(/^[1-9]\d{0,4}$/)
+        .default('587')
+        .transform(Number)
+        .pipe(z.number().max(65_535)),
+    ),
+    SMTP_USER: orDefault(z.string().optional()),
+    SMTP_PASSWORD: orDefault(z.string().optional()),
+    EMAIL_FROM: orDefault(mailbox.optional()),
   })
   .superRefine((env, ctx) => {
     const required = (path: string, message: string): void => {
@@ -122,6 +145,37 @@ const schema = z
       if (env.AUDIT_ANCHOR_LOCK_DAYS < 30) {
         required('AUDIT_ANCHOR_LOCK_DAYS', '30 jours au moins en recette et en production');
       }
+    }
+    // SMTP : tout ou rien ; identifiants par paire.
+    const mail = [env.SMTP_HOST, env.EMAIL_FROM, env.APP_URL];
+    if (mail.some((value) => value !== undefined) && mail.some((value) => value === undefined)) {
+      for (const [name, value] of [
+        ['SMTP_HOST', env.SMTP_HOST],
+        ['EMAIL_FROM', env.EMAIL_FROM],
+        ['APP_URL', env.APP_URL],
+      ] as const) {
+        if (value === undefined) required(name, 'requis avec les autres variables SMTP');
+      }
+    }
+    if ((env.SMTP_USER === undefined) !== (env.SMTP_PASSWORD === undefined)) {
+      required(
+        env.SMTP_USER === undefined ? 'SMTP_USER' : 'SMTP_PASSWORD',
+        'les deux vont ensemble',
+      );
+    }
+    if (isHosted(env.APP_ENV)) {
+      if (!env.DATABASE_ENCRYPTION_KEY) {
+        required('DATABASE_ENCRYPTION_KEY', 'requis en recette et en production');
+      }
+      for (const [name, value] of [
+        ['SMTP_HOST', env.SMTP_HOST],
+        ['SMTP_USER', env.SMTP_USER],
+        ['EMAIL_FROM', env.EMAIL_FROM],
+        ['APP_URL', env.APP_URL],
+      ] as const) {
+        if (value === undefined) required(name, 'requis en recette et en production');
+      }
+      if (env.APP_URL?.startsWith('https://') === false) required('APP_URL', 'https requis');
     }
     if (env.APP_ENV === 'production' && !env.S3_ENDPOINT.startsWith('https://')) {
       required('S3_ENDPOINT', 'https requis en production');
@@ -181,6 +235,24 @@ export interface WorkerConfig {
     /** Rétention du verrou posé sur chaque ancre ; 0 : aucun verrou. */
     readonly anchorLockDays: number;
   };
+  readonly dataExport: {
+    /** Absente : file `data-export` non consommée (local). */
+    readonly encryptionKey: string | undefined;
+    /** Cadence de l'expiration et du balayage des demandes. */
+    readonly everyMinutes: number;
+  };
+  /** Absent : aucun email (local). */
+  readonly smtp:
+    | {
+        readonly host: string;
+        readonly port: number;
+        readonly user: string | undefined;
+        readonly password: string | undefined;
+        readonly from: string;
+        /** Origine du site web : lien vers l'espace du compte dans l'email. */
+        readonly appUrl: string;
+      }
+    | undefined;
 }
 
 /** Lit et valide la configuration du worker ; `ConfigError` nomme les variables fautives. */
@@ -222,5 +294,20 @@ export function loadWorkerConfig(env: Readonly<Record<string, string | undefined
       anchorBucket: value.AUDIT_ANCHOR_BUCKET,
       anchorLockDays: value.AUDIT_ANCHOR_LOCK_DAYS,
     }),
+    dataExport: Object.freeze({
+      encryptionKey: value.DATABASE_ENCRYPTION_KEY,
+      everyMinutes: value.DATA_EXPORT_EVERY_MINUTES,
+    }),
+    smtp:
+      value.SMTP_HOST === undefined || value.EMAIL_FROM === undefined || value.APP_URL === undefined
+        ? undefined
+        : Object.freeze({
+            host: value.SMTP_HOST,
+            port: value.SMTP_PORT,
+            user: value.SMTP_USER,
+            password: value.SMTP_PASSWORD,
+            from: value.EMAIL_FROM,
+            appUrl: value.APP_URL,
+          }),
   });
 }

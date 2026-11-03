@@ -4,6 +4,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   cleanKey,
   DocumentStorage,
+  exportKey,
   incomingKey,
   quarantineKey,
   StorageChangedError,
@@ -273,5 +274,40 @@ describe('lecture par GET présigné (CP-22)', () => {
     const { url, expiresAt } = await readUrl(key, new Date(Date.now() - 301_000));
     expect(expiresAt.getTime()).toBeLessThan(Date.now());
     expect((await fetch(url)).status).toBe(403);
+  });
+});
+
+// Archives d'export (lot 1.16bb, D2 et D4) : écrites sous exports/, servies par URL signée seulement.
+describe('archives d’export sous exports/', () => {
+  it('putExport puis GET présigné : JSON en pièce jointe, sans cache ; remove l’efface', async () => {
+    const key = exportKey(id());
+    const body = Buffer.from(JSON.stringify({ formatVersion: 1, account: { status: 'active' } }));
+    await ready().storage.putExport(key, body);
+    const { config, admin } = ready().s3;
+    const stored = await admin.send(new GetObjectCommand({ Bucket: config.bucket, Key: key }));
+    expect(stored.ContentType).toBe('application/json');
+    expect(stored.CacheControl).toBe('no-store');
+
+    const { url } = await ready().storage.presignGet({
+      key,
+      contentType: 'application/json',
+      expiresInSeconds: 300,
+    });
+    const res = await fetch(url);
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-type')).toBe('application/json');
+    expect(res.headers.get('content-disposition')).toBe('attachment');
+    expect(res.headers.get('cache-control')).toBe('no-store');
+    expect(Buffer.from(await res.arrayBuffer())).toEqual(body);
+    const parsed = new URL(url);
+    expect((await fetch(`${parsed.origin}${parsed.pathname}`)).status).toBe(403);
+
+    const listed = await ready().storage.list('exports/', {
+      olderThan: new Date(Date.now() + 60_000),
+      limit: 100,
+    });
+    expect(listed.objects.map((o) => o.key)).toContain(key);
+    await ready().storage.remove(key);
+    expect(await ready().storage.head(key)).toBeNull();
   });
 });

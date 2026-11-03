@@ -1,7 +1,7 @@
 # OZ — Où en est le projet ?
 
 > Check-list tenue à jour à la fin de chaque étape, à transmettre telle quelle à Fabrice Olinga.
-> **Dernière mise à jour : 3 novembre 2026** — étape : 1.16ba demande d'export des données.
+> **Dernière mise à jour : 3 novembre 2026** — étape : 1.16bb archive d'export téléchargeable.
 
 Légende : ✅ fait et vérifié · 🟡 en cours · ⬜ à faire · ⏸️ bloqué en attente d'une décision
 
@@ -69,7 +69,7 @@ la vérification d'identité, qui attend deux décisions (§ « Ce qui bloque »
 | --------------------------------------- | ---- | ----------------------------------------------------------------------------------------- |
 | 1.16a Journal d'audit infalsifiable     | ✅   | Toute action sensible est tracée ; une falsification, même par un technicien, est repérée |
 | 1.16ba Demande d'export et inventaire   | ✅   | Chacun demande l'export de ses données (mot de passe redemandé) ; tout est inventorié     |
-| 1.16bb Archive téléchargeable           | ⬜   | L'archive est préparée, envoyée par lien sécurisé, puis effacée                           |
+| 1.16bb Archive téléchargeable           | ✅   | L'archive est préparée, envoyée par lien sécurisé, puis effacée                           |
 | 1.16c Suppression de compte et registre | ⬜   | Compte effacé proprement, registre des traitements RGPD rédigé                            |
 
 ## Ce qui bloque — décisions attendues
@@ -101,7 +101,7 @@ la vérification d'identité, qui attend deux décisions (§ « Ce qui bloque »
 
 - 6 contrôles automatiques au vert exigés avant chaque intégration.
 - Dernière mesure complète : plus de 2 500 tests automatiques, 97 % du code couvert par les tests.
-- 100 points techniques notés à reprendre plus tard (dette suivie dans `DEBT.md`).
+- 102 points techniques notés à reprendre plus tard (dette suivie dans `DEBT.md`).
 
 ## Historique des mises à jour
 
@@ -112,3 +112,4 @@ la vérification d'identité, qui attend deux décisions (§ « Ce qui bloque »
 | 2026-11-03 | 1.16a Journal d'audit infalsifiable (étape 1.16 en cours) |
 | 2026-11-03 | 1.13a Fiche joueur et visibilité (étape 1.13 en cours)    |
 | 2026-11-03 | 1.16ba Demande d'export des données (1.16 en cours)       |
+| 2026-11-03 | 1.16bb Archive d'export téléchargeable (1.16 en cours)    |

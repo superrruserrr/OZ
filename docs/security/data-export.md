@@ -1,8 +1,8 @@
 # Export des données personnelles
 
 Droit d'accès et de portabilité (EX-118 n° 2, `design.md` §5.10). Lot 1.16ba : inventaire,
-assemblage en base, demande et suivi. Lot 1.16bb : archive produite par le worker, bucket `exports`,
-URL signée, email « archive prête », expiration (D-111).
+assemblage en base, demande et suivi. Lot 1.16bb : archive produite par le worker, préfixe privé
+`exports/`, URL signée, email « archive prête », expiration.
 
 ## Qui exporte quoi
 
@@ -93,8 +93,43 @@ supprimées (`deleted_at`) ne sont pas exportées ; un rôle retiré l'est, avec
 
 Les motifs de chaque colonne exclue sont dans le registre.
 
-## Reste à faire (lot 1.16bb)
+## Cycle de vie de l'archive (lot 1.16bb)
 
-Production de l'archive par le worker (file BullMQ), bucket privé `exports`, URL signée de courte
-durée, email « archive prête », expiration et suppression de l'archive (D-111). Le motif libre d'une
-entrée du journal écrite par un tiers est exporté tel quel (D-112).
+1. **Demande** acceptée (`pending`) : l'API la met en file `data-export` (job `build-export`,
+   identifiant de la demande seul, 3 essais). File indisponible : la réponse reste 202, la demande
+   reste `pending` et le balayage la reprend.
+2. **Production** par le worker (`oz_worker`, une archive à la fois) : `oz_data_export_claim`
+   (`processing`), `oz_personal_data_export` (clé `DATABASE_ENCRYPTION_KEY`), écriture sous
+   `exports/<demande>.json` du bucket privé des documents (`application/json`, `no-store`,
+   SHA-256 vérifiée par le stockage), puis `oz_data_export_finish` (`ready`, disponible 7 jours,
+   audit `data.export.ready`). Rejoué après succès : sans effet. Compte supprimé entre-temps :
+   `failed` motif `account_gone`, aucun objet. Erreur au troisième essai : `failed` motif
+   `build_failed`, objet retiré. Motifs internes seulement (`^[a-z_]{1,40}$`), audités
+   `data.export.failed` ; une demande en échec ne bloque pas la suivante. Compte supprimé, suspendu
+   ou clos à la prise ou à la fin : `failed` motif `account_gone`, rien de servi. `finish` et `fail`
+   rendent le statut atteint : une archive n'est jamais retirée d'une demande `ready` (exécution en
+   double, course avec la maintenance) ; un retrait en échec est journalisé.
+3. **Email** « archive prête » envoyé une fois par le worker après la fin : ni URL signée ni donnée,
+   seulement l'invitation à se connecter (adresse lue dans l'export). Échec SMTP journalisé par son
+   type seul, sans rejouer l'archive. Au plus une fois : une panne entre la fin et l'envoi le perd
+   (D-115). Sans SMTP (local) : aucun email.
+4. **Téléchargement** : `GET /account/data-export/download` rend `{ url, expiresAt }`, URL signée de
+   5 minutes (type `application/json`, `attachment` et `no-store` signés), `Cache-Control: no-store`.
+   `oz_data_export_download` (sous le contexte du titulaire, compte actif ou en attente de
+   vérification) ne rend que la clé de **sa** dernière archive prête et non échue, et audite
+   `data.export.downloaded` avant la signature. Sans archive : 404 `DATA_EXPORT_NOT_FOUND`. 30
+   délivrances par heure et par compte, puis 429. Ni l'URL ni la clé ne sont journalisées. Une URL
+   signée juste avant l'échéance reste valable 5 minutes au plus au-delà des 7 jours, et l'objet
+   est supprimé au passage de maintenance suivant (D-116).
+5. **Expiration et balayage** (`maintain-exports`, toutes les `DATA_EXPORT_EVERY_MINUTES`) :
+   `oz_data_export_due` désigne les archives échues (objet supprimé **puis** `expired`, clé
+   effacée, audit `data.export.expired`), les demandes sans nouvelle depuis 30 minutes (remises en
+   file ou rejouées) et celles de plus de 24 heures (`failed` motif `abandoned`, objet retiré).
+
+Toutes ces fonctions sont `SECURITY DEFINER`, réservées à `oz_worker` hors contexte utilisateur ;
+`oz_app` n'exécute que `oz_data_export_download`. La clé d'une archive est contrainte en base à
+`exports/<demande>.json` et `@oz/storage` refuse toute autre clé avant tout appel réseau ;
+`put` et `copy` n'écrivent jamais sous `exports/`. Le worker ne consomme la file que si
+`DATABASE_ENCRYPTION_KEY` est fournie (exigée en recette et en production, avec SMTP authentifié).
+
+Le motif libre d'une entrée du journal écrite par un tiers est exporté tel quel (D-112).

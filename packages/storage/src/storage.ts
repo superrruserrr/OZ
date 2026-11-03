@@ -10,7 +10,7 @@ import {
 } from '@aws-sdk/client-s3';
 import { createHash } from 'node:crypto';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { assertStorageKey, isStorageKey } from './keys.js';
+import { assertStorageKey, isExportKey, isStorageKey } from './keys.js';
 
 export interface StorageConfig {
   readonly endpoint: string;
@@ -30,7 +30,10 @@ export interface PresignPutInput {
 }
 
 export interface PresignGetInput {
-  /** Toujours `clean/<uuid>` : seul un fichier analysé et sain est servi (CP-21). */
+  /**
+   * `clean/<uuid>` : seul un fichier analysé et sain est servi (CP-21) ; ou `exports/<uuid>.json`,
+   * archive d'export de son titulaire (lot 1.16bb).
+   */
   readonly key: string;
   /** Type réel vérifié, imposé à la réponse du stockage. */
   readonly contentType: string;
@@ -60,7 +63,7 @@ const SIGNED_HEADERS = ['content-type', 'content-length', 'x-amz-checksum-sha256
 const SHA256_HEX = /^[0-9a-f]{64}$/i;
 /** Lecture : 5 minutes au plus (EX-110 n° 6, CP-22). */
 const MAX_READ_SECONDS = 300;
-const PREFIXES: readonly string[] = ['incoming/', 'quarantine/', 'clean/'];
+const PREFIXES: readonly string[] = ['incoming/', 'quarantine/', 'clean/', 'exports/'];
 /** Objets examinés par appel de `list` au plus ; une page S3 en rend 1 000. */
 const MAX_LISTED = 10_000;
 const PAGE_SIZE = 1_000;
@@ -108,6 +111,7 @@ export class DocumentStorage {
 
   async presignPut(input: PresignPutInput): Promise<PresignedPut> {
     assertStorageKey(input.key);
+    if (isExportKey(input.key)) throw new TypeError('dépôt interdit sous exports/');
     if (!Number.isInteger(input.contentLength) || input.contentLength < 1) {
       throw new RangeError('taille déclarée invalide');
     }
@@ -157,7 +161,9 @@ export class DocumentStorage {
    */
   async presignGet(input: PresignGetInput): Promise<PresignedGet> {
     assertStorageKey(input.key);
-    if (!input.key.startsWith('clean/')) throw new TypeError('lecture réservée aux clés clean/');
+    if (!input.key.startsWith('clean/') && !isExportKey(input.key)) {
+      throw new TypeError('lecture réservée aux clés clean/ et exports/');
+    }
     if (input.contentType.length === 0) throw new RangeError('type de contenu requis');
     if (
       !Number.isInteger(input.expiresInSeconds) ||
@@ -283,6 +289,32 @@ export class DocumentStorage {
   }
 
   /**
+   * Écrit une archive d'export sous `exports/<demande>.json` (seul préfixe accepté, lot 1.16bb) : JSON,
+   * jamais mise en cache, empreinte SHA-256 vérifiée par le stockage.
+   */
+  async putExport(key: string, body: Uint8Array): Promise<void> {
+    if (!isExportKey(key)) throw new TypeError('écriture réservée aux clés exports/<uuid>.json');
+    if (body.byteLength < 1 || body.byteLength > MAX_OBJECT_BYTES) {
+      throw new RangeError('taille du contenu invalide');
+    }
+    try {
+      await this.client.send(
+        new PutObjectCommand({
+          Bucket: this.bucket,
+          Key: key,
+          Body: body,
+          ContentType: 'application/json',
+          CacheControl: 'no-store',
+          ContentLength: body.byteLength,
+          ChecksumSHA256: createHash('sha256').update(body).digest('base64'),
+        }),
+      );
+    } catch (error) {
+      throw storageError('PUT', error);
+    }
+  }
+
+  /**
    * Copie sans supprimer la source : la suppression vient après l'enregistrement, pour qu'un échec
    * entre les deux laisse le dépôt intact (D2). Avec `etag` : `StorageChangedError` si la source a
    * changé depuis sa vérification.
@@ -290,6 +322,7 @@ export class DocumentStorage {
   async copy(from: string, to: string, etag?: string): Promise<void> {
     assertStorageKey(from);
     assertStorageKey(to);
+    if (isExportKey(from) || isExportKey(to)) throw new TypeError('copie interdite sous exports/');
     try {
       await this.client.send(
         new CopyObjectCommand({
@@ -392,7 +425,7 @@ export class StorageChangedError extends StorageError {
   }
 }
 
-export type StoragePrefix = 'incoming/' | 'quarantine/' | 'clean/';
+export type StoragePrefix = 'incoming/' | 'quarantine/' | 'clean/' | 'exports/';
 
 export interface ListedObject {
   readonly key: string;

@@ -13,6 +13,15 @@ import {
   scheduleAuditMaintenance,
 } from './audit-maintenance.js';
 import { ClamavClient } from './clamav.js';
+import {
+  DATA_EXPORT_QUEUE,
+  createDataExportDependencies,
+  createDataExportMaintenanceDependencies,
+  createDataExportProcessor,
+  maintainDataExports,
+  observeDataExport,
+  scheduleDataExportMaintenance,
+} from './data-export.js';
 import { HEALTH_PORT, startHealthServer } from './health.js';
 import {
   DOCUMENT_MAINTENANCE_QUEUE,
@@ -22,12 +31,15 @@ import {
   scheduleMaintenance,
 } from './maintenance.js';
 import { DOCUMENT_SCAN_QUEUE, createScanProcessor } from './processor.js';
+import { WorkerMailer } from './mailer.js';
 import type { ScanLogger } from './scan-document.js';
 
 // Démarrage du worker (lot 1.9b) : base sous le rôle `oz_worker`, Redis, stockage, ClamAV, puis
 // consommation de la file `document-scan`. Lot 1.9cb : file `document-maintenance` (purge des pièces
 // échues, balayage des analyses abandonnées, objets orphelins), planifiée au démarrage. Lot 1.16a :
-// file `audit-maintenance` (partitions, ancrage de la tête de chaîne, vérification). Arrêt propre
+// file `audit-maintenance` (partitions, ancrage de la tête de chaîne, vérification). Lot 1.16bb : file
+// `data-export` (archives d'export des données personnelles), consommée si la clé de chiffrement
+// colonne est configurée. Arrêt propre
 // sur SIGTERM/SIGINT : les traitements en cours se terminent, les connexions sont fermées.
 
 export interface WorkerHandle {
@@ -93,10 +105,32 @@ export async function startWorker(config: WorkerConfig, logger: ScanLogger): Pro
   );
   observeAuditMaintenance(audit, logger);
 
+  // Export des données personnelles : une archive à la fois (le JSON entier tient en mémoire).
+  const encryptionKey = config.dataExport.encryptionKey;
+  const mailer =
+    config.smtp === undefined ? undefined : new WorkerMailer(config.smtp, config.appEnv);
+  const exportQueue = new Queue(DATA_EXPORT_QUEUE, { connection });
+  const dataExport =
+    encryptionKey === undefined
+      ? undefined
+      : new Worker(
+          DATA_EXPORT_QUEUE,
+          createDataExportProcessor(
+            createDataExportDependencies({ db, encryptionKey, storage, mailer, logger }),
+            maintainDataExports.bind(
+              null,
+              createDataExportMaintenanceDependencies({ db, storage, queue: exportQueue, logger }),
+            ),
+          ),
+          { connection, concurrency: 1 },
+        );
+  if (dataExport !== undefined) observeDataExport(dataExport, logger);
+
   await Promise.all([
     worker.waitUntilReady(),
     maintenance.waitUntilReady(),
     audit.waitUntilReady(),
+    dataExport?.waitUntilReady(),
   ]);
   await scheduleMaintenance(maintenanceQueue, config.maintenance);
   await scheduleAuditMaintenance(auditQueue, {
@@ -105,12 +139,18 @@ export async function startWorker(config: WorkerConfig, logger: ScanLogger): Pro
     verifyEveryMinutes: config.audit.verifyEveryMinutes,
     anchoring: anchors !== undefined,
   });
+  await scheduleDataExportMaintenance(exportQueue, {
+    enabled: dataExport !== undefined,
+    everyMinutes: config.dataExport.everyMinutes,
+  });
   logger.info(
     {
       concurrency: config.concurrency,
       maintenance: config.maintenance.enabled,
       audit: config.audit.enabled,
       anchoring: anchors !== undefined,
+      dataExport: dataExport !== undefined,
+      mail: mailer !== undefined,
     },
     'worker.started',
   );
@@ -119,11 +159,18 @@ export async function startWorker(config: WorkerConfig, logger: ScanLogger): Pro
       worker.isRunning() &&
       maintenance.isRunning() &&
       audit.isRunning() &&
+      (dataExport?.isRunning() ?? true) &&
       connection.status === 'ready',
     async close() {
-      await Promise.all([worker.close(), maintenance.close(), audit.close()]);
-      await Promise.allSettled([scanQueue.close(), maintenanceQueue.close(), auditQueue.close()]);
+      await Promise.all([worker.close(), maintenance.close(), audit.close(), dataExport?.close()]);
+      await Promise.allSettled([
+        scanQueue.close(),
+        maintenanceQueue.close(),
+        auditQueue.close(),
+        exportQueue.close(),
+      ]);
       anchors?.destroy();
+      mailer?.close();
       await Promise.allSettled([db.$disconnect(), connection.quit()]);
     },
   };

@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   cleanKey,
   DocumentStorage,
+  exportKey,
   incomingKey,
   quarantineKey,
   StorageChangedError,
@@ -31,8 +32,103 @@ describe('clés de stockage', () => {
       expect(() => incomingKey(value)).toThrow(/UUID/);
       expect(() => quarantineKey(value)).toThrow(/UUID/);
       expect(() => cleanKey(value)).toThrow(/UUID/);
+      expect(() => exportKey(value)).toThrow(/UUID/);
     },
   );
+
+  it('exports/<uuid>.json (lot 1.16bb)', () => {
+    expect(exportKey(UUID)).toBe(`exports/${UUID}.json`);
+  });
+});
+
+describe('archives d’export (lot 1.16bb)', () => {
+  const storage = new DocumentStorage(CONFIG);
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it.each([`exports/${UUID}`, `exports/${UUID}.zip`, `exports/x.json`, `clean/${UUID}.json`])(
+    'refuse avant tout appel réseau une clé hors exports/<uuid>.json : %j',
+    async (key) => {
+      const send = vi.spyOn(S3Client.prototype, 'send');
+      await expect(storage.putExport(key, new Uint8Array([123]))).rejects.toThrow(TypeError);
+      expect(send).not.toHaveBeenCalled();
+    },
+  );
+
+  it('putExport n’écrit que sous exports/ ; put et copy n’y écrivent jamais', async () => {
+    const send = vi.spyOn(S3Client.prototype, 'send');
+    await expect(storage.putExport(cleanKey(UUID), new Uint8Array([1]))).rejects.toThrow(TypeError);
+    await expect(storage.put(exportKey(UUID), new Uint8Array([1]), 'image/png')).rejects.toThrow(
+      /clean\//,
+    );
+    await expect(storage.copy(cleanKey(UUID), exportKey(UUID))).rejects.toThrow(/exports\//);
+    await expect(storage.copy(exportKey(UUID), cleanKey(UUID))).rejects.toThrow(/exports\//);
+    await expect(
+      storage.presignPut({
+        key: exportKey(UUID),
+        contentType: 'application/json',
+        contentLength: 2,
+        sha256: 'a'.repeat(64),
+        expiresInSeconds: 300,
+      }),
+    ).rejects.toThrow(/exports\//);
+    await expect(storage.putExport(exportKey(UUID), new Uint8Array())).rejects.toThrow(/taille/);
+    expect(send).not.toHaveBeenCalled();
+  });
+
+  it('putExport : JSON, sans cache, empreinte SHA-256', async () => {
+    const send = vi.spyOn(S3Client.prototype, 'send').mockResolvedValue({} as never);
+    await storage.putExport(exportKey(UUID), new TextEncoder().encode('{}'));
+    const input = (send.mock.calls[0]?.[0] as unknown as { input: Record<string, unknown> }).input;
+    expect(input).toMatchObject({
+      Key: `exports/${UUID}.json`,
+      ContentType: 'application/json',
+      CacheControl: 'no-store',
+      ContentLength: 2,
+    });
+    expect(input.ChecksumSHA256).toBe('RBNvo1WzZ4oRRq0W9+hknpT7T8If536DEMBg9hyq/4o=');
+  });
+
+  it('putExport : panne du stockage → StorageError sans le secret', async () => {
+    vi.spyOn(S3Client.prototype, 'send').mockRejectedValue(new TypeError(CONFIG.secretKey));
+    const error = await storage
+      .putExport(exportKey(UUID), new Uint8Array([1]))
+      .catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(StorageError);
+    expect((error as Error).message).not.toContain(CONFIG.secretKey);
+  });
+
+  it('presignGet signe une archive : JSON en pièce jointe, sans cache, 300 s au plus', async () => {
+    const out = await storage.presignGet({
+      key: exportKey(UUID),
+      contentType: 'application/json',
+      expiresInSeconds: 300,
+    });
+    const url = new URL(out.url);
+    expect(url.pathname).toBe(`/oz-documents/exports/${UUID}.json`);
+    expect(url.searchParams.get('response-content-type')).toBe('application/json');
+    expect(url.searchParams.get('response-content-disposition')).toBe('attachment');
+    expect(url.searchParams.get('response-cache-control')).toBe('no-store');
+    await expect(
+      storage.presignGet({
+        key: exportKey(UUID),
+        contentType: 'application/json',
+        expiresInSeconds: 301,
+      }),
+    ).rejects.toThrow(RangeError);
+  });
+
+  it('list accepte exports/ ; ses clés hors format sont ignorées', async () => {
+    vi.spyOn(S3Client.prototype, 'send').mockResolvedValue({
+      Contents: [
+        { Key: `exports/${UUID}.json`, LastModified: new Date(0) },
+        { Key: `exports/${UUID}`, LastModified: new Date(0) },
+      ],
+    } as never);
+    const page = await storage.list('exports/', { olderThan: new Date(1000), limit: 10 });
+    expect(page.objects.map((o) => o.key)).toEqual([`exports/${UUID}.json`]);
+  });
 });
 
 describe('DocumentStorage', () => {

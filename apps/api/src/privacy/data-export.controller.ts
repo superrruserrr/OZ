@@ -5,6 +5,7 @@ import {
   ApiBody,
   ApiConflictResponse,
   ApiForbiddenResponse,
+  ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
@@ -14,9 +15,11 @@ import {
 } from '@nestjs/swagger';
 import type { AccessTokenSubject } from '@oz/auth';
 import {
+  dataExportDownloadOutputSchema,
   dataExportOutputSchema,
   dataExportRequestInputSchema,
   dataExportStatusOutputSchema,
+  type DataExportDownloadOutput,
   type DataExportOutput,
   type DataExportRequestInput,
   type DataExportStatusOutput,
@@ -83,5 +86,26 @@ export class DataExportController {
   })
   latest(@CurrentUser() user: AccessTokenSubject): Promise<DataExportStatusOutput> {
     return this.exports.latest(user.userId);
+  }
+
+  @Get('download')
+  @Header('Cache-Control', 'no-store')
+  @ApiOperation({
+    summary: 'Télécharger son archive d’export',
+    description:
+      'URL signée de 5 minutes vers l’archive JSON prête et non échue (7 jours après « prête »). Chaque délivrance est journalisée.',
+  })
+  @ApiOkResponse({
+    description: 'URL signée et échéance',
+    schema: openApiBodySchema(dataExportDownloadOutputSchema),
+  })
+  @ApiNotFoundResponse({ type: ApiErrorDto, description: 'Aucune archive prête' })
+  @ApiTooManyRequestsResponse({
+    type: ApiErrorDto,
+    description: 'Plus de 30 délivrances dans l’heure',
+    headers: retryAfter,
+  })
+  download(@CurrentUser() user: AccessTokenSubject): Promise<DataExportDownloadOutput> {
+    return this.exports.download(user.userId);
   }
 }

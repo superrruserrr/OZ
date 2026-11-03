@@ -1,16 +1,20 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type {
+  DataExportDownloadOutput,
   DataExportOutput,
   DataExportRequestInput,
   DataExportStatusOutput,
 } from '@oz/contracts';
 import {
   accountEmail,
+  dataExportDownloadKey,
   latestDataExport,
   requestDataExport,
   withUserContext,
   type PrismaClient,
 } from '@oz/db';
+import type { DocumentStorage } from '@oz/storage';
+import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import { AppException } from '../common/errors/api-error.js';
 import { RateLimitedException } from '../common/rate-limit/rate-limited.exception.js';
 import { RateLimiter } from '../common/rate-limit/rate-limiter.service.js';
@@ -20,9 +24,13 @@ import { RetryLaterException, UNAUTHENTICATED } from '../auth/errors.js';
 import { AUTH_MAILER, type AuthMailer } from '../auth/mail/auth-mailer.js';
 import { MailDispatcher } from '../auth/mail/mail-dispatcher.js';
 import { TwoFactorService } from '../auth/two-factor.service.js';
+import { ExportQueue } from './export-queue.js';
+import { EXPORT_STORAGE } from './privacy.tokens.js';
 
 /** Délai entre deux demandes acceptées (D3), le même qu'en base (`oz_data_export_request`). */
 const REQUEST_INTERVAL_MS = 24 * 60 * 60 * 1000;
+/** URL de l'archive : 5 minutes (D4, EX-110 n° 6). */
+const DOWNLOAD_URL_SECONDS = 300;
 
 /** Refus unique : ne dit jamais lequel, du mot de passe ou du code, est faux ou manque. */
 const REJECTED = (): AppException =>
@@ -48,6 +56,9 @@ export class DataExportService {
     private readonly limiter: RateLimiter,
     @Inject(AUTH_MAILER) private readonly mailer: AuthMailer,
     private readonly mail: MailDispatcher,
+    private readonly queue: ExportQueue,
+    @Inject(EXPORT_STORAGE) private readonly storage: DocumentStorage,
+    @InjectPinoLogger(DataExportService.name) private readonly logger: PinoLogger,
   ) {}
 
   async request(userId: string, input: DataExportRequestInput): Promise<DataExportOutput> {
@@ -69,6 +80,20 @@ export class DataExportService {
         break;
     }
     const when = outcome.requestedAt;
+    // File indisponible : la demande reste `pending`, reprise par le balayage du worker (30 min).
+    // Jamais de 500 après l'audit : la demande est enregistrée.
+    try {
+      await this.queue.enqueue(outcome.id);
+    } catch (error) {
+      this.logger.warn(
+        {
+          event: 'data.export.enqueue_failed',
+          requestId: outcome.id,
+          cause: error instanceof Error ? error.name : 'unknown',
+        },
+        'Mise en file différée',
+      );
+    }
     this.mail.sendLater('data_export_requested', async () => {
       const address = await this.emailOf(userId);
       if (address !== null) await this.mailer.sendDataExportRequested(address, when);
@@ -95,6 +120,27 @@ export class DataExportService {
         nextRequestAt: latest.nextRequestAt.toISOString(),
       },
     };
+  }
+
+  /**
+   * URL signée de 5 minutes de l'archive prête et non échue du titulaire (D4). La délivrance est
+   * auditée par la base (`data.export.downloaded`) avant la signature ; 404 sans archive.
+   */
+  async download(userId: string): Promise<DataExportDownloadOutput> {
+    const decision = await this.limiter.consume('data_export_download_account', userId);
+    if (!decision.allowed) throw new RateLimitedException(decision.retryAfterSeconds);
+    const key = await withUserContext(this.db, userId, (tx) => dataExportDownloadKey(tx));
+    if (key === null) {
+      throw new AppException(404, 'DATA_EXPORT_NOT_FOUND', 'Aucune archive disponible.');
+    }
+    const signed = await this.storage.presignGet({
+      key,
+      contentType: 'application/json',
+      expiresInSeconds: DOWNLOAD_URL_SECONDS,
+    });
+    // Ni l'URL ni la clé au journal.
+    this.logger.info({ event: 'data.export.download_granted' }, 'URL d’archive délivrée');
+    return { url: signed.url, expiresAt: signed.expiresAt.toISOString() };
   }
 
   /**

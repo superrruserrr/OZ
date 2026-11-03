@@ -1,0 +1,10 @@
+DROP FUNCTION oz_data_export_download();
+DROP FUNCTION oz_data_export_expire(uuid);
+DROP FUNCTION oz_data_export_due(integer);
+DROP FUNCTION oz_data_export_fail(uuid, text);
+DROP FUNCTION oz_data_export_finish(uuid);
+DROP FUNCTION oz_data_export_claim(uuid);
+DROP FUNCTION oz_data_export_account_live(uuid);
+DROP FUNCTION oz_data_export_worker_only();
+ALTER TABLE "data_export_requests" DROP CONSTRAINT "data_export_requests_failure_reason_check";
+ALTER TABLE "data_export_requests" DROP CONSTRAINT "data_export_requests_storage_key_check";

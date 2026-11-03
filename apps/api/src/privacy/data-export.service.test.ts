@@ -1,4 +1,6 @@
 import type { PrismaClient } from '@oz/db';
+import type { DocumentStorage } from '@oz/storage';
+import type { PinoLogger } from 'nestjs-pino';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { CredentialsService } from '../auth/credentials.service.js';
 import type { AuthMailer } from '../auth/mail/auth-mailer.js';
@@ -6,11 +8,14 @@ import type { MailDispatcher } from '../auth/mail/mail-dispatcher.js';
 import type { TwoFactorService } from '../auth/two-factor.service.js';
 import type { RateLimiter } from '../common/rate-limit/rate-limiter.service.js';
 import { DataExportService } from './data-export.service.js';
+import type { ExportQueue } from './export-queue.js';
 
-// Export des données (lot 1.16ba) : ré-authentification, refus de la base, limites, alerte.
+// Export des données (lots 1.16ba et 1.16bb) : ré-authentification, refus de la base, limites,
+// alerte, mise en file, téléchargement.
 
 const db = vi.hoisted(() => ({
   accountEmail: vi.fn(),
+  dataExportDownloadKey: vi.fn(),
   latestDataExport: vi.fn(),
   requestDataExport: vi.fn(),
   withUserContext: vi.fn((_db: unknown, _user: string, fn: (tx: unknown) => unknown) => fn({})),
@@ -26,6 +31,10 @@ const consume = vi.fn();
 const verify = vi.fn();
 const state = vi.fn();
 const checkSecondFactor = vi.fn();
+const enqueue = vi.fn();
+const presignGet = vi.fn();
+const warn = vi.fn();
+const info = vi.fn();
 const sendDataExportRequested = vi.fn();
 const sent: Promise<void>[] = [];
 const service = new DataExportService(
@@ -39,6 +48,9 @@ const service = new DataExportService(
       sent.push(send());
     },
   } as unknown as MailDispatcher,
+  { enqueue } as unknown as ExportQueue,
+  { presignGet } as unknown as DocumentStorage,
+  { warn, info } as unknown as PinoLogger,
 );
 
 beforeEach(() => {
@@ -50,6 +62,7 @@ beforeEach(() => {
   checkSecondFactor.mockResolvedValue(true);
   db.accountEmail.mockResolvedValue('titulaire@example.test');
   db.requestDataExport.mockResolvedValue({ outcome: 'accepted', id: 'r', requestedAt: REQUESTED });
+  enqueue.mockResolvedValue(undefined);
 });
 
 describe('DataExportService.request', () => {
@@ -179,5 +192,60 @@ describe('DataExportService.latest', () => {
     });
     db.latestDataExport.mockResolvedValueOnce(null);
     expect(await service.latest(USER)).toEqual({ latest: null });
+  });
+});
+
+describe('mise en file (lot 1.16bb)', () => {
+  it('demande acceptée mise en file par son identifiant', async () => {
+    await service.request(USER, { password: 'x' });
+    expect(enqueue).toHaveBeenCalledWith('r');
+  });
+
+  it('file indisponible : 202 quand même, cause journalisée par son type seul', async () => {
+    enqueue.mockRejectedValueOnce(new TypeError('redis titulaire@example.test'));
+    expect(await service.request(USER, { password: 'x' })).toMatchObject({ status: 'pending' });
+    expect(warn).toHaveBeenCalledWith(
+      { event: 'data.export.enqueue_failed', requestId: 'r', cause: 'TypeError' },
+      'Mise en file différée',
+    );
+  });
+
+  it('refus ou conflit : rien en file', async () => {
+    db.requestDataExport.mockResolvedValueOnce({ outcome: 'active' });
+    await expect(service.request(USER, { password: 'x' })).rejects.toMatchObject({ status: 409 });
+    expect(enqueue).not.toHaveBeenCalled();
+  });
+});
+
+describe('DataExportService.download (lot 1.16bb)', () => {
+  it('archive prête : URL signée de 5 minutes, JSON ; ni clé ni URL au journal', async () => {
+    db.dataExportDownloadKey.mockResolvedValueOnce('exports/r.json');
+    presignGet.mockResolvedValueOnce({
+      url: 'https://s3.example.test/b/exports/r.json?X-Amz-Signature=s',
+      expiresAt: new Date('2026-11-09T10:05:00.000Z'),
+    });
+    expect(await service.download(USER)).toEqual({
+      url: 'https://s3.example.test/b/exports/r.json?X-Amz-Signature=s',
+      expiresAt: '2026-11-09T10:05:00.000Z',
+    });
+    expect(presignGet).toHaveBeenCalledWith({
+      key: 'exports/r.json',
+      contentType: 'application/json',
+      expiresInSeconds: 300,
+    });
+    expect(JSON.stringify(info.mock.calls)).not.toContain('exports/');
+  });
+
+  it('aucune archive : 404 sans signature ; quota atteint : 429 avant la base', async () => {
+    db.dataExportDownloadKey.mockResolvedValueOnce(null);
+    await expect(service.download(USER)).rejects.toMatchObject({
+      status: 404,
+      code: 'DATA_EXPORT_NOT_FOUND',
+    });
+    expect(presignGet).not.toHaveBeenCalled();
+    consume.mockResolvedValueOnce({ allowed: false, retryAfterSeconds: 60 });
+    await expect(service.download(USER)).rejects.toMatchObject({ status: 429 });
+    expect(consume).toHaveBeenLastCalledWith('data_export_download_account', USER);
+    expect(db.dataExportDownloadKey).toHaveBeenCalledTimes(1);
   });
 });

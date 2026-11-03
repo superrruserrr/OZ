@@ -1,4 +1,5 @@
 import { generateTotpCode } from '@oz/auth';
+import { Queue } from 'bullmq';
 import request from 'supertest';
 import type { App } from 'supertest/types.js';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
@@ -192,5 +193,75 @@ describe('/account/data-export', () => {
     expect(logs).not.toContain(PASSWORD);
     expect(logs).not.toContain(WRONG);
     expect(logs).not.toContain(secret);
+  });
+});
+
+// Lot 1.16bb : mise en file pour le worker, téléchargement par URL signée.
+describe('mise en file et téléchargement', () => {
+  const download = (accessToken: string) =>
+    request(server)
+      .get('/account/data-export/download')
+      .set('Authorization', `Bearer ${accessToken}`);
+
+  it('demande acceptée : job `build-export` en file, identifiant de la demande seul', async () => {
+    const { email, accessToken } = await account();
+    await ask(accessToken, { password: PASSWORD }).expect(202);
+    const [row] = (
+      await harness.db.query<{ id: string }>(
+        `SELECT r.id::text FROM data_export_requests r JOIN users u ON u.id = r.user_id
+         WHERE u.email = $1`,
+        [email],
+      )
+    ).rows;
+    const queue = new Queue('data-export', { connection: harness.redis });
+    try {
+      const job = await queue.getJob(row?.id ?? '');
+      expect(job?.name).toBe('build-export');
+      expect(job?.data).toEqual({ requestId: row?.id });
+      expect(job?.opts.attempts).toBe(3);
+    } finally {
+      await queue.close();
+    }
+  });
+
+  it('sans archive : 404 ; prête : URL de 5 minutes, sans cache, auditée ; échue : 404', async () => {
+    const { email, accessToken } = await account();
+    const none = await download(accessToken).expect(404);
+    expect(errorOf(none).code).toBe('DATA_EXPORT_NOT_FOUND');
+
+    await ask(accessToken, { password: PASSWORD }).expect(202);
+    await harness.db.query(
+      `UPDATE data_export_requests r SET status = 'ready', storage_key = 'exports/' || r.id || '.json',
+         ready_at = now(), expires_at = now() + interval '7 days'
+       FROM users u WHERE u.id = r.user_id AND u.email = $1`,
+      [email],
+    );
+    const ok = await download(accessToken).expect(200);
+    expect(ok.headers['cache-control']).toBe('no-store');
+    const body = ok.body as { url: string; expiresAt: string };
+    const url = new URL(body.url);
+    expect(url.pathname).toMatch(/\/exports\/[0-9a-f-]{36}\.json$/);
+    expect(url.searchParams.get('X-Amz-Expires')).toBe('300');
+    expect(url.searchParams.get('response-content-disposition')).toBe('attachment');
+    expect(new Date(body.expiresAt).getTime()).toBeLessThanOrEqual(Date.now() + 300_000);
+    const audit = await harness.db.query(
+      `SELECT 1 FROM audit_log a JOIN users u ON u.id = a.actor_user_id
+       WHERE a.action = 'data.export.downloaded' AND u.email = $1`,
+      [email],
+    );
+    expect(audit.rowCount).toBe(1);
+    expect(JSON.stringify(harness.logs.lines())).not.toContain(url.pathname);
+
+    await harness.db.query(
+      `UPDATE data_export_requests r SET ready_at = now() - interval '8 days',
+         expires_at = now() - interval '1 second'
+       FROM users u WHERE u.id = r.user_id AND u.email = $1`,
+      [email],
+    );
+    await download(accessToken).expect(404);
+  });
+
+  it('sans session : 401', async () => {
+    await request(server).get('/account/data-export/download').expect(401);
   });
 });
