@@ -82,7 +82,7 @@ qui reste une fois les mesures prévues en place.
 - **Impact** : Moyen. Le badge « certifié » perd sa valeur.
 - **Mesures** : 2FA obligatoire pour les centres, empreinte de la preuve, signature de session,
   bornes de valeurs, contrôle statistique des valeurs aberrantes, certification révocable,
-  journal d'audit chaîné.
+  journal d'audit chaîné (vérifié et ancré hors de la base depuis le lot 1.16a).
 - **État** : prévu.
 - **Risque résiduel** : Moyen jusqu'au contrôle statistique (lot 3.6), Faible ensuite.
 - **Lot de vérification** : 1.3 (2FA), 2.1, 2.2, 3.6.
@@ -111,7 +111,9 @@ qui reste une fois les mesures prévues en place.
   adversariale de chaque lot.
 - **État** : partiel. Refus par défaut, CASL et test par route en place (lot 1.4a) ; RLS de
   lecture des joueurs alignée et vues par rôle en place (lot 1.4b) ; rôles PostgreSQL séparés,
-  D-038.
+  D-038. Lot 1.16a : une altération du journal d'audit, même par un administrateur de la base, est
+  détectée par la vérification quotidienne contre une ancre tenue hors de la base
+  ([audit.md](audit.md)).
 - **Risque résiduel** : Faible une fois la matrice exhaustive verte.
 - **Lot de vérification** : 1.1, 1.4, test d'intrusion du lot 1.17.
 

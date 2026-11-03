@@ -65,7 +65,7 @@ const PREFIXES: readonly string[] = ['incoming/', 'quarantine/', 'clean/'];
 const MAX_LISTED = 10_000;
 const PAGE_SIZE = 1_000;
 
-const preconditionFailed = (error: unknown): boolean =>
+export const preconditionFailed = (error: unknown): boolean =>
   error instanceof S3ServiceException &&
   (error.name === 'PreconditionFailed' || error.$metadata.httpStatusCode === 412);
 
@@ -412,7 +412,7 @@ export interface StoredObject {
 }
 
 /** Erreur sans la requête signée ni les identifiants : opération et code seulement. */
-function storageError(operation: string, error: unknown): StorageError {
+export function storageError(operation: string, error: unknown): StorageError {
   const code =
     error instanceof S3ServiceException
       ? `${error.name} (${String(error.$metadata.httpStatusCode ?? '?')})`

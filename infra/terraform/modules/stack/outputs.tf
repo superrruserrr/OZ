@@ -14,3 +14,7 @@ output "backup_buckets" {
 output "secrets_path" {
   value = local.secrets_path
 }
+
+output "audit_anchor_bucket" {
+  value = module.storage.audit_anchor_bucket
+}

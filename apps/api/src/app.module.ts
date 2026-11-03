@@ -2,6 +2,7 @@ import { Module, type DynamicModule } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import type { ApiConfig } from '@oz/config';
 import type { DestinationStream } from 'pino';
+import { AuditModule } from './audit/audit.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { DefaultDenyGuard } from './authorization/default-deny.guard.js';
 import { PayloadGuardInterceptor } from './authorization/payload-guard.interceptor.js';
@@ -29,6 +30,8 @@ export class AppModule {
         // Drapeau R13 : le module n'existe pas du tout quand il est désactivé (404).
         ...(config.features.contactForm ? [ContactModule] : []),
         ...(config.auth ? [AuthModule.forRoot(config.auth)] : []),
+        // Journal d'audit (lot 1.16a) : réservé à l'administrateur, repose sur la session.
+        ...(config.auth ? [AuditModule.forRoot(config.auth.hmacKey)] : []),
         // FEATURE_DOCUMENTS exige FEATURE_AUTH (configuration) : les routes reposent sur la session.
         ...(config.features.documents && config.auth
           ? [DocumentModule.forRoot(config.auth.hmacKey)]

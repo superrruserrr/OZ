@@ -1,9 +1,17 @@
 import { ConfigError, loadWorkerConfig, redisTlsOptions, type WorkerConfig } from '@oz/config';
 import { claimDocumentScan, createDbClient, finishDocumentScan } from '@oz/db';
-import { DocumentStorage } from '@oz/storage';
+import { AuditAnchorStore, DocumentStorage } from '@oz/storage';
 import { Queue, Worker } from 'bullmq';
 import { Redis } from 'ioredis';
 import { pino } from 'pino';
+import {
+  AUDIT_MAINTENANCE_QUEUE,
+  createAuditDependencies,
+  createAuditHandlers,
+  createAuditProcessor,
+  observeAuditMaintenance,
+  scheduleAuditMaintenance,
+} from './audit-maintenance.js';
 import { ClamavClient } from './clamav.js';
 import { HEALTH_PORT, startHealthServer } from './health.js';
 import {
@@ -18,7 +26,8 @@ import type { ScanLogger } from './scan-document.js';
 
 // Démarrage du worker (lot 1.9b) : base sous le rôle `oz_worker`, Redis, stockage, ClamAV, puis
 // consommation de la file `document-scan`. Lot 1.9cb : file `document-maintenance` (purge des pièces
-// échues, balayage des analyses abandonnées, objets orphelins), planifiée au démarrage. Arrêt propre
+// échues, balayage des analyses abandonnées, objets orphelins), planifiée au démarrage. Lot 1.16a :
+// file `audit-maintenance` (partitions, ancrage de la tête de chaîne, vérification). Arrêt propre
 // sur SIGTERM/SIGINT : les traitements en cours se terminent, les connexions sont fermées.
 
 export interface WorkerHandle {
@@ -63,17 +72,58 @@ export async function startWorker(config: WorkerConfig, logger: ScanLogger): Pro
   );
   observeMaintenance(maintenance, logger);
 
-  await Promise.all([worker.waitUntilReady(), maintenance.waitUntilReady()]);
+  // Journal d'audit : ancres dans leur propre bucket (même clé d'application), s'il est configuré.
+  const anchorBucket = config.audit.anchorBucket;
+  const anchors =
+    anchorBucket === undefined
+      ? undefined
+      : new AuditAnchorStore({
+          ...config.s3,
+          bucket: anchorBucket,
+          lockDays: config.audit.anchorLockDays,
+        });
+  const auditQueue = new Queue(AUDIT_MAINTENANCE_QUEUE, { connection });
+  const audit = new Worker(
+    AUDIT_MAINTENANCE_QUEUE,
+    createAuditProcessor(
+      createAuditHandlers(createAuditDependencies({ db, anchors, logger })),
+      logger,
+    ),
+    { connection, concurrency: 1 },
+  );
+  observeAuditMaintenance(audit, logger);
+
+  await Promise.all([
+    worker.waitUntilReady(),
+    maintenance.waitUntilReady(),
+    audit.waitUntilReady(),
+  ]);
   await scheduleMaintenance(maintenanceQueue, config.maintenance);
+  await scheduleAuditMaintenance(auditQueue, {
+    enabled: config.audit.enabled,
+    anchorEveryMinutes: config.audit.anchorEveryMinutes,
+    verifyEveryMinutes: config.audit.verifyEveryMinutes,
+    anchoring: anchors !== undefined,
+  });
   logger.info(
-    { concurrency: config.concurrency, maintenance: config.maintenance.enabled },
+    {
+      concurrency: config.concurrency,
+      maintenance: config.maintenance.enabled,
+      audit: config.audit.enabled,
+      anchoring: anchors !== undefined,
+    },
     'worker.started',
   );
   return {
-    healthy: () => worker.isRunning() && maintenance.isRunning() && connection.status === 'ready',
+    healthy: () =>
+      worker.isRunning() &&
+      maintenance.isRunning() &&
+      audit.isRunning() &&
+      connection.status === 'ready',
     async close() {
-      await Promise.all([worker.close(), maintenance.close()]);
-      await Promise.allSettled([scanQueue.close(), maintenanceQueue.close()]);
+      await Promise.all([worker.close(), maintenance.close(), audit.close()]);
+      await Promise.allSettled([scanQueue.close(), maintenanceQueue.close(), auditQueue.close()]);
+      anchors?.destroy();
       await Promise.allSettled([db.$disconnect(), connection.quit()]);
     },
   };

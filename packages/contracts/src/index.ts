@@ -58,6 +58,17 @@ export {
   type VerifyEmailInput,
 } from './auth/auth.schema.js';
 export {
+  auditIntegritySchema,
+  auditLogEntrySchema,
+  auditLogPageSchema,
+  auditLogQuerySchema,
+  type AuditIntegrityOutput,
+  type AuditLogEntryOutput,
+  type AuditLogPageOutput,
+  type AuditLogQueryOutput,
+  type AuditLogQueryInput,
+} from './audit/log.schema.js';
+export {
   documentReadOutputSchema,
   documentReadParamsSchema,
   type DocumentReadOutput,

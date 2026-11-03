@@ -200,7 +200,7 @@ Le marché de lancement est le **Cameroun**, avec une expansion prévue vers l'A
 3. LE script d'anonymisation DOIT avoir un test prouvant qu'aucun nom, date de naissance exacte, téléphone, email ou numéro de document réel ne subsiste.
 
 ### EX-T11 — Journal d'audit immuable
-**Source :** R11, §5.4, §6.4 A08 · **Priorité :** P0 · **Statut :** Plan
+**Source :** R11, §5.4, §6.4 A08 · **Priorité :** P0 · **Statut :** Plan · n° 2 à 5 livrés (lots 1.1a et 1.16a, `docs/security/audit.md`) ; n° 1 au fil des lots métier
 
 1. LE Système DOIT journaliser : création de compte, transition d'état KYC, certification de performance, changement de rôle, accès à un dossier de mineur, opération de facturation, décision d'administration.
 2. CHAQUE entrée DOIT contenir l'acteur, l'action, la cible, le motif, l'horodatage serveur, le `requestId` et le hash de l'entrée précédente.
@@ -670,7 +670,7 @@ Le marché de lancement est le **Cameroun**, avec une expansion prévue vers l'A
 5. LES envois DOIVENT passer par une file asynchrone.
 
 ### EX-118 — Journal d'audit et droits RGPD
-**Source :** lot 1.16 · **Priorité :** P0 · **Statut :** Plan
+**Source :** lot 1.16 · **Priorité :** P0 · **Statut :** Plan · n° 1 livré côté API (lot 1.16a ; écran au lot 1.11) ; n° 2 à 4 aux lots 1.16b et 1.16c
 
 1. LE journal d'audit DOIT respecter EX-T11 et être consultable dans le back-office.
 2. UN utilisateur DOIT pouvoir obtenir l'export complet de ses données personnelles dans un format portable.

@@ -29,6 +29,10 @@ describe('limites par défaut (§6.6, D7 du lot 1.3ca)', () => {
       limit: 120,
       windowSeconds: 3600,
     });
+    expect(RATE_LIMIT_DEFAULTS.audit_log_read_account).toEqual({
+      limit: 600,
+      windowSeconds: 3600,
+    });
     expect(Object.keys(RATE_LIMIT_DEFAULTS).sort()).toEqual([...RATE_LIMIT_RULES].sort());
   });
 });

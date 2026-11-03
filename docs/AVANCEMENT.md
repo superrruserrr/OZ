@@ -1,7 +1,7 @@
 # OZ — Où en est le projet ?
 
 > Check-list tenue à jour à la fin de chaque étape, à transmettre telle quelle à Fabrice Olinga.
-> **Dernière mise à jour : 3 novembre 2026** — étape : brouillon de l'analyse d'impact (AIPD).
+> **Dernière mise à jour : 3 novembre 2026** — étape : 1.16a journal d'audit infalsifiable.
 
 Légende : ✅ fait et vérifié · 🟡 en cours · ⬜ à faire · ⏸️ bloqué en attente d'une décision
 
@@ -49,11 +49,19 @@ la vérification d'identité, qui attend deux décisions (§ « Ce qui bloque »
 | 1.13 Profil joueur public                                | ⬜   | Après 1.7                                                             |
 | 1.14 Recherche                                           | ⬜   | Après 1.13 ; quotas selon Q8                                          |
 | 1.15 Notifications et emails                             | ⬜   | Après 1.7                                                             |
-| 1.16 Journal et conformité données (RGPD)                | ⬜   | Registre des traitements, droits des personnes                        |
+| 1.16 Journal et conformité données (RGPD)                | 🟡   | 1.16a fait : journal infalsifiable ; restent l'export et l'effacement |
 | 1.17 Tests de charge et recette                          | ⬜   | Fin de phase                                                          |
 | 1.18 Mise en production                                  | ⬜   | Fin de phase                                                          |
 
-**Bilan Phase 1 : 5 étapes sur 20 terminées.**
+**Bilan Phase 1 : 5 étapes sur 20 terminées, 1 en cours (1.16 : 1 partie sur 3 faite).**
+
+### Étape 1.16 en détail
+
+| Partie                                    | État | Ce que ça veut dire pour le produit                                                       |
+| ----------------------------------------- | ---- | ----------------------------------------------------------------------------------------- |
+| 1.16a Journal d'audit infalsifiable       | ✅   | Toute action sensible est tracée ; une falsification, même par un technicien, est repérée |
+| 1.16b Export des données d'un utilisateur | ⬜   | Chacun pourra télécharger toutes ses données                                              |
+| 1.16c Suppression de compte et registre   | ⬜   | Compte effacé proprement, registre des traitements RGPD rédigé                            |
 
 ## Ce qui bloque — décisions attendues
 
@@ -84,11 +92,12 @@ la vérification d'identité, qui attend deux décisions (§ « Ce qui bloque »
 
 - 6 contrôles automatiques au vert exigés avant chaque intégration.
 - Dernière mesure complète : plus de 2 500 tests automatiques, 97 % du code couvert par les tests.
-- 91 points techniques notés à reprendre plus tard (dette suivie dans `DEBT.md`).
+- 92 points techniques notés à reprendre plus tard (dette suivie dans `DEBT.md`).
 
 ## Historique des mises à jour
 
-| Date       | Étape terminée                                        |
-| ---------- | ----------------------------------------------------- |
-| 2026-11-03 | Création de la check-list ; brouillon AIPD            |
-| 2026-11-03 | 1.9 Coffre des documents d'identité (effacement auto) |
+| Date       | Étape terminée                                            |
+| ---------- | --------------------------------------------------------- |
+| 2026-11-03 | Création de la check-list ; brouillon AIPD                |
+| 2026-11-03 | 1.9 Coffre des documents d'identité (effacement auto)     |
+| 2026-11-03 | 1.16a Journal d'audit infalsifiable (étape 1.16 en cours) |

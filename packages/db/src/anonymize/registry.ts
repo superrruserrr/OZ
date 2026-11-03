@@ -172,6 +172,13 @@ export const ANONYMIZATION_REGISTRY: Registry = {
     created_at: 'technical',
   },
   audit_chain_state: { id: 'technical', last_position: 'technical', last_hash: 'technical' },
+  audit_chain_checks: {
+    id: 'technical',
+    checked_at: 'technical',
+    head_position: 'technical',
+    anchor_position: 'technical',
+    defect_position: 'technical',
+  },
   // Lot 1.1b. Les fichiers restent dans le stockage de production : la copie n'a que des clés mortes.
   documents: {
     ...TIMESTAMPS,

@@ -27,6 +27,7 @@ export const RATE_LIMIT_RULES = [
   'document_upload_account',
   'document_complete_account',
   'document_read_account',
+  'audit_log_read_account',
 ] as const;
 
 export type RateLimitRule = (typeof RATE_LIMIT_RULES)[number];
@@ -70,6 +71,8 @@ export const RATE_LIMIT_DEFAULTS: RateLimits = Object.freeze({
   document_complete_account: { limit: 60, windowSeconds: HOUR },
   // URL de lecture (lot 1.9ca) : une consultation de dossier en demande plusieurs, jamais des milliers.
   document_read_account: { limit: 120, windowSeconds: HOUR },
+  // Journal d'audit (lot 1.16a) : une enquête feuillette des pages, une aspiration en enchaîne des milliers.
+  audit_log_read_account: { limit: 600, windowSeconds: HOUR },
 });
 
 // Borne la taille d'un journal dans Redis (un membre par passage accepté).

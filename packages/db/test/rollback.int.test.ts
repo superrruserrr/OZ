@@ -80,10 +80,22 @@ describe('rollbackLast (db:rollback)', () => {
       [tooLarge?.id],
     );
 
-    // Dernière migration (lot 1.9cb) : fonctions de purge retirées, anciennes contraintes rétablies.
+    // Dernière migration (lot 1.16a) : fonctions du worker, vérifications et lecture admin retirées.
     const result = await rollbackLast({ databaseUrl: db.url, appEnv: 'local' });
     expect(result.rolledBack).toBe(last);
     expect(await applied()).not.toContain(last);
+    expect(await tableExists('audit_chain_checks')).toBe(false);
+    expect(await functionExists('oz_audit_check')).toBe(false);
+    expect(await functionExists('oz_audit_head')).toBe(false);
+    expect(await functionExists('oz_audit_maintain_partitions')).toBe(false);
+    expect(await policyExists('audit_log', 'audit_log_admin_read')).toBe(false);
+    expect(await policyExists('audit_log', 'audit_log_privileged_read')).toBe(false);
+    expect(await functionExists('oz_audit_verify_chain')).toBe(true);
+
+    // Lot 1.9cb : fonctions de purge retirées, anciennes contraintes rétablies.
+    expect((await rollbackLast({ databaseUrl: db.url, appEnv: 'local' })).rolledBack).toBe(
+      listMigrations(MIGRATIONS_DIR).at(-2)?.name,
+    );
     expect(await functionExists('oz_document_purge_due')).toBe(false);
     expect(await functionExists('oz_document_storage_orphans')).toBe(false);
     expect(await policyExists('audit_log', 'audit_log_privileged_read_document_reads')).toBe(false);
@@ -93,9 +105,9 @@ describe('rollbackLast (db:rollback)', () => {
       ]),
     ).toEqual([{ rejection_reason: 'dimensions', document_number_hmac: null }]);
 
-    // Avant-dernière (lot 1.9ca), les précédentes intactes.
+    // Lot 1.9ca, les précédentes intactes.
     expect((await rollbackLast({ databaseUrl: db.url, appEnv: 'local' })).rolledBack).toBe(
-      listMigrations(MIGRATIONS_DIR).at(-2)?.name,
+      listMigrations(MIGRATIONS_DIR).at(-3)?.name,
     );
     expect(await columnExists('documents', 'purged_at')).toBe(false);
     expect(await policyExists('documents', 'documents_admin_read')).toBe(false);
@@ -108,7 +120,7 @@ describe('rollbackLast (db:rollback)', () => {
     expect(await functionExists('oz_document_scan_claim')).toBe(true);
 
     // Lot 1.9b : un document rejeté redevient `error`.
-    const previous = listMigrations(MIGRATIONS_DIR).at(-3)?.name;
+    const previous = listMigrations(MIGRATIONS_DIR).at(-4)?.name;
     expect((await rollbackLast({ databaseUrl: db.url, appEnv: 'local' })).rolledBack).toBe(
       previous,
     );

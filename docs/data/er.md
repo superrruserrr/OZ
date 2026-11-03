@@ -6,6 +6,13 @@ Les partitions mensuelles de `audit_log` ne sont pas représentées.
 
 ```mermaid
 erDiagram
+  audit_chain_checks {
+    uuid id PK
+    timestamptz checked_at
+    bigint head_position
+    bigint anchor_position
+    bigint defect_position
+  }
   audit_chain_state {
     boolean id PK
     bigint last_position

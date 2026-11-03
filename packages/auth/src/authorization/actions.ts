@@ -29,6 +29,8 @@ export const RBAC_ACTION_SUBJECTS = {
   'kyc.decide': 'KycCase',
   'kyc.read': 'KycCase',
   'audit.read': 'Player',
+  // Journal d'audit entier (lot 1.16a, EX-118 n° 1) : back-office seul.
+  'audit.read_log': 'AuditLog',
   'subscription.manage': 'Organization',
   'document.upload': 'Document',
   'document.read': 'Document',
