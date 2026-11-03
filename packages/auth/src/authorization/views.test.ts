@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { abilityFor, playerSubject, type Actor, type PlayerRecord } from './abilities.js';
 import type { RbacRole } from './actions.js';
 import {
+  PLAYER_BLOCK_FIELDS,
   PLAYER_VIEWS,
   playerViewFor,
   presentPlayer,
@@ -195,5 +196,54 @@ describe('presentPlayer', () => {
     expect(out?.birthYear).toBe(2014);
     const nobody: Actor = { userId: 'x', roles: [], isKyc3Verified: false };
     expect(presentPlayer(nobody, abilityFor(nobody), playerSubject(child(), NOW), DATA)).toBeNull();
+  });
+});
+
+describe('blocs masqués et badge (lot 1.13a)', () => {
+  const hidden = { location: false, physical: false, sport: false } as const;
+
+  it('tiers : champs des blocs masqués absents ; identité et badge conservés', () => {
+    const who = actor('lecteur', 'club', 'club-b');
+    const out = presentPlayer(
+      who,
+      abilityFor(who),
+      playerSubject(record(), NOW),
+      { ...DATA, verificationLevel: 2 },
+      hidden,
+    );
+    expect(out).not.toBeNull();
+    for (const field of Object.values(PLAYER_BLOCK_FIELDS).flat()) {
+      expect(out).not.toHaveProperty(field);
+    }
+    expect(out).toMatchObject({ ozId: DATA.ozId, firstName: 'Awa', verificationLevel: 2 });
+  });
+
+  it('un seul bloc masqué ; `true` ou absent : visible', () => {
+    const who = actor('lecteur', 'club', 'club-b');
+    const out = presentPlayer(who, abilityFor(who), playerSubject(record(), NOW), DATA, {
+      physical: false,
+      sport: true,
+    });
+    expect(out).not.toHaveProperty('heightCm');
+    expect(out).toMatchObject({ city: 'Douala', primaryPosition: 'winger' });
+  });
+
+  it('titulaire, tuteur, organisation de rattachement et admin : réglages sans effet', () => {
+    const cases: [Actor, PlayerRecord][] = [
+      [actor('titulaire', 'player'), record()],
+      [actor('tuteur', 'guardian'), child()],
+      [actor('membre', 'club', 'club-a'), child({ hasPublicationConsent: false })],
+      [actor('admin', 'admin'), record()],
+    ];
+    for (const [who, target] of cases) {
+      const out = presentPlayer(who, abilityFor(who), playerSubject(target, NOW), DATA, hidden);
+      expect(out, who.roles[0]?.role).toMatchObject({ heightCm: 150, city: 'Douala' });
+    }
+  });
+
+  it('le badge figure dans toutes les vues', () => {
+    for (const view of Object.values(PLAYER_VIEWS)) {
+      expect(view.fields, view.name).toContain('verificationLevel');
+    }
   });
 });

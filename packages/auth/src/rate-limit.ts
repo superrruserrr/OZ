@@ -28,6 +28,8 @@ export const RATE_LIMIT_RULES = [
   'document_complete_account',
   'document_read_account',
   'audit_log_read_account',
+  'player_profile_read_account',
+  'player_visibility_update_account',
 ] as const;
 
 export type RateLimitRule = (typeof RATE_LIMIT_RULES)[number];
@@ -73,6 +75,10 @@ export const RATE_LIMIT_DEFAULTS: RateLimits = Object.freeze({
   document_read_account: { limit: 120, windowSeconds: HOUR },
   // Journal d'audit (lot 1.16a) : une enquête feuillette des pages, une aspiration en enchaîne des milliers.
   audit_log_read_account: { limit: 600, windowSeconds: HOUR },
+  // Fiche joueur (lot 1.13a) : une recherche en ouvre des dizaines, un aspirateur des milliers.
+  player_profile_read_account: { limit: 300, windowSeconds: HOUR },
+  // Réglage de visibilité (lot 1.13a) : quelques changements, jamais une rafale.
+  player_visibility_update_account: { limit: 30, windowSeconds: HOUR },
 });
 
 // Borne la taille d'un journal dans Redis (un membre par passage accepté).

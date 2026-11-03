@@ -102,9 +102,15 @@ async function grant(userId: string, role: RbacRole, organization: string | null
   );
 }
 
+// Paramètre de route (`:id`, `:ozId`) : un enregistrement absent, bien formé.
+const PLACEHOLDERS: Record<string, string> = {
+  ':id': '00000000-0000-4000-8000-000000000001',
+  ':ozId': 'OZ-CM-26-000000-0',
+};
+
 const call = (method: string, path: string, token?: string) => {
-  const url = path.replace(':id', '00000000-0000-4000-8000-000000000001');
-  const verb = method.toLowerCase() as 'get' | 'post' | 'delete';
+  const url = path.replace(/:\w+/g, (param) => PLACEHOLDERS[param] ?? param);
+  const verb = method.toLowerCase() as 'get' | 'post' | 'patch' | 'delete';
   const pending = request(server)[verb](url).set('Origin', ORIGIN);
   return token === undefined ? pending : pending.set('Authorization', `Bearer ${token}`);
 };
@@ -138,8 +144,8 @@ describe('matrice routes', () => {
   });
 
   describe.each(matrix.routes)('$method $path ($access)', ({ method, path, access }) => {
-    // `:id` désigne un enregistrement absent : 404 attendu, jamais un autre motif de route absente.
-    const isMounted = (status: number): boolean => status !== 404 || path.includes(':id');
+    // Un paramètre désigne un enregistrement absent : 404 attendu, jamais un autre motif de route absente.
+    const isMounted = (status: number): boolean => status !== 404 || path.includes(':');
 
     it('sans session', async () => {
       const response = await call(method, path);
@@ -154,12 +160,11 @@ describe('matrice routes', () => {
       const token = await login(address);
       await grant(userId, role, GLOBAL_ROLES.includes(role) ? null : organizationId);
       const response = await call(method, path, token);
-      // Route à action (`@Can`) : la cellule `deny` du rôle refuse, toute autre laisse passer.
-      if (
-        access !== 'public' &&
-        access !== 'authenticated' &&
-        matrix.actions[access][role] === 'deny'
-      ) {
+      // Route à action (`@Can`) : la cellule `deny` du rôle refuse, et `kyc3*` sans KYC 3 (aucun
+      // compte de cette suite ne l'a) ; toute autre laisse passer.
+      const cell =
+        access === 'public' || access === 'authenticated' ? null : matrix.actions[access][role];
+      if (cell === 'deny' || cell?.startsWith('kyc3') === true) {
         expect(response.status).toBe(403);
         expect(errorCode(response)).toBe('AUTHZ_FORBIDDEN');
         return;

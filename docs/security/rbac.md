@@ -43,6 +43,7 @@ La colonne `recruiter` vaut aussi pour l'agence. `player.read_public` ne porte q
 | --------------------------- | --------------------------------------------- | ---------- | ---------- | ----------- | ----- | ---------- | ------ | ----------- | ------ |
 | `profile.read`              | Voir le profil complet                        | self       | child      | deny        | deny  | deny       | deny   | deny        | logged |
 | `profile.update`            | Modifier un profil (hors KYC, rôle, statut)   | self-adult | child      | org         | org   | deny       | deny   | deny        | logged |
+| `profile.set_visibility`    | Régler les blocs visibles des tiers           | self-adult | child      | deny        | deny  | deny       | deny   | deny        | deny   |
 | `player.create`             | Créer ou importer des joueurs                 | deny       | deny       | org         | org   | deny       | deny   | deny        | allow  |
 | `player.read_public`        | Voir un profil majeur vérifié                 | allow      | allow      | allow       | allow | allow      | allow  | kyc3        | allow  |
 | `player.search`             | Rechercher des joueurs                        | deny       | deny       | limited     | allow | allow      | deny   | kyc3        | allow  |
@@ -95,6 +96,8 @@ Un champ non autorisé n'est pas envoyé (EX-104 n° 3). Les vues sont des liste
 | `PlayerOrganizationView` | Académie ou club de rattachement, sur un mineur     | Mêmes champs, sans `phone`                                        |
 | `PlayerPublicView`       | Tout autre lecteur permis (recruteur KYC 3 compris) | Identité, année de naissance (`birthYear`), sport                 |
 
+Toutes les vues portent le badge `verificationLevel` (lot 1.13a) : 0 email seul, 1 email et téléphone du compte titulaire vérifiés, 2 identité vérifiée ; un joueur sans compte reste à 0 avant vérification (D-109) ; jamais les dates de vérification. Le titulaire majeur, ou le tuteur vérifié d'un mineur (`profile.set_visibility`), peut masquer aux tiers trois blocs : `location` (région, ville), `physical` (taille, poids), `sport` (postes, pied fort). Un bloc masqué disparaît de `PlayerPublicView` seulement ; OZ ID, nom, nationalité, pays, année de naissance et badge restent. Le réglage passe par `oz_player_set_visibility`, qui redécide (compte en état, rôle `player` ou `guardian` tenu, lien, minorité à l'instant de la base) et audite (`player.visibility.updated`) ; un majeur sans compte n'a encore personne pour le régler (D-110) ; une écriture directe de `visibility` sous contexte utilisateur est refusée.
+
 Le téléphone d'un mineur ne reste que pour qui a `player.read_minor_contact` : son tuteur et l'administrateur (CP-11). Aucun tiers ne reçoit la date de naissance complète. Sans lecture permise, aucune vue : l'appelant répond 403 ou 404. Un filet global (`PayloadGuardInterceptor`) bloque toute réponse portant une clé `*Encrypted`, `*Hmac` (hors booléens `isX`, `hasX`, `is_x`, `has_x`), `password`, `*passwordHash`, `*tokenHash`, `*codeHash`, `totpSecret` ou `documentNumber`, ou une valeur binaire hors `StreamableFile`, après `toJSON` : 500 sans le corps d'origine ni les cookies. Chaque vue exige en plus la relation qui la fonde : titulaire avec le rôle joueur, tuteur d'un mineur, administrateur, organisation de rattachement.
 
 ## Routes de l'API
@@ -105,31 +108,33 @@ Les pages `/docs`, `/docs-json` et `/docs-yaml` (Swagger) sont servies hors cont
 
 <!-- rbac:routes -->
 
-| Méthode | Route                          | Accès             |
-| ------- | ------------------------------ | ----------------- |
-| GET     | /health                        | public            |
-| GET     | /health/live                   | public            |
-| POST    | /contact                       | public            |
-| GET     | /auth/register/form            | public            |
-| POST    | /auth/register                 | public            |
-| POST    | /auth/verify-email             | public            |
-| POST    | /auth/password/forgot          | public            |
-| POST    | /auth/password/reset           | public            |
-| POST    | /auth/login                    | public            |
-| POST    | /auth/login/2fa                | public            |
-| POST    | /auth/refresh                  | public            |
-| POST    | /auth/logout                   | public            |
-| GET     | /auth/sessions                 | authenticated     |
-| DELETE  | /auth/sessions/:id             | authenticated     |
-| POST    | /auth/logout-all               | authenticated     |
-| POST    | /auth/2fa/setup                | authenticated     |
-| POST    | /auth/2fa/enable               | authenticated     |
-| POST    | /auth/2fa/disable              | authenticated     |
-| POST    | /auth/2fa/recovery-codes       | authenticated     |
-| POST    | /auth/phone/start              | authenticated     |
-| POST    | /auth/phone/verify             | authenticated     |
-| POST    | /documents/upload              | `document.upload` |
-| POST    | /documents/upload/:id/complete | `document.upload` |
-| GET     | /documents/:id/url             | `document.read`   |
-| GET     | /admin/audit-log               | `audit.read_log`  |
-| GET     | /admin/audit-log/integrity     | `audit.read_log`  |
+| Méthode | Route                          | Accès                    |
+| ------- | ------------------------------ | ------------------------ |
+| GET     | /health                        | public                   |
+| GET     | /health/live                   | public                   |
+| POST    | /contact                       | public                   |
+| GET     | /auth/register/form            | public                   |
+| POST    | /auth/register                 | public                   |
+| POST    | /auth/verify-email             | public                   |
+| POST    | /auth/password/forgot          | public                   |
+| POST    | /auth/password/reset           | public                   |
+| POST    | /auth/login                    | public                   |
+| POST    | /auth/login/2fa                | public                   |
+| POST    | /auth/refresh                  | public                   |
+| POST    | /auth/logout                   | public                   |
+| GET     | /auth/sessions                 | authenticated            |
+| DELETE  | /auth/sessions/:id             | authenticated            |
+| POST    | /auth/logout-all               | authenticated            |
+| POST    | /auth/2fa/setup                | authenticated            |
+| POST    | /auth/2fa/enable               | authenticated            |
+| POST    | /auth/2fa/disable              | authenticated            |
+| POST    | /auth/2fa/recovery-codes       | authenticated            |
+| POST    | /auth/phone/start              | authenticated            |
+| POST    | /auth/phone/verify             | authenticated            |
+| POST    | /documents/upload              | `document.upload`        |
+| POST    | /documents/upload/:id/complete | `document.upload`        |
+| GET     | /documents/:id/url             | `document.read`          |
+| GET     | /players/:ozId                 | `player.read_public`     |
+| PATCH   | /players/:ozId/visibility      | `profile.set_visibility` |
+| GET     | /admin/audit-log               | `audit.read_log`         |
+| GET     | /admin/audit-log/integrity     | `audit.read_log`         |

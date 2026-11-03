@@ -122,6 +122,8 @@ const RULES: Readonly<Record<RbacRole, Rules>> = {
   player({ can }, { userId }) {
     can('profile.read', 'Player', { userId });
     can('profile.update', 'Player', [...PLAYER_EDITABLE_FIELDS], { userId, isMinor: false });
+    // Réglage des blocs visibles (EX-115 n° 3) : le majeur seul ; pour un mineur, son tuteur.
+    can('profile.set_visibility', 'Player', { userId, isMinor: false });
     can('player.read_public', 'Player', PUBLIC_PROFILE);
     can('player.read_minor', 'Player', { userId, isMinor: true });
     can('audit.read', 'Player', { userId });
@@ -132,6 +134,7 @@ const RULES: Readonly<Record<RbacRole, Rules>> = {
     const child = { guardianUserId: userId, isMinor: true };
     can('profile.read', 'Player', child);
     can('profile.update', 'Player', [...PLAYER_EDITABLE_FIELDS], child);
+    can('profile.set_visibility', 'Player', child);
     can('player.read_public', 'Player', PUBLIC_PROFILE);
     can('player.read_minor', 'Player', child);
     can('player.read_minor_contact', 'Player', child);

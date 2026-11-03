@@ -1,6 +1,7 @@
 import { Catch, type ArgumentsHost, type ExceptionFilter } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
+import { pathForLog } from '../logging/logging.js';
 import { requestIdOf } from '../logging/request-id.middleware.js';
 import { AppException, toApiError } from './api-error.js';
 
@@ -27,7 +28,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const context = {
       requestId,
       method: request.method,
-      path: request.path,
+      path: pathForLog(request.path),
       status,
       code: body.code,
     };

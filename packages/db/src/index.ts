@@ -72,7 +72,18 @@ export {
   type DuePurge,
   type StalePending,
 } from './document-purge.js';
-export { playerRecord, type PlayerAccessRecord } from './players.js';
+export {
+  PLAYER_VISIBILITY_BLOCKS,
+  playerPhone,
+  playerProfileByOzId,
+  playerRecord,
+  recordPlayerProfileView,
+  setPlayerVisibility,
+  type PlayerAccessRecord,
+  type PlayerProfileRecord,
+  type PlayerVisibility,
+  type PlayerVisibilityBlock,
+} from './players.js';
 export { readSetting } from './settings.js';
 export {
   AUDIT_LOG_MAX_PAGE,

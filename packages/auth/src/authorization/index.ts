@@ -30,9 +30,12 @@ export {
 } from './abilities.js';
 export {
   PLAYER_VIEWS,
+  PLAYER_BLOCK_FIELDS,
   playerViewFor,
   presentPlayer,
   serializeView,
+  type PlayerBlock,
+  type PlayerBlockVisibility,
   type PlayerView,
   type PlayerViewData,
   type PlayerViewField,
