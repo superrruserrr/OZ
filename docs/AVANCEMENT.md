@@ -1,7 +1,7 @@
 # OZ — Où en est le projet ?
 
 > Check-list tenue à jour à la fin de chaque étape, à transmettre telle quelle à Fabrice Olinga.
-> **Dernière mise à jour : 3 novembre 2026** — étape : 1.13a fiche joueur consultable par rôle.
+> **Dernière mise à jour : 3 novembre 2026** — étape : 1.16ba demande d'export des données.
 
 Légende : ✅ fait et vérifié · 🟡 en cours · ⬜ à faire · ⏸️ bloqué en attente d'une décision
 
@@ -49,11 +49,11 @@ la vérification d'identité, qui attend deux décisions (§ « Ce qui bloque »
 | 1.13 Profil joueur public                                | 🟡   | 1.13a fait : fiche par rôle côté serveur ; restent QR, PDF et écrans  |
 | 1.14 Recherche                                           | ⬜   | Après 1.13 ; quotas selon Q8                                          |
 | 1.15 Notifications et emails                             | ⬜   | Après 1.7                                                             |
-| 1.16 Journal et conformité données (RGPD)                | 🟡   | 1.16a fait : journal infalsifiable ; restent l'export et l'effacement |
+| 1.16 Journal et conformité données (RGPD)                | 🟡   | Journal fait, export demandé ; restent l'archive et l'effacement      |
 | 1.17 Tests de charge et recette                          | ⬜   | Fin de phase                                                          |
 | 1.18 Mise en production                                  | ⬜   | Fin de phase                                                          |
 
-**Bilan Phase 1 : 5 étapes sur 20 terminées, 2 en cours (1.13 et 1.16 : 1 partie sur 3 faite chacune).**
+**Bilan Phase 1 : 5 étapes sur 20 terminées, 2 en cours (1.13 : 1 partie sur 3 ; 1.16 : 1 partie et demie sur 3).**
 
 ### Étape 1.13 en détail
 
@@ -65,11 +65,12 @@ la vérification d'identité, qui attend deux décisions (§ « Ce qui bloque »
 
 ### Étape 1.16 en détail
 
-| Partie                                    | État | Ce que ça veut dire pour le produit                                                       |
-| ----------------------------------------- | ---- | ----------------------------------------------------------------------------------------- |
-| 1.16a Journal d'audit infalsifiable       | ✅   | Toute action sensible est tracée ; une falsification, même par un technicien, est repérée |
-| 1.16b Export des données d'un utilisateur | ⬜   | Chacun pourra télécharger toutes ses données                                              |
-| 1.16c Suppression de compte et registre   | ⬜   | Compte effacé proprement, registre des traitements RGPD rédigé                            |
+| Partie                                  | État | Ce que ça veut dire pour le produit                                                       |
+| --------------------------------------- | ---- | ----------------------------------------------------------------------------------------- |
+| 1.16a Journal d'audit infalsifiable     | ✅   | Toute action sensible est tracée ; une falsification, même par un technicien, est repérée |
+| 1.16ba Demande d'export et inventaire   | ✅   | Chacun demande l'export de ses données (mot de passe redemandé) ; tout est inventorié     |
+| 1.16bb Archive téléchargeable           | ⬜   | L'archive est préparée, envoyée par lien sécurisé, puis effacée                           |
+| 1.16c Suppression de compte et registre | ⬜   | Compte effacé proprement, registre des traitements RGPD rédigé                            |
 
 ## Ce qui bloque — décisions attendues
 
@@ -100,7 +101,7 @@ la vérification d'identité, qui attend deux décisions (§ « Ce qui bloque »
 
 - 6 contrôles automatiques au vert exigés avant chaque intégration.
 - Dernière mesure complète : plus de 2 500 tests automatiques, 97 % du code couvert par les tests.
-- 96 points techniques notés à reprendre plus tard (dette suivie dans `DEBT.md`).
+- 100 points techniques notés à reprendre plus tard (dette suivie dans `DEBT.md`).
 
 ## Historique des mises à jour
 
@@ -110,3 +111,4 @@ la vérification d'identité, qui attend deux décisions (§ « Ce qui bloque »
 | 2026-11-03 | 1.9 Coffre des documents d'identité (effacement auto)     |
 | 2026-11-03 | 1.16a Journal d'audit infalsifiable (étape 1.16 en cours) |
 | 2026-11-03 | 1.13a Fiche joueur et visibilité (étape 1.13 en cours)    |
+| 2026-11-03 | 1.16ba Demande d'export des données (1.16 en cours)       |

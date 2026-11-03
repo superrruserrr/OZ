@@ -120,7 +120,7 @@ export class AuthModule {
       ],
       // Global : les modules métier protègent leurs routes sans réimporter ce module configuré.
       global: true,
-      exports: [CredentialsService, ACCESS_TOKENS],
+      exports: [CredentialsService, ACCESS_TOKENS, TwoFactorService, MailDispatcher, AUTH_MAILER],
     };
   }
 }

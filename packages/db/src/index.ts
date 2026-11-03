@@ -99,3 +99,20 @@ export {
   type AuditLogPage,
   type AuditPartitions,
 } from './audit-journal.js';
+export {
+  latestDataExport,
+  personalDataExport,
+  requestDataExport,
+  type DataExportRequestOutcome,
+  type DataExportStatus,
+  type DataExportSummary,
+  type PersonalDataExport,
+} from './data-export.js';
+export {
+  COMPUTED_FIELDS,
+  EXPORT_REGISTRY,
+  EXPORT_SECTIONS,
+  exportedFields,
+  type ExportRegistry,
+  type ExportSection,
+} from './export/registry.js';

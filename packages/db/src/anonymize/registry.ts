@@ -317,4 +317,16 @@ export const ANONYMIZATION_REGISTRY: Registry = {
     consumed_at: 'technical',
     created_at: 'technical',
   },
+  // Lot 1.16ba : suivi des demandes d'export ; le motif d'échec est interne, sans donnée saisie.
+  data_export_requests: {
+    id: 'technical',
+    user_id: 'technical',
+    status: 'technical',
+    requested_at: 'technical',
+    ready_at: 'technical',
+    expires_at: 'technical',
+    storage_key: 'technical',
+    failure_reason: 'technical',
+    updated_at: 'technical',
+  },
 };

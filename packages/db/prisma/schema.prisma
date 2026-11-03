@@ -142,6 +142,7 @@ model User {
   guardians         Guardian[]         @relation("GuardianUser")
   consents          Consent[]          @relation("ConsentGrantedByUser")
   auditTrail        AuditLog[]
+  dataExports       DataExportRequest[]
 
   rolesCreated         UserRole[]     @relation("UserRoleCreatedBy")
   rolesUpdated         UserRole[]     @relation("UserRoleUpdatedBy")
@@ -610,6 +611,26 @@ model DocumentUpload {
   @@index([requestedBy, createdAt])
   @@index([status, expiresAt])
   @@map("document_uploads")
+}
+
+/// Demande d'export des données personnelles (lot 1.16ba) : une active au plus, écrite par le chemin privilégié.
+model DataExportRequest {
+  id            String    @id @default(dbgenerated("oz_uuid_v7()")) @db.Uuid
+  userId        String    @map("user_id") @db.Uuid
+  /// pending, processing, ready, failed ou expired (contrainte en SQL).
+  status        String    @default("pending")
+  requestedAt   DateTime  @default(now()) @map("requested_at") @db.Timestamptz(6)
+  readyAt       DateTime? @map("ready_at") @db.Timestamptz(6)
+  expiresAt     DateTime? @map("expires_at") @db.Timestamptz(6)
+  storageKey    String?   @map("storage_key")
+  failureReason String?   @map("failure_reason")
+  updatedAt     DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([userId, requestedAt])
+  @@index([status])
+  @@map("data_export_requests")
 }
 
 /// Dossier de vérification d'un joueur ou d'une organisation (§5.4) ; quatre yeux si sensible (CP-16).

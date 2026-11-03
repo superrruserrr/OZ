@@ -8,6 +8,7 @@ import {
   recoveryCodeUsedEmail,
   resetLink,
   twoFactorDisabledEmail,
+  dataExportRequestedEmail,
   twoFactorEnabledEmail,
   verificationEmail,
   verificationLink,
@@ -69,6 +70,7 @@ describe('alertes de la 2FA (lot 1.3cb)', () => {
     ['désactivée', twoFactorDisabledEmail],
     ['utilisé', recoveryCodeUsedEmail],
     ['régénérés', recoveryCodesReplacedEmail],
+    ['Export', dataExportRequestedEmail],
   ])('%s : date, lien de changement du mot de passe, texte et HTML', (word, template) => {
     const mail = template(WHEN, RESET);
     expect(mail.subject).toContain(word);

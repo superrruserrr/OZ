@@ -51,6 +51,9 @@ const secondFactorCode = z
   .trim()
   .regex(/^([0-9]{6}|[A-Za-z2-7 -]{16,19})$/, { error: 'validation.token.invalid' });
 
+/** Code du second facteur seul, repris par la ré-authentification de l'export (lot 1.16ba). */
+export const secondFactorCodeSchema = secondFactorCode;
+
 /** Second temps de la connexion, après `{ status: '2fa_required' }`. */
 export const loginTwoFactorSchema = z.strictObject({
   challengeToken: oneTimeToken,

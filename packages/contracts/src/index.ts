@@ -96,3 +96,12 @@ export {
   type PlayerVisibilityInput,
   type PlayerVisibilityOutput,
 } from './players/profile.schema.js';
+export {
+  DATA_EXPORT_STATUSES,
+  dataExportOutputSchema,
+  dataExportRequestInputSchema,
+  dataExportStatusOutputSchema,
+  type DataExportOutput,
+  type DataExportRequestInput,
+  type DataExportStatusOutput,
+} from './privacy/data-export.schema.js';

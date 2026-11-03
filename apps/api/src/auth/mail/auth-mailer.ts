@@ -18,6 +18,8 @@ export interface AuthMailer {
   sendRecoveryCodesReplaced(to: string, when: Date): Promise<void>;
   /** Numéro vérifié remplacé (D5 du lot 1.3cc). */
   sendPhoneChanged(to: string, when: Date): Promise<void>;
+  /** Export des données demandé (lot 1.16ba) : alerte au titulaire, jamais le contenu. */
+  sendDataExportRequested(to: string, when: Date): Promise<void>;
 }
 
 export const AUTH_MAILER = Symbol('AUTH_MAILER');
