@@ -1,17 +1,25 @@
 import { ConfigError, loadWorkerConfig, redisTlsOptions, type WorkerConfig } from '@oz/config';
 import { claimDocumentScan, createDbClient, finishDocumentScan } from '@oz/db';
 import { DocumentStorage } from '@oz/storage';
-import { Worker } from 'bullmq';
+import { Queue, Worker } from 'bullmq';
 import { Redis } from 'ioredis';
 import { pino } from 'pino';
 import { ClamavClient } from './clamav.js';
 import { HEALTH_PORT, startHealthServer } from './health.js';
+import {
+  DOCUMENT_MAINTENANCE_QUEUE,
+  createMaintenanceHandlers,
+  createMaintenanceProcessor,
+  observeMaintenance,
+  scheduleMaintenance,
+} from './maintenance.js';
 import { DOCUMENT_SCAN_QUEUE, createScanProcessor } from './processor.js';
 import type { ScanLogger } from './scan-document.js';
 
 // Démarrage du worker (lot 1.9b) : base sous le rôle `oz_worker`, Redis, stockage, ClamAV, puis
-// consommation de la file `document-scan`. Arrêt propre sur SIGTERM/SIGINT : les analyses en cours
-// se terminent, les connexions sont fermées.
+// consommation de la file `document-scan`. Lot 1.9cb : file `document-maintenance` (purge des pièces
+// échues, balayage des analyses abandonnées, objets orphelins), planifiée au démarrage. Arrêt propre
+// sur SIGTERM/SIGINT : les traitements en cours se terminent, les connexions sont fermées.
 
 export interface WorkerHandle {
   /** Vrai tant que le worker consomme la file et que Redis est connecté. */
@@ -41,12 +49,31 @@ export async function startWorker(config: WorkerConfig, logger: ScanLogger): Pro
     concurrency: config.concurrency,
   });
   observe(worker, logger);
-  await worker.waitUntilReady();
-  logger.info({ concurrency: config.concurrency }, 'worker.started');
+
+  // Maintenance : un traitement à la fois ; le balayage remet en file sur `document-scan`.
+  const scanQueue = new Queue(DOCUMENT_SCAN_QUEUE, { connection });
+  const maintenanceQueue = new Queue(DOCUMENT_MAINTENANCE_QUEUE, { connection });
+  const maintenance = new Worker(
+    DOCUMENT_MAINTENANCE_QUEUE,
+    createMaintenanceProcessor(
+      createMaintenanceHandlers({ db, storage, scanQueue, logger }),
+      logger,
+    ),
+    { connection, concurrency: 1 },
+  );
+  observeMaintenance(maintenance, logger);
+
+  await Promise.all([worker.waitUntilReady(), maintenance.waitUntilReady()]);
+  await scheduleMaintenance(maintenanceQueue, config.maintenance);
+  logger.info(
+    { concurrency: config.concurrency, maintenance: config.maintenance.enabled },
+    'worker.started',
+  );
   return {
-    healthy: () => worker.isRunning() && connection.status === 'ready',
+    healthy: () => worker.isRunning() && maintenance.isRunning() && connection.status === 'ready',
     async close() {
-      await worker.close();
+      await Promise.all([worker.close(), maintenance.close()]);
+      await Promise.allSettled([scanQueue.close(), maintenanceQueue.close()]);
       await Promise.allSettled([db.$disconnect(), connection.quit()]);
     },
   };

@@ -48,6 +48,12 @@ Proposée : option 1.
 - Un document infecté est rejeté et supprimé immédiatement ; un dossier rejeté puis resoumis suit la
   même règle pour chaque document.
 
+Mise en œuvre (lot 1.9cb) : tâche planifiée du worker, fichier supprimé à `retention_until` puis
+pièce marquée purgée (`purged_at`), extrait OCR et numéro chiffrés effacés, empreinte du numéro,
+SHA-256, type, verdict et mesures conservés, audit `document.purge.done` ; voir
+[documents.md](../security/documents.md#purge-lot-19cb). Les copies de secours et versions d'objets
+restent à prouver au lot 1.10.
+
 Statut « Proposé » : passera « Accepté » après validation juridique de la durée, au plus tard au lot
 1.10 (pipeline KYC), et avant l'ouverture des inscriptions (lot 1.18).
 

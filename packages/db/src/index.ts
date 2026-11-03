@@ -64,5 +64,13 @@ export {
   type ScanRejectionReason,
   type ScanVerdict,
 } from './document-scan.js';
+export {
+  findStorageOrphans,
+  finishDocumentPurge,
+  listDuePurges,
+  listStalePending,
+  type DuePurge,
+  type StalePending,
+} from './document-purge.js';
 export { playerRecord, type PlayerAccessRecord } from './players.js';
 export { readSetting } from './settings.js';

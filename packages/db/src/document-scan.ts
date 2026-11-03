@@ -19,7 +19,13 @@ export interface ClaimedDocument {
   readonly sha256: string;
 }
 
-export type ScanRejectionReason = 'dimensions' | 'pages' | 'unreadable' | 'hash_mismatch';
+export type ScanRejectionReason =
+  | 'dimensions'
+  | 'pages'
+  | 'unreadable'
+  | 'hash_mismatch'
+  /** Sortie du ré-encodage au-delà de 50 Mo (lot 1.9cb, D-099). */
+  | 'too_large';
 
 export type ScanVerdict =
   | {

@@ -66,11 +66,37 @@ describe('rollbackLast (db:rollback)', () => {
 
     // Une pièce purgée (lot 1.9ca) ne bloque pas le retour arrière : la colonne disparaît.
     await db.query('UPDATE documents SET purged_at = now() WHERE id = $1', [rejected?.id]);
+    // Lot 1.9cb : un rejet `too_large` et l'empreinte seule d'un numéro purgé non plus.
+    const [tooLarge] = await db.query<{ id: string }>(
+      `INSERT INTO documents (type, player_id, uploaded_by, storage_key, mime_type, size_bytes, sha256,
+         retention_until, av_status, rejection_reason, document_number_encrypted, document_number_hmac)
+       SELECT type, player_id, uploaded_by, 'quarantine/trop-grand', mime_type, size_bytes, sha256,
+         retention_until, 'rejected', 'too_large', '\\x01'::bytea, '\\x02'::bytea
+       FROM documents WHERE id = $1 RETURNING id::text`,
+      [rejected?.id],
+    );
+    await db.query(
+      'UPDATE documents SET purged_at = now(), document_number_encrypted = NULL WHERE id = $1',
+      [tooLarge?.id],
+    );
 
+    // Dernière migration (lot 1.9cb) : fonctions de purge retirées, anciennes contraintes rétablies.
     const result = await rollbackLast({ databaseUrl: db.url, appEnv: 'local' });
     expect(result.rolledBack).toBe(last);
     expect(await applied()).not.toContain(last);
-    // Dernière migration annulée (lot 1.9ca), les précédentes intactes.
+    expect(await functionExists('oz_document_purge_due')).toBe(false);
+    expect(await functionExists('oz_document_storage_orphans')).toBe(false);
+    expect(await policyExists('audit_log', 'audit_log_privileged_read_document_reads')).toBe(false);
+    expect(
+      await db.query('SELECT rejection_reason, document_number_hmac FROM documents WHERE id = $1', [
+        tooLarge?.id,
+      ]),
+    ).toEqual([{ rejection_reason: 'dimensions', document_number_hmac: null }]);
+
+    // Avant-dernière (lot 1.9ca), les précédentes intactes.
+    expect((await rollbackLast({ databaseUrl: db.url, appEnv: 'local' })).rolledBack).toBe(
+      listMigrations(MIGRATIONS_DIR).at(-2)?.name,
+    );
     expect(await columnExists('documents', 'purged_at')).toBe(false);
     expect(await policyExists('documents', 'documents_admin_read')).toBe(false);
     expect(await functionExists('oz_document_subject_live')).toBe(false);
@@ -81,8 +107,8 @@ describe('rollbackLast (db:rollback)', () => {
     expect(readGuard?.src).not.toContain('purged_at');
     expect(await functionExists('oz_document_scan_claim')).toBe(true);
 
-    // Avant-dernière (lot 1.9b) : un document rejeté redevient `error`.
-    const previous = listMigrations(MIGRATIONS_DIR).at(-2)?.name;
+    // Lot 1.9b : un document rejeté redevient `error`.
+    const previous = listMigrations(MIGRATIONS_DIR).at(-3)?.name;
     expect((await rollbackLast({ databaseUrl: db.url, appEnv: 'local' })).rolledBack).toBe(
       previous,
     );

@@ -285,3 +285,112 @@ describe('erreurs du stockage', () => {
     await expect(storage.read(quarantineKey(UUID), 8)).rejects.toThrow(/borne/);
   });
 });
+
+describe('list (lot 1.9cb, objets orphelins)', () => {
+  const storage = new DocumentStorage(CONFIG);
+  const OTHER = '0193b0a2-7c1e-7d2a-9b3c-4d5e6f708193';
+  const old = new Date('2026-11-01T00:00:00Z');
+  const fresh = new Date('2026-11-02T12:00:00Z');
+  const cutoff = new Date('2026-11-02T00:00:00Z');
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('rend les objets plus anciens que la borne, clés hors format ignorées, sur plusieurs pages', async () => {
+    const send = vi
+      .spyOn(S3Client.prototype, 'send')
+      .mockResolvedValueOnce({
+        Contents: [
+          { Key: `clean/${UUID}`, LastModified: old },
+          { Key: `clean/${OTHER}`, LastModified: fresh },
+          { Key: 'clean/pas-un-uuid', LastModified: old },
+          { LastModified: old },
+          { Key: `clean/${OTHER}x` },
+        ],
+        IsTruncated: true,
+        NextContinuationToken: 'suite',
+      } as never)
+      .mockResolvedValueOnce({
+        Contents: [{ Key: `clean/${OTHER.toUpperCase()}`, LastModified: old }],
+        IsTruncated: false,
+      } as never);
+    expect(await storage.list('clean/', { olderThan: cutoff, limit: 1000 })).toEqual({
+      objects: [
+        { key: `clean/${UUID}`, lastModified: old },
+        { key: `clean/${OTHER.toUpperCase()}`, lastModified: old },
+      ],
+      next: undefined,
+    });
+    const inputs = send.mock.calls.map(
+      ([command]) => (command as unknown as { input: Record<string, unknown> }).input,
+    );
+    expect(inputs).toEqual([
+      {
+        Bucket: 'oz-documents',
+        Prefix: 'clean/',
+        MaxKeys: 1000,
+        ContinuationToken: undefined,
+        StartAfter: undefined,
+      },
+      {
+        Bucket: 'oz-documents',
+        Prefix: 'clean/',
+        MaxKeys: 995,
+        ContinuationToken: 'suite',
+        StartAfter: undefined,
+      },
+    ]);
+  });
+
+  it('n’examine pas plus de `limit` objets et rend le curseur ; reprise après le curseur', async () => {
+    const send = vi.spyOn(S3Client.prototype, 'send').mockResolvedValueOnce({
+      Contents: [
+        { Key: `incoming/${UUID}`, LastModified: old },
+        { Key: `incoming/${OTHER}`, LastModified: old },
+      ],
+      IsTruncated: true,
+      NextContinuationToken: 'suite',
+    } as never);
+    const page = await storage.list('incoming/', { olderThan: cutoff, limit: 2 });
+    expect(page.objects).toHaveLength(2);
+    expect(page.next).toBe(`incoming/${OTHER}`);
+    expect(send).toHaveBeenCalledTimes(1);
+    send.mockResolvedValueOnce({ IsTruncated: false } as never);
+    expect(
+      await storage.list('incoming/', {
+        olderThan: cutoff,
+        limit: 5,
+        startAfter: `incoming/${OTHER}`,
+      }),
+    ).toEqual({ objects: [], next: undefined });
+    expect((send.mock.calls[1]?.[0] as { input: { StartAfter?: string } }).input.StartAfter).toBe(
+      `incoming/${OTHER}`,
+    );
+    // Page tronquée sans contenu ni jeton : fin du listage, aucun curseur.
+    send.mockResolvedValueOnce({ IsTruncated: true } as never);
+    expect(await storage.list('quarantine/', { olderThan: cutoff, limit: 5 })).toEqual({
+      objects: [],
+      next: undefined,
+    });
+  });
+
+  it('refuse un autre préfixe et une borne hors de 1 à 10 000 ; panne → StorageError', async () => {
+    await expect(
+      storage.list('autre/' as 'clean/', { olderThan: cutoff, limit: 10 }),
+    ).rejects.toThrow(TypeError);
+    await expect(
+      storage.list('clean/', { olderThan: cutoff, limit: 10, startAfter: `incoming/${UUID}` }),
+    ).rejects.toThrow(TypeError);
+    await expect(storage.list('clean/', { olderThan: cutoff, limit: 0 })).rejects.toThrow(
+      RangeError,
+    );
+    await expect(storage.list('clean/', { olderThan: cutoff, limit: 10_001 })).rejects.toThrow(
+      RangeError,
+    );
+    vi.spyOn(S3Client.prototype, 'send').mockRejectedValue(new TypeError('boom'));
+    await expect(storage.list('clean/', { olderThan: cutoff, limit: 10 })).rejects.toThrow(
+      /LIST a échoué, TypeError$/,
+    );
+  });
+});

@@ -108,7 +108,7 @@ Invariants qui doivent tenir pour **toute** entrée valide et **tout** état att
 | CP-17b | Pour tout rejet automatique, la cause est un signal déterministe de la liste TD-016 ; aucun signal d'IA seul ne produit un rejet. Tant que `kyc.autoApproveAdults` est inactif, aucune approbation n'a lieu sans décision humaine. | EX-111 n° 6, TD-016 | Propriété sur signaux aléatoires |
 | CP-18 | Pour toute transition d'état de vérification, il existe une entrée d'audit avec acteur et motif ; aucune transition hors du graphe du §5.4 n'est possible. | EX-111 n° 8 | Propriété (machine à états) |
 | CP-19 | Pour tout badge affiché « vérifié », la transition correspondante est écrite en base et journalisée avant l'envoi de la réponse. | EX-T04 n° 8 | Intégration |
-| CP-20 | Pour tout document dont `retention_until` est dépassé, le binaire n'existe plus dans le stockage ; seules l'empreinte et les métadonnées subsistent. | EX-110 n° 7, EX-111 n° 11 | Job de purge testé |
+| CP-20 | Pour tout document dont `retention_until` est dépassé, le binaire n'existe plus dans le stockage ; seules l'empreinte et les métadonnées subsistent. | EX-110 n° 7, EX-111 n° 11 | Job de purge testé (lot 1.9cb : `apps/worker/test/document-pipeline.int.test.ts`, `packages/db/test/document-purge.int.test.ts`) |
 
 ### 4.5 Documents, audit, import
 

@@ -15,11 +15,13 @@ export type ImageOutcome =
       /** dHash 64 bits, en entier signé (colonne BIGINT). */
       readonly perceptualHash: bigint;
     }
-  | { readonly ok: false; readonly reason: 'dimensions' | 'unreadable' };
+  | { readonly ok: false; readonly reason: 'dimensions' | 'unreadable' | 'too_large' };
 
 const MIN_SIDE = 200;
 const MAX_SIDE = 8_000;
 const MAX_PIXELS = 40_000_000;
+/** Sortie du ré-encodage : borne du dépôt, 50 Mo (au-delà, rejet définitif, lot 1.9cb, D-099). */
+const MAX_OUTPUT_BYTES = 52_428_800;
 /** Bombe de calcul (JPEG progressif à passes multiples…) : libvips abandonne au-delà. */
 const TIMEOUT_SECONDS = 30;
 
@@ -39,7 +41,11 @@ const input = (bytes: Uint8Array) =>
   sharp(bytes, { limitInputPixels: MAX_PIXELS, failOn: 'error', autoOrient: true });
 
 /** Contrôle, ré-encode dans le format d'origine et calcule l'empreinte perceptuelle. */
-export async function processImage(bytes: Uint8Array, mime: ImageMime): Promise<ImageOutcome> {
+export async function processImage(
+  bytes: Uint8Array,
+  mime: ImageMime,
+  maxOutputBytes = MAX_OUTPUT_BYTES,
+): Promise<ImageOutcome> {
   const format = FORMAT[mime];
   let meta: Metadata;
   try {
@@ -71,6 +77,8 @@ export async function processImage(bytes: Uint8Array, mime: ImageMime): Promise<
           ? decoded.png({ compressionLevel: 9 })
           : decoded.webp({ quality: 90 });
     const data = await encoded.timeout({ seconds: TIMEOUT_SECONDS }).toBuffer();
+    // Une sortie plus lourde que la borne ne s'écrirait jamais sous `clean/` : rejet, sans nouvel essai.
+    if (data.byteLength > maxOutputBytes) return { ok: false, reason: 'too_large' };
     return { ok: true, data, width, height, perceptualHash: await dHash(data) };
   } catch {
     return { ok: false, reason: 'unreadable' };

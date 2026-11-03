@@ -1,6 +1,8 @@
 // Lecture des documents (lot 1.9ca) : appels typés à la migration 20261105100000_document_read, sous
 // le contexte RLS de l'utilisateur (`withUserContext`). La décision revient à CASL (`document.read`) ;
-// la base ne rend qu'une pièce visible du demandeur, saine, ni supprimée ni purgée (CP-21).
+// la base ne rend qu'une pièce visible du demandeur, saine, ni supprimée, ni purgée, ni échue (CP-21 ;
+// lot 1.9cb : aucune URL ne naît après `retention_until`, la purge n'attend que les 5 minutes de la
+// dernière URL délivrée, D-101).
 
 import {
   documentTargetFor,
@@ -23,7 +25,7 @@ export interface ReadableDocument {
 
 /**
  * Pièce lisible par le demandeur, ou `null` : inconnue, cachée, mal formée, non saine, supprimée,
- * purgée, ou sujet invisible. L'existence n'est jamais révélée.
+ * purgée, échue, ou sujet invisible. L'existence n'est jamais révélée.
  */
 export async function readableDocumentFor(
   tx: TransactionClient,
@@ -50,7 +52,7 @@ export async function readableDocumentFor(
       oz_document_subject_live(id) AS subject_live, now() AS checked_at
     FROM documents
     WHERE id = ${documentId}::uuid AND av_status = 'clean' AND deleted_at IS NULL
-      AND purged_at IS NULL`;
+      AND purged_at IS NULL AND retention_until > now()`;
   const row = rows[0];
   if (row === undefined) return null;
   const target =

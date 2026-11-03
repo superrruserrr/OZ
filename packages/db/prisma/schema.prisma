@@ -517,7 +517,8 @@ model Document {
   ocrExtractEncrypted     Bytes?       @map("ocr_extract_encrypted")
   documentNumberEncrypted Bytes?       @map("document_number_encrypted")
   documentNumberHmac      Bytes?       @map("document_number_hmac")
-  /// Verdict `rejected` : `dimensions`, `pages`, `unreadable` ou `hash_mismatch` (lot 1.9b).
+  /// Verdict `rejected` : `dimensions`, `pages`, `unreadable`, `hash_mismatch` (lot 1.9b) ou
+  /// `too_large` (ré-encodage au-delà de 50 Mo, lot 1.9cb).
   rejectionReason         String?      @map("rejection_reason")
   width                   Int?
   height                  Int?
@@ -548,6 +549,7 @@ model Document {
   @@index([guardianId])
   @@index([organizationId])
   @@index([playerId])
+  @@index([purgedAt, retentionUntil])
   @@index([sha256])
   @@index([uploadedBy])
   @@map("documents")
