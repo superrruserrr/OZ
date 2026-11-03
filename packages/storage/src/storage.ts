@@ -3,13 +3,14 @@ import {
   DeleteObjectCommand,
   GetObjectCommand,
   HeadObjectCommand,
+  ListObjectsV2Command,
   PutObjectCommand,
   S3Client,
   S3ServiceException,
 } from '@aws-sdk/client-s3';
 import { createHash } from 'node:crypto';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { assertStorageKey } from './keys.js';
+import { assertStorageKey, isStorageKey } from './keys.js';
 
 export interface StorageConfig {
   readonly endpoint: string;
@@ -59,6 +60,10 @@ const SIGNED_HEADERS = ['content-type', 'content-length', 'x-amz-checksum-sha256
 const SHA256_HEX = /^[0-9a-f]{64}$/i;
 /** Lecture : 5 minutes au plus (EX-110 n° 6, CP-22). */
 const MAX_READ_SECONDS = 300;
+const PREFIXES: readonly string[] = ['incoming/', 'quarantine/', 'clean/'];
+/** Objets examinés par appel de `list` au plus ; une page S3 en rend 1 000. */
+const MAX_LISTED = 10_000;
+const PAGE_SIZE = 1_000;
 
 const preconditionFailed = (error: unknown): boolean =>
   error instanceof S3ServiceException &&
@@ -300,6 +305,64 @@ export class DocumentStorage {
     }
   }
 
+  /**
+   * Objets d'un préfixe du coffre plus anciens que `olderThan`, pour la purge des orphelins (lot
+   * 1.9cb). Au plus `limit` objets examinés, dans l'ordre des clés, après `startAfter` ; une clé hors
+   * format est ignorée. `next` : dernière clé examinée s'il en reste, à repasser en `startAfter`.
+   */
+  async list(
+    prefix: StoragePrefix,
+    options: {
+      readonly olderThan: Date;
+      readonly limit: number;
+      readonly startAfter?: string | undefined;
+    },
+  ): Promise<ListedPage> {
+    if (!PREFIXES.includes(prefix)) throw new TypeError('préfixe de stockage refusé');
+    const { olderThan, limit, startAfter } = options;
+    if (!Number.isInteger(limit) || limit < 1 || limit > MAX_LISTED) {
+      throw new RangeError('borne de listage invalide');
+    }
+    if (startAfter !== undefined && !startAfter.startsWith(prefix)) {
+      throw new TypeError('curseur de listage hors du préfixe');
+    }
+    const listed: ListedObject[] = [];
+    let examined = 0;
+    let lastKey: string | undefined;
+    let token: string | undefined;
+    do {
+      let page;
+      try {
+        page = await this.client.send(
+          new ListObjectsV2Command({
+            Bucket: this.bucket,
+            Prefix: prefix,
+            MaxKeys: Math.min(PAGE_SIZE, limit - examined),
+            ContinuationToken: token,
+            StartAfter: token === undefined ? startAfter : undefined,
+          }),
+        );
+      } catch (error) {
+        throw storageError('LIST', error);
+      }
+      const contents = page.Contents ?? [];
+      examined += contents.length;
+      lastKey = contents.at(-1)?.Key ?? lastKey;
+      for (const object of contents) {
+        if (
+          object.Key !== undefined &&
+          isStorageKey(object.Key) &&
+          object.LastModified !== undefined &&
+          object.LastModified < olderThan
+        ) {
+          listed.push({ key: object.Key, lastModified: object.LastModified });
+        }
+      }
+      token = page.IsTruncated === true ? page.NextContinuationToken : undefined;
+    } while (token !== undefined && examined < limit);
+    return { objects: listed, next: token === undefined ? undefined : lastKey };
+  }
+
   /** Suppression idempotente : un objet absent n'est pas une erreur. */
   async remove(key: string): Promise<void> {
     assertStorageKey(key);
@@ -327,6 +390,19 @@ export class StorageChangedError extends StorageError {
   constructor() {
     super('objet modifié depuis sa vérification');
   }
+}
+
+export type StoragePrefix = 'incoming/' | 'quarantine/' | 'clean/';
+
+export interface ListedObject {
+  readonly key: string;
+  readonly lastModified: Date;
+}
+
+export interface ListedPage {
+  readonly objects: readonly ListedObject[];
+  /** Dernière clé examinée quand il reste des objets ; `undefined` en fin de préfixe. */
+  readonly next: string | undefined;
 }
 
 export interface StoredObject {

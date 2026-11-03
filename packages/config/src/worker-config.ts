@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { ConfigError, pemCert } from './api-config.js';
 import { APP_ENVS } from './security-headers.js';
 
-// Configuration du worker (lot 1.9b) : base, Redis, stockage, ClamAV. Mêmes règles que l'API pour
+// Configuration du worker (lots 1.9b et 1.9cb) : base, Redis, stockage, ClamAV, maintenance du coffre. Mêmes règles que l'API pour
 // les variables partagées (TLS épinglé en recette et en production, D-006). En recette et en
 // production, le worker se connecte sous son rôle dédié `oz_worker` (`WORKER_DATABASE_URL`, seul
 // autorisé à juger un document) ; l'URL de l'API n'y sert jamais. En local seulement, repli sur
@@ -17,6 +17,17 @@ const postgresUrl = orDefault(
     .regex(/^postgres(ql)?:\/\/.+/)
     .optional(),
 );
+
+/** Minutes entières entre `min` et 1 440 (un jour) ; vide = `fallback`. */
+const everyMinutes = (min: number, fallback: string) =>
+  orDefault(
+    z
+      .string()
+      .regex(/^\d{1,4}$/)
+      .default(fallback)
+      .transform(Number)
+      .pipe(z.number().min(min).max(1_440)),
+  );
 
 const schema = z
   .object({
@@ -53,6 +64,16 @@ const schema = z
         .default('2')
         .transform(Number),
     ),
+    // Maintenance du coffre (lot 1.9cb) : purge des pièces échues et balayage des analyses
+    // abandonnées, puis objets orphelins, à cadence fixe (jobs planifiés BullMQ).
+    DOCUMENT_MAINTENANCE_ENABLED: orDefault(
+      z
+        .enum(['true', 'false'])
+        .default('true')
+        .transform((value) => value === 'true'),
+    ),
+    DOCUMENT_PURGE_EVERY_MINUTES: everyMinutes(5, '15'),
+    DOCUMENT_ORPHANS_EVERY_MINUTES: everyMinutes(15, '60'),
   })
   .superRefine((env, ctx) => {
     const required = (path: string, message: string): void => {
@@ -110,6 +131,11 @@ export interface WorkerConfig {
   };
   readonly clamav: { readonly host: string; readonly port: number };
   readonly concurrency: number;
+  readonly maintenance: {
+    readonly enabled: boolean;
+    readonly purgeEveryMinutes: number;
+    readonly orphansEveryMinutes: number;
+  };
 }
 
 /** Lit et valide la configuration du worker ; `ConfigError` nomme les variables fautives. */
@@ -139,5 +165,10 @@ export function loadWorkerConfig(env: Readonly<Record<string, string | undefined
     }),
     clamav: Object.freeze({ host: value.CLAMAV_HOST, port: value.CLAMAV_PORT }),
     concurrency: value.WORKER_CONCURRENCY,
+    maintenance: Object.freeze({
+      enabled: value.DOCUMENT_MAINTENANCE_ENABLED,
+      purgeEveryMinutes: value.DOCUMENT_PURGE_EVERY_MINUTES,
+      orphansEveryMinutes: value.DOCUMENT_ORPHANS_EVERY_MINUTES,
+    }),
   });
 }

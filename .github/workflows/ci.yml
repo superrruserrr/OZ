@@ -104,7 +104,8 @@ jobs:
   build-e2e:
     name: build-e2e
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    # ClamAV charge ses signatures en 1 à 3 minutes (parcours n° 10, lot 1.9cb).
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -121,6 +122,9 @@ jobs:
       # Lot 1.3b (D4) : parcours n° 7 et n° 8 contre l'API compilée, pile jetable via Testcontainers
       # (Docker du runner). Aucun artefact : les réponses portent des jetons.
       - run: pnpm test:e2e:api
+      # Lot 1.9cb : parcours n° 10 (fichier infecté → rejet + alerte), API et worker compilés,
+      # ClamAV jetable. Aucun artefact : les réponses portent des jetons et des URL signées.
+      - run: pnpm test:e2e:documents
       # Lot 0.10 : chaque story rendue dans Chromium, interactions `play` et axe-core WCAG 2.1 AA
       # bloquant, puis replis `prefers-reduced-motion` de Button et Field.
       - run: pnpm test:stories

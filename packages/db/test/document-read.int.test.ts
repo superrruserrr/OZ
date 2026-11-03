@@ -217,6 +217,20 @@ describe('lecture refusée (CP-21)', () => {
     expect(await readAs(ids.admin, purged)).toBeNull();
   });
 
+  it('conservation échue, même pas encore purgée : rien (lot 1.9cb, D-101)', async () => {
+    const { id: due } = await one<{ id: string }>(
+      `WITH n AS (SELECT oz_uuid_v7() AS id)
+       INSERT INTO documents (id, type, player_id, uploaded_by, storage_key, mime_type, size_bytes,
+         sha256, av_status, created_at, retention_until)
+       SELECT n.id, 'identity_document', $1, $2, 'clean/' || n.id, 'image/png', 2048, $3, 'clean',
+         now() - interval '100 days', now() - interval '1 second'
+       FROM n RETURNING id::text`,
+      [ids.adult, ids.owner, SHA],
+    );
+    expect(await readAs(ids.owner, due)).toBeNull();
+    expect(await readAs(ids.admin, due)).toBeNull();
+  });
+
   it('identifiant inconnu ou mal formé : rien', async () => {
     expect(await readAs(ids.owner, '0193b0a2-7c1e-7d2a-9b3c-4d5e6f708192')).toBeNull();
     expect(await readAs(ids.owner, 'pas-un-uuid')).toBeNull();

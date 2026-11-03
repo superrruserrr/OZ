@@ -57,7 +57,40 @@ describe('loadWorkerConfig (lot 1.9b)', () => {
       },
       clamav: { host: 'localhost', port: 3310 },
       concurrency: 2,
+      maintenance: { enabled: true, purgeEveryMinutes: 15, orphansEveryMinutes: 60 },
     });
+  });
+
+  it('maintenance du coffre (lot 1.9cb) : désactivable, cadences bornées', () => {
+    expect(
+      loadWorkerConfig({
+        ...valid,
+        DOCUMENT_MAINTENANCE_ENABLED: 'false',
+        DOCUMENT_PURGE_EVERY_MINUTES: '5',
+        DOCUMENT_ORPHANS_EVERY_MINUTES: '1440',
+      }).maintenance,
+    ).toEqual({ enabled: false, purgeEveryMinutes: 5, orphansEveryMinutes: 1440 });
+    expect(
+      loadWorkerConfig({
+        ...valid,
+        DOCUMENT_MAINTENANCE_ENABLED: '',
+        DOCUMENT_PURGE_EVERY_MINUTES: '',
+        DOCUMENT_ORPHANS_EVERY_MINUTES: '',
+      }).maintenance,
+    ).toEqual({ enabled: true, purgeEveryMinutes: 15, orphansEveryMinutes: 60 });
+    expect(errorOf({ ...valid, DOCUMENT_MAINTENANCE_ENABLED: 'oui' }).message).toContain(
+      'DOCUMENT_MAINTENANCE_ENABLED',
+    );
+    for (const value of ['4', '1441', '1.5', 'x']) {
+      expect(errorOf({ ...valid, DOCUMENT_PURGE_EVERY_MINUTES: value }).message).toContain(
+        'DOCUMENT_PURGE_EVERY_MINUTES',
+      );
+    }
+    for (const value of ['14', '1441']) {
+      expect(errorOf({ ...valid, DOCUMENT_ORPHANS_EVERY_MINUTES: value }).message).toContain(
+        'DOCUMENT_ORPHANS_EVERY_MINUTES',
+      );
+    }
   });
 
   it('lit port ClamAV et concurrence ; vide = valeur par défaut', () => {

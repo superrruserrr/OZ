@@ -15,6 +15,10 @@ export const incomingKey = (uploadId: string): string => `incoming/${segment(upl
 export const quarantineKey = (documentId: string): string => `quarantine/${segment(documentId)}`;
 export const cleanKey = (documentId: string): string => `clean/${segment(documentId)}`;
 
+export function isStorageKey(key: string): boolean {
+  return KEY.test(key);
+}
+
 export function assertStorageKey(key: string): void {
-  if (!KEY.test(key)) throw new TypeError('clé de stockage refusée');
+  if (!isStorageKey(key)) throw new TypeError('clé de stockage refusée');
 }

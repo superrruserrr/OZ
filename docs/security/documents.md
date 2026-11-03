@@ -1,6 +1,6 @@
 # Coffre documentaire
 
-Dépôt des pièces (EX-110), lot 1.9a ; analyse (antivirus, contrôles, ré-encodage), lot 1.9b ; lecture par URL signée, lot 1.9ca ; la purge relève du lot 1.9cb. Décisions validées : D1 à D7 du lot 1.9a, D1 à D9 du lot 1.9b.
+Dépôt des pièces (EX-110), lot 1.9a ; analyse (antivirus, contrôles, ré-encodage), lot 1.9b ; lecture par URL signée, lot 1.9ca ; purge programmée, objets orphelins et analyses abandonnées, lot 1.9cb. Décisions validées : D1 à D7 du lot 1.9a, D1 à D9 du lot 1.9b, D1 à D6 du lot 1.9cb.
 
 ## Flux
 
@@ -27,7 +27,7 @@ Le worker `@oz/worker` consomme la file `document-scan` (5 essais, délai expone
    - **Images** (JPEG, PNG, WebP) : format réel égal au type vérifié, dimensions lues sur l'en-tête avant décodage (200 à 8 000 px par côté, 40 Mpx au plus, orientation EXIF comprise) ; ré-encodage par sharp dans le même format (JPEG et WebP qualité 90, PNG compression 9), sRGB, orientation appliquée, **aucune métadonnée conservée** (EXIF, GPS, XMP, IPTC, ICC), octets annexes et segments de commentaire détruits ; 30 s au plus. WebP animé : seule la première image est conservée. Empreinte perceptuelle dHash 64 bits calculée sur l'image ré-encodée.
    - **PDF** : structure lue par pdf.js sans rendu, sans police ni JavaScript ni accès réseau ; 1 à 20 pages, chaque page annoncée doit exister ; chiffré (même lisible sans mot de passe), tronqué ou corrompu : `rejected` (`unreadable`). Le fichier est conservé tel quel (risques restants : D-093, D-094).
    - Hors bornes : `rejected` (`dimensions`, `pages`, `unreadable`).
-6. **Écriture** — fichier sain écrit sous `clean/<document>` (somme SHA-256 envoyée au stockage), **puis** verdict `clean` (`oz_document_scan_finish`), **puis** quarantaine retirée. Verdict impossible ou déjà écrit par un autre essai : `clean/` laissé en place (une réponse perdue peut cacher un verdict validé, et un autre essai écrit la même clé) ; un fichier sans verdict `clean` n'est servi par rien et sera purgé (lot 1.9c). `infected` et `rejected` : verdict, puis quarantaine retirée — aucun fichier ne subsiste.
+6. **Écriture** — fichier sain écrit sous `clean/<document>` (somme SHA-256 envoyée au stockage), **puis** verdict `clean` (`oz_document_scan_finish`), **puis** quarantaine retirée. Verdict impossible ou déjà écrit par un autre essai : `clean/` laissé en place (une réponse perdue peut cacher un verdict validé, et un autre essai écrit la même clé) ; un fichier sans verdict `clean` n'est servi par rien et la purge des orphelins le retire (lot 1.9cb). `infected` et `rejected` : verdict, puis quarantaine retirée — aucun fichier ne subsiste.
 7. **Dernier essai en panne** — verdict `error` (document jamais accessible) et alerte `document.scan.failed`.
 
 `oz_document_scan_finish` ne juge qu'une fois (verrou de ligne ; un second verdict est ignoré : `skipped`), vérifie la cohérence du verdict (motif, dimensions réservées aux images, pages aux PDF, clé `clean/<document>` si et seulement si `clean`), et inscrit l'audit `document.scan.<verdict>` sans acteur. **Doublon** : une pièce d'un autre sujet de même SHA-256 (`pending` ou `clean`) crée un signal `document_duplicates` et l'audit `document.scan.duplicate`, sans rejet (revue KYC, lot 1.10 ; empreinte perceptuelle comparée au lot 1.10, D-098). Une garde en base fige le sujet, le type et l'empreinte, et n'autorise la clé `clean/`, la taille et les colonnes de verdict qu'au passage `pending` → verdict, par le chemin privilégié.
@@ -38,17 +38,27 @@ Journaux du worker : JSON (pino), identifiant de document, type, motif ou type d
 
 `GET /documents/:id/url` (`@Can('document.read')`, `Cache-Control: no-store`). Dans une transaction sous la RLS du demandeur, `readableDocumentFor` ne rend qu'une pièce `clean`, ni supprimée ni purgée (`purged_at`), dont le sujet est visible ; CASL décide sur ce sujet (`documentSubject`, minorité à l'instant de la base). Puis, dans la même transaction, l'audit `document.read.granted` (acteur, pièce, type ; ni clé ni URL, `audit_log_insert_self`) ; **ensuite seulement**, `presignGet` signe une URL GET de 300 s sur `clean/<document>`, qui impose `Content-Type` (type réel vérifié), `Content-Disposition: attachment` et `Cache-Control: no-store` : le stockage refuse toute variante de ces paramètres, une signature altérée, une requête non signée ou échue (CP-22, prouvé sur SeaweedFS). Réponse : `{ url, expiresAt }`.
 
-Inconnue, mal formée, cachée, non saine (`pending`, `infected`, `rejected`, `error`), supprimée, purgée ou sans droit : **même 404** `NOT_FOUND`, sans audit (CP-21). Audit impossible : aucune URL. Journal applicatif : `document.read.granted` ou `document.read.refused` avec l'identifiant du document (s'il est bien formé), jamais l'URL ni la clé. L'administrateur lit toute pièce dont le sujet est encore en place (`documents_admin_read`, revue KYC ; `oz_document_subject_live`, fonction `SECURITY DEFINER` réservée à `oz_app` qui ne rend qu'un booléen) sans voir pour autant les fiches tuteur ni les organisations ; sa décision CASL ne porte sur aucun champ du sujet. Cette lecture n'ouvre aucun rattachement à un dossier KYC : la garde `oz_kyc_case_documents_guard` refuse une pièce d'un autre sujet. Une URL délivrée reste valable jusqu'à son échéance, même si la pièce est purgée entre-temps (D-101).
+Inconnue, mal formée, cachée, non saine (`pending`, `infected`, `rejected`, `error`), supprimée, purgée, échue (`retention_until` passé, lot 1.9cb) ou sans droit : **même 404** `NOT_FOUND`, sans audit (CP-21). Audit impossible : aucune URL. Journal applicatif : `document.read.granted` ou `document.read.refused` avec l'identifiant du document (s'il est bien formé), jamais l'URL ni la clé. L'administrateur lit toute pièce dont le sujet est encore en place (`documents_admin_read`, revue KYC ; `oz_document_subject_live`, fonction `SECURITY DEFINER` réservée à `oz_app` qui ne rend qu'un booléen) sans voir pour autant les fiches tuteur ni les organisations ; sa décision CASL ne porte sur aucun champ du sujet. Cette lecture n'ouvre aucun rattachement à un dossier KYC : la garde `oz_kyc_case_documents_guard` refuse une pièce d'un autre sujet. Une URL délivrée reste valable jusqu'à son échéance ; la purge attend donc 5 minutes après la dernière délivrance (lot 1.9cb, ci-dessous).
+
+## Purge (lot 1.9cb)
+
+Le worker consomme une seconde file, `document-maintenance` (un traitement à la fois), alimentée par trois planifications BullMQ à identifiant fixe (`upsertJobScheduler` : une seule planification quel que soit le nombre de workers, remplacée au redémarrage). Les jobs ne portent aucune donnée ; un job hors contrat est abandonné (`document.maintenance.invalid_job`). Tout passe par des fonctions `SECURITY DEFINER` réservées à `oz_worker`, refusées sous contexte utilisateur et pour `oz_app`.
+
+1. **Pièces échues** (`purge-due`, toutes les `DOCUMENT_PURGE_EVERY_MINUTES`, 100 par exécution ; EX-110 n° 7, CP-20, ADR-008) — `oz_document_purge_due` rend les pièces dont `retention_until` est passé, non purgées, jugées (une pièce `pending` attend son verdict, sauf supprimée) et **sans URL de lecture délivrée depuis 5 minutes** (`document.read.granted`, D-101). Comme la lecture refuse une pièce échue (`readableDocumentFor`), aucune URL ne naît après l'échéance : au moment de la suppression, toute URL délivrée est expirée. Le worker supprime `clean/<document>` et `quarantine/<document>` (idempotent), **puis** `oz_document_purge_finish` relit les conditions sous verrou de ligne, pose `purged_at`, efface l'extrait OCR et le numéro chiffrés et inscrit l'audit `document.purge.done` sans acteur (type, verdict). Sont conservés : empreinte SHA-256, type, type de contenu, taille, verdict et motif, dimensions, pages, empreinte perceptuelle, empreinte du numéro (`document_number_hmac`, doublons KYC) et dates. Une suppression en échec laisse la pièce non marquée, reprise à l'exécution suivante. La garde refuse une purge sans effacement et toute réécriture des données extraites d'une pièce purgée.
+2. **Analyses abandonnées** (`sweep-pending`, même cadence ; D-099) — `oz_document_stale_pending` : document `pending` non supprimé depuis 30 minutes → job `document-scan` remis en file (absent : ajouté avec les options de l'API ; échoué ou terminé : rejoué ; en attente ou actif : rien), journal `document.scan.requeued` ; depuis 24 heures → verdict `error` (audit `document.scan.error`) et alerte `document.scan.stalled`. Un job rejoué repart avec ses cinq essais (compteurs remis à zéro). Une pièce supprimée avant son verdict n'est plus analysée : sa quarantaine reste jusqu'à l'échéance, puis la purge la retire.
+3. **Objets orphelins** (`purge-orphans`, toutes les `DOCUMENT_ORPHANS_EVERY_MINUTES` ; D-062, D-092) — le worker liste chaque préfixe (1 000 objets au plus par exécution, curseur propre à chaque processus pour reprendre ; il repart du début au redémarrage) et ne soumet que les objets d'**au moins une heure** (copie de réception et analyse en cours exclues). `oz_document_storage_orphans` désigne, parmi ces clés (500 par appel), celles que rien ne justifie : `incoming/` dont l'intention est absente, close ou échue depuis 15 minutes ; `quarantine/` dont le document est absent ou jugé ; `clean/` dont le document est absent, purgé ou jugé autrement que sain (celui d'une pièce encore `pending` est gardé : un essai rejoué réécrit la même clé ; passée `error`, elle devient orpheline). Seules ces clés sont supprimées. Journal par préfixe : comptes seuls (`document.orphan.removed`), échecs par type d'erreur (`document.orphan.remove_failed`).
+
+Une image dont le ré-encodage dépasse 50 Mo est rejetée (`rejected`, motif `too_large`), sans nouvel essai. Journaux : identifiant et type du document, comptes ; jamais une clé, une empreinte, une URL ni le message d'une erreur. Hors lot : versions d'objets et copies de secours du bucket (ADR-008, lot 1.10).
 
 ## Clés et états
 
-| Clé                     | Contenu                                                             |
-| ----------------------- | ------------------------------------------------------------------- |
-| `incoming/<intention>`  | Fichier envoyé, pas encore réceptionné                              |
-| `quarantine/<document>` | Fichier réceptionné, en attente d'analyse ; retiré après le verdict |
-| `clean/<document>`      | Fichier analysé et sain (image ré-encodée, PDF tel quel)            |
+| Clé                     | Contenu                                                                      |
+| ----------------------- | ---------------------------------------------------------------------------- |
+| `incoming/<intention>`  | Fichier envoyé, pas encore réceptionné                                       |
+| `quarantine/<document>` | Fichier réceptionné, en attente d'analyse ; retiré après le verdict          |
+| `clean/<document>`      | Fichier analysé et sain (image ré-encodée, PDF tel quel) ; retiré à la purge |
 
-Toute autre clé est refusée par `@oz/storage` ; seul le worker écrit sous `clean/`. Intention : `issued` → `completed` | `rejected` (`size_mismatch`, `type_mismatch`) | `expired`. Document : `pending` à la réception → `clean` | `infected` | `rejected` (`dimensions`, `pages`, `unreadable`, `hash_mismatch`) | `error` ; `retention_until` = réception + `DOCUMENT_RETENTION_DAYS` (90 par défaut, de 1 à 3 650).
+Toute autre clé est refusée par `@oz/storage` ; seul le worker écrit sous `clean/`. Intention : `issued` → `completed` | `rejected` (`size_mismatch`, `type_mismatch`) | `expired`. Document : `pending` à la réception → `clean` | `infected` | `rejected` (`dimensions`, `pages`, `unreadable`, `hash_mismatch`, `too_large`) | `error` ; `retention_until` = réception + `DOCUMENT_RETENTION_DAYS` (90 par défaut, de 1 à 3 650) ; `purged_at` posé une fois à la purge.
 
 ## Droits (D5)
 
@@ -56,25 +66,29 @@ Toute autre clé est refusée par `@oz/storage` ; seul le worker écrit sous `cl
 
 ## Bornes
 
-| Borne             | Valeur                                                                            |
-| ----------------- | --------------------------------------------------------------------------------- |
-| Taille            | 1 octet à 50 Mo (contrat, base, signature)                                        |
-| Types (D4)        | photo : JPEG, PNG, WebP ; autres pièces : JPEG, PNG, WebP, PDF ; ni HEIC ni vidéo |
-| Validité de l'URL | dépôt : 5 minutes, usage unique ; lecture : 5 minutes                             |
-| Intentions        | 20 par heure et par compte (`document_upload_account`)                            |
-| Réceptions        | 60 par heure et par compte (`document_complete_account`)                          |
-| URL de lecture    | 120 par heure et par compte (`document_read_account`)                             |
-| Stockage local    | bucket privé (lecture anonyme : 403), CORS limité à `S3_ALLOWED_ORIGINS`          |
-| Images            | 200 à 8 000 px par côté, 40 Mpx au plus                                           |
-| PDF               | 1 à 20 pages                                                                      |
+| Borne              | Valeur                                                                            |
+| ------------------ | --------------------------------------------------------------------------------- |
+| Taille             | 1 octet à 50 Mo (contrat, base, signature)                                        |
+| Types (D4)         | photo : JPEG, PNG, WebP ; autres pièces : JPEG, PNG, WebP, PDF ; ni HEIC ni vidéo |
+| Validité de l'URL  | dépôt : 5 minutes, usage unique ; lecture : 5 minutes                             |
+| Intentions         | 20 par heure et par compte (`document_upload_account`)                            |
+| Réceptions         | 60 par heure et par compte (`document_complete_account`)                          |
+| URL de lecture     | 120 par heure et par compte (`document_read_account`)                             |
+| Stockage local     | bucket privé (lecture anonyme : 403), CORS limité à `S3_ALLOWED_ORIGINS`          |
+| Images             | 200 à 8 000 px par côté, 40 Mpx au plus                                           |
+| PDF                | 1 à 20 pages                                                                      |
+| Purge              | dès l'échéance, 5 minutes au moins après la dernière URL délivrée                 |
+| Orphelins          | objets d'une heure au moins ; `incoming/` 15 minutes après l'échéance             |
+| Analyse abandonnée | relancée après 30 minutes, `error` après 24 heures                                |
 
 ## Configuration
 
-`FEATURE_DOCUMENTS` (défaut `false`) exige `FEATURE_AUTH=true` et reste refusé en production tant que le lot 1.9cb (purge) n'est pas livré et que D-092, D-093 et D-097 demeurent (D7). Worker : `WORKER_DATABASE_URL` (rôle `oz_worker`, exigé hors local et distinct de `DATABASE_URL` ; repli sur `DATABASE_URL` en local seulement), `REDIS_URL`, `S3_*`, `CLAMAV_HOST`, `CLAMAV_PORT`, `WORKER_CONCURRENCY` (1 à 8, 2 par défaut) ; configuration de lancement `worker`. `DOCUMENT_RETENTION_DAYS` : durée de conservation. En local, `docker compose` crée le bucket `S3_BUCKET` au démarrage du service `s3` ; configuration de lancement `api-documents`.
+`FEATURE_DOCUMENTS` (défaut `false`) exige `FEATURE_AUTH=true` et reste refusé en production tant que D-092 (reste), D-093 et D-097 demeurent (D7) ; la purge est livrée (lot 1.9cb). Worker : `WORKER_DATABASE_URL` (rôle `oz_worker`, exigé hors local et distinct de `DATABASE_URL` ; repli sur `DATABASE_URL` en local seulement), `REDIS_URL`, `S3_*`, `CLAMAV_HOST`, `CLAMAV_PORT`, `WORKER_CONCURRENCY` (1 à 8, 2 par défaut), `DOCUMENT_MAINTENANCE_ENABLED` (`true` par défaut ; `false` retire les planifications), `DOCUMENT_PURGE_EVERY_MINUTES` (5 à 1 440, 15 par défaut), `DOCUMENT_ORPHANS_EVERY_MINUTES` (15 à 1 440, 60 par défaut) ; configuration de lancement `worker`. `DOCUMENT_RETENTION_DAYS` : durée de conservation. En local, `docker compose` crée le bucket `S3_BUCKET` au démarrage du service `s3` ; configuration de lancement `api-documents`.
 
 ## Menaces couvertes et restantes
 
 - **Couvertes** : fichier déguisé (type réel lu sur les octets), fichier substitué après l'intention (empreinte, taille et type signés) ou après sa vérification (ETag), rejeu d'une URL ou d'une réception (usage unique), dépôt pour autrui (RLS puis CASL, 404 indiscernable), saturation (limites par compte sur l'intention et la réception, 50 Mo, transaction et requêtes bornées), lecture publique (bucket privé, aucune URL de lecture).
 - **Couvertes au lot 1.9b** : fichier infecté (ClamAV, rien ne subsiste), charge cachée dans une image (ré-encodage, métadonnées et octets annexes détruits), bombe de décompression (dimensions lues sur l'en-tête), PDF hors bornes, chiffré ou corrompu, fichier remplacé en quarantaine (SHA-256 recomparée), pièce réutilisée pour un autre sujet (signal de doublon), verdict forgé par l'API ou un utilisateur (rôle `oz_worker` seul, refus sous contexte utilisateur, garde en base).
 - **Couvertes au lot 1.9ca** : lecture d'une pièce non analysée ou rejetée (sain seulement, 404 uniforme), lecture par un tiers (RLS puis CASL), URL réutilisée longtemps ou partagée (5 minutes, audit de chaque délivrance), réponse détournée en page web (type et `attachment` signés), lien deviné (aucun accès sans signature).
-- **Restantes** : purge des objets orphelins et des documents échus (lot 1.9cb, D-062, D-092) ; URL encore valable après une purge (D-101) ; PDF hostile bloquant le worker (D-093) ; `/Count` sous-déclaré (D-094) ; comparaison perceptuelle (D-098) ; documents laissés `pending` par un job abandonné (D-099) ; privilège de lecture de `oz_worker` (D-100) ; déploiement en recette (D-097).
+- **Couvertes au lot 1.9cb** : pièce conservée au-delà de son échéance (purge programmée, auditée, CP-20), URL encore valable après une purge (lecture fermée à l'échéance, purge après 5 minutes), fichiers oubliés dans le stockage (orphelins désignés par la base), analyse abandonnée sans verdict (relance puis `error`), sortie de ré-encodage hors borne (`too_large`). Parcours n° 10 de bout en bout (`e2e/documents/infected-upload.spec.ts`).
+- **Restantes** : copie de réception dans la transaction et preuves sur Scaleway (D-092, reste) ; versions d'objets et copies de secours non purgées (ADR-008, lot 1.10) ; PDF hostile bloquant le worker (D-093) ; `/Count` sous-déclaré (D-094) ; comparaison perceptuelle (D-098) ; privilège de lecture de `oz_worker` (D-100) ; déploiement en recette (D-097).

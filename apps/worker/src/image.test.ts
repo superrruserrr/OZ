@@ -138,6 +138,16 @@ describe('bornes (D5)', () => {
     expect(out).toEqual({ ok: false, reason: 'dimensions' });
   });
 
+  it('sortie du ré-encodage au-delà de la borne → rejected/too_large (lot 1.9cb, D-099)', async () => {
+    const bytes = await picture(400, 300, 'png');
+    expect(await processImage(bytes, 'image/png', 1_000)).toEqual({
+      ok: false,
+      reason: 'too_large',
+    });
+    // Borne par défaut : 50 Mo, celle du dépôt.
+    expect((await processImage(bytes, 'image/png')).ok).toBe(true);
+  });
+
   it('limites incluses : 200 px et 8 000 px acceptés', async () => {
     const out = await processImage(await picture(8_000, 200, 'png'), 'image/png');
     expect(out.ok).toBe(true);

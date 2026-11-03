@@ -7,21 +7,25 @@ import {
   PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
-import { loadWorkerConfig } from '@oz/config';
-import { createDbClient, type PrismaClient } from '@oz/db';
+import { loadWorkerConfig, type WorkerConfig } from '@oz/config';
+import { createDbClient, findStorageOrphans, type PrismaClient } from '@oz/db';
+import { DocumentStorage } from '@oz/storage';
 import { PostgreSqlContainer, type StartedPostgreSqlContainer } from '@testcontainers/postgresql';
 import { RedisContainer, type StartedRedisContainer } from '@testcontainers/redis';
-import { Queue } from 'bullmq';
+import { Queue, QueueEvents } from 'bullmq';
 import sharp from 'sharp';
 import { GenericContainer, Wait, type StartedTestContainer } from 'testcontainers';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { ClamavClient } from '../src/clamav.js';
+import { DOCUMENT_MAINTENANCE_QUEUE, MAINTENANCE_JOBS } from '../src/maintenance.js';
 import { DOCUMENT_SCAN_JOB, DOCUMENT_SCAN_QUEUE } from '../src/processor.js';
+import { createOrphanPurger } from '../src/purge-orphans.js';
 import { serve, type SignalTarget, type WorkerHandle } from '../src/worker.js';
 import { buildPdf, eicar } from './fixtures.js';
 
 // Analyse de bout en bout (lot 1.9b, tâche 8, EX-110 n° 2 à 5) sur la pile réelle : PostgreSQL migré,
 // Redis, SeaweedFS (S3) et ClamAV. Le worker démarre comme en production, sous le rôle `oz_worker`.
+// Lot 1.9cb (tâche 7) : maintenance du coffre sur la même pile (CP-20, D-101, D-099, D-062, D-092).
 
 // Mêmes images que infra/docker/compose.dev.yml.
 const POSTGRES_IMAGE = 'postgres:16.15-alpine';
@@ -44,6 +48,8 @@ let admin: PrismaClient;
 let bucket: S3Client;
 let queue: Queue;
 let worker: WorkerHandle;
+let config: WorkerConfig;
+let workerUrl: URL;
 let ownerId: string;
 let playerId: string;
 
@@ -204,10 +210,10 @@ beforeAll(async () => {
     await new Promise((resolve) => setTimeout(resolve, 1_000));
   }
 
-  const workerUrl = new URL(superuser);
+  workerUrl = new URL(superuser);
   workerUrl.username = 'oz_worker_test';
   workerUrl.password = 'oz_worker_test';
-  const config = loadWorkerConfig({
+  config = loadWorkerConfig({
     NODE_ENV: 'test',
     APP_ENV: 'local',
     LOG_LEVEL: 'silent',
@@ -321,5 +327,249 @@ describe('analyse de bout en bout (EX-110)', () => {
   it('fichier introuvable jusqu’au dernier essai : verdict `error`, jamais accessible', async () => {
     const id = await deposit(buildPdf(1), 'application/pdf', { attempts: 2, skipUpload: true });
     expect(await verdict(id)).toMatchObject({ av_status: 'error' });
+  });
+});
+
+describe('maintenance du coffre (lot 1.9cb)', () => {
+  let maintenance: Queue;
+  let events: QueueEvents;
+
+  beforeAll(async () => {
+    const connection = { url: redis.getConnectionUrl() };
+    maintenance = new Queue(DOCUMENT_MAINTENANCE_QUEUE, { connection });
+    events = new QueueEvents(DOCUMENT_MAINTENANCE_QUEUE, { connection });
+    await events.waitUntilReady();
+  });
+
+  afterAll(async () => {
+    await events.close();
+    await maintenance.close();
+  });
+
+  /** Lance un traitement de maintenance tout de suite et attend sa fin. */
+  async function runMaintenance(name: (typeof MAINTENANCE_JOBS)[number]): Promise<void> {
+    const job = await maintenance.add(name, {});
+    await job.waitUntilFinished(events, 60_000);
+  }
+
+  /** Pièce déjà jugée, échue (ou non), avec son fichier là où l'analyse l'a laissé. */
+  async function judged(
+    status: 'clean' | 'infected' | 'rejected' | 'error',
+    options: { due?: boolean; objects?: ('clean' | 'quarantine')[] } = {},
+  ): Promise<string> {
+    const [row] = await admin.$queryRawUnsafe<{ id: string }[]>(
+      `WITH n AS (SELECT oz_uuid_v7() AS id)
+       INSERT INTO documents (id, type, player_id, uploaded_by, storage_key, mime_type, size_bytes,
+         sha256, av_status, rejection_reason, document_number_encrypted, document_number_hmac,
+         created_at, retention_until)
+       SELECT n.id, 'identity_document', $1::uuid, $2::uuid,
+         CASE WHEN $3 = 'clean' THEN 'clean/' ELSE 'quarantine/' END || n.id, 'image/png', 3,
+         $4, $3::av_status, CASE WHEN $3 = 'rejected' THEN 'dimensions' END, '\\x01'::bytea,
+         '\\x02'::bytea, now() - interval '100 days',
+         CASE WHEN $5 THEN now() - interval '1 hour' ELSE now() + interval '90 days' END
+       FROM n RETURNING id::text`,
+      playerId,
+      ownerId,
+      status,
+      sha256(Buffer.from('oz!')),
+      options.due ?? true,
+    );
+    const id = row?.id ?? '';
+    for (const prefix of options.objects ?? (status === 'clean' ? ['clean'] : [])) {
+      await bucket.send(
+        new PutObjectCommand({ Bucket: BUCKET, Key: `${prefix}/${id}`, Body: Buffer.from('oz!') }),
+      );
+    }
+    return id;
+  }
+
+  /** URL de lecture délivrée il y a `ago` (heure du journal imposée : déclencheurs suspendus). */
+  async function granted(id: string, ago: string): Promise<void> {
+    await admin.$transaction([
+      admin.$executeRawUnsafe('SET LOCAL session_replication_role = replica'),
+      admin.$executeRawUnsafe(
+        `INSERT INTO audit_log (actor_user_id, action, target_type, target_id, reason, created_at)
+         VALUES ($1::uuid, 'document.read.granted', 'document', $2::uuid, 'Lecture',
+           now() - $3::interval)`,
+        ownerId,
+        id,
+        ago,
+      ),
+    ]);
+  }
+
+  const state = async (id: string) =>
+    (
+      await admin.$queryRawUnsafe<
+        { purged: boolean; erased: boolean; hmac: boolean; sha256: string; av_status: string }[]
+      >(
+        `SELECT purged_at IS NOT NULL AS purged, document_number_encrypted IS NULL AS erased,
+           document_number_hmac IS NOT NULL AS hmac, sha256, av_status::text
+         FROM documents WHERE id = $1::uuid`,
+        id,
+      )
+    )[0];
+
+  it('CP-20 : pièces échues sans fichier, empreinte et métadonnées conservées, audit ; non échue intacte', async () => {
+    const clean = await judged('clean');
+    const infected = await judged('infected', { objects: ['quarantine'] });
+    const rejected = await judged('rejected');
+    const failed = await judged('error', { objects: ['quarantine', 'clean'] });
+    const live = await judged('clean', { due: false });
+    await runMaintenance('purge-due');
+    for (const [id, status] of [
+      [clean, 'clean'],
+      [infected, 'infected'],
+      [rejected, 'rejected'],
+      [failed, 'error'],
+    ] as const) {
+      expect(await keys(id)).toEqual([]);
+      expect(await state(id)).toEqual({
+        purged: true,
+        erased: true,
+        hmac: true,
+        sha256: sha256(Buffer.from('oz!')),
+        av_status: status,
+      });
+    }
+    const audits = await admin.$queryRawUnsafe<{ n: number }[]>(
+      `SELECT count(*)::int AS n FROM audit_log WHERE action = 'document.purge.done'
+         AND target_id = ANY($1::uuid[])`,
+      [clean, infected, rejected, failed],
+    );
+    expect(audits[0]?.n).toBe(4);
+    expect(await keys(live)).toEqual([`clean/${live}`]);
+    expect(await state(live)).toMatchObject({ purged: false, erased: false });
+  });
+
+  it('D-101 : fichier gardé 5 minutes après la dernière URL délivrée', async () => {
+    const recent = await judged('clean');
+    await granted(recent, '4 minutes');
+    const old = await judged('clean');
+    await granted(old, '6 minutes');
+    await runMaintenance('purge-due');
+    expect(await keys(recent)).toEqual([`clean/${recent}`]);
+    expect(await state(recent)).toMatchObject({ purged: false });
+    expect(await keys(old)).toEqual([]);
+    expect(await state(old)).toMatchObject({ purged: true });
+  });
+
+  it('D-099 : analyse abandonnée relancée après 30 minutes, close en `error` après 24 heures', async () => {
+    const png = await sharp({
+      create: { width: 400, height: 300, channels: 3, background: '#357' },
+    })
+      .png()
+      .toBuffer();
+    // Documents `pending` sans job en file, comme après un abandon par BullMQ.
+    const pending = async (age: string): Promise<string> => {
+      const [row] = await admin.$queryRawUnsafe<{ id: string }[]>(
+        `WITH n AS (SELECT oz_uuid_v7() AS id)
+         INSERT INTO documents (id, type, player_id, uploaded_by, storage_key, mime_type, size_bytes,
+           sha256, created_at, retention_until)
+         SELECT n.id, 'identity_document', $1::uuid, $2::uuid, 'quarantine/' || n.id, 'image/png',
+           $3, $4, now() - $5::interval, now() + interval '90 days'
+         FROM n RETURNING id::text`,
+        playerId,
+        ownerId,
+        png.byteLength,
+        sha256(png),
+        age,
+      );
+      const id = row?.id ?? '';
+      await bucket.send(
+        new PutObjectCommand({ Bucket: BUCKET, Key: `quarantine/${id}`, Body: png }),
+      );
+      return id;
+    };
+    const stalled = await pending('31 minutes');
+    const dead = await pending('25 hours');
+    await runMaintenance('sweep-pending');
+    expect(await verdict(stalled)).toMatchObject({ av_status: 'clean' });
+    expect(await verdict(dead)).toMatchObject({ av_status: 'error' });
+    const [audit] = await admin.$queryRawUnsafe<{ action: string }[]>(
+      `SELECT action FROM audit_log WHERE target_id = $1::uuid`,
+      dead,
+    );
+    expect(audit?.action).toBe('document.scan.error');
+  });
+
+  it('D-062, D-092 : objets orphelins d’au moins une heure supprimés, les autres gardés', async () => {
+    const put = async (key: string): Promise<void> => {
+      await bucket.send(new PutObjectCommand({ Bucket: BUCKET, Key: key, Body: Buffer.from('x') }));
+    };
+    const unknown = '0193b0a2-7c1e-7d2a-9b3c-4d5e6f70ffff';
+    const judgedDoc = await judged('infected', { due: false, objects: ['quarantine'] });
+    const rejectedDoc = await judged('rejected', { due: false, objects: ['clean'] });
+    const cleanDoc = await judged('clean', { due: false });
+    const [pendingRow] = await admin.$queryRawUnsafe<{ id: string }[]>(
+      `WITH n AS (SELECT oz_uuid_v7() AS id)
+       INSERT INTO documents (id, type, player_id, uploaded_by, storage_key, mime_type, size_bytes,
+         sha256, retention_until)
+       SELECT n.id, 'identity_document', $1::uuid, $2::uuid, 'quarantine/' || n.id, 'image/png', 1,
+         $3, now() + interval '90 days'
+       FROM n RETURNING id::text`,
+      playerId,
+      ownerId,
+      sha256(Buffer.from('x')),
+    );
+    const pendingDoc = pendingRow?.id ?? '';
+    const [upload] = await admin.$queryRawUnsafe<{ id: string }[]>(
+      `INSERT INTO document_uploads (requested_by, document_type, player_id, content_type, size_bytes, sha256)
+       VALUES ($1::uuid, 'photo', $2::uuid, 'image/png', 1, $3) RETURNING id::text`,
+      ownerId,
+      playerId,
+      sha256(Buffer.from('x')),
+    );
+    const liveUpload = upload?.id ?? '';
+    const orphans = [
+      `incoming/${unknown}`,
+      `quarantine/${judgedDoc}`,
+      `clean/${rejectedDoc}`,
+      `clean/${unknown}`,
+    ];
+    const legitimate = [`incoming/${liveUpload}`, `quarantine/${pendingDoc}`, `clean/${cleanDoc}`];
+    for (const key of [...orphans, `incoming/${liveUpload}`, `quarantine/${pendingDoc}`])
+      await put(key);
+
+    const db = createDbClient(workerUrl.toString());
+    const storage = new DocumentStorage(config.s3);
+    const silent = { info: () => undefined, warn: () => undefined, error: () => undefined };
+    const listAll = async () =>
+      ((await bucket.send(new ListObjectsV2Command({ Bucket: BUCKET }))).Contents ?? []).map(
+        (o) => o.Key ?? '',
+      );
+    try {
+      // Objets tout juste écrits : rien n'est examiné.
+      await createOrphanPurger({
+        findOrphans: (k) => findStorageOrphans(db, k),
+        storage,
+        logger: silent,
+      })();
+      expect(await listAll()).toEqual(expect.arrayContaining([...orphans, ...legitimate]));
+      // Deux heures plus tard : seuls les orphelins disparaissent.
+      await createOrphanPurger({
+        findOrphans: (k) => findStorageOrphans(db, k),
+        storage,
+        logger: silent,
+        now: () => new Date(Date.now() + 7_200_000),
+      })();
+      const remaining = await listAll();
+      expect(remaining).toEqual(expect.arrayContaining(legitimate));
+      for (const key of orphans) expect(remaining).not.toContain(key);
+    } finally {
+      storage.destroy();
+      await db.$disconnect();
+    }
+  });
+
+  it('trois planifications, une seule fois même avec un second worker', async () => {
+    const ids = async () => (await maintenance.getJobSchedulers()).map((s) => s.key).sort();
+    expect(await ids()).toEqual([...MAINTENANCE_JOBS].sort());
+    const second = await serve(config, noSignals, 0);
+    try {
+      expect(await ids()).toEqual([...MAINTENANCE_JOBS].sort());
+    } finally {
+      await second.close();
+    }
   });
 });
