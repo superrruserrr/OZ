@@ -63,6 +63,17 @@ erDiagram
     uuid created_by FK
     uuid updated_by FK
   }
+  data_export_requests {
+    uuid id PK
+    uuid user_id FK
+    text status
+    timestamptz requested_at
+    timestamptz ready_at
+    timestamptz expires_at
+    text storage_key
+    text failure_reason
+    timestamptz updated_at
+  }
   document_duplicates {
     uuid document_id PK,FK
     uuid duplicate_of_id FK
@@ -327,6 +338,7 @@ erDiagram
   consents }o--o| users : "created_by"
   consents }o--o| users : "granted_by_user_id"
   consents }o--o| users : "updated_by"
+  data_export_requests }o--|| users : "user_id"
   document_duplicates }o--|| documents : "document_id"
   document_duplicates }o--|| documents : "duplicate_of_id"
   document_uploads }o--o| documents : "document_id"

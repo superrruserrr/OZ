@@ -35,6 +35,8 @@ const EXPOSED_TABLES = [
   // Lot 1.3a
   'auth_tokens',
   'auth_recovery_codes',
+  // Lot 1.16ba
+  'data_export_requests',
 ];
 
 let db: TestDatabase;

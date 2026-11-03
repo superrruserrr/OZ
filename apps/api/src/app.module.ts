@@ -13,6 +13,7 @@ import { ContactModule } from './contact/contact.module.js';
 import { DocumentModule } from './document/document.module.js';
 import { HealthModule } from './health/health.module.js';
 import { PlayerModule } from './player/player.module.js';
+import { PrivacyModule } from './privacy/privacy.module.js';
 
 export interface AppOptions {
   /** Flux de sortie des logs (tests) ; par défaut la sortie standard. */
@@ -35,6 +36,8 @@ export class AppModule {
           : []),
         // Journal d'audit (lot 1.16a) : réservé à l'administrateur, repose sur la session.
         ...(config.auth ? [AuditModule.forRoot(config.auth.hmacKey)] : []),
+        // Export des données personnelles (lot 1.16ba) : routes du titulaire, sur la session.
+        ...(config.auth ? [PrivacyModule.forRoot(config.auth.hmacKey)] : []),
         // FEATURE_DOCUMENTS exige FEATURE_AUTH (configuration) : les routes reposent sur la session.
         ...(config.features.documents && config.auth
           ? [DocumentModule.forRoot(config.auth.hmacKey)]

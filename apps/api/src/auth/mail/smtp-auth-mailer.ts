@@ -13,6 +13,7 @@ import {
   sessionReuseAlertEmail,
   phoneChangedEmail,
   twoFactorDisabledEmail,
+  dataExportRequestedEmail,
   twoFactorEnabledEmail,
   verificationEmail,
   verificationLink,
@@ -95,6 +96,10 @@ export class SmtpAuthMailer implements AuthMailer, OnApplicationShutdown {
 
   sendPhoneChanged(to: string, when: Date): Promise<void> {
     return this.send(to, phoneChangedEmail(when, this.resetUrl()));
+  }
+
+  sendDataExportRequested(to: string, when: Date): Promise<void> {
+    return this.send(to, dataExportRequestedEmail(when, this.resetUrl()));
   }
 
   /** Après `MailDispatcher.beforeApplicationShutdown` : plus aucun envoi en cours. */

@@ -184,6 +184,20 @@ export function phoneChangedEmail(when: Date, resetUrl: string): MailContent {
   };
 }
 
+// Alerte de l'export des données (lot 1.16ba) : l'archive arrive par un second email (lot 1.16bb).
+export function dataExportRequestedEmail(when: Date, resetUrl: string): MailContent {
+  return {
+    subject: 'Export de vos données demandé sur votre compte OZ',
+    ...layout(
+      [
+        `Un export des données de votre compte OZ a été demandé le ${formatWhen(when)}. Vous recevrez un email quand l'archive sera prête.`,
+        "Si vous n'êtes pas à l'origine de cette demande, changez votre mot de passe et contactez le support OZ.",
+      ],
+      { label: 'Changer mon mot de passe', href: resetUrl },
+    ),
+  };
+}
+
 export function recoveryCodeUsedEmail(when: Date, resetUrl: string): MailContent {
   return {
     subject: 'Code de secours utilisé sur votre compte OZ',

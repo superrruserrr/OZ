@@ -5,9 +5,17 @@ import { pathForLog } from '../logging/logging.js';
 import { requestIdOf } from '../logging/request-id.middleware.js';
 import { AppException, toApiError } from './api-error.js';
 
-/** Attente annoncée par un refus 429 (délai exponentiel, limite de débit), en secondes. */
+/**
+ * Attente annoncée par un refus 429 (délai exponentiel, limite de débit) ou 409 (prochaine demande
+ * d'export possible, lot 1.16ba), en secondes.
+ */
 function retryAfterOf(exception: unknown): number | null {
-  if (!(exception instanceof AppException) || exception.status !== 429) return null;
+  if (
+    !(exception instanceof AppException) ||
+    (exception.status !== 429 && exception.status !== 409)
+  ) {
+    return null;
+  }
   const { retryAfterSeconds } = exception as { retryAfterSeconds?: unknown };
   return typeof retryAfterSeconds === 'number' && retryAfterSeconds >= 1
     ? Math.ceil(retryAfterSeconds)

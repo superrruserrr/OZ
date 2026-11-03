@@ -14,10 +14,13 @@ const BATCH = 1000;
 type PersonalRow = Record<string, string | null> & { id: string };
 const FREE_TEXT = '[anonymisé]';
 
+/** Tout registre par table et colonne : anonymisation (R10) ou export des données (lot 1.16ba). */
+export type ColumnRegistry = Readonly<Record<string, Readonly<Record<string, unknown>>>>;
+
 /** Colonnes de la base (`table.colonne`) absentes du registre, triées. */
 export async function unclassifiedColumns(
   databaseUrl: string,
-  registry: Registry,
+  registry: ColumnRegistry,
 ): Promise<string[]> {
   const client = new pg.Client({ connectionString: databaseUrl });
   await client.connect();
@@ -34,7 +37,7 @@ export async function unclassifiedColumns(
  * tous les schémas utilisateur, qualifiées hors `public` ; une table partitionnée est classée par son
  * parent ; une vue matérialisée ou une table étrangère est refusée (copie non anonymisable).
  */
-async function listUnclassified(client: pg.Client, registry: Registry): Promise<string[]> {
+async function listUnclassified(client: pg.Client, registry: ColumnRegistry): Promise<string[]> {
   const { rows } = await client.query<{
     name: string;
     relkind: string;
