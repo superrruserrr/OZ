@@ -38,6 +38,29 @@ const MAX_KEYS = 100;
 const MAX_STRING = 2_000;
 const REDACTED = '[Redacted]';
 
+// OZ ID dans un chemin (lot 1.13a) : identifiant public et stable d'une personne, jamais journalisé.
+const OZ_ID_IN_PATH = /OZ-[A-Z]{2}-[0-9]{2}-[0-9A-Z]{6}-[0-9A-Z]/gi;
+
+/**
+ * Chemin de requête à journaliser : sans paramètres de requête, OZ ID remplacés par `:ozId`, y
+ * compris encodés (`OZ%2DCM…`, décodés par Express avant la route). Segment indécodable : masqué.
+ */
+export function pathForLog(url: string): string {
+  return (url.split('?')[0] ?? '')
+    .split('/')
+    .map((segment) => {
+      let decoded: string;
+      try {
+        decoded = decodeURIComponent(segment);
+      } catch {
+        return ':masqué';
+      }
+      const masked = decoded.replace(OZ_ID_IN_PATH, ':ozId');
+      return masked === decoded ? segment : masked;
+    })
+    .join('/');
+}
+
 function isSensitiveKey(key: string): boolean {
   return SENSITIVE_KEY.test(key.toLowerCase().replace(/[-_\s.]/g, ''));
 }

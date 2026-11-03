@@ -12,6 +12,7 @@ import { ConfigModule } from './config/config.module.js';
 import { ContactModule } from './contact/contact.module.js';
 import { DocumentModule } from './document/document.module.js';
 import { HealthModule } from './health/health.module.js';
+import { PlayerModule } from './player/player.module.js';
 
 export interface AppOptions {
   /** Flux de sortie des logs (tests) ; par défaut la sortie standard. */
@@ -29,7 +30,9 @@ export class AppModule {
         HealthModule,
         // Drapeau R13 : le module n'existe pas du tout quand il est désactivé (404).
         ...(config.features.contactForm ? [ContactModule] : []),
-        ...(config.auth ? [AuthModule.forRoot(config.auth)] : []),
+        ...(config.auth
+          ? [AuthModule.forRoot(config.auth), PlayerModule.forRoot(config.auth.hmacKey)]
+          : []),
         // Journal d'audit (lot 1.16a) : réservé à l'administrateur, repose sur la session.
         ...(config.auth ? [AuditModule.forRoot(config.auth.hmacKey)] : []),
         // FEATURE_DOCUMENTS exige FEATURE_AUTH (configuration) : les routes reposent sur la session.

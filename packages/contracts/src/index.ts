@@ -86,3 +86,13 @@ export {
   type DocumentUploadOutput,
   type DocumentUploadParamsInput,
 } from './documents/upload.schema.js';
+export {
+  playerProfileOutputSchema,
+  playerProfileParamsSchema,
+  playerVisibilityInputSchema,
+  playerVisibilityOutputSchema,
+  type PlayerProfileOutput,
+  type PlayerProfileParamsInput,
+  type PlayerVisibilityInput,
+  type PlayerVisibilityOutput,
+} from './players/profile.schema.js';

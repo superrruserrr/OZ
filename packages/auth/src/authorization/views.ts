@@ -23,6 +23,8 @@ export interface PlayerViewData {
   readonly heightCm?: number | null;
   readonly weightKg?: number | null;
   readonly verificationStatus?: string;
+  /** Badge (D2 du lot 1.13a) : 0 email seul, 1 email et téléphone, 2 identité vérifiée. */
+  readonly verificationLevel?: 0 | 1 | 2;
   readonly organizationId?: string | null;
   readonly phone?: string | null;
 }
@@ -50,6 +52,7 @@ const IDENTITY: readonly PlayerViewField[] = [
   'country',
   'region',
   'city',
+  'verificationLevel',
 ];
 const SPORT: readonly PlayerViewField[] = [
   'primaryPosition',
@@ -77,6 +80,16 @@ export const PLAYER_VIEWS: Readonly<Record<PlayerViewName, PlayerView>> = Object
   PlayerOrganizationView: view('PlayerOrganizationView', ACCOUNT),
   PlayerPublicView: view('PlayerPublicView', [...IDENTITY, 'birthYear', ...SPORT]),
 });
+
+/** Blocs que le titulaire majeur ou le tuteur peut masquer aux tiers (EX-115 n° 3, D1 du lot 1.13a). */
+export const PLAYER_BLOCK_FIELDS = Object.freeze({
+  location: Object.freeze(['region', 'city']),
+  physical: Object.freeze(['heightCm', 'weightKg']),
+  sport: Object.freeze(['primaryPosition', 'secondaryPosition', 'dominantFoot']),
+} as const satisfies Record<string, readonly PlayerViewField[]>);
+export type PlayerBlock = keyof typeof PLAYER_BLOCK_FIELDS;
+/** `false` : bloc masqué aux tiers ; absent ou `true` : visible. */
+export type PlayerBlockVisibility = Partial<Record<PlayerBlock, boolean>>;
 
 /** Copie champ par champ : seuls les champs de la vue, propres à l'objet, sont repris. */
 export function serializeView(target: PlayerView, data: PlayerViewData): Partial<PlayerViewData> {
@@ -127,6 +140,25 @@ function chooseView(actor: Actor, ability: AppAbility, target: PlayerSubject): P
   return PLAYER_VIEWS.PlayerPublicView;
 }
 
+/** Les blocs masqués ne s'appliquent qu'aux tiers : titulaire, tuteur, organisation, admin voient tout. */
+function hideBlocks(
+  chosen: PlayerView | null,
+  visibility: PlayerBlockVisibility,
+): PlayerView | null {
+  if (chosen?.name !== 'PlayerPublicView') return chosen;
+  const hidden = new Set<PlayerViewField>(
+    (Object.keys(PLAYER_BLOCK_FIELDS) as PlayerBlock[])
+      .filter((block) => visibility[block] === false)
+      .flatMap((block) => PLAYER_BLOCK_FIELDS[block]),
+  );
+  return hidden.size === 0
+    ? chosen
+    : view(
+        chosen.name,
+        chosen.fields.filter((field) => !hidden.has(field)),
+      );
+}
+
 /**
  * Vue la plus large que permet l'ability, ou `null` si aucune lecture n'est permise : l'appelant
  * répond alors 403 ou 404, jamais une vue vide. Le téléphone d'un mineur ne reste que pour qui a
@@ -136,8 +168,9 @@ export function playerViewFor(
   actor: Actor,
   ability: AppAbility,
   target: PlayerSubject,
+  visibility: PlayerBlockVisibility = {},
 ): PlayerView | null {
-  const chosen = chooseView(actor, ability, target);
+  const chosen = hideBlocks(chooseView(actor, ability, target), visibility);
   if (chosen === null || !chosen.fields.includes('phone')) return chosen;
   if (!target.isMinor || ability.can('player.read_minor_contact', target)) return chosen;
   return view(
@@ -152,7 +185,8 @@ export function presentPlayer(
   ability: AppAbility,
   target: PlayerSubject,
   data: PlayerViewData,
+  visibility: PlayerBlockVisibility = {},
 ): Partial<PlayerViewData> | null {
-  const chosen = playerViewFor(actor, ability, target);
+  const chosen = playerViewFor(actor, ability, target, visibility);
   return chosen === null ? null : serializeView(chosen, data);
 }

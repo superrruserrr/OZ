@@ -1,7 +1,7 @@
 import { Writable } from 'node:stream';
 import { pino } from 'pino';
 import { describe, expect, it } from 'vitest';
-import { REDACT_PATHS, loggerOptions, resolveRequestId } from './logging.js';
+import { REDACT_PATHS, loggerOptions, pathForLog, resolveRequestId } from './logging.js';
 
 function capture(): { stream: Writable; lines: () => Record<string, unknown>[] } {
   const chunks: string[] = [];
@@ -21,6 +21,21 @@ function capture(): { stream: Writable; lines: () => Record<string, unknown>[] }
         .map((line) => JSON.parse(line) as Record<string, unknown>),
   };
 }
+
+describe('pathForLog', () => {
+  it('retire les paramètres de requête et remplace tout OZ ID, quelle que soit la casse', () => {
+    expect(pathForLog('/auth/reset?token=secret')).toBe('/auth/reset');
+    expect(pathForLog('/players/OZ-CM-26-7K4M9Q-M/visibility')).toBe('/players/:ozId/visibility');
+    expect(pathForLog('/players/oz-cm-26-7k4m9q-m?x=1')).toBe('/players/:ozId');
+    expect(pathForLog('/players/OZ%2DCM-26-7K4M9Q-M')).toBe('/players/:ozId');
+    expect(pathForLog('/players/%4FZ-CM-26-7K4M9Q-M/visibility')).toBe('/players/:ozId/visibility');
+    expect(pathForLog('/players/%E0%A4%A')).toBe('/players/:masqué');
+    expect(pathForLog('/players/pas%20un%20id')).toBe('/players/pas%20un%20id');
+    expect(pathForLog('/documents/00000000-0000-4000-8000-000000000001/url')).toBe(
+      '/documents/00000000-0000-4000-8000-000000000001/url',
+    );
+  });
+});
 
 describe('resolveRequestId (EX-T19)', () => {
   it('conserve un identifiant entrant bien formé', () => {

@@ -640,7 +640,7 @@ Le marché de lancement est le **Cameroun**, avec une expansion prévue vers l'A
 14. UN guide utilisateur académie DOIT être rédigé (`docs/guides/academy.md`).
 
 ### EX-115 — Profil joueur et visibilité
-**Source :** lot 1.13 · **Priorité :** P0 · **Statut :** Plan
+**Source :** lot 1.13 · **Priorité :** P0 · **Statut :** En cours (lot 1.13a : n° 1 à 3 et 6 côté API ; n° 4 et 5 au lot 1.13b ; écrans au lot 1.13c)
 
 1. LA fiche joueur DOIT être complète et sérialisée différemment selon le rôle du consultant (EX-104).
 2. LES badges de vérification DOIVENT être lisibles d'un coup d'œil et distinguer KYC 1, KYC 2 et KYC 3.

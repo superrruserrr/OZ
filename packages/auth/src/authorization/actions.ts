@@ -17,6 +17,7 @@ export type RbacRole = (typeof RBAC_ROLES)[number];
 export const RBAC_ACTION_SUBJECTS = {
   'profile.read': 'Player',
   'profile.update': 'Player',
+  'profile.set_visibility': 'Player',
   'player.create': 'Organization',
   'player.read_public': 'Player',
   'player.search': 'PlayerSearch',

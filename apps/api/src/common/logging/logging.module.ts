@@ -3,7 +3,7 @@ import type { DestinationStream } from 'pino';
 import { Module, type DynamicModule } from '@nestjs/common';
 import type { ApiConfig } from '@oz/config';
 import { LoggerModule } from 'nestjs-pino';
-import { loggerOptions, resolveRequestId } from './logging.js';
+import { loggerOptions, pathForLog, resolveRequestId } from './logging.js';
 
 type RequestWithId = IncomingMessage & { id?: string | number | object };
 
@@ -21,13 +21,13 @@ export class LoggingModule {
         res.setHeader('X-Request-Id', id);
         return id;
       },
-      // Ni en-têtes, ni adresse IP, ni paramètres de requête (jetons possibles) dans les logs.
+      // Ni en-têtes, ni adresse IP, ni paramètres de requête (jetons possibles), ni OZ ID dans les logs.
       serializers: {
         ...base.serializers,
         req: (req: RequestWithId) => ({
           id: req.id,
           method: req.method,
-          url: (req.url ?? '').split('?')[0],
+          url: pathForLog(req.url ?? ''),
         }),
         res: (res: ServerResponse) => ({ statusCode: res.statusCode }),
       },
