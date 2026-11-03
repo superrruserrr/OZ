@@ -8,8 +8,10 @@ export const ADMIN_URL = 'http://localhost:3102';
 export default defineConfig({
   testDir: '.',
   // Specs des conteneurs : `pnpm test:containers` (e2e/containers.config.ts) ; parcours de l'API :
-  // `pnpm test:e2e:api` (e2e/api.config.ts).
-  testIgnore: ['containers/**', 'auth/**'],
+  // `pnpm test:e2e:api` (e2e/api.config.ts) ; coffre documentaire : `pnpm test:e2e:documents`
+  // (e2e/documents.config.ts). Expression ancrée sur e2e/ : un glob `documents/**` exclurait tout
+  // dépôt cloné sous ~/Documents.
+  testIgnore: ['containers/**', 'auth/**', /[\\/]e2e[\\/]documents[\\/]/],
   fullyParallel: true,
   forbidOnly: true,
   reporter: 'line',
