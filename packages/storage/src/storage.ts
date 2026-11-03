@@ -28,6 +28,22 @@ export interface PresignPutInput {
   readonly expiresInSeconds: number;
 }
 
+export interface PresignGetInput {
+  /** Toujours `clean/<uuid>` : seul un fichier analysé et sain est servi (CP-21). */
+  readonly key: string;
+  /** Type réel vérifié, imposé à la réponse du stockage. */
+  readonly contentType: string;
+  /** 300 s au plus (EX-110 n° 6). */
+  readonly expiresInSeconds: number;
+  /** Date de signature imposée : tests d'expiration seulement (CP-22). */
+  readonly signingDate?: Date;
+}
+
+export interface PresignedGet {
+  readonly url: string;
+  readonly expiresAt: Date;
+}
+
 export interface PresignedPut {
   readonly url: string;
   /** En-têtes signés : le client les renvoie tels quels, sinon le stockage refuse l'envoi. */
@@ -41,6 +57,8 @@ const MAX_HEAD_BYTES = 1_048_576;
 const MAX_OBJECT_BYTES = 52_428_800;
 const SIGNED_HEADERS = ['content-type', 'content-length', 'x-amz-checksum-sha256'];
 const SHA256_HEX = /^[0-9a-f]{64}$/i;
+/** Lecture : 5 minutes au plus (EX-110 n° 6, CP-22). */
+const MAX_READ_SECONDS = 300;
 
 const preconditionFailed = (error: unknown): boolean =>
   error instanceof S3ServiceException &&
@@ -125,6 +143,38 @@ export class DocumentStorage {
       },
       expiresAt: new Date(issued + input.expiresInSeconds * 1000),
     };
+  }
+
+  /**
+   * URL de lecture d'un fichier sain (lot 1.9ca). Type, téléchargement (`attachment`) et absence de
+   * cache sont signés dans l'URL : le stockage refuse toute variante, et le navigateur n'interprète
+   * jamais le fichier comme une page.
+   */
+  async presignGet(input: PresignGetInput): Promise<PresignedGet> {
+    assertStorageKey(input.key);
+    if (!input.key.startsWith('clean/')) throw new TypeError('lecture réservée aux clés clean/');
+    if (input.contentType.length === 0) throw new RangeError('type de contenu requis');
+    if (
+      !Number.isInteger(input.expiresInSeconds) ||
+      input.expiresInSeconds < 1 ||
+      input.expiresInSeconds > MAX_READ_SECONDS
+    ) {
+      throw new RangeError('durée de validité invalide');
+    }
+    // Signature datée à la seconde, au plus tôt maintenant : l'échéance annoncée n'est jamais tardive.
+    const issued = Math.floor((input.signingDate ?? new Date()).getTime() / 1000) * 1000;
+    const url = await getSignedUrl(
+      this.client,
+      new GetObjectCommand({
+        Bucket: this.bucket,
+        Key: input.key,
+        ResponseContentType: input.contentType,
+        ResponseContentDisposition: 'attachment',
+        ResponseCacheControl: 'no-store',
+      }),
+      { expiresIn: input.expiresInSeconds, signingDate: new Date(issued) },
+    );
+    return { url, expiresAt: new Date(issued + input.expiresInSeconds * 1000) };
   }
 
   /**

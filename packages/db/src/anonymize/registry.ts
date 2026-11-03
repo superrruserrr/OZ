@@ -197,6 +197,8 @@ export const ANONYMIZATION_REGISTRY: Registry = {
     height: 'technical',
     page_count: 'technical',
     perceptual_hash: 'technical',
+    // Lot 1.9ca : date de purge du fichier, sans contenu.
+    purged_at: 'technical',
   },
   // Lot 1.9b : lien entre deux pièces de même empreinte, sans contenu.
   document_duplicates: {

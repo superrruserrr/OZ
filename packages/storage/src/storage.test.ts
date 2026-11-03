@@ -103,6 +103,61 @@ describe('DocumentStorage', () => {
     ).rejects.toThrow(message);
   });
 
+  it('présigne une lecture de clean/ : 5 minutes au plus, type et téléchargement imposés', async () => {
+    const before = Date.now();
+    const out = await storage.presignGet({
+      key: cleanKey(UUID),
+      contentType: 'application/pdf',
+      expiresInSeconds: 300,
+    });
+    const url = new URL(out.url);
+    expect(url.pathname).toBe(`/oz-documents/clean/${UUID}`);
+    expect(url.searchParams.get('X-Amz-Expires')).toBe('300');
+    expect(url.searchParams.get('response-content-type')).toBe('application/pdf');
+    expect(url.searchParams.get('response-content-disposition')).toBe('attachment');
+    expect(url.searchParams.get('response-cache-control')).toBe('no-store');
+    expect(out.expiresAt.getTime()).toBeGreaterThan(before + 298_000);
+    expect(out.expiresAt.getTime()).toBeLessThanOrEqual(Date.now() + 300_000);
+    expect(out.url).not.toContain(CONFIG.secretKey);
+  });
+
+  it('presignGet : date de signature imposée (tests d’expiration, CP-22)', async () => {
+    const signingDate = new Date('2026-11-02T12:00:00Z');
+    const out = await storage.presignGet({
+      key: cleanKey(UUID),
+      contentType: 'image/png',
+      expiresInSeconds: 60,
+      signingDate,
+    });
+    expect(new URL(out.url).searchParams.get('X-Amz-Date')).toBe('20261102T120000Z');
+    expect(out.expiresAt).toEqual(new Date('2026-11-02T12:01:00Z'));
+  });
+
+  it.each([incomingKey(UUID), quarantineKey(UUID), 'photo.png'])(
+    'presignGet ne sert que clean/ (CP-21) : %j',
+    async (key) => {
+      await expect(
+        storage.presignGet({ key, contentType: 'image/png', expiresInSeconds: 300 }),
+      ).rejects.toThrow(/clé de stockage|clean\//);
+    },
+  );
+
+  it.each([
+    [{ expiresInSeconds: 0 }, /durée/],
+    [{ expiresInSeconds: 301 }, /durée/],
+    [{ expiresInSeconds: 1.5 }, /durée/],
+    [{ contentType: '' }, /type/],
+  ])('presignGet refuse des paramètres hors bornes %j', async (override, message) => {
+    await expect(
+      storage.presignGet({
+        key: cleanKey(UUID),
+        contentType: 'image/png',
+        expiresInSeconds: 300,
+        ...override,
+      }),
+    ).rejects.toThrow(message);
+  });
+
   it('put n’écrit que sous clean/ : ni incoming/ ni quarantine/', async () => {
     for (const key of [incomingKey(UUID), quarantineKey(UUID)]) {
       await expect(storage.put(key, new Uint8Array([1]), 'image/png')).rejects.toThrow(/clean\//);
