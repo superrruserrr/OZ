@@ -1,7 +1,9 @@
 import { EventEmitter } from 'node:events';
 import { UnrecoverableError } from 'bullmq';
 import { describe, expect, it, vi } from 'vitest';
+import * as oz from '@oz/db';
 import {
+  createMaintenanceHandlers,
   createMaintenanceProcessor,
   MAINTENANCE_JOBS,
   observeMaintenance,
@@ -9,7 +11,19 @@ import {
   type SchedulerQueue,
 } from './maintenance.js';
 
-// Maintenance du coffre (lot 1.9cb, tâche 6) : aiguillage, job hors contrat, planification.
+// Maintenance du coffre (lot 1.9cb, tâche 6) : câblage, aiguillage, job hors contrat, planification.
+
+vi.mock('@oz/db', () => ({
+  listDuePurges: vi.fn(() =>
+    Promise.resolve([{ id: '0b3c5f6e-1a2b-4c3d-8e4f-5a6b7c8d9e01', type: 'photo' }]),
+  ),
+  finishDocumentPurge: vi.fn(() => Promise.resolve('done')),
+  listStalePending: vi.fn(() =>
+    Promise.resolve([{ id: '0b3c5f6e-1a2b-4c3d-8e4f-5a6b7c8d9e02', action: 'fail' }]),
+  ),
+  finishDocumentScan: vi.fn(() => Promise.resolve()),
+  findStorageOrphans: vi.fn((_db: unknown, keys: readonly string[]) => Promise.resolve([...keys])),
+}));
 
 const logger = () => {
   const logs: { level: string; event: string; fields: Record<string, unknown> }[] = [];
@@ -20,6 +34,42 @@ const logger = () => {
     };
   return { logs, logger: { info: log('info'), warn: log('warn'), error: log('error') } };
 };
+
+describe('createMaintenanceHandlers', () => {
+  it('branche chaque traitement sur la base du worker et le stockage', async () => {
+    const db = {} as never;
+    const old = new Date(Date.now() - 7_200_000);
+    const storage = {
+      list: vi.fn((prefix: string) =>
+        Promise.resolve({
+          objects: prefix === 'clean/' ? [{ key: 'clean/orphelin', lastModified: old }] : [],
+          next: undefined,
+        }),
+      ),
+      remove: vi.fn(() => Promise.resolve()),
+    };
+    const handlers = createMaintenanceHandlers({
+      db,
+      storage,
+      scanQueue: { getJob: vi.fn(), add: vi.fn() },
+      logger: logger().logger,
+    });
+
+    await handlers['purge-due']();
+    expect(oz.listDuePurges).toHaveBeenCalledWith(db, 100);
+    expect(oz.finishDocumentPurge).toHaveBeenCalledWith(db, '0b3c5f6e-1a2b-4c3d-8e4f-5a6b7c8d9e01');
+
+    await handlers['sweep-pending']();
+    expect(oz.listStalePending).toHaveBeenCalledWith(db, 100);
+    expect(oz.finishDocumentScan).toHaveBeenCalledWith(db, '0b3c5f6e-1a2b-4c3d-8e4f-5a6b7c8d9e02', {
+      verdict: 'error',
+    });
+
+    await handlers['purge-orphans']();
+    expect(oz.findStorageOrphans).toHaveBeenCalledWith(db, ['clean/orphelin']);
+    expect(storage.remove).toHaveBeenCalledWith('clean/orphelin');
+  });
+});
 
 describe('createMaintenanceProcessor', () => {
   it('aiguille chaque job vers son traitement et rend son résultat', async () => {

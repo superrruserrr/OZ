@@ -1,13 +1,5 @@
 import { ConfigError, loadWorkerConfig, redisTlsOptions, type WorkerConfig } from '@oz/config';
-import {
-  claimDocumentScan,
-  createDbClient,
-  findStorageOrphans,
-  finishDocumentPurge,
-  finishDocumentScan,
-  listDuePurges,
-  listStalePending,
-} from '@oz/db';
+import { claimDocumentScan, createDbClient, finishDocumentScan } from '@oz/db';
 import { DocumentStorage } from '@oz/storage';
 import { Queue, Worker } from 'bullmq';
 import { Redis } from 'ioredis';
@@ -16,16 +8,13 @@ import { ClamavClient } from './clamav.js';
 import { HEALTH_PORT, startHealthServer } from './health.js';
 import {
   DOCUMENT_MAINTENANCE_QUEUE,
-  MAINTENANCE_BATCH,
+  createMaintenanceHandlers,
   createMaintenanceProcessor,
   observeMaintenance,
   scheduleMaintenance,
 } from './maintenance.js';
 import { DOCUMENT_SCAN_QUEUE, createScanProcessor } from './processor.js';
-import { purgeDueDocuments } from './purge-documents.js';
-import { createOrphanPurger } from './purge-orphans.js';
 import type { ScanLogger } from './scan-document.js';
-import { sweepPending } from './sweep-pending.js';
 
 // Démarrage du worker (lot 1.9b) : base sous le rôle `oz_worker`, Redis, stockage, ClamAV, puis
 // consommation de la file `document-scan`. Lot 1.9cb : file `document-maintenance` (purge des pièces
@@ -67,33 +56,7 @@ export async function startWorker(config: WorkerConfig, logger: ScanLogger): Pro
   const maintenance = new Worker(
     DOCUMENT_MAINTENANCE_QUEUE,
     createMaintenanceProcessor(
-      {
-        'purge-due': () =>
-          purgeDueDocuments(
-            {
-              listDue: (limit) => listDuePurges(db, limit),
-              finish: (id) => finishDocumentPurge(db, id),
-              storage,
-              logger,
-            },
-            MAINTENANCE_BATCH,
-          ),
-        'sweep-pending': () =>
-          sweepPending(
-            {
-              listStale: (limit) => listStalePending(db, limit),
-              finish: (id, verdict) => finishDocumentScan(db, id, verdict),
-              queue: scanQueue,
-              logger,
-            },
-            MAINTENANCE_BATCH,
-          ),
-        'purge-orphans': createOrphanPurger({
-          findOrphans: (keys) => findStorageOrphans(db, keys),
-          storage,
-          logger,
-        }),
-      },
+      createMaintenanceHandlers({ db, storage, scanQueue, logger }),
       logger,
     ),
     { connection, concurrency: 1 },

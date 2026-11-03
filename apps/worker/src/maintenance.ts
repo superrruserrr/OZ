@@ -1,6 +1,17 @@
+import {
+  findStorageOrphans,
+  finishDocumentPurge,
+  finishDocumentScan,
+  listDuePurges,
+  listStalePending,
+} from '@oz/db';
+import type { DocumentStorage } from '@oz/storage';
 import { UnrecoverableError } from 'bullmq';
-import type { WorkerEvents } from './worker.js';
+import { purgeDueDocuments } from './purge-documents.js';
+import { createOrphanPurger } from './purge-orphans.js';
 import type { ScanLogger } from './scan-document.js';
+import { sweepPending, type ScanQueue } from './sweep-pending.js';
+import type { WorkerEvents } from './worker.js';
 
 // Maintenance du coffre (lot 1.9cb) : une file `document-maintenance`, trois jobs planifiés par
 // BullMQ (identifiants fixes : un seul planificateur quel que soit le nombre de workers), consommés
@@ -13,6 +24,46 @@ export type MaintenanceJob = (typeof MAINTENANCE_JOBS)[number];
 export const MAINTENANCE_BATCH = 100;
 
 export type MaintenanceHandlers = Record<MaintenanceJob, () => Promise<unknown>>;
+
+export interface MaintenanceDependencies {
+  db: Parameters<typeof listDuePurges>[0] & Parameters<typeof finishDocumentScan>[0];
+  storage: Pick<DocumentStorage, 'list' | 'remove'>;
+  /** Producteur de la file `document-scan`, pour remettre en file une analyse abandonnée. */
+  scanQueue: ScanQueue;
+  logger: ScanLogger;
+}
+
+/** Les trois traitements, branchés sur la base (rôle `oz_worker`) et le stockage. */
+export function createMaintenanceHandlers(deps: MaintenanceDependencies): MaintenanceHandlers {
+  const { db, storage, logger } = deps;
+  return {
+    'purge-due': () =>
+      purgeDueDocuments(
+        {
+          listDue: (limit) => listDuePurges(db, limit),
+          finish: (id) => finishDocumentPurge(db, id),
+          storage,
+          logger,
+        },
+        MAINTENANCE_BATCH,
+      ),
+    'sweep-pending': () =>
+      sweepPending(
+        {
+          listStale: (limit) => listStalePending(db, limit),
+          finish: (id, verdict) => finishDocumentScan(db, id, verdict),
+          queue: deps.scanQueue,
+          logger,
+        },
+        MAINTENANCE_BATCH,
+      ),
+    'purge-orphans': createOrphanPurger({
+      findOrphans: (keys) => findStorageOrphans(db, keys),
+      storage,
+      logger,
+    }),
+  };
+}
 
 /** Aiguille un job vers son traitement ; un job inconnu ou porteur de données est abandonné. */
 export function createMaintenanceProcessor(
