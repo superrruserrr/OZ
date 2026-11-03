@@ -69,7 +69,7 @@ Aucune action ne permet de modifier son rôle, son niveau KYC ou son statut (CP-
 
 `audit.read_log` (lot 1.16a) : le journal d'audit entier (`GET /admin/audit-log`) et l'état de sa dernière vérification ; distinct d'`audit.read`, le journal des consultations d'un profil, ouvert à son titulaire et à son tuteur. Seul l'administrateur vérifié le consulte ; la base le confirme par la politique `audit_log_admin_read`.
 
-Export des données personnelles (lot 1.16ba, EX-118 n° 2) : toute personne exporte ses propres données, qu'elle tienne un rôle ou non ; les routes `/account/data-export` sont donc `authenticated` et non une action de la matrice, le titulaire venant de la session. La demande exige le mot de passe, plus le code TOTP ou de secours si la 2FA est active ; la base l'enregistre par `oz_data_export_request` (une à la fois, une par 24 heures) et l'audite (`data.export.requested`). L'assemblage (`oz_personal_data_export`) n'est exécutable que par `oz_worker`. Détail : `docs/security/data-export.md`.
+Export des données personnelles (lot 1.16ba, EX-118 n° 2) : toute personne exporte ses propres données, qu'elle tienne un rôle ou non ; les routes `/account/data-export` sont donc `authenticated` et non une action de la matrice, le titulaire venant de la session. La demande exige le mot de passe, plus le code TOTP ou de secours si la 2FA est active ; la base l'enregistre par `oz_data_export_request` (une à la fois, une par 24 heures) et l'audite (`data.export.requested`). L'assemblage (`oz_personal_data_export`) n'est exécutable que par `oz_worker`. Lot 1.16bb : l'archive prête est servie par `GET /account/data-export/download` (URL signée de 5 minutes de sa seule archive, auditée `data.export.downloaded` par `oz_data_export_download`). Détail : `docs/security/data-export.md`.
 
 ## RLS de lecture des joueurs (lot 1.4b)
 
@@ -142,3 +142,4 @@ Les pages `/docs`, `/docs-json` et `/docs-yaml` (Swagger) sont servies hors cont
 | GET     | /admin/audit-log/integrity     | `audit.read_log`         |
 | POST    | /account/data-export           | authenticated            |
 | GET     | /account/data-export           | authenticated            |
+| GET     | /account/data-export/download  | authenticated            |

@@ -1,5 +1,12 @@
 /** Stockage objet des documents (lots 1.9a à 1.9cb) et ancres du journal d’audit (lot 1.16a) */
-export { assertStorageKey, cleanKey, incomingKey, quarantineKey } from './keys.js';
+export {
+  assertStorageKey,
+  cleanKey,
+  exportKey,
+  incomingKey,
+  isExportKey,
+  quarantineKey,
+} from './keys.js';
 export {
   DocumentStorage,
   StorageChangedError,

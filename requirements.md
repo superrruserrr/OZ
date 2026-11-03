@@ -670,7 +670,7 @@ Le marché de lancement est le **Cameroun**, avec une expansion prévue vers l'A
 5. LES envois DOIVENT passer par une file asynchrone.
 
 ### EX-118 — Journal d'audit et droits RGPD
-**Source :** lot 1.16 · **Priorité :** P0 · **Statut :** Plan · n° 1 livré côté API (lot 1.16a ; écran au lot 1.11) ; n° 2 en cours (lot 1.16ba : inventaire, assemblage, demande et suivi ; archive au lot 1.16bb) ; n° 3 et 4 au lot 1.16c
+**Source :** lot 1.16 · **Priorité :** P0 · **Statut :** Plan · n° 1 livré côté API (lot 1.16a ; écran au lot 1.11) ; n° 2 livré côté API et worker (lots 1.16ba et 1.16bb : inventaire, demande, archive JSON, URL signée, email, expiration ; écran au lot 1.11) ; n° 3 et 4 au lot 1.16c
 
 1. LE journal d'audit DOIT respecter EX-T11 et être consultable dans le back-office.
 2. UN utilisateur DOIT pouvoir obtenir l'export complet de ses données personnelles dans un format portable.

@@ -565,9 +565,23 @@ describe('maintenance du coffre (lot 1.9cb)', () => {
   it('trois planifications, une seule fois même avec un second worker', async () => {
     const ids = async () => (await maintenance.getJobSchedulers()).map((s) => s.key).sort();
     expect(await ids()).toEqual([...MAINTENANCE_JOBS].sort());
-    // Le second worker porte aussi un bucket d'ancres : le magasin d'ancres est alors construit.
+    // Le second worker porte aussi un bucket d'ancres : le magasin d'ancres est alors construit ; et
+    // la clé de chiffrement et SMTP (lot 1.16bb) : file `data-export` consommée, transport ouvert à
+    // l'envoi seul.
     const second = await serve(
-      { ...config, audit: { ...config.audit, anchorBucket: BUCKET } },
+      {
+        ...config,
+        audit: { ...config.audit, anchorBucket: BUCKET },
+        dataExport: { ...config.dataExport, encryptionKey: 'k'.repeat(40) },
+        smtp: {
+          host: 'localhost',
+          port: 1025,
+          user: undefined,
+          password: undefined,
+          from: 'no-reply@example.test',
+          appUrl: 'http://localhost:3000',
+        },
+      },
       noSignals,
       0,
     );

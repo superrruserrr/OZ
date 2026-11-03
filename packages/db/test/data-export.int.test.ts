@@ -424,7 +424,7 @@ describe('demandes d’export', () => {
 
     expect(await as(id('requester'), (tx) => requestDataExport(tx))).toEqual({ outcome: 'active' });
     await db.query(
-      `UPDATE data_export_requests SET status = 'ready', storage_key = 'exports/x', ready_at = now(),
+      `UPDATE data_export_requests SET status = 'ready', storage_key = 'exports/' || id || '.json', ready_at = now(),
          expires_at = now() + interval '7 days' WHERE user_id = $1`,
       [id('requester')],
     );

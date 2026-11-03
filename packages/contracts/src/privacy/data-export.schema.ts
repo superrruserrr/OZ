@@ -35,3 +35,14 @@ export const dataExportStatusOutputSchema = z.strictObject({
   latest: dataExportOutputSchema.nullable(),
 });
 export type DataExportStatusOutput = z.infer<typeof dataExportStatusOutputSchema>;
+
+/** URL signée de l'archive prête (lot 1.16bb, D4) : 5 minutes, téléchargement en pièce jointe. */
+export const dataExportDownloadOutputSchema = z.strictObject({
+  url: z.url({ protocol: /^https?$/ }),
+  expiresAt: z.iso.datetime(),
+});
+export type DataExportDownloadOutput = z.infer<typeof dataExportDownloadOutputSchema>;
+
+/** Message de la file `data-export` (API → worker) : l'identifiant de la demande seul. */
+export const dataExportJobSchema = z.strictObject({ requestId: z.uuid() });
+export type DataExportJobInput = z.infer<typeof dataExportJobSchema>;

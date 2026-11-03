@@ -14,7 +14,7 @@ export class ConfigError extends Error {
   }
 }
 
-const origin = z.string().refine((value) => {
+export const origin = z.string().refine((value) => {
   try {
     const url = new URL(value);
     // `*` refusé partout : la liste blanche est exacte, jamais un motif (https://*.exemple).
@@ -39,7 +39,7 @@ export const pemCert = z.preprocess(
 );
 
 // Clé de chiffrement colonne (pgcrypto, plan §6.9) : 32 caractères au moins ; vide = absente.
-const columnKey = z.preprocess(
+export const columnKey = z.preprocess(
   (value) => (value === '' ? undefined : value),
   z.string().min(32).optional(),
 );
@@ -56,7 +56,7 @@ const orDefault = <T extends z.ZodType>(type: T) =>
 const httpsOrigin = origin.refine((value) => value.startsWith('https://'));
 
 // Expéditeur : « Nom <adresse> » ou adresse seule.
-const mailbox = z
+export const mailbox = z
   .string()
   .regex(/^(?:[^<>\r\n]{1,64} )?<?[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+>?$/)
   .refine((value) => value.includes('<') === value.endsWith('>'));

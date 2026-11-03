@@ -116,3 +116,14 @@ export {
   type ExportRegistry,
   type ExportSection,
 } from './export/registry.js';
+export {
+  claimDataExport,
+  dataExportDownloadKey,
+  expireDataExport,
+  failDataExport,
+  finishDataExport,
+  listDueDataExports,
+  type DataExportFailure,
+  type DataExportTransition,
+  type DueDataExport,
+} from './data-export-lifecycle.js';

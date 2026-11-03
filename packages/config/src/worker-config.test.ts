@@ -28,6 +28,12 @@ const hosted = {
   CLAMAV_HOST: 'clamav.internal',
   AUDIT_ANCHOR_BUCKET: 'oz-staging-audit-anchors',
   AUDIT_ANCHOR_LOCK_DAYS: '400',
+  DATABASE_ENCRYPTION_KEY: 'e'.repeat(32),
+  SMTP_HOST: 'smtp.tem.scaleway.com',
+  SMTP_USER: 'oz',
+  SMTP_PASSWORD: 'pw',
+  EMAIL_FROM: 'OZ <no-reply@example.test>',
+  APP_URL: 'https://recette.example.test',
 };
 
 function errorOf(env: Record<string, string | undefined>): ConfigError {
@@ -67,6 +73,8 @@ describe('loadWorkerConfig (lot 1.9b)', () => {
         anchorBucket: undefined,
         anchorLockDays: 0,
       },
+      dataExport: { encryptionKey: undefined, everyMinutes: 15 },
+      smtp: undefined,
     });
   });
 
@@ -248,6 +256,63 @@ describe('loadWorkerConfig (lot 1.9b)', () => {
     expect(loadWorkerConfig(production).appEnv).toBe('production');
     expect(errorOf({ ...production, S3_ENDPOINT: 'http://s3.internal' }).invalidVariables).toEqual([
       'S3_ENDPOINT',
+    ]);
+  });
+});
+
+describe('export des données personnelles (lot 1.16bb)', () => {
+  it('local : sans clé ni SMTP, export non consommé et aucun email', () => {
+    const config = loadWorkerConfig(valid);
+    expect(config.dataExport).toEqual({ encryptionKey: undefined, everyMinutes: 15 });
+    expect(config.smtp).toBeUndefined();
+  });
+
+  it('SMTP complet : port 587 par défaut, origine du site', () => {
+    const config = loadWorkerConfig({
+      ...valid,
+      SMTP_HOST: 'localhost',
+      EMAIL_FROM: 'no-reply@example.test',
+      APP_URL: 'http://localhost:3000',
+    });
+    expect(config.smtp).toEqual({
+      host: 'localhost',
+      port: 587,
+      user: undefined,
+      password: undefined,
+      from: 'no-reply@example.test',
+      appUrl: 'http://localhost:3000',
+    });
+  });
+
+  it('SMTP partiel ou identifiants dépareillés refusés', () => {
+    expect(errorOf({ ...valid, SMTP_HOST: 'localhost' }).invalidVariables).toEqual([
+      'APP_URL',
+      'EMAIL_FROM',
+    ]);
+    expect(
+      errorOf({
+        ...valid,
+        SMTP_HOST: 'localhost',
+        EMAIL_FROM: 'a@example.test',
+        APP_URL: 'http://localhost:3000',
+        SMTP_USER: 'oz',
+      }).invalidVariables,
+    ).toEqual(['SMTP_PASSWORD']);
+  });
+
+  it('recette : clé de 32 caractères au moins, SMTP authentifié et APP_URL en https requis', () => {
+    expect(loadWorkerConfig(hosted).dataExport.encryptionKey).toBe('e'.repeat(32));
+    expect(
+      errorOf({
+        ...hosted,
+        DATABASE_ENCRYPTION_KEY: '',
+        SMTP_USER: undefined,
+        SMTP_PASSWORD: undefined,
+        APP_URL: 'http://recette.example.test',
+      }).invalidVariables,
+    ).toEqual(['APP_URL', 'DATABASE_ENCRYPTION_KEY', 'SMTP_USER']);
+    expect(errorOf({ ...hosted, DATABASE_ENCRYPTION_KEY: 'court' }).invalidVariables).toEqual([
+      'DATABASE_ENCRYPTION_KEY',
     ]);
   });
 });
