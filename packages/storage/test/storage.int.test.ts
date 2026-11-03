@@ -94,11 +94,15 @@ describe('dépôt par PUT présigné (D1)', () => {
   it('refuse une signature altérée', async () => {
     const key = incomingKey(id());
     const { url, headers } = await signed(key);
-    const res = await put(
-      url.replace(/X-Amz-Signature=[0-9a-f]/, 'X-Amz-Signature=0'),
-      headers,
-      PNG,
+    // Premier chiffre toujours changé : le remplacer par « 0 » laissait intacte une signature
+    // commençant déjà par 0 (1 cas sur 16).
+    const altered = new URL(url);
+    const signature = altered.searchParams.get('X-Amz-Signature') ?? '';
+    altered.searchParams.set(
+      'X-Amz-Signature',
+      `${signature.startsWith('0') ? '1' : '0'}${signature.slice(1)}`,
     );
+    const res = await put(altered.toString(), headers, PNG);
     expect(res.status).toBe(403);
   });
 

@@ -26,6 +26,8 @@ const hosted = {
   DATABASE_CA_CERT: CA,
   REDIS_CA_CERT: CA,
   CLAMAV_HOST: 'clamav.internal',
+  AUDIT_ANCHOR_BUCKET: 'oz-staging-audit-anchors',
+  AUDIT_ANCHOR_LOCK_DAYS: '400',
 };
 
 function errorOf(env: Record<string, string | undefined>): ConfigError {
@@ -58,7 +60,54 @@ describe('loadWorkerConfig (lot 1.9b)', () => {
       clamav: { host: 'localhost', port: 3310 },
       concurrency: 2,
       maintenance: { enabled: true, purgeEveryMinutes: 15, orphansEveryMinutes: 60 },
+      audit: {
+        enabled: true,
+        anchorEveryMinutes: 60,
+        verifyEveryMinutes: 1440,
+        anchorBucket: undefined,
+        anchorLockDays: 0,
+      },
     });
+  });
+
+  it('journal d’audit (lot 1.16a) : cadences bornées, bucket d’ancres verrouillé hors local', () => {
+    expect(
+      loadWorkerConfig({
+        ...valid,
+        AUDIT_MAINTENANCE_ENABLED: 'false',
+        AUDIT_ANCHOR_EVERY_MINUTES: '5',
+        AUDIT_VERIFY_EVERY_MINUTES: '60',
+        AUDIT_ANCHOR_BUCKET: 'oz-audit-anchors',
+        AUDIT_ANCHOR_LOCK_DAYS: '400',
+      }).audit,
+    ).toEqual({
+      enabled: false,
+      anchorEveryMinutes: 5,
+      verifyEveryMinutes: 60,
+      anchorBucket: 'oz-audit-anchors',
+      anchorLockDays: 400,
+    });
+    for (const [name, value] of [
+      ['AUDIT_MAINTENANCE_ENABLED', 'oui'],
+      ['AUDIT_ANCHOR_EVERY_MINUTES', '4'],
+      ['AUDIT_VERIFY_EVERY_MINUTES', '59'],
+      ['AUDIT_ANCHOR_BUCKET', 'Bucket_Majuscule'],
+      ['AUDIT_ANCHOR_LOCK_DAYS', '3651'],
+      ['AUDIT_ANCHOR_LOCK_DAYS', '-1'],
+    ] as const) {
+      expect(errorOf({ ...valid, [name]: value }).invalidVariables).toContain(name);
+    }
+    expect(
+      errorOf({ ...hosted, AUDIT_ANCHOR_BUCKET: undefined, AUDIT_ANCHOR_LOCK_DAYS: undefined })
+        .invalidVariables,
+    ).toEqual(expect.arrayContaining(['AUDIT_ANCHOR_BUCKET', 'AUDIT_ANCHOR_LOCK_DAYS']));
+    expect(
+      errorOf({ ...hosted, AUDIT_ANCHOR_BUCKET: 'oz-audit', AUDIT_ANCHOR_LOCK_DAYS: '29' })
+        .invalidVariables,
+    ).toEqual(['AUDIT_ANCHOR_LOCK_DAYS']);
+    expect(errorOf({ ...hosted, AUDIT_MAINTENANCE_ENABLED: 'false' }).invalidVariables).toEqual([
+      'AUDIT_MAINTENANCE_ENABLED',
+    ]);
   });
 
   it('maintenance du coffre (lot 1.9cb) : désactivable, cadences bornées', () => {

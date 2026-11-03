@@ -116,7 +116,7 @@ Invariants qui doivent tenir pour **toute** entrée valide et **tout** état att
 |---|---|---|---|
 | CP-21 | Pour tout document accessible, son statut antivirus est `clean` ; un document `pending`, `infected` ou `error` n'a jamais d'URL signée. | EX-110 | Intégration |
 | CP-22 | Pour toute URL de document, l'accès échoue sans signature valide ou au-delà de 5 minutes. | EX-110 n° 6 | Intégration |
-| CP-23 | Pour toute entrée N du journal d'audit, `hash(N)` = H(contenu(N) ‖ hash(N−1)) ; la vérification de chaîne détecte toute modification ou suppression. | EX-T11 | Propriété |
+| CP-23 | Pour toute entrée N du journal d'audit, `hash(N)` = H(contenu(N) ‖ hash(N−1)) ; la vérification de chaîne détecte toute modification ou suppression. | EX-T11 | Propriété (prouvée au lot 1.16a, réécriture complète comprise) |
 | CP-24 | Pour toute passe à blanc d'import, le nombre de lignes écrites en base est zéro. | EX-114 n° 3 | Intégration |
 | CP-25 | Pour tout import annulé dans les 72 h, la base revient à l'état antérieur à l'import : aucun profil, document, rattachement ni OZ ID actif n'en subsiste (les OZ ID restent réservés). | EX-114 n° 9 | Intégration |
 | CP-26 | Pour tout import exécuté, lignes acceptées + rejetées + doublons = lignes totales du fichier. | EX-114 n° 8 | Propriété sur fichiers aléatoires |

@@ -55,6 +55,7 @@ La colonne `recruiter` vaut aussi pour l'agence. `player.read_public` ne porte q
 | `kyc.decide`                | Décider un dossier KYC, valider un compte     | deny       | deny       | deny        | deny  | deny       | deny   | deny        | allow  |
 | `kyc.read`                  | Consulter un dossier KYC (appui licences)     | deny       | deny       | deny        | deny  | allow      | deny   | deny        | allow  |
 | `audit.read`                | Consulter le journal d'accès d'un profil      | self       | child      | deny        | deny  | deny       | deny   | deny        | allow  |
+| `audit.read_log`            | Consulter le journal d'audit entier           | deny       | deny       | deny        | deny  | deny       | deny   | deny        | allow  |
 | `subscription.manage`       | Gérer un abonnement                           | deny       | deny       | org         | org   | org        | org    | kyc3+org    | allow  |
 | `document.upload`           | Déposer une pièce ou un justificatif          | self       | self+child | org         | org   | org        | org    | org         | deny   |
 | `document.read`             | Obtenir l'URL de lecture d'une pièce saine    | self       | self+child | org         | org   | org        | org    | org         | logged |
@@ -64,6 +65,8 @@ Aucune action ne permet de modifier son rôle, son niveau KYC ou son statut (CP-
 `document.upload` (lot 1.9a) : `self` vise les pièces de sa propre personne (fiche joueur ou fiche tuteur), `child` celles de l'enfant mineur dont le compte est le tuteur vérifié, `org` le justificatif de sa propre organisation, plus, pour l'académie et le club, les pièces de leurs joueurs rattachés. Seules les pièces d'identité, actes de naissance, photos et licences visent une personne ; le seul justificatif d'organisation est `organization_registration` ; la vidéo attend son lot (D4). Comme ailleurs, un rôle ne compte qu'une fois son organisation vérifiée : l'organisation en attente ne dépose pas encore son justificatif (D-091).
 
 `document.read` (lot 1.9ca, décision du 2026-11-02) : mêmes portées que `document.upload`, sur les pièces déjà déclarées saines ; l'administrateur lit toute pièce (revue KYC). Toute lecture délivrée, quel que soit le rôle, est inscrite au journal d'audit (`document.read.granted`).
+
+`audit.read_log` (lot 1.16a) : le journal d'audit entier (`GET /admin/audit-log`) et l'état de sa dernière vérification ; distinct d'`audit.read`, le journal des consultations d'un profil, ouvert à son titulaire et à son tuteur. Seul l'administrateur vérifié le consulte ; la base le confirme par la politique `audit_log_admin_read`.
 
 ## RLS de lecture des joueurs (lot 1.4b)
 
@@ -128,3 +131,5 @@ Les pages `/docs`, `/docs-json` et `/docs-yaml` (Swagger) sont servies hors cont
 | POST    | /documents/upload              | `document.upload` |
 | POST    | /documents/upload/:id/complete | `document.upload` |
 | GET     | /documents/:id/url             | `document.read`   |
+| GET     | /admin/audit-log               | `audit.read_log`  |
+| GET     | /admin/audit-log/integrity     | `audit.read_log`  |

@@ -352,8 +352,27 @@ run "stockage_recette" {
   }
 
   assert {
-    condition     = toset(keys(module.s3_config)) == toset(["S3_ENDPOINT", "S3_REGION", "S3_BUCKET", "S3_ACCESS_KEY"]) && module.s3_secret_key.id != ""
-    error_message = "Toutes les variables S3 lues par l'API sont rangées dans Secret Manager."
+    condition     = toset(keys(module.s3_config)) == toset(["S3_ENDPOINT", "S3_REGION", "S3_BUCKET", "S3_ACCESS_KEY", "AUDIT_ANCHOR_BUCKET", "AUDIT_ANCHOR_LOCK_DAYS"]) && module.s3_secret_key.id != ""
+    error_message = "Toutes les variables S3 lues par l'API et le worker sont rangées dans Secret Manager."
+  }
+
+  assert {
+    condition = (
+      scaleway_object_bucket.audit_anchors.object_lock_enabled &&
+      scaleway_object_bucket.audit_anchors.versioning[0].enabled &&
+      scaleway_object_bucket_lock_configuration.audit_anchors.rule[0].default_retention[0].mode == "COMPLIANCE" &&
+      scaleway_object_bucket_lock_configuration.audit_anchors.rule[0].default_retention[0].days == 400 &&
+      scaleway_object_bucket_acl.audit_anchors.acl == "private"
+    )
+    error_message = "Ancres d'audit : bucket privé, versionné, verrouillé en COMPLIANCE 400 jours (D-060)."
+  }
+
+  assert {
+    condition = anytrue([
+      for st in jsondecode(scaleway_object_bucket_policy.audit_anchors.policy).Statement :
+      st.Sid == "Application" && toset(st.Action) == toset(["s3:GetObject", "s3:PutObject", "s3:ListBucket"])
+    ])
+    error_message = "L'application ajoute et lit les ancres d'audit, sans droit de suppression."
   }
 
   assert {

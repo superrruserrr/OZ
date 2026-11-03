@@ -392,6 +392,7 @@ model AuditLog {
   @@index([actorUserId])
   @@index([chainPosition])
   @@index([targetType, targetId], map: "audit_log_target_idx")
+  @@index([action, chainPosition])
   @@map("audit_log")
 }
 
@@ -402,6 +403,19 @@ model AuditChainState {
   lastHash     Bytes   @map("last_hash")
 
   @@map("audit_chain_state")
+}
+
+/// Résultat de chaque vérification de la chaîne (lot 1.16a, CP-23) : écrit par `oz_audit_check`
+/// seule, immuable. `defectPosition` absent : chaîne intègre jusqu'à `headPosition`.
+model AuditChainCheck {
+  id             String   @id @default(dbgenerated("oz_uuid_v7()")) @db.Uuid
+  checkedAt      DateTime @default(dbgenerated("transaction_timestamp()")) @map("checked_at") @db.Timestamptz(6)
+  headPosition   BigInt   @map("head_position")
+  anchorPosition BigInt?  @map("anchor_position")
+  defectPosition BigInt?  @map("defect_position")
+
+  @@index([checkedAt])
+  @@map("audit_chain_checks")
 }
 
 // ---------------------------------------------------------------------------------------------

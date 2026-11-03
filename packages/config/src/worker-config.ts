@@ -2,7 +2,8 @@ import { z } from 'zod';
 import { ConfigError, pemCert } from './api-config.js';
 import { APP_ENVS } from './security-headers.js';
 
-// Configuration du worker (lots 1.9b et 1.9cb) : base, Redis, stockage, ClamAV, maintenance du coffre. Mêmes règles que l'API pour
+// Configuration du worker (lots 1.9b, 1.9cb et 1.16a) : base, Redis, stockage, ClamAV, maintenance du
+// coffre et du journal d'audit. Mêmes règles que l'API pour
 // les variables partagées (TLS épinglé en recette et en production, D-006). En recette et en
 // production, le worker se connecte sous son rôle dédié `oz_worker` (`WORKER_DATABASE_URL`, seul
 // autorisé à juger un document) ; l'URL de l'API n'y sert jamais. En local seulement, repli sur
@@ -74,6 +75,32 @@ const schema = z
     ),
     DOCUMENT_PURGE_EVERY_MINUTES: everyMinutes(5, '15'),
     DOCUMENT_ORPHANS_EVERY_MINUTES: everyMinutes(15, '60'),
+    // Journal d'audit (lot 1.16a) : partitions chaque jour, ancrage de la tête et vérification de
+    // la chaîne à cadence fixe. Sans bucket d'ancres (local, aperçu), pas d'ancrage : la chaîne est
+    // vérifiée seule. En recette et en production, entretien toujours actif et bucket verrouillé
+    // requis (D-060).
+    AUDIT_MAINTENANCE_ENABLED: orDefault(
+      z
+        .enum(['true', 'false'])
+        .default('true')
+        .transform((value) => value === 'true'),
+    ),
+    AUDIT_ANCHOR_EVERY_MINUTES: everyMinutes(5, '60'),
+    AUDIT_VERIFY_EVERY_MINUTES: everyMinutes(60, '1440'),
+    AUDIT_ANCHOR_BUCKET: orDefault(
+      z
+        .string()
+        .regex(/^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$/)
+        .optional(),
+    ),
+    AUDIT_ANCHOR_LOCK_DAYS: orDefault(
+      z
+        .string()
+        .regex(/^\d{1,4}$/)
+        .default('0')
+        .transform(Number)
+        .pipe(z.number().max(3_650)),
+    ),
   })
   .superRefine((env, ctx) => {
     const required = (path: string, message: string): void => {
@@ -85,6 +112,15 @@ const schema = z
       if (!env.REDIS_URL.startsWith('rediss://')) required('REDIS_URL', 'rediss:// requis');
       if (/[?&]sslmode=disable(&|$)/.test(env.WORKER_DATABASE_URL ?? '')) {
         required('WORKER_DATABASE_URL', 'sslmode=disable interdit');
+      }
+      if (env.AUDIT_ANCHOR_BUCKET === undefined) {
+        required('AUDIT_ANCHOR_BUCKET', 'requis en recette et en production');
+      }
+      if (!env.AUDIT_MAINTENANCE_ENABLED) {
+        required('AUDIT_MAINTENANCE_ENABLED', 'toujours actif en recette et en production');
+      }
+      if (env.AUDIT_ANCHOR_LOCK_DAYS < 30) {
+        required('AUDIT_ANCHOR_LOCK_DAYS', '30 jours au moins en recette et en production');
       }
     }
     if (env.APP_ENV === 'production' && !env.S3_ENDPOINT.startsWith('https://')) {
@@ -136,6 +172,15 @@ export interface WorkerConfig {
     readonly purgeEveryMinutes: number;
     readonly orphansEveryMinutes: number;
   };
+  readonly audit: {
+    readonly enabled: boolean;
+    readonly anchorEveryMinutes: number;
+    readonly verifyEveryMinutes: number;
+    /** Absent : aucun ancrage (local, aperçu). */
+    readonly anchorBucket: string | undefined;
+    /** Rétention du verrou posé sur chaque ancre ; 0 : aucun verrou. */
+    readonly anchorLockDays: number;
+  };
 }
 
 /** Lit et valide la configuration du worker ; `ConfigError` nomme les variables fautives. */
@@ -169,6 +214,13 @@ export function loadWorkerConfig(env: Readonly<Record<string, string | undefined
       enabled: value.DOCUMENT_MAINTENANCE_ENABLED,
       purgeEveryMinutes: value.DOCUMENT_PURGE_EVERY_MINUTES,
       orphansEveryMinutes: value.DOCUMENT_ORPHANS_EVERY_MINUTES,
+    }),
+    audit: Object.freeze({
+      enabled: value.AUDIT_MAINTENANCE_ENABLED,
+      anchorEveryMinutes: value.AUDIT_ANCHOR_EVERY_MINUTES,
+      verifyEveryMinutes: value.AUDIT_VERIFY_EVERY_MINUTES,
+      anchorBucket: value.AUDIT_ANCHOR_BUCKET,
+      anchorLockDays: value.AUDIT_ANCHOR_LOCK_DAYS,
     }),
   });
 }

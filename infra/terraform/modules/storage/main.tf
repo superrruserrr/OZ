@@ -47,6 +47,18 @@ variable "key_version" {
   default = 1
 }
 
+# Rétention des ancres du journal d'audit (lot 1.16a, D-060), en jours, en mode COMPLIANCE : personne,
+# administrateur compris, ne supprime ni ne réécrit une ancre avant l'échéance.
+variable "audit_anchor_lock_days" {
+  type    = number
+  default = 400
+
+  validation {
+    condition     = var.audit_anchor_lock_days >= 30 && var.audit_anchor_lock_days <= 3650
+    error_message = "Rétention des ancres d'audit : de 30 à 3 650 jours."
+  }
+}
+
 locals {
   buckets = toset(["identity-documents", "media", "exports"])
   tag_map = { for tag in var.tags : split(":", tag)[0] => try(split(":", tag)[1], "true") }
@@ -167,6 +179,62 @@ resource "scaleway_object_bucket_policy" "backup" {
   })
 }
 
+# Ancres du journal d'audit (lot 1.16a, D-060) : tête de la chaîne copiée hors de la base. Object Lock
+# en mode COMPLIANCE (activable seulement à la création du bucket) ; l'application lit, liste et
+# ajoute, sans droit de suppression ; une ancre existante n'est jamais réécrite (écriture conditionnelle).
+resource "scaleway_object_bucket" "audit_anchors" {
+  lifecycle {
+    prevent_destroy = true
+  }
+  name                = "oz-${var.env}-audit-anchors-${random_id.suffix.hex}"
+  tags                = local.tag_map
+  object_lock_enabled = true
+
+  versioning {
+    enabled = true
+  }
+}
+
+resource "scaleway_object_bucket_lock_configuration" "audit_anchors" {
+  bucket = scaleway_object_bucket.audit_anchors.id
+
+  rule {
+    default_retention {
+      mode = "COMPLIANCE"
+      days = var.audit_anchor_lock_days
+    }
+  }
+}
+
+resource "scaleway_object_bucket_acl" "audit_anchors" {
+  bucket = scaleway_object_bucket.audit_anchors.id
+  acl    = "private"
+}
+
+resource "scaleway_object_bucket_policy" "audit_anchors" {
+  bucket = scaleway_object_bucket.audit_anchors.id
+  policy = jsonencode({
+    Version = "2023-04-17"
+    Id      = "oz-${var.env}-audit-anchors"
+    Statement = [
+      {
+        Sid       = "Administrateurs"
+        Effect    = "Allow"
+        Principal = { SCW = var.admin_principals }
+        Action    = ["*"]
+        Resource  = [scaleway_object_bucket.audit_anchors.name, "${scaleway_object_bucket.audit_anchors.name}/*"]
+      },
+      {
+        Sid       = "Application"
+        Effect    = "Allow"
+        Principal = { SCW = local.app }
+        Action    = ["s3:GetObject", "s3:PutObject", "s3:ListBucket"]
+        Resource  = [scaleway_object_bucket.audit_anchors.name, "${scaleway_object_bucket.audit_anchors.name}/*"]
+      },
+    ]
+  })
+}
+
 # Identité de l'application : droits objets sur le projet, restreints bucket par bucket ci-dessus.
 resource "scaleway_iam_application" "app" {
   name        = "oz-${var.env}-app"
@@ -212,12 +280,15 @@ locals {
     S3_REGION     = "fr-par"
     S3_BUCKET     = scaleway_object_bucket.main["identity-documents"].name
     S3_ACCESS_KEY = scaleway_iam_api_key.app.access_key
+    # Lu par le worker (lot 1.16a) ; même clé d'application, droits restreints par la politique.
+    AUDIT_ANCHOR_BUCKET    = scaleway_object_bucket.audit_anchors.name
+    AUDIT_ANCHOR_LOCK_DAYS = tostring(var.audit_anchor_lock_days)
   }
 }
 
 module "s3_config" {
   source   = "../secret"
-  for_each = toset(["S3_ENDPOINT", "S3_REGION", "S3_BUCKET", "S3_ACCESS_KEY"])
+  for_each = toset(["S3_ENDPOINT", "S3_REGION", "S3_BUCKET", "S3_ACCESS_KEY", "AUDIT_ANCHOR_BUCKET", "AUDIT_ANCHOR_LOCK_DAYS"])
 
   env           = var.env
   tags          = var.tags
@@ -249,4 +320,8 @@ output "buckets" {
 
 output "backup_buckets" {
   value = { for name, bucket in scaleway_object_bucket.backup : name => bucket.name }
+}
+
+output "audit_anchor_bucket" {
+  value = scaleway_object_bucket.audit_anchors.name
 }

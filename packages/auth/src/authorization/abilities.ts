@@ -205,6 +205,7 @@ const RULES: Readonly<Record<RbacRole, Rules>> = {
     can('kyc.decide', 'KycCase');
     can('kyc.read', 'KycCase');
     can('audit.read', 'Player');
+    can('audit.read_log', 'AuditLog');
     can('subscription.manage', 'Organization');
     // Revue KYC (lot 1.11) ; jamais de dépôt (D5 du lot 1.9a).
     can('document.read', 'Document').because(AUDIT);

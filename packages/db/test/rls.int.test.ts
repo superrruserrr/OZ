@@ -19,6 +19,7 @@ const EXPOSED_TABLES = [
   'players',
   'guardians',
   'consents',
+  'audit_chain_checks',
   'audit_log',
   // Lot 1.1b
   'document_duplicates',

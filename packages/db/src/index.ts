@@ -74,3 +74,17 @@ export {
 } from './document-purge.js';
 export { playerRecord, type PlayerAccessRecord } from './players.js';
 export { readSetting } from './settings.js';
+export {
+  AUDIT_LOG_MAX_PAGE,
+  auditChainHead,
+  checkAuditChain,
+  latestAuditCheck,
+  listAuditLog,
+  maintainAuditPartitions,
+  type AuditCheck,
+  type AuditHead,
+  type AuditLogEntry,
+  type AuditLogFilters,
+  type AuditLogPage,
+  type AuditPartitions,
+} from './audit-journal.js';
