@@ -130,12 +130,16 @@ export {
 export {
   anonymizeAccount,
   cancelAccountDeletion,
+  cancelPlayerDeletion,
   dueAccountDeletions,
   pendingAccountDeletion,
+  pendingPlayerDeletion,
   requestAccountDeletion,
+  requestPlayerDeletion,
   type AccountAnonymizeOutcome,
   type AccountDeletionRequestOutcome,
   type PendingAccountDeletion,
+  type PlayerDeletionRequestOutcome,
 } from './account-deletion.js';
 export {
   ERASURE_REGISTRY,

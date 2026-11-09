@@ -143,7 +143,8 @@ model User {
   consents          Consent[]                @relation("ConsentGrantedByUser")
   auditTrail        AuditLog[]
   dataExports       DataExportRequest[]
-  deletions         AccountDeletionRequest[]
+  deletions         AccountDeletionRequest[] @relation("AccountDeletionUser")
+  childDeletions    AccountDeletionRequest[] @relation("AccountDeletionRequestedBy")
 
   rolesCreated         UserRole[]     @relation("UserRoleCreatedBy")
   rolesUpdated         UserRole[]     @relation("UserRoleUpdatedBy")
@@ -289,18 +290,19 @@ model Player {
   createdBy               String?                  @map("created_by") @db.Uuid
   updatedBy               String?                  @map("updated_by") @db.Uuid
 
-  user            User?            @relation("PlayerUser", fields: [userId], references: [id], onDelete: Restrict)
-  guardian        Guardian?        @relation(fields: [guardianId], references: [id], onDelete: Restrict)
-  organization    Organization?    @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  user            User?                    @relation("PlayerUser", fields: [userId], references: [id], onDelete: Restrict)
+  guardian        Guardian?                @relation(fields: [guardianId], references: [id], onDelete: Restrict)
+  organization    Organization?            @relation(fields: [organizationId], references: [id], onDelete: Restrict)
   consents        Consent[]
   documents       Document[]
   documentUploads DocumentUpload[]
   kycCases        KycCase[]
+  deletions       AccountDeletionRequest[]
   /// OZ ID réservé à ce joueur par le registre, à lui et à nul autre (lot 1.2).
-  ozIdEntry       OzIdRegistry?    @relation("PlayerOzId", fields: [ozId, id], references: [ozId, playerId], onDelete: Restrict, map: "players_oz_id_registry_fkey")
-  ozIdReserved    OzIdRegistry?    @relation("OzIdRegistryPlayer")
-  createdByUser   User?            @relation("PlayerCreatedBy", fields: [createdBy], references: [id], onDelete: Restrict)
-  updatedByUser   User?            @relation("PlayerUpdatedBy", fields: [updatedBy], references: [id], onDelete: Restrict)
+  ozIdEntry       OzIdRegistry?            @relation("PlayerOzId", fields: [ozId, id], references: [ozId, playerId], onDelete: Restrict, map: "players_oz_id_registry_fkey")
+  ozIdReserved    OzIdRegistry?            @relation("OzIdRegistryPlayer")
+  createdByUser   User?                    @relation("PlayerCreatedBy", fields: [createdBy], references: [id], onDelete: Restrict)
+  updatedByUser   User?                    @relation("PlayerUpdatedBy", fields: [updatedBy], references: [id], onDelete: Restrict)
 
   @@index([documentNumberHmac])
   @@index([guardianId])
@@ -636,17 +638,24 @@ model DataExportRequest {
 
 /// Demande de suppression du compte (lot 1.16ca) : anonymisation à `scheduledFor` sauf annulation.
 model AccountDeletionRequest {
-  id           String    @id @default(dbgenerated("oz_uuid_v7()")) @db.Uuid
-  userId       String    @map("user_id") @db.Uuid
+  id                String    @id @default(dbgenerated("oz_uuid_v7()")) @db.Uuid
+  /// Compte supprimé ; NULL pour la fiche d'un enfant sans compte (lot 1.16cbb).
+  userId            String?   @map("user_id") @db.Uuid
+  /// Fiche visée par une demande du tuteur (lot 1.16cbb), NULL pour son propre compte.
+  playerId          String?   @map("player_id") @db.Uuid
+  /// Tuteur auteur de la demande, présent si et seulement si `playerId` l'est.
+  requestedByUserId String?   @map("requested_by_user_id") @db.Uuid
   /// pending, cancelled ou done (contrainte en SQL).
-  status       String    @default("pending")
-  requestedAt  DateTime  @default(now()) @map("requested_at") @db.Timestamptz(6)
-  scheduledFor DateTime  @map("scheduled_for") @db.Timestamptz(6)
-  cancelledAt  DateTime? @map("cancelled_at") @db.Timestamptz(6)
-  completedAt  DateTime? @map("completed_at") @db.Timestamptz(6)
-  updatedAt    DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  status            String    @default("pending")
+  requestedAt       DateTime  @default(now()) @map("requested_at") @db.Timestamptz(6)
+  scheduledFor      DateTime  @map("scheduled_for") @db.Timestamptz(6)
+  cancelledAt       DateTime? @map("cancelled_at") @db.Timestamptz(6)
+  completedAt       DateTime? @map("completed_at") @db.Timestamptz(6)
+  updatedAt         DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
 
-  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  user        User?   @relation("AccountDeletionUser", fields: [userId], references: [id], onDelete: Restrict)
+  player      Player? @relation(fields: [playerId], references: [id], onDelete: Restrict)
+  requestedBy User?   @relation("AccountDeletionRequestedBy", fields: [requestedByUserId], references: [id], onDelete: Restrict)
 
   @@map("account_deletion_requests")
 }

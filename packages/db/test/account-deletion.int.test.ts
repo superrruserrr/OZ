@@ -3,9 +3,12 @@ import pg from 'pg';
 import {
   anonymizeAccount,
   cancelAccountDeletion,
+  cancelPlayerDeletion,
   dueAccountDeletions,
   pendingAccountDeletion,
+  pendingPlayerDeletion,
   requestAccountDeletion,
+  requestPlayerDeletion,
 } from '../src/account-deletion.js';
 import { unclassifiedColumns } from '../src/anonymize/anonymize.js';
 import { createDbClient, type PrismaClient } from '../src/client.js';
@@ -677,5 +680,214 @@ describe('exécution (lot 1.16cba)', () => {
         [exported.id],
       ),
     ).toEqual([{ reason: 'account_gone' }]);
+  });
+});
+
+describe('demande du tuteur pour son enfant mineur (lot 1.16cbb)', () => {
+  let serial = 100;
+  /** Tuteur, fiche tuteur et fiche d'un enfant (avec ou sans compte), OZ ID émis. */
+  const family = async (
+    name: string,
+    options: { childAccount?: boolean; verified?: boolean; birthDate?: string } = {},
+  ) => {
+    const admin = await user(`admin-${name}@example.test`);
+    await db.query(`INSERT INTO user_roles (user_id, role) VALUES ($1, 'admin')`, [admin]);
+    const guardianUser = await user(`tuteur-${name}@example.test`);
+    const childUser =
+      options.childAccount === true ? await user(`enfant-${name}@example.test`) : null;
+    const guardian = await one<{ id: string }>(
+      `INSERT INTO guardians (user_id, first_name, last_name, relationship, country,
+         verification_status)
+       VALUES ($1, 'Tuteur', $2, 'mother', 'CM', $3) RETURNING id`,
+      [guardianUser, name, options.verified === false ? 'declared' : 'verified'],
+    );
+    const child = await one<{ id: string }>(
+      `INSERT INTO players (user_id, first_name, last_name, birth_date, nationality, country,
+         city, guardian_id)
+       VALUES ($1, 'Enfant', $2, $3::date, 'CM', 'CM', 'Douala', $4) RETURNING id`,
+      [childUser, name, options.birthDate ?? '2014-06-07', guardian.id],
+    );
+    serial += 1;
+    const ozId = await app.as(admin, async (c) => {
+      const { rows } = await c.query<{ oz_id: string }>('SELECT oz_issue_oz_id($1, $2) AS oz_id', [
+        child.id,
+        String(serial).padStart(6, '0'),
+      ]);
+      return rows[0]?.oz_id ?? '';
+    });
+    return { guardianUser, childUser, childId: child.id, ozId };
+  };
+  const requestFor = (guardianUser: string, ozId: string) =>
+    as(guardianUser, (tx) => requestPlayerDeletion(tx, ozId));
+
+  it('refus indiscernables : autre compte, tuteur non vérifié, enfant majeur', async () => {
+    const fam = await family('refus');
+    const stranger = await user('etranger@example.test');
+    expect(await requestFor(stranger, fam.ozId)).toEqual({ outcome: 'refused' });
+    const unverified = await family('nonverifie', { verified: false });
+    expect(await requestFor(unverified.guardianUser, unverified.ozId)).toEqual({
+      outcome: 'refused',
+    });
+    const adult = await family('majeur', { birthDate: '2000-01-01' });
+    expect(await requestFor(adult.guardianUser, adult.ozId)).toEqual({ outcome: 'refused' });
+    expect(await requestFor(fam.guardianUser, 'OZ-CM-26-000000-0')).toEqual({ outcome: 'refused' });
+    expect(
+      await one<{ n: number }>(
+        `SELECT count(*)::int AS n FROM account_deletion_requests WHERE player_id IS NOT NULL
+           AND player_id IN ($1, $2, $3)`,
+        [fam.childId, unverified.childId, adult.childId],
+      ),
+    ).toEqual({ n: 0 });
+  });
+
+  it('enfant avec compte : demande à +30 jours, l’enfant n’annule pas, fiche et compte anonymisés', async () => {
+    const fam = await family('compte', { childAccount: true });
+    const outcome = await requestFor(fam.guardianUser, fam.ozId);
+    if (outcome.outcome !== 'accepted') throw new Error(outcome.outcome);
+    expect(outcome.childEmail).toBe('enfant-compte@example.test');
+    expect(outcome.scheduledFor.getTime() - outcome.requestedAt.getTime()).toBe(30 * 86_400_000);
+    expect(await requestFor(fam.guardianUser, fam.ozId)).toMatchObject({ outcome: 'pending' });
+    expect(await as(fam.guardianUser, (tx) => pendingPlayerDeletion(tx, fam.ozId))).toMatchObject({
+      id: outcome.id,
+    });
+    const childUser = fam.childUser ?? '';
+    // D5 : pas de seconde demande sur le compte de l'enfant ; D2 : il n'annule pas.
+    expect(await as(childUser, (tx) => requestAccountDeletion(tx))).toMatchObject({
+      outcome: 'pending',
+    });
+    expect(await as(childUser, (tx) => cancelAccountDeletion(tx))).toBe(false);
+
+    await makeDue(outcome.id);
+    expect(await dueAccountDeletions(worker, 500)).toContain(outcome.id);
+    expect(await anonymizeAccount(worker, outcome.id)).toBe('done');
+    expect(
+      await one(
+        `SELECT first_name, city, oz_id, deleted_at IS NOT NULL AS gone FROM players
+                 WHERE id = $1`,
+        [fam.childId],
+      ),
+    ).toEqual({ first_name: 'Anonyme', city: null, oz_id: fam.ozId, gone: true });
+    expect(await one(`SELECT email, status::text FROM users WHERE id = $1`, [childUser])).toEqual({
+      email: `deleted+${childUser}@invalid`,
+      status: 'closed',
+    });
+    expect(
+      await one(`SELECT email, status::text FROM users WHERE id = $1`, [fam.guardianUser]),
+    ).toEqual({ email: 'tuteur-compte@example.test', status: 'active' });
+    expect(
+      await db.query(
+        `SELECT actor_user_id, target_type FROM audit_log WHERE action IN
+           ('account.deletion.requested', 'account.deletion.done') AND target_id = $1
+         ORDER BY chain_position`,
+        [fam.childId],
+      ),
+    ).toEqual([
+      { actor_user_id: fam.guardianUser, target_type: 'player' },
+      { actor_user_id: null, target_type: 'player' },
+    ]);
+  });
+
+  it('enfant sans compte : fiche et pièces anonymisées, OZ ID gardé', async () => {
+    const fam = await family('sanscompte');
+    const document = await one<{ id: string }>('SELECT oz_uuid_v7()::text AS id');
+    await db.query(
+      `INSERT INTO documents (id, type, player_id, uploaded_by, storage_key, mime_type, size_bytes,
+           sha256, av_status, av_checked_at, perceptual_hash, width, height, retention_until)
+         VALUES ($1::uuid, 'identity_document', $2, $3, 'clean/' || $1, 'image/jpeg', 4,
+           repeat('ab', 32), 'clean', now(), 1, 800, 600, now() + interval '1 year')`,
+      [document.id, fam.childId, fam.guardianUser],
+    );
+    const outcome = await requestFor(fam.guardianUser, fam.ozId);
+    if (outcome.outcome !== 'accepted') throw new Error(outcome.outcome);
+    expect(outcome.childEmail).toBeNull();
+    await makeDue(outcome.id);
+    expect(await dueAccountDeletions(worker, 500)).toContain(outcome.id);
+    expect(await anonymizeAccount(worker, outcome.id)).toBe('done');
+    expect(
+      await one(`SELECT last_name, birth_date::text, oz_id FROM players WHERE id = $1`, [
+        fam.childId,
+      ]),
+    ).toEqual({ last_name: 'Anonyme', birth_date: '2014-01-01', oz_id: fam.ozId });
+    expect(
+      await one(`SELECT retention_until <= now() AS due FROM documents WHERE id = $1`, [
+        document.id,
+      ]),
+    ).toEqual({ due: true });
+  });
+
+  it('annulation par le tuteur seul, puis nouvelle demande possible', async () => {
+    const fam = await family('annule');
+    const stranger = await user('autre-annule@example.test');
+    const outcome = await requestFor(fam.guardianUser, fam.ozId);
+    if (outcome.outcome !== 'accepted') throw new Error(outcome.outcome);
+    expect(await as(stranger, (tx) => cancelPlayerDeletion(tx, fam.ozId))).toEqual({
+      cancelled: false,
+    });
+    expect(await as(stranger, (tx) => pendingPlayerDeletion(tx, fam.ozId))).toBeNull();
+    expect(await as(fam.guardianUser, (tx) => cancelPlayerDeletion(tx, fam.ozId))).toEqual({
+      cancelled: true,
+      childEmail: null,
+    });
+    expect(await as(fam.guardianUser, (tx) => pendingPlayerDeletion(tx, fam.ozId))).toBeNull();
+    expect(await anonymizeAccount(worker, outcome.id)).toBe('cancelled');
+    expect(await requestFor(fam.guardianUser, fam.ozId)).toMatchObject({ outcome: 'accepted' });
+  });
+
+  it('D4 : enfant devenu majeur avant l’exécution, demande annulée, rien modifié', async () => {
+    const fam = await family('majorite', { childAccount: true });
+    const outcome = await requestFor(fam.guardianUser, fam.ozId);
+    if (outcome.outcome !== 'accepted') throw new Error(outcome.outcome);
+    await makeDue(outcome.id);
+    await db.query(`UPDATE players SET birth_date = '2000-01-01' WHERE id = $1`, [fam.childId]);
+    expect(await anonymizeAccount(worker, outcome.id)).toBe('majority');
+    expect(
+      await one(`SELECT status FROM account_deletion_requests WHERE id = $1`, [outcome.id]),
+    ).toEqual({ status: 'cancelled' });
+    expect(await one(`SELECT last_name FROM players WHERE id = $1`, [fam.childId])).toEqual({
+      last_name: 'majorite',
+    });
+    expect(
+      await one(
+        `SELECT metadata->>'reason' AS reason FROM audit_log
+         WHERE action = 'account.deletion.cancelled' AND target_id = $1`,
+        [fam.childId],
+      ),
+    ).toEqual({ reason: 'majority' });
+  });
+
+  it('cas limites : demande propre de l’enfant d’abord, fiche supprimée, compte rattaché en cours, majeur gelé', async () => {
+    // D5 dans l'autre sens : l'enfant a déjà sa propre demande, celle du tuteur est `pending`.
+    const own = await family('propre', { childAccount: true });
+    await as(own.childUser ?? '', (tx) => requestAccountDeletion(tx));
+    expect(await requestFor(own.guardianUser, own.ozId)).toMatchObject({ outcome: 'pending' });
+
+    const gone = await family('supprimee');
+    await db.query(`UPDATE players SET deleted_at = now() WHERE id = $1`, [gone.childId]);
+    expect(await requestFor(gone.guardianUser, gone.ozId)).toEqual({ outcome: 'refused' });
+
+    // Compte rattaché à la fiche pendant le délai : relu à l'exécution, anonymisé aussi.
+    const later = await family('rattache');
+    const outcome = await requestFor(later.guardianUser, later.ozId);
+    if (outcome.outcome !== 'accepted') throw new Error(outcome.outcome);
+    const attached = await user('rattache-enfant@example.test');
+    await db.query(`UPDATE players SET user_id = $1 WHERE id = $2`, [attached, later.childId]);
+    await makeDue(outcome.id);
+    expect(await anonymizeAccount(worker, outcome.id)).toBe('done');
+    expect(await one(`SELECT status::text FROM users WHERE id = $1`, [attached])).toEqual({
+      status: 'closed',
+    });
+
+    // Compte de l'enfant suspendu puis gelé, enfant devenu majeur : la demande revient et est
+    // annulée (D4), elle ne reste pas en attente sans fin.
+    const frozen = await family('gele', { childAccount: true });
+    const pending = await requestFor(frozen.guardianUser, frozen.ozId);
+    if (pending.outcome !== 'accepted') throw new Error(pending.outcome);
+    await makeDue(pending.id);
+    await db.query(`UPDATE users SET status = 'suspended' WHERE id = $1`, [frozen.childUser]);
+    expect(await anonymizeAccount(worker, pending.id)).toBe('frozen');
+    expect(await dueAccountDeletions(worker, 500)).not.toContain(pending.id);
+    await db.query(`UPDATE players SET birth_date = '2000-01-01' WHERE id = $1`, [frozen.childId]);
+    expect(await dueAccountDeletions(worker, 500)).toContain(pending.id);
+    expect(await anonymizeAccount(worker, pending.id)).toBe('majority');
   });
 });

@@ -333,6 +333,8 @@ export const ANONYMIZATION_REGISTRY: Registry = {
   account_deletion_requests: {
     id: 'technical',
     user_id: 'technical',
+    player_id: 'technical',
+    requested_by_user_id: 'technical',
     status: 'technical',
     requested_at: 'technical',
     scheduled_for: 'technical',

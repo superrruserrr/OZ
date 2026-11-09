@@ -15,6 +15,8 @@ import { AccountDeletionService } from './account-deletion.service.js';
 import { DataExportController } from './data-export.controller.js';
 import { DataExportService } from './data-export.service.js';
 import { ExportQueue } from './export-queue.js';
+import { PlayerDeletionController } from './player-deletion.controller.js';
+import { PlayerDeletionService } from './player-deletion.service.js';
 import { EXPORT_STORAGE } from './privacy.tokens.js';
 import { Reauthentication } from './reauthentication.js';
 
@@ -29,7 +31,7 @@ class StorageLifecycle implements OnModuleDestroy {
 }
 
 /**
- * Droits de la personne sur ses données (lots 1.16ba, 1.16bb et 1.16ca : export, suppression) : monté avec l'authentification.
+ * Droits de la personne sur ses données (lots 1.16ba, 1.16bb, 1.16ca et 1.16cbb : export, suppression, fiche d'un enfant par son tuteur) : monté avec l'authentification.
  * Les archives sont produites par le worker (file `data-export`) et servies par URL signée.
  */
 @Module({})
@@ -38,10 +40,11 @@ export class PrivacyModule {
     return {
       module: PrivacyModule,
       imports: [DatabaseModule, RateLimitModule.forRoot(hmacKey)],
-      controllers: [DataExportController, AccountDeletionController],
+      controllers: [DataExportController, AccountDeletionController, PlayerDeletionController],
       providers: [
         DataExportService,
         AccountDeletionService,
+        PlayerDeletionService,
         Reauthentication,
         ExportQueue,
         StorageLifecycle,

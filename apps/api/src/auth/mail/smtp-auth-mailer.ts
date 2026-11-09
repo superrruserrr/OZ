@@ -15,6 +15,9 @@ import {
   twoFactorDisabledEmail,
   accountDeletionCancelledEmail,
   accountDeletionScheduledEmail,
+  childDeletionCancelledEmail,
+  childDeletionScheduledEmail,
+  type ChildDeletionRecipient,
   dataExportRequestedEmail,
   twoFactorEnabledEmail,
   verificationEmail,
@@ -110,6 +113,22 @@ export class SmtpAuthMailer implements AuthMailer, OnApplicationShutdown {
 
   sendAccountDeletionCancelled(to: string, when: Date): Promise<void> {
     return this.send(to, accountDeletionCancelledEmail(when, this.resetUrl()));
+  }
+
+  sendChildDeletionScheduled(
+    to: string,
+    scheduledFor: Date,
+    recipient: ChildDeletionRecipient,
+  ): Promise<void> {
+    return this.send(to, childDeletionScheduledEmail(scheduledFor, this.resetUrl(), recipient));
+  }
+
+  sendChildDeletionCancelled(
+    to: string,
+    when: Date,
+    recipient: ChildDeletionRecipient,
+  ): Promise<void> {
+    return this.send(to, childDeletionCancelledEmail(when, this.resetUrl(), recipient));
   }
 
   /** Après `MailDispatcher.beforeApplicationShutdown` : plus aucun envoi en cours. */

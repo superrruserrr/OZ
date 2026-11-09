@@ -7,6 +7,9 @@
 > juriste (§9). L'AIPD doit être validée avant le lot 1.10 (EX-T24 n° 6) ; au Québec, elle tient lieu
 > d'évaluation des facteurs relatifs à la vie privée (Loi 25, plan §6.8), sous réserve de l'avis du
 > juriste.
+>
+> Ce traitement figure au registre des activités de traitement sous T3
+> ([gdpr-register.md](gdpr-register.md), lot 1.16cbb).
 
 ## 1. Pourquoi une AIPD
 

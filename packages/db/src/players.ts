@@ -53,7 +53,7 @@ export async function playerRecord(
       THEN oz_current_user_id()::text END AS guardian_user_id,
       p.organization_id::text,
       oz_player_published(p.id, p.guardian_id, p.verification_status) AS published,
-      oz_account_deletion_pending(p.user_id) AS deletion_pending,
+      (oz_account_deletion_pending(p.user_id) OR oz_player_deletion_pending(p.id)) AS deletion_pending,
       now() AS checked_at
     FROM players p
     WHERE p.id = ${playerId}::uuid AND p.deleted_at IS NULL`;
@@ -160,7 +160,7 @@ export async function playerProfileByOzId(
       p.organization_id::text,
       oz_player_published(p.id, p.guardian_id, p.verification_status) AS published,
       oz_player_kyc_level(p.id) AS kyc_level,
-      oz_account_deletion_pending(p.user_id) AS deletion_pending,
+      (oz_account_deletion_pending(p.user_id) OR oz_player_deletion_pending(p.id)) AS deletion_pending,
       p.visibility,
       now() AS checked_at
     FROM players p

@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   accountDeletionCancelledEmail,
   accountDeletionScheduledEmail,
+  childDeletionCancelledEmail,
+  childDeletionScheduledEmail,
   alreadyRegisteredEmail,
   passwordChangedEmail,
   passwordResetEmail,
@@ -81,6 +83,19 @@ describe('alertes de la 2FA (lot 1.3cb)', () => {
     expect(mail.text).toContain('2026');
     expect(mail.text).toContain(RESET);
     expect(mail.html).toContain(RESET);
+  });
+
+  it.each([
+    [childDeletionScheduledEmail, 'guardian', 'annuler'],
+    [childDeletionScheduledEmail, 'child', 'Seul votre tuteur'],
+    [childDeletionCancelledEmail, 'guardian', 'reste active'],
+    [childDeletionCancelledEmail, 'child', 'restent actifs'],
+  ] as const)('fiche d’un enfant (lot 1.16cbb) : %#', (template, recipient, word) => {
+    const mail = template(WHEN, RESET, recipient);
+    expect(mail.text).toContain(word);
+    expect(mail.text).toContain('2026');
+    expect(mail.text.includes(RESET)).toBe(recipient === 'guardian');
+    expect(mail.html).not.toContain('OZ-');
   });
 
   it('suppression programmée : annonce l’échéance et la reconnexion pour annuler', () => {

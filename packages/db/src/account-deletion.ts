@@ -83,10 +83,12 @@ export async function dueAccountDeletions(db: Queryable, limit: number): Promise
 }
 
 /**
- * `done`, `not_due` (rétractation en cours), statut en place (`cancelled`, `done`), `unknown`, ou
- * `frozen` : compte suspendu, rien modifié, demande en attente (lot 1.16cba, D3).
+ * `done`, `not_due` (rétractation en cours), statut en place (`cancelled`, `done`), `unknown`,
+ * `frozen` : compte suspendu, rien modifié, demande en attente (lot 1.16cba, D3), ou `majority` :
+ * enfant devenu majeur, demande du tuteur annulée (lot 1.16cbb, D4).
  */
-export type AccountAnonymizeOutcome = 'done' | 'frozen' | 'not_due' | 'cancelled' | 'unknown';
+export type AccountAnonymizeOutcome =
+  'done' | 'frozen' | 'majority' | 'not_due' | 'cancelled' | 'unknown';
 
 /** Anonymise le compte d'une demande échue (registre d'effacement), auditée `account.deletion.done`. */
 export async function anonymizeAccount(
@@ -97,4 +99,86 @@ export async function anonymizeAccount(
   const rows = await db.$queryRaw<{ outcome: AccountAnonymizeOutcome }[]>`
     SELECT oz_account_anonymize(${requestId}::uuid) AS outcome`;
   return rows[0]?.outcome ?? 'unknown';
+}
+
+// Demande du tuteur pour la fiche de son enfant mineur (lot 1.16cbb, migration
+// 20261113100000_guardian_account_deletion) : tuteur vérifié du contexte seulement, sinon refus.
+
+export type PlayerDeletionRequestOutcome =
+  | {
+      readonly outcome: 'accepted';
+      readonly id: string;
+      readonly requestedAt: Date;
+      readonly scheduledFor: Date;
+      /** Compte de l'enfant à prévenir, `null` s'il n'en a pas. */
+      readonly childEmail: string | null;
+    }
+  | { readonly outcome: 'pending'; readonly scheduledFor: Date }
+  /** Pas le tuteur vérifié d'un mineur, fiche inconnue ou supprimée : indiscernables. */
+  | { readonly outcome: 'refused' };
+
+/** Demande du tuteur : anonymisation de la fiche (et du compte de l'enfant) à +30 jours, auditée. */
+export async function requestPlayerDeletion(
+  tx: TransactionClient,
+  ozId: string,
+): Promise<PlayerDeletionRequestOutcome> {
+  const rows = await tx.$queryRaw<
+    {
+      outcome: string;
+      id: string | null;
+      since: Date | null;
+      at: Date | null;
+      child_email: string | null;
+    }[]
+  >`
+    SELECT r ->> 'outcome' AS outcome, r ->> 'id' AS id,
+      (r ->> 'requestedAt')::timestamptz AS since, (r ->> 'scheduledFor')::timestamptz AS at,
+      r ->> 'childEmail' AS child_email
+    FROM oz_player_deletion_request(${ozId}) AS r`;
+  const row = rows[0];
+  if (row?.outcome === 'accepted' && row.id !== null && row.since !== null && row.at !== null) {
+    return {
+      outcome: 'accepted',
+      id: row.id,
+      requestedAt: row.since,
+      scheduledFor: row.at,
+      childEmail: row.child_email,
+    };
+  }
+  if (row?.outcome === 'pending' && row.at !== null) {
+    return { outcome: 'pending', scheduledFor: row.at };
+  }
+  if (row?.outcome === 'refused') return { outcome: 'refused' };
+  throw new Error('suppression : réponse inattendue de oz_player_deletion_request');
+}
+
+/** Demande en attente du tuteur du contexte pour cette fiche, ou `null`. */
+export async function pendingPlayerDeletion(
+  tx: TransactionClient,
+  ozId: string,
+): Promise<PendingAccountDeletion | null> {
+  const rows = await tx.$queryRaw<{ id: string | null; since: Date | null; at: Date | null }[]>`
+    SELECT r ->> 'id' AS id, (r ->> 'requestedAt')::timestamptz AS since,
+      (r ->> 'scheduledFor')::timestamptz AS at
+    FROM oz_player_deletion_status(${ozId}) AS r`;
+  const row = rows[0];
+  return row?.id == null || row.since === null || row.at === null
+    ? null
+    : { id: row.id, requestedAt: row.since, scheduledFor: row.at };
+}
+
+/** Annulation par le tuteur seul, jusqu'à l'exécution, auditée. */
+export async function cancelPlayerDeletion(
+  tx: TransactionClient,
+  ozId: string,
+): Promise<
+  { readonly cancelled: true; readonly childEmail: string | null } | { readonly cancelled: false }
+> {
+  const rows = await tx.$queryRaw<{ outcome: string; child_email: string | null }[]>`
+    SELECT r ->> 'outcome' AS outcome, r ->> 'childEmail' AS child_email
+    FROM oz_player_deletion_cancel(${ozId}) AS r`;
+  const row = rows[0];
+  return row?.outcome === 'cancelled'
+    ? { cancelled: true, childEmail: row.child_email }
+    : { cancelled: false };
 }

@@ -226,6 +226,59 @@ export function accountDeletionCancelledEmail(when: Date, resetUrl: string): Mai
   };
 }
 
+/** Destinataire d'un email de suppression de la fiche d'un enfant (lot 1.16cbb, D2). */
+export type ChildDeletionRecipient = 'guardian' | 'child';
+
+export function childDeletionScheduledEmail(
+  scheduledFor: Date,
+  resetUrl: string,
+  recipient: ChildDeletionRecipient,
+): MailContent {
+  return {
+    subject:
+      recipient === 'guardian'
+        ? 'Suppression de la fiche de votre enfant programmée sur OZ'
+        : 'Suppression de votre compte OZ demandée par votre tuteur',
+    ...layout(
+      recipient === 'guardian'
+        ? [
+            `Vous avez demandé la suppression de la fiche de votre enfant sur OZ. Elle n'est plus visible et sera anonymisée le ${formatWhen(scheduledFor)}, avec son compte s'il en a un.`,
+            "Jusqu'à cette date, vous pouvez annuler la suppression depuis votre compte.",
+            "Si vous n'êtes pas à l'origine de cette demande, annulez-la, changez votre mot de passe et contactez le support OZ.",
+          ]
+        : [
+            `Votre tuteur a demandé la suppression de votre fiche et de votre compte OZ. Ils seront anonymisés le ${formatWhen(scheduledFor)}.`,
+            'Seul votre tuteur peut annuler cette demande. Si vous devenez majeur avant cette date, elle sera annulée et vous déciderez seul.',
+          ],
+      recipient === 'guardian' ? { label: 'Changer mon mot de passe', href: resetUrl } : undefined,
+    ),
+  };
+}
+
+export function childDeletionCancelledEmail(
+  when: Date,
+  resetUrl: string,
+  recipient: ChildDeletionRecipient,
+): MailContent {
+  return {
+    subject:
+      recipient === 'guardian'
+        ? 'Suppression de la fiche de votre enfant annulée sur OZ'
+        : 'Suppression de votre compte OZ annulée par votre tuteur',
+    ...layout(
+      recipient === 'guardian'
+        ? [
+            `La suppression de la fiche de votre enfant a été annulée le ${formatWhen(when)}. La fiche reste active.`,
+            "Si vous n'êtes pas à l'origine de cette annulation, changez votre mot de passe et contactez le support OZ.",
+          ]
+        : [
+            `Votre tuteur a annulé le ${formatWhen(when)} la suppression de votre fiche et de votre compte OZ. Ils restent actifs.`,
+          ],
+      recipient === 'guardian' ? { label: 'Changer mon mot de passe', href: resetUrl } : undefined,
+    ),
+  };
+}
+
 export function recoveryCodeUsedEmail(when: Date, resetUrl: string): MailContent {
   return {
     subject: 'Code de secours utilisé sur votre compte OZ',

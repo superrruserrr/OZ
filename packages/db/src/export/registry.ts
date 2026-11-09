@@ -375,6 +375,8 @@ export const EXPORT_REGISTRY: ExportRegistry = {
   account_deletion_requests: {
     id: INTERNAL,
     user_id: LINK,
+    player_id: INTERNAL,
+    requested_by_user_id: INTERNAL,
     status: INTERNAL,
     requested_at: INTERNAL,
     scheduled_for: INTERNAL,

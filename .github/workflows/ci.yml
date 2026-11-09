@@ -57,7 +57,10 @@ jobs:
       # Le lint typé lit les types des paquets compilés et du client Prisma généré : typecheck
       # (qui construit les dépendances et génère le client) passe d'abord.
       - run: pnpm typecheck
+      # ESLint typé sur tout le dépôt dépasse le tas par défaut du runner (2 Go, lot 1.16cbb).
       - run: pnpm lint
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
       - name: commitlint (commits de la PR)
         if: github.event_name == 'pull_request'
         env:
@@ -125,6 +128,9 @@ jobs:
       # Lot 1.9cb : parcours n° 10 (fichier infecté → rejet + alerte), API et worker compilés,
       # ClamAV jetable. Aucun artefact : les réponses portent des jetons et des URL signées.
       - run: pnpm test:e2e:documents
+      # Lot 1.16cbb : parcours n° 9 (export → suppression → anonymisation vérifiée, variante tuteur),
+      # API et worker compilés. Aucun artefact : les réponses portent des jetons et des URL signées.
+      - run: pnpm test:e2e:gdpr
       # Lot 0.10 : chaque story rendue dans Chromium, interactions `play` et axe-core WCAG 2.1 AA
       # bloquant, puis replis `prefers-reduced-motion` de Button et Field.
       - run: pnpm test:stories

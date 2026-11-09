@@ -44,6 +44,7 @@ La colonne `recruiter` vaut aussi pour l'agence. `player.read_public` ne porte q
 | `profile.read`              | Voir le profil complet                        | self       | child      | deny        | deny  | deny       | deny   | deny        | logged |
 | `profile.update`            | Modifier un profil (hors KYC, rôle, statut)   | self-adult | child      | org         | org   | deny       | deny   | deny        | logged |
 | `profile.set_visibility`    | Régler les blocs visibles des tiers           | self-adult | child      | deny        | deny  | deny       | deny   | deny        | deny   |
+| `profile.delete`            | Supprimer la fiche d'un enfant mineur         | deny       | child      | deny        | deny  | deny       | deny   | deny        | deny   |
 | `player.create`             | Créer ou importer des joueurs                 | deny       | deny       | org         | org   | deny       | deny   | deny        | allow  |
 | `player.read_public`        | Voir un profil majeur vérifié                 | allow      | allow      | allow       | allow | allow      | allow  | kyc3        | allow  |
 | `player.search`             | Rechercher des joueurs                        | deny       | deny       | limited     | allow | allow      | deny   | kyc3        | allow  |
@@ -140,6 +141,9 @@ Les pages `/docs`, `/docs-json` et `/docs-yaml` (Swagger) sont servies hors cont
 | GET     | /documents/:id/url             | `document.read`          |
 | GET     | /players/:ozId                 | `player.read_public`     |
 | PATCH   | /players/:ozId/visibility      | `profile.set_visibility` |
+| POST    | /players/:ozId/deletion        | `profile.delete`         |
+| GET     | /players/:ozId/deletion        | `profile.delete`         |
+| DELETE  | /players/:ozId/deletion        | `profile.delete`         |
 | GET     | /admin/audit-log               | `audit.read_log`         |
 | GET     | /admin/audit-log/integrity     | `audit.read_log`         |
 | POST    | /account/data-export           | authenticated            |

@@ -18,6 +18,8 @@ export const RBAC_ACTION_SUBJECTS = {
   'profile.read': 'Player',
   'profile.update': 'Player',
   'profile.set_visibility': 'Player',
+  // Suppression de la fiche d'un enfant mineur par son tuteur (lot 1.16cbb, EX-118 n° 3).
+  'profile.delete': 'Player',
   'player.create': 'Organization',
   'player.read_public': 'Player',
   'player.search': 'PlayerSearch',
