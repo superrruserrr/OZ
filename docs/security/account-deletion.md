@@ -1,22 +1,35 @@
 # Suppression du compte
 
 Droit à l'effacement (EX-118 n° 3, `design.md` §5.10). Lot 1.16ca : demande, rétractation,
-annulation et anonymisation en base. Lot 1.16cb : exécution à l'échéance par le worker, purge des
-fichiers, demande d'un tuteur pour son enfant, E2E n° 9 et registre des traitements.
+annulation et anonymisation en base. Lot 1.16cba : exécution à l'échéance par le worker, fiche
+masquée pendant le délai, gel d'un compte suspendu, accès malgré la 2FA obligatoire. Lot 1.16cbb :
+demande d'un tuteur pour son enfant, E2E n° 9 et registre des traitements.
 
 Décisions à confirmer par Fabrice [À CONFIRMER] :
 
 - **D1** Délai de rétractation de 30 jours entre la demande et l'anonymisation, annulable.
 - **D2** Toutes les sessions sont révoquées à la demande ; le titulaire peut se reconnecter pour
-  suivre, annuler ou exporter ses données. Le masquage de la fiche joueur aux tiers pendant le délai
-  est reporté au lot 1.16cb (DEBT D-117) : jusque-là, la fiche reste visible 30 jours.
+  suivre, annuler ou exporter ses données. Pendant le délai, sa fiche joueur est masquée aux tiers
+  (lot 1.16cba, D7).
 - **D3** Chaque colonne de la base est classée dans un registre d'effacement
   (`packages/db/src/erasure/registry.ts`) ; une colonne non classée fait échouer les tests.
 - **D4** Le journal d'audit n'est jamais modifié (chaîne de hachage) : l'acteur et la cible restent
   l'identifiant du compte, devenu anonyme. Les motifs libres écrits par des tiers restent (D-118).
 - **D5** Pièces et archives d'export sont rendues échues ; leurs fichiers sont supprimés par les
   purges existantes (lots 1.9cb et 1.16bb).
-- **D6** Demande d'un tuteur pour son enfant mineur : lot 1.16cb.
+- **D6** Demande d'un tuteur pour son enfant mineur : lot 1.16cbb.
+
+Lot 1.16cba [À CONFIRMER] :
+
+- **D7** Pendant les 30 jours, la fiche joueur du titulaire est invisible des tiers, comme non
+  publiée (lecture par OZ ID et recherche) ; le titulaire et l'administrateur la lisent encore.
+  L'annulation la rend de nouveau visible.
+- **D8** L'annulation reste possible jusqu'à l'exécution effective, échéance passée comprise.
+- **D9** Compte suspendu à l'échéance : anonymisation différée (gel, art. 17(3) RGPD), rien n'est
+  modifié, la demande reste en attente, audit `account.deletion.frozen` une fois par demande et
+  alerte au journal du worker ; reprise au passage suivant la levée de la suspension.
+- **D10** Dossier KYC encore ouvert (brouillon, soumis, en instruction) d'une fiche supprimée :
+  passé `expired` sans décision, plus jamais décidable.
 
 ## Demande, suivi, annulation
 
@@ -29,7 +42,7 @@ Routes `authenticated` (`rbac.md`), le titulaire vient de la session :
 |                            | Suppression déjà programmée                                | 409 `ACCOUNT_DELETION_PENDING`                  |
 |                            | Plus de 10 essais dans l'heure, ou délai du mot de passe   | 429 avec `Retry-After`                          |
 | `GET /account/deletion`    | Suivi, `no-store`                                          | 200 `{ pending }`, `null` sans demande          |
-| `DELETE /account/deletion` | Demande en attente, échéance non atteinte                  | 204                                             |
+| `DELETE /account/deletion` | Demande en attente, jusqu'à l'exécution (D8)               | 204                                             |
 |                            | Aucune demande en attente                                  | 404 `ACCOUNT_DELETION_NOT_FOUND`                |
 
 La demande est décidée par la base (`oz_account_deletion_request`) : une seule en attente par
@@ -39,11 +52,26 @@ d'effet et la reconnexion pour annuler ; un second confirme l'annulation
 (`oz_account_deletion_cancel`, audit `account.deletion.cancelled`). Ni mot de passe ni code ne sont
 journalisés.
 
+Les routes `/account/deletion` et `/account/data-export` sont ouvertes à une session restreinte
+(rôle `admin`, `center` ou `federation` sans 2FA, `@TwoFactorEnrollment()`) : un droit RGPD ne
+dépend pas de l'enrôlement. Toute autre route reste refusée à cette session.
+
+Masquage (D7) : `oz_account_deletion_pending(user)` (`SECURITY DEFINER`, `oz_app` seul) conditionne
+la politique `players_third_party_read` ; CASL lit l'attribut `deletionPending` au même instant que
+la RLS et ses règles tierces exigent `deletionPending: false`. La grille d'équivalence RLS/CASL
+couvre un majeur vérifié, un mineur publié et un mineur rattaché en suppression. Les politiques des pièces et
+des dossiers KYC qui s'appuient sur `players` (lecture, dépôt) héritent du masquage, alors que CASL
+accorde encore à l'organisation `document.read`, `document.upload` et `kyc.read` sur un rattaché en
+délai : écart sans risque (la base refuse), suivi en D-120.
+
+Le worker écarte une demande gelée dont l'alerte est déjà émise (`oz_account_deletion_due`) : un
+compte suspendu ne retient pas le lot ; il revient à la levée de la suspension.
+
 ## Anonymisation
 
 `oz_account_anonymize(request)` n'est exécutable que par `oz_worker`, hors contexte utilisateur, et
 seulement à l'échéance (`oz_account_deletion_due` liste les demandes échues). Rejouée, elle n'a pas
-d'effet. Dans une seule transaction :
+d'effet ; compte suspendu : `frozen`, rien modifié (D9). Dans une seule transaction :
 
 - `users` : email remplacé par `deleted+<id>@invalid`, secrets, téléphone et dates de connexion
   effacés, statut `closed`, `deleted_at` posé ; rôles retirés ;
@@ -53,12 +81,24 @@ d'effet. Dans une seule transaction :
   enfant rattaché garde sa fiche, mais n'est plus publié faute de tuteur vérifié ;
 - pièces : OCR et numéro effacés, rétention échue (purge du fichier par le lot 1.9cb) ;
 - dossiers KYC : constats vidés et motif remplacé par `Motif effacé`, la décision restant figée
-  (garde KYC étendue au seul chemin privilégié de l'anonymisation) ;
+  (garde KYC étendue au seul chemin privilégié de l'anonymisation) ; dossier encore ouvert passé
+  `expired` (D10) ;
 - notifications : contenu et erreur d'envoi effacés ; archives d'export rendues échues, demandes en
-  cours en échec `account_gone` ;
+  cours en échec `account_gone`, chacune auditée `data.export.failed` ;
 - demande `done`, audit `account.deletion.done` (acteur `NULL` : le système).
 
 L'OZ ID reste dans `players` et `oz_id_registry` : réservé à vie, jamais réattribué (CP-03).
+
+## Exécution par le worker
+
+File `account-deletion`, job planifié `anonymize-due` (BullMQ, identifiant fixe, un seul essai),
+toutes les `ACCOUNT_DELETION_EVERY_MINUTES` (défaut 60, de 5 à 1 440) ; `ACCOUNT_DELETION_ENABLED`
+toujours vrai en recette et en production. Chaque passage prend au plus 100 demandes échues et les
+anonymise une à une, une transaction chacune ; un échec isolé est journalisé par son type, sans
+arrêter les autres, et repris au passage suivant. Issues comptées (`done`, `frozen`, autres) ; seul
+l'identifiant de la demande est journalisé. Les fichiers des pièces et des archives, rendus échus,
+sont supprimés aux passages suivants des purges (lots 1.9cb et 1.16bb), prouvé de bout en bout sur
+SeaweedFS (`apps/worker/test/data-export.int.test.ts`).
 
 La preuve (`packages/db/test/account-deletion.int.test.ts`) remplit un compte complet de valeurs
 marqueurs, l'anonymise, puis balaie le texte de toutes les tables, colonnes chiffrées déchiffrées

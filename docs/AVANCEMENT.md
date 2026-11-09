@@ -1,7 +1,7 @@
 # OZ — Où en est le projet ?
 
 > Check-list tenue à jour à la fin de chaque étape, à transmettre telle quelle à Fabrice Olinga.
-> **Dernière mise à jour : 3 novembre 2026** — étape : 1.16ca suppression de compte (demande et anonymisation).
+> **Dernière mise à jour : 9 novembre 2026** — étape : 1.16cba suppression de compte exécutée à l'échéance.
 
 Légende : ✅ fait et vérifié · 🟡 en cours · ⬜ à faire · ⏸️ bloqué en attente d'une décision
 
@@ -65,30 +65,31 @@ la vérification d'identité, qui attend deux décisions (§ « Ce qui bloque »
 
 ### Étape 1.16 en détail
 
-| Partie                                   | État | Ce que ça veut dire pour le produit                                                       |
-| ---------------------------------------- | ---- | ----------------------------------------------------------------------------------------- |
-| 1.16a Journal d'audit infalsifiable      | ✅   | Toute action sensible est tracée ; une falsification, même par un technicien, est repérée |
-| 1.16ba Demande d'export et inventaire    | ✅   | Chacun demande l'export de ses données (mot de passe redemandé) ; tout est inventorié     |
-| 1.16bb Archive téléchargeable            | ✅   | L'archive est préparée, envoyée par lien sécurisé, puis effacée                           |
-| 1.16ca Suppression de compte (base, API) | ✅   | Chacun demande la suppression ; 30 jours pour annuler ; données anonymisées, OZ ID gardé  |
-| 1.16cb Suppression exécutée et registre  | ⬜   | Suppression lancée automatiquement à l'échéance, registre des traitements RGPD rédigé     |
+| Partie                                   | État | Ce que ça veut dire pour le produit                                                          |
+| ---------------------------------------- | ---- | -------------------------------------------------------------------------------------------- |
+| 1.16a Journal d'audit infalsifiable      | ✅   | Toute action sensible est tracée ; une falsification, même par un technicien, est repérée    |
+| 1.16ba Demande d'export et inventaire    | ✅   | Chacun demande l'export de ses données (mot de passe redemandé) ; tout est inventorié        |
+| 1.16bb Archive téléchargeable            | ✅   | L'archive est préparée, envoyée par lien sécurisé, puis effacée                              |
+| 1.16ca Suppression de compte (base, API) | ✅   | Chacun demande la suppression ; 30 jours pour annuler ; données anonymisées, OZ ID gardé     |
+| 1.16cba Suppression exécutée             | ✅   | Suppression lancée seule à l'échéance ; fiche cachée pendant les 30 jours ; fichiers effacés |
+| 1.16cbb Suppression par le tuteur        | ⬜   | Un parent supprime le compte de son enfant ; registre des traitements RGPD rédigé            |
 
 ## Ce qui bloque — décisions attendues
 
 ### De Fabrice
 
-| N°  | Question                                                                                 | Pour débloquer |
-| --- | ---------------------------------------------------------------------------------------- | -------------- |
-| Q2  | La vérification des recruteurs et organisations est-elle bien dans la première version ? | 1.10b          |
-| Q6  | Fusion des deux univers visuels (doré / vert) en un seul système à deux registres ?      | 1.5            |
-| Q7  | Qui rédige la politique de confidentialité et les CGU (juriste) ?                        | 1.6, ouverture |
-| Q8  | Prix des formules et quotas de chacune                                                   | 1.6, 1.14      |
-| Q15 | OZ Performance et le tableau de bord en Phase 2 (et non Phase 1) : d'accord ?            | Planning       |
-| Q16 | Le site web adapté au mobile suffit-il pour l'ouverture (application en Phase 2) ?       | 1.5            |
-| Q18 | Retirer l'« OZ Score » des écrans de la première version ?                               | 1.5            |
-| Q19 | Nom du produit : « OZ FOOTBALL ID » ou « OZ FOOTBALL OS » ?                              | 1.5            |
-| Q20 | Quelle société encaisse et facture (Québec, Cameroun, autre) ?                           | 1.6, paiements |
-| Q21 | Suppression de compte : 30 jours pour changer d'avis, puis anonymisation (D1 à D6) ?     | À confirmer    |
+| N°  | Question                                                                                                                   | Pour débloquer |
+| --- | -------------------------------------------------------------------------------------------------------------------------- | -------------- |
+| Q2  | La vérification des recruteurs et organisations est-elle bien dans la première version ?                                   | 1.10b          |
+| Q6  | Fusion des deux univers visuels (doré / vert) en un seul système à deux registres ?                                        | 1.5            |
+| Q7  | Qui rédige la politique de confidentialité et les CGU (juriste) ?                                                          | 1.6, ouverture |
+| Q8  | Prix des formules et quotas de chacune                                                                                     | 1.6, 1.14      |
+| Q15 | OZ Performance et le tableau de bord en Phase 2 (et non Phase 1) : d'accord ?                                              | Planning       |
+| Q16 | Le site web adapté au mobile suffit-il pour l'ouverture (application en Phase 2) ?                                         | 1.5            |
+| Q18 | Retirer l'« OZ Score » des écrans de la première version ?                                                                 | 1.5            |
+| Q19 | Nom du produit : « OZ FOOTBALL ID » ou « OZ FOOTBALL OS » ?                                                                | 1.5            |
+| Q20 | Quelle société encaisse et facture (Québec, Cameroun, autre) ?                                                             | 1.6, paiements |
+| Q21 | Suppression de compte : 30 jours pour changer d'avis (fiche cachée), compte suspendu gelé, puis anonymisation (D1 à D10) ? | À confirmer    |
 
 ### De Gaëtan (et du juriste)
 
@@ -116,3 +117,4 @@ la vérification d'identité, qui attend deux décisions (§ « Ce qui bloque »
 | 2026-11-03 | 1.16ba Demande d'export des données (1.16 en cours)       |
 | 2026-11-03 | 1.16bb Archive d'export téléchargeable (1.16 en cours)    |
 | 2026-11-03 | 1.16ca Suppression de compte (1.16 en cours)              |
+| 2026-11-09 | 1.16cba Suppression exécutée à l'échéance (1.16 en cours) |

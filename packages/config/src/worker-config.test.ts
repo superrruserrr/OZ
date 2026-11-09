@@ -74,6 +74,7 @@ describe('loadWorkerConfig (lot 1.9b)', () => {
         anchorLockDays: 0,
       },
       dataExport: { encryptionKey: undefined, everyMinutes: 15 },
+      accountDeletion: { enabled: true, everyMinutes: 60 },
       smtp: undefined,
     });
   });
@@ -257,6 +258,37 @@ describe('loadWorkerConfig (lot 1.9b)', () => {
     expect(errorOf({ ...production, S3_ENDPOINT: 'http://s3.internal' }).invalidVariables).toEqual([
       'S3_ENDPOINT',
     ]);
+  });
+});
+
+describe('suppression de compte (lot 1.16cba)', () => {
+  it('local : désactivable, cadence bornée de 5 à 1 440 minutes', () => {
+    expect(
+      loadWorkerConfig({
+        ...valid,
+        ACCOUNT_DELETION_ENABLED: 'false',
+        ACCOUNT_DELETION_EVERY_MINUTES: '5',
+      }).accountDeletion,
+    ).toEqual({ enabled: false, everyMinutes: 5 });
+    expect(
+      loadWorkerConfig({ ...valid, ACCOUNT_DELETION_EVERY_MINUTES: '' }).accountDeletion,
+    ).toEqual({ enabled: true, everyMinutes: 60 });
+    for (const [name, value] of [
+      ['ACCOUNT_DELETION_ENABLED', 'oui'],
+      ['ACCOUNT_DELETION_EVERY_MINUTES', '4'],
+      ['ACCOUNT_DELETION_EVERY_MINUTES', '1441'],
+    ] as const) {
+      expect(errorOf({ ...valid, [name]: value }).invalidVariables).toContain(name);
+    }
+  });
+
+  it('recette et production : jamais désactivée', () => {
+    expect(loadWorkerConfig(hosted).accountDeletion.enabled).toBe(true);
+    for (const appEnv of ['staging', 'production']) {
+      expect(
+        errorOf({ ...hosted, APP_ENV: appEnv, ACCOUNT_DELETION_ENABLED: 'false' }).invalidVariables,
+      ).toEqual(['ACCOUNT_DELETION_ENABLED']);
+    }
   });
 });
 

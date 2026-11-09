@@ -56,6 +56,7 @@ function player(action: RbacAction, overrides: Partial<PlayerRecord> = {}): obje
       organizationId: OTHER_ORG,
       testedByOrganizationIds: [],
       hasPublicationConsent: true,
+      deletionPending: false,
       ...overrides,
     },
     NOW,

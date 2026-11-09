@@ -201,7 +201,7 @@ Second facteur RFC 6238 (EX-103 n° 7, D1 à D8 du plan), par `otplib` : SHA-1, 
 - **Défi** : jeton opaque de 256 bits dans Redis, 5 minutes, 5 essais, usage unique à la réussite, invalidé par un changement de mot de passe. Redis garde une empreinte HMAC du jeton, l'identifiant du compte et le libellé d'appareil, aucune adresse.
 - **Indiscernabilité** : le défi n'apparaît qu'après un mot de passe juste. Aucun cookie, aucune session, aucun email « nouvel appareil » avant le second facteur.
 - **Codes de secours** : 10 codes de 80 bits, montrés une fois, conservés en empreinte HMAC (`AUTH_HMAC_KEY`). Chaque usage envoie une alerte.
-- **Rôle obligatoire sans 2FA** : session restreinte. `AccessTokenGuard` répond 403 `AUTH_2FA_ENROLLMENT_REQUIRED` hors routes marquées `@TwoFactorEnrollment()` (enrôlement, déconnexion). Rôles relus en base à chaque requête ; une route nouvelle est fermée par défaut.
+- **Rôle obligatoire sans 2FA** : session restreinte. `AccessTokenGuard` répond 403 `AUTH_2FA_ENROLLMENT_REQUIRED` hors routes marquées `@TwoFactorEnrollment()` (enrôlement, déconnexion ; droits RGPD `/account/data-export` et `/account/deletion` depuis le lot 1.16cba). Risque accepté : un mot de passe volé d'un compte privilégié non enrôlé suffit à demander et télécharger son export (journal des actions dont il est l'acteur compris) ; l'enrôlement reste exigé partout ailleurs. Rôles relus en base à chaque requête ; une route nouvelle est fermée par défaut.
 - **Changement d'état** : activation et désactivation révoquent les autres sessions (motif `two_factor_changed`) et envoient un email. La session courante reste.
 - **Réinitialisation du mot de passe** : ne touche pas à la 2FA.
 

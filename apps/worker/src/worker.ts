@@ -12,6 +12,14 @@ import {
   observeAuditMaintenance,
   scheduleAuditMaintenance,
 } from './audit-maintenance.js';
+import {
+  ACCOUNT_DELETION_QUEUE,
+  anonymizeDueAccounts,
+  createAccountDeletionDependencies,
+  createAccountDeletionProcessor,
+  observeAccountDeletion,
+  scheduleAccountDeletion,
+} from './account-deletion.js';
 import { ClamavClient } from './clamav.js';
 import {
   DATA_EXPORT_QUEUE,
@@ -39,7 +47,8 @@ import type { ScanLogger } from './scan-document.js';
 // échues, balayage des analyses abandonnées, objets orphelins), planifiée au démarrage. Lot 1.16a :
 // file `audit-maintenance` (partitions, ancrage de la tête de chaîne, vérification). Lot 1.16bb : file
 // `data-export` (archives d'export des données personnelles), consommée si la clé de chiffrement
-// colonne est configurée. Arrêt propre
+// colonne est configurée. Lot 1.16cba : file `account-deletion` (anonymisation des demandes de
+// suppression échues). Arrêt propre
 // sur SIGTERM/SIGINT : les traitements en cours se terminent, les connexions sont fermées.
 
 export interface WorkerHandle {
@@ -126,8 +135,21 @@ export async function startWorker(config: WorkerConfig, logger: ScanLogger): Pro
         );
   if (dataExport !== undefined) observeDataExport(dataExport, logger);
 
+  // Suppression de compte : une demande à la fois (une transaction par demande).
+  const deletionQueue = new Queue(ACCOUNT_DELETION_QUEUE, { connection });
+  const accountDeletion = new Worker(
+    ACCOUNT_DELETION_QUEUE,
+    createAccountDeletionProcessor(
+      anonymizeDueAccounts.bind(null, createAccountDeletionDependencies({ db, logger })),
+      logger,
+    ),
+    { connection, concurrency: 1 },
+  );
+  observeAccountDeletion(accountDeletion, logger);
+
   await Promise.all([
     worker.waitUntilReady(),
+    accountDeletion.waitUntilReady(),
     maintenance.waitUntilReady(),
     audit.waitUntilReady(),
     dataExport?.waitUntilReady(),
@@ -143,6 +165,7 @@ export async function startWorker(config: WorkerConfig, logger: ScanLogger): Pro
     enabled: dataExport !== undefined,
     everyMinutes: config.dataExport.everyMinutes,
   });
+  await scheduleAccountDeletion(deletionQueue, config.accountDeletion);
   logger.info(
     {
       concurrency: config.concurrency,
@@ -150,6 +173,7 @@ export async function startWorker(config: WorkerConfig, logger: ScanLogger): Pro
       audit: config.audit.enabled,
       anchoring: anchors !== undefined,
       dataExport: dataExport !== undefined,
+      accountDeletion: config.accountDeletion.enabled,
       mail: mailer !== undefined,
     },
     'worker.started',
@@ -160,14 +184,22 @@ export async function startWorker(config: WorkerConfig, logger: ScanLogger): Pro
       maintenance.isRunning() &&
       audit.isRunning() &&
       (dataExport?.isRunning() ?? true) &&
+      accountDeletion.isRunning() &&
       connection.status === 'ready',
     async close() {
-      await Promise.all([worker.close(), maintenance.close(), audit.close(), dataExport?.close()]);
+      await Promise.all([
+        worker.close(),
+        maintenance.close(),
+        audit.close(),
+        dataExport?.close(),
+        accountDeletion.close(),
+      ]);
       await Promise.allSettled([
         scanQueue.close(),
         maintenanceQueue.close(),
         auditQueue.close(),
         exportQueue.close(),
+        deletionQueue.close(),
       ]);
       anchors?.destroy();
       mailer?.close();

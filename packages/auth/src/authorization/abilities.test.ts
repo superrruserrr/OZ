@@ -19,6 +19,7 @@ const record = (overrides: Partial<PlayerRecord> = {}): PlayerRecord => ({
   organizationId: 'org',
   testedByOrganizationIds: [],
   hasPublicationConsent: true,
+  deletionPending: false,
   ...overrides,
 });
 const adult = (overrides: Partial<PlayerRecord> = {}): object =>
