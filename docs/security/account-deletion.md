@@ -67,6 +67,51 @@ délai : écart sans risque (la base refuse), suivi en D-120.
 Le worker écarte une demande gelée dont l'alerte est déjà émise (`oz_account_deletion_due`) : un
 compte suspendu ne retient pas le lot ; il revient à la levée de la suspension.
 
+## Demande du tuteur (lot 1.16cbb)
+
+Décisions [À CONFIRMER par Fabrice] :
+
+- **D11** Un tuteur vérifié demande la suppression pour son enfant mineur : la fiche de l'enfant est
+  anonymisée (OZ ID gardé) avec ses pièces et ses dossiers KYC et, si l'enfant a son propre compte,
+  ce compte aussi. Mêmes 30 jours de rétractation, même masquage, même exécution.
+- **D12** Seul le tuteur annule. L'enfant titulaire d'un compte est prévenu par email de la demande
+  et de l'annulation ; il ne peut pas annuler.
+- **D13** Tuteur vérifié seulement (fiche tuteur `verified`, non supprimée, compte actif), enfant
+  mineur à la date de la demande ; ré-authentification du tuteur (mot de passe, plus code si 2FA).
+- **D14** Enfant devenu majeur avant l'exécution : la tutelle cesse, le worker annule la demande
+  (issue `majority`, audit `account.deletion.cancelled` motif `majority`), rien n'est modifié ; le
+  majeur décide seul. Email de cette annulation : DEBT D-121.
+- **D15** L'enfant qui a un compte garde son propre droit (`/account/deletion`) ; une seule demande
+  en attente par fiche et par compte (409 `ACCOUNT_DELETION_PENDING`).
+
+Action `profile.delete` (tuteur `child`, tous les autres rôles `deny`, `rbac.md`) :
+
+| Route                            | Cas                                                   | Réponse                             |
+| -------------------------------- | ----------------------------------------------------- | ----------------------------------- |
+| `POST /players/:ozId/deletion`   | Tuteur vérifié d'un mineur, ré-authentification juste | 202 `{ requestedAt, scheduledFor }` |
+|                                  | Mot de passe ou code faux                             | 403 `ACCOUNT_DELETION_REJECTED`     |
+|                                  | Hors droits, fiche inconnue, enfant majeur, refus     | 404 `NOT_FOUND`, indiscernables     |
+|                                  | Demande déjà en attente sur la fiche ou son compte    | 409 `ACCOUNT_DELETION_PENDING`      |
+|                                  | Plus de 10 essais dans l'heure                        | 429 avec `Retry-After`              |
+| `GET /players/:ozId/deletion`    | Suivi, `no-store`                                     | 200 `{ pending }`                   |
+| `DELETE /players/:ozId/deletion` | Demande du tuteur en attente                          | 204                                 |
+|                                  | Aucune                                                | 404 `ACCOUNT_DELETION_NOT_FOUND`    |
+
+La base décide (`oz_player_deletion_request`, `oz_player_deletion_status`,
+`oz_player_deletion_cancel`, `SECURITY DEFINER`, `oz_app` seul) : verrou de la fiche, demande
+`player_id` + `requested_by_user_id` (le tuteur), `user_id` = compte de l'enfant s'il existe, audit
+`account.deletion.requested` sur la cible `player`. `oz_account_deletion_cancel` ignore les demandes
+de fiche : le compte de l'enfant ne les annule pas. La fiche est masquée aux tiers dès la demande
+(`oz_player_deletion_pending`). L'OZ ID est masqué dans les chemins journalisés (`:ozId`).
+
+Comportements assumés : l'enfant titulaire d'un compte voit la demande du tuteur dans son
+`GET /account/deletion`, mais son `DELETE` répond 404 ; ses sessions ne sont pas révoquées à la
+demande (il garde l'accès jusqu'à l'exécution, révoquées alors). Le compte du tuteur n'est jamais
+touché. Le compte de l'enfant est relu à l'exécution (rattaché pendant le délai compris). Un compte
+d'enfant suspendu et gelé n'empêche pas l'annulation à la majorité. Un autre rôle que le tuteur
+reçoit le 403 de la matrice (`@Can`) ; un tuteur sans droit sur la fiche, le 404 uniforme. Course
+avec la demande propre de l'enfant : D-122.
+
 ## Anonymisation
 
 `oz_account_anonymize(request)` n'est exécutable que par `oz_worker`, hors contexte utilisateur, et
@@ -126,7 +171,7 @@ Colonnes effacées et colonnes gardées, par table ; toutes les autres colonnes 
 | `kyc_cases`                 | `checks`, `decision_reason`                                                                                                                                                                                        | `level`, `status`, `submitted_at`, `decided_at`                                                                                                                   | `decided_by`, `second_decided_by`                                                                                                                    |
 | `notifications`             | `payload`, `last_error`                                                                                                                                                                                            | —                                                                                                                                                                 | —                                                                                                                                                    |
 | `oz_id_registry`            | —                                                                                                                                                                                                                  | —                                                                                                                                                                 | `oz_id`, `player_id`, `issued_at`                                                                                                                    |
-| `account_deletion_requests` | —                                                                                                                                                                                                                  | —                                                                                                                                                                 | `user_id`, `status`, `requested_at`, `scheduled_for`, `cancelled_at`, `completed_at`                                                                 |
+| `account_deletion_requests` | —                                                                                                                                                                                                                  | —                                                                                                                                                                 | `user_id`, `player_id`, `requested_by_user_id`, `status`, `requested_at`, `scheduled_for`, `cancelled_at`, `completed_at`                            |
 
 <!-- /erasure:inventory -->
 

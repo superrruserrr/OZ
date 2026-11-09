@@ -288,7 +288,7 @@ describe('suppression de compte planifiée (lot 1.16cba)', () => {
       anonymize: (id) => anonymizeAccount(worker, id),
       logger,
     });
-    expect(counts).toEqual({ done: 1, frozen: 0, skipped: 0, errors: 0 });
+    expect(counts).toEqual({ done: 1, frozen: 0, majority: 0, skipped: 0, errors: 0 });
     const [request] = await admin.$queryRawUnsafe<{ status: string }[]>(
       'SELECT status FROM account_deletion_requests WHERE id = $1::uuid',
       due.deletionId,
@@ -316,5 +316,74 @@ describe('suppression de compte planifiée (lot 1.16cba)', () => {
       later.userId,
     );
     expect(user?.email).toBe('plus-tard@example.test');
+  });
+
+  it('demande du tuteur (lot 1.16cbb) : fiche d’enfant purgée ; devenu majeur : annulée', async () => {
+    const { userId: guardianUser } = await account('tuteur-fiche@example.test');
+    /** Fiche d'enfant sans compte, pièce stockée, demande du tuteur échue. */
+    const child = async (birthDate: string) => {
+      const [row] = await admin.$queryRawUnsafe<{ document_id: string; deletion_id: string }[]>(
+        `WITH g AS (
+           INSERT INTO guardians (user_id, first_name, last_name, relationship, country,
+               verification_status)
+           VALUES ($1::uuid, 'Tuteur', 'Synthétique', 'mother', 'CM', 'verified') RETURNING id
+         ), p AS (
+           INSERT INTO players (first_name, last_name, birth_date, nationality, country, guardian_id)
+           SELECT 'Enfant', 'Synthétique', $2::date, 'CM', 'CM', g.id FROM g RETURNING id
+         ), d AS (
+           INSERT INTO documents (id, type, player_id, uploaded_by, storage_key, mime_type,
+               size_bytes, sha256, av_status, av_checked_at, perceptual_hash, width, height,
+               retention_until)
+           SELECT i.id, 'identity_document', p.id, $1::uuid, 'clean/' || i.id, 'image/jpeg', 4,
+               repeat('ab', 32), 'clean', now(), 1, 800, 600, now() + interval '1 year'
+           FROM p, (SELECT oz_uuid_v7() AS id) i RETURNING id
+         ), r AS (
+           INSERT INTO account_deletion_requests (player_id, requested_by_user_id, requested_at,
+               scheduled_for)
+           SELECT p.id, $1::uuid, now() - interval '31 days', now() - interval '1 day' FROM p
+           RETURNING id
+         )
+         SELECT d.id::text AS document_id, r.id::text AS deletion_id FROM d, r`,
+        guardianUser,
+        birthDate,
+      );
+      if (row === undefined) throw new Error('fiche non créée');
+      await client.send(
+        new PutObjectCommand({ Bucket: BUCKET, Key: cleanKey(row.document_id), Body: 'jpeg' }),
+      );
+      return row;
+    };
+    const minor = await child('2014-06-07');
+    const adult = await child('2000-01-01');
+
+    const counts = await anonymizeDueAccounts({
+      listDue: (limit) => dueAccountDeletions(worker, limit),
+      anonymize: (id) => anonymizeAccount(worker, id),
+      logger,
+    });
+    expect(counts).toMatchObject({ done: 1, majority: 1, errors: 0 });
+    const statuses = await admin.$queryRawUnsafe<{ id: string; status: string }[]>(
+      'SELECT id::text, status FROM account_deletion_requests WHERE id = ANY($1::uuid[])',
+      [minor.deletion_id, adult.deletion_id],
+    );
+    expect(Object.fromEntries(statuses.map((r) => [r.id, r.status]))).toEqual({
+      [minor.deletion_id]: 'done',
+      [adult.deletion_id]: 'cancelled',
+    });
+
+    await createMaintenanceHandlers({
+      db: worker,
+      storage,
+      scanQueue: { add: () => Promise.resolve() } as never,
+      logger,
+    })['purge-due']();
+    expect(await stored(cleanKey(minor.document_id))).toBeNull();
+    expect(await stored(cleanKey(adult.document_id))).toBe('jpeg');
+    // Le compte du tuteur reste intact.
+    const [guardian] = await admin.$queryRawUnsafe<{ email: string }[]>(
+      'SELECT email FROM users WHERE id = $1::uuid',
+      guardianUser,
+    );
+    expect(guardian?.email).toBe('tuteur-fiche@example.test');
   });
 });

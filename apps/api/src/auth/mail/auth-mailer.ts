@@ -1,3 +1,5 @@
+import type { ChildDeletionRecipient } from './templates.js';
+
 /** Envoi des emails d'authentification ; jetons en clair, transmis seulement au destinataire. */
 export interface AuthMailer {
   sendVerification(to: string, token: string): Promise<void>;
@@ -24,6 +26,18 @@ export interface AuthMailer {
   sendAccountDeletionScheduled(to: string, scheduledFor: Date): Promise<void>;
   /** Suppression du compte annulée (lot 1.16ca). */
   sendAccountDeletionCancelled(to: string, when: Date): Promise<void>;
+  /** Suppression de la fiche d'un enfant programmée (lot 1.16cbb) : au tuteur et à l'enfant. */
+  sendChildDeletionScheduled(
+    to: string,
+    scheduledFor: Date,
+    recipient: ChildDeletionRecipient,
+  ): Promise<void>;
+  /** Suppression de la fiche d'un enfant annulée par le tuteur (lot 1.16cbb). */
+  sendChildDeletionCancelled(
+    to: string,
+    when: Date,
+    recipient: ChildDeletionRecipient,
+  ): Promise<void>;
 }
 
 export const AUTH_MAILER = Symbol('AUTH_MAILER');

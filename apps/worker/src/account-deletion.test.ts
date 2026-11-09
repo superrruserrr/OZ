@@ -64,7 +64,13 @@ const depsWith = (
 describe('anonymizeDueAccounts', () => {
   it('rien d’échu : aucun journal', async () => {
     const deps = depsWith([], {});
-    expect(await anonymizeDueAccounts(deps)).toEqual({ done: 0, frozen: 0, skipped: 0, errors: 0 });
+    expect(await anonymizeDueAccounts(deps)).toEqual({
+      done: 0,
+      frozen: 0,
+      majority: 0,
+      skipped: 0,
+      errors: 0,
+    });
     expect(deps.limits).toEqual([ACCOUNT_DELETION_BATCH]);
     expect(logs).toEqual([]);
   });
@@ -76,7 +82,13 @@ describe('anonymizeDueAccounts', () => {
       [C]: 'frozen',
       [D]: 'cancelled',
     });
-    expect(await anonymizeDueAccounts(deps)).toEqual({ done: 1, frozen: 1, skipped: 1, errors: 1 });
+    expect(await anonymizeDueAccounts(deps)).toEqual({
+      done: 1,
+      frozen: 1,
+      majority: 0,
+      skipped: 1,
+      errors: 1,
+    });
     expect(deps.done).toEqual([A, B, C, D]);
     expect(logs).toEqual([
       {
@@ -88,7 +100,7 @@ describe('anonymizeDueAccounts', () => {
       {
         level: 'info',
         event: 'account.deletion.run',
-        fields: { done: 1, frozen: 1, skipped: 1, errors: 1 },
+        fields: { done: 1, frozen: 1, majority: 0, skipped: 1, errors: 1 },
       },
     ]);
     expect(JSON.stringify(logs)).not.toContain(SECRET);
@@ -103,9 +115,33 @@ describe('anonymizeDueAccounts', () => {
     expect(logs[0]?.fields).toEqual({ requestId: A, cause: 'unknown' });
   });
 
+  it('enfant devenu majeur : comptée et journalisée sans donnée (lot 1.16cbb)', async () => {
+    const deps = depsWith([A], { [A]: 'majority' });
+    expect(await anonymizeDueAccounts(deps)).toEqual({
+      done: 0,
+      frozen: 0,
+      majority: 1,
+      skipped: 0,
+      errors: 0,
+    });
+    expect(logs).toEqual([
+      {
+        level: 'info',
+        event: 'account.deletion.run',
+        fields: { done: 0, frozen: 0, majority: 1, skipped: 0, errors: 0 },
+      },
+    ]);
+  });
+
   it('issues « not_due » et « unknown » comptées à part', async () => {
     const deps = depsWith([A, B], { [A]: 'not_due', [B]: 'unknown' });
-    expect(await anonymizeDueAccounts(deps)).toEqual({ done: 0, frozen: 0, skipped: 2, errors: 0 });
+    expect(await anonymizeDueAccounts(deps)).toEqual({
+      done: 0,
+      frozen: 0,
+      majority: 0,
+      skipped: 2,
+      errors: 0,
+    });
   });
 });
 

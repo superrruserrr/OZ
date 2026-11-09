@@ -23,6 +23,8 @@ export interface AccountDeletionDependencies {
 export interface AccountDeletionCounts {
   done: number;
   frozen: number;
+  /** Enfant devenu majeur avant l'échéance : demande du tuteur annulée (lot 1.16cbb, D4). */
+  majority: number;
   /** Annulée ou exécutée entre la désignation et le passage. */
   skipped: number;
   errors: number;
@@ -35,12 +37,13 @@ const causeOf = (error: unknown): string => (error instanceof Error ? error.name
 export async function anonymizeDueAccounts(
   deps: AccountDeletionDependencies,
 ): Promise<AccountDeletionCounts> {
-  const counts: AccountDeletionCounts = { done: 0, frozen: 0, skipped: 0, errors: 0 };
+  const counts: AccountDeletionCounts = { done: 0, frozen: 0, majority: 0, skipped: 0, errors: 0 };
   for (const requestId of await deps.listDue(ACCOUNT_DELETION_BATCH)) {
     try {
       const outcome = await deps.anonymize(requestId);
       if (outcome === 'done') counts.done += 1;
       else if (outcome === 'frozen') counts.frozen += 1;
+      else if (outcome === 'majority') counts.majority += 1;
       else counts.skipped += 1;
     } catch (error) {
       counts.errors += 1;
@@ -48,7 +51,7 @@ export async function anonymizeDueAccounts(
     }
   }
   if (counts.frozen > 0) deps.logger.warn({ frozen: counts.frozen }, 'account.deletion.frozen');
-  if (counts.done + counts.frozen + counts.skipped + counts.errors > 0) {
+  if (Object.values(counts).some((count) => count > 0)) {
     deps.logger.info({ ...counts }, 'account.deletion.run');
   }
   return counts;

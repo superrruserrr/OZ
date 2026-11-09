@@ -374,10 +374,13 @@ export const ERASURE_REGISTRY: ErasureRegistry = {
     },
   },
   account_deletion_requests: {
-    scope: 'Les demandes de suppression du compte : conservées, `done` (preuve de la suppression).',
+    scope:
+      'Les demandes de suppression du compte ou de la fiche d’un enfant : conservées, `done` (preuve de la suppression).',
     columns: {
       ...pick('id', 'updated_at'),
       user_id: 'proof',
+      player_id: 'proof',
+      requested_by_user_id: 'proof',
       status: 'proof',
       requested_at: 'proof',
       scheduled_for: 'proof',

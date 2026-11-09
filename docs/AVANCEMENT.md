@@ -1,13 +1,14 @@
 # OZ — Où en est le projet ?
 
 > Check-list tenue à jour à la fin de chaque étape, à transmettre telle quelle à Fabrice Olinga.
-> **Dernière mise à jour : 9 novembre 2026** — étape : 1.16cba suppression de compte exécutée à l'échéance.
+> **Dernière mise à jour : 9 novembre 2026** — étape : 1.16cbb suppression par le tuteur et registre des traitements (étape 1.16 terminée).
 
 Légende : ✅ fait et vérifié · 🟡 en cours · ⬜ à faire · ⏸️ bloqué en attente d'une décision
 
 ## En une phrase
 
-Les fondations techniques sont posées et le **coffre des documents d'identité est terminé**. Il
+Les fondations techniques sont posées ; le **coffre des documents d'identité** et les **droits RGPD**
+(journal, export, suppression) sont terminés. Il
 reste à construire tout ce que les utilisateurs verront (écrans, inscription, profils, recherche) et
 la vérification d'identité, qui attend deux décisions (§ « Ce qui bloque »).
 
@@ -49,11 +50,11 @@ la vérification d'identité, qui attend deux décisions (§ « Ce qui bloque »
 | 1.13 Profil joueur public                                | 🟡   | 1.13a fait : fiche par rôle côté serveur ; restent QR, PDF et écrans  |
 | 1.14 Recherche                                           | ⬜   | Après 1.13 ; quotas selon Q8                                          |
 | 1.15 Notifications et emails                             | ⬜   | Après 1.7                                                             |
-| 1.16 Journal et conformité données (RGPD)                | 🟡   | Journal fait, export demandé ; restent l'archive et l'effacement      |
+| 1.16 Journal et conformité données (RGPD)                | ✅   | Journal, export, suppression (aussi par le tuteur), registre RGPD     |
 | 1.17 Tests de charge et recette                          | ⬜   | Fin de phase                                                          |
 | 1.18 Mise en production                                  | ⬜   | Fin de phase                                                          |
 
-**Bilan Phase 1 : 5 étapes sur 20 terminées, 2 en cours (1.13 : 1 partie sur 3 ; 1.16 : 1 partie et demie sur 3).**
+**Bilan Phase 1 : 6 étapes sur 20 terminées, 1 en cours (1.13 : 1 partie sur 3).**
 
 ### Étape 1.13 en détail
 
@@ -72,33 +73,34 @@ la vérification d'identité, qui attend deux décisions (§ « Ce qui bloque »
 | 1.16bb Archive téléchargeable            | ✅   | L'archive est préparée, envoyée par lien sécurisé, puis effacée                              |
 | 1.16ca Suppression de compte (base, API) | ✅   | Chacun demande la suppression ; 30 jours pour annuler ; données anonymisées, OZ ID gardé     |
 | 1.16cba Suppression exécutée             | ✅   | Suppression lancée seule à l'échéance ; fiche cachée pendant les 30 jours ; fichiers effacés |
-| 1.16cbb Suppression par le tuteur        | ⬜   | Un parent supprime le compte de son enfant ; registre des traitements RGPD rédigé            |
+| 1.16cbb Suppression par le tuteur        | ✅   | Un parent supprime la fiche de son enfant ; parcours complet testé ; registre RGPD rédigé    |
 
 ## Ce qui bloque — décisions attendues
 
 ### De Fabrice
 
-| N°  | Question                                                                                                                   | Pour débloquer |
-| --- | -------------------------------------------------------------------------------------------------------------------------- | -------------- |
-| Q2  | La vérification des recruteurs et organisations est-elle bien dans la première version ?                                   | 1.10b          |
-| Q6  | Fusion des deux univers visuels (doré / vert) en un seul système à deux registres ?                                        | 1.5            |
-| Q7  | Qui rédige la politique de confidentialité et les CGU (juriste) ?                                                          | 1.6, ouverture |
-| Q8  | Prix des formules et quotas de chacune                                                                                     | 1.6, 1.14      |
-| Q15 | OZ Performance et le tableau de bord en Phase 2 (et non Phase 1) : d'accord ?                                              | Planning       |
-| Q16 | Le site web adapté au mobile suffit-il pour l'ouverture (application en Phase 2) ?                                         | 1.5            |
-| Q18 | Retirer l'« OZ Score » des écrans de la première version ?                                                                 | 1.5            |
-| Q19 | Nom du produit : « OZ FOOTBALL ID » ou « OZ FOOTBALL OS » ?                                                                | 1.5            |
-| Q20 | Quelle société encaisse et facture (Québec, Cameroun, autre) ?                                                             | 1.6, paiements |
-| Q21 | Suppression de compte : 30 jours pour changer d'avis (fiche cachée), compte suspendu gelé, puis anonymisation (D1 à D10) ? | À confirmer    |
+| N°  | Question                                                                                                                                                                         | Pour débloquer |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
+| Q2  | La vérification des recruteurs et organisations est-elle bien dans la première version ?                                                                                         | 1.10b          |
+| Q6  | Fusion des deux univers visuels (doré / vert) en un seul système à deux registres ?                                                                                              | 1.5            |
+| Q7  | Qui rédige la politique de confidentialité et les CGU (juriste) ?                                                                                                                | 1.6, ouverture |
+| Q8  | Prix des formules et quotas de chacune                                                                                                                                           | 1.6, 1.14      |
+| Q15 | OZ Performance et le tableau de bord en Phase 2 (et non Phase 1) : d'accord ?                                                                                                    | Planning       |
+| Q16 | Le site web adapté au mobile suffit-il pour l'ouverture (application en Phase 2) ?                                                                                               | 1.5            |
+| Q18 | Retirer l'« OZ Score » des écrans de la première version ?                                                                                                                       | 1.5            |
+| Q19 | Nom du produit : « OZ FOOTBALL ID » ou « OZ FOOTBALL OS » ?                                                                                                                      | 1.5            |
+| Q20 | Quelle société encaisse et facture (Québec, Cameroun, autre) ?                                                                                                                   | 1.6, paiements |
+| Q21 | Suppression de compte : 30 jours pour changer d'avis (fiche cachée), compte suspendu gelé, puis anonymisation ; par le tuteur pour un mineur, annulée à sa majorité (D1 à D15) ? | À confirmer    |
 
 ### De Gaëtan (et du juriste)
 
-| Sujet                                  | État                                                                  |
-| -------------------------------------- | --------------------------------------------------------------------- |
-| Analyse d'impact (AIPD)                | 🟡 Brouillon écrit (`docs/security/aipd.md`) : 8 questions au juriste |
-| Choix du prestataire d'identité        | ⬜ Essai Veriff / Smile ID sans données réelles, au début de 1.10     |
-| Q17 Format de l'identifiant OZ ID      | ⬜ Le plan prévaut, maquettes à corriger                              |
-| Version de test en ligne (0.8c/d, 0.9) | ⬜ Reportée                                                           |
+| Sujet                                  | État                                                                        |
+| -------------------------------------- | --------------------------------------------------------------------------- |
+| Analyse d'impact (AIPD)                | 🟡 Brouillon écrit (`docs/security/aipd.md`) : 8 questions au juriste       |
+| Registre des traitements (RGPD)        | 🟡 Brouillon (`docs/security/gdpr-register.md`) : bases légales à confirmer |
+| Choix du prestataire d'identité        | ⬜ Essai Veriff / Smile ID sans données réelles, au début de 1.10           |
+| Q17 Format de l'identifiant OZ ID      | ⬜ Le plan prévaut, maquettes à corriger                                    |
+| Version de test en ligne (0.8c/d, 0.9) | ⬜ Reportée                                                                 |
 
 ## Chiffres clés
 
@@ -108,13 +110,14 @@ la vérification d'identité, qui attend deux décisions (§ « Ce qui bloque »
 
 ## Historique des mises à jour
 
-| Date       | Étape terminée                                            |
-| ---------- | --------------------------------------------------------- |
-| 2026-11-03 | Création de la check-list ; brouillon AIPD                |
-| 2026-11-03 | 1.9 Coffre des documents d'identité (effacement auto)     |
-| 2026-11-03 | 1.16a Journal d'audit infalsifiable (étape 1.16 en cours) |
-| 2026-11-03 | 1.13a Fiche joueur et visibilité (étape 1.13 en cours)    |
-| 2026-11-03 | 1.16ba Demande d'export des données (1.16 en cours)       |
-| 2026-11-03 | 1.16bb Archive d'export téléchargeable (1.16 en cours)    |
-| 2026-11-03 | 1.16ca Suppression de compte (1.16 en cours)              |
-| 2026-11-09 | 1.16cba Suppression exécutée à l'échéance (1.16 en cours) |
+| Date       | Étape terminée                                             |
+| ---------- | ---------------------------------------------------------- |
+| 2026-11-03 | Création de la check-list ; brouillon AIPD                 |
+| 2026-11-03 | 1.9 Coffre des documents d'identité (effacement auto)      |
+| 2026-11-03 | 1.16a Journal d'audit infalsifiable (étape 1.16 en cours)  |
+| 2026-11-03 | 1.13a Fiche joueur et visibilité (étape 1.13 en cours)     |
+| 2026-11-03 | 1.16ba Demande d'export des données (1.16 en cours)        |
+| 2026-11-03 | 1.16bb Archive d'export téléchargeable (1.16 en cours)     |
+| 2026-11-03 | 1.16ca Suppression de compte (1.16 en cours)               |
+| 2026-11-09 | 1.16cba Suppression exécutée à l'échéance (1.16 en cours)  |
+| 2026-11-09 | 1.16cbb Suppression par le tuteur, registre RGPD (1.16 ✅) |

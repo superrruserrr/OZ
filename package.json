@@ -15,6 +15,7 @@
     "test:e2e": "playwright test --config e2e/playwright.config.ts",
     "test:e2e:api": "playwright test --config e2e/api.config.ts",
     "test:e2e:documents": "playwright test --config e2e/documents.config.ts",
+    "test:e2e:gdpr": "playwright test --config e2e/gdpr.config.ts",
     "test:containers": "scripts/containers-smoke.sh",
     "test:coverage": "turbo run generate --output-logs=errors-only && vitest run --coverage",
     "format": "prettier --write .",

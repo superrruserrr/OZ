@@ -15,6 +15,8 @@ erDiagram
     timestamptz cancelled_at
     timestamptz completed_at
     timestamptz updated_at
+    uuid player_id FK
+    uuid requested_by_user_id FK
   }
   audit_chain_checks {
     uuid id PK
@@ -340,7 +342,9 @@ erDiagram
     bytea phone_encrypted
     bytea phone_hmac
   }
-  account_deletion_requests }o--|| users : "user_id"
+  account_deletion_requests }o--o| players : "player_id"
+  account_deletion_requests }o--o| users : "requested_by_user_id"
+  account_deletion_requests }o--o| users : "user_id"
   audit_log }o--o| users : "actor_user_id"
   auth_recovery_codes }o--|| users : "user_id"
   auth_tokens }o--|| users : "user_id"

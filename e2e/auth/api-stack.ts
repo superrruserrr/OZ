@@ -59,12 +59,16 @@ export default function startAuthStack(): Promise<() => Promise<void>> {
 
 /**
  * Pile de l'API. Avec `documents` (lot 1.9cb, parcours n° 10) : coffre ouvert, ClamAV et le worker
- * compilé, lancé comme en production ; sa sortie JSON est écrite dans `E2E_WORKER_LOG`.
+ * compilé, lancé comme en production ; sa sortie JSON est écrite dans `E2E_WORKER_LOG`. Avec `gdpr`
+ * (lot 1.16cbb, parcours n° 9) : le worker compilé sans ClamAV, avec l'export (clé de colonnes
+ * partagée avec l'API), la suppression et ses emails ; Redis exposé pour déclencher le passage.
  */
 export async function startApiStack(
-  options: { readonly documents?: boolean } = {},
+  options: { readonly documents?: boolean; readonly gdpr?: boolean } = {},
 ): Promise<() => Promise<void>> {
   const documents = options.documents === true;
+  const gdpr = options.gdpr === true;
+  const withWorker = documents || gdpr;
   await run(
     'pnpm',
     [
@@ -73,7 +77,7 @@ export async function startApiStack(
       'run',
       'build',
       '--filter=@oz/api',
-      ...(documents ? ['--filter=@oz/worker'] : []),
+      ...(withWorker ? ['--filter=@oz/worker'] : []),
     ],
     { cwd: root },
   );
@@ -103,6 +107,12 @@ export async function startApiStack(
     ],
   );
   await db.end();
+  const encryptionKey = secret(48);
+  const smtp = {
+    SMTP_HOST: smtpHost(mailpit.getHost()),
+    SMTP_PORT: String(mailpit.getMappedPort(1025)),
+    EMAIL_FROM: 'OZ <no-reply@oz.localhost>',
+  };
   // Le fournisseur factice écrit les OTP sur la sortie standard : les parcours les y lisent.
   const smsLog = join(mkdtempSync(join(tmpdir(), 'oz-e2e-')), 'api.log');
   const output = openSync(smsLog, 'a');
@@ -121,11 +131,9 @@ export async function startApiStack(
       ...services.env,
       FEATURE_AUTH: 'true',
       APP_URL: WEB_ORIGIN,
-      SMTP_HOST: smtpHost(mailpit.getHost()),
-      SMTP_PORT: String(mailpit.getMappedPort(1025)),
-      EMAIL_FROM: 'OZ <no-reply@oz.localhost>',
+      ...smtp,
       AUTH_HMAC_KEY: secret(48),
-      DATABASE_ENCRYPTION_KEY: secret(48),
+      DATABASE_ENCRYPTION_KEY: encryptionKey,
       DATABASE_BLIND_INDEX_KEY: secret(48),
       JWT_ACCESS_SECRET: secret(64),
       JWT_REFRESH_SECRET: secret(64),
@@ -136,7 +144,7 @@ export async function startApiStack(
   await waitForHealth(Date.now() + 60_000);
 
   let worker: ReturnType<typeof spawn> | undefined;
-  if (clamd !== undefined) {
+  if (withWorker) {
     // Base, Redis et stockage de l'API ; en local, le worker se replie sur `DATABASE_URL`.
     const workerLog = join(mkdtempSync(join(tmpdir(), 'oz-e2e-')), 'worker.log');
     process.env.E2E_WORKER_LOG = workerLog;
@@ -145,6 +153,7 @@ export async function startApiStack(
     process.env.E2E_S3_ACCESS_KEY = services.env.S3_ACCESS_KEY;
     process.env.E2E_S3_SECRET_KEY = services.env.S3_SECRET_KEY;
     process.env.E2E_S3_BUCKET = services.env.S3_BUCKET;
+    process.env.E2E_REDIS_URL = services.env.REDIS_URL;
     worker = spawn(process.execPath, ['apps/worker/dist/main.js'], {
       cwd: root,
       stdio: ['ignore', openSync(workerLog, 'a'), 'ignore'],
@@ -155,8 +164,11 @@ export async function startApiStack(
         LOG_LEVEL: 'info',
         S3_REGION: 'fr-par',
         ...services.env,
-        CLAMAV_HOST: clamd.getHost() === 'localhost' ? '127.0.0.1' : clamd.getHost(),
-        CLAMAV_PORT: String(clamd.getMappedPort(3310)),
+        // Sans ClamAV (parcours n° 9) : adresse exigée, jamais appelée faute de pièce déposée.
+        CLAMAV_HOST:
+          clamd === undefined || clamd.getHost() === 'localhost' ? '127.0.0.1' : clamd.getHost(),
+        CLAMAV_PORT: String(clamd?.getMappedPort(3310) ?? 3310),
+        ...(gdpr ? { ...smtp, APP_URL: WEB_ORIGIN, DATABASE_ENCRYPTION_KEY: encryptionKey } : {}),
       },
     });
   }
