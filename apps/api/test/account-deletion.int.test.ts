@@ -192,6 +192,50 @@ describe('/account/deletion', () => {
     expect(Number(limited.headers['retry-after'])).toBeGreaterThan(0);
   });
 
+  it.each(['admin', 'center', 'federation'])(
+    'session restreinte (%s sans 2FA) : routes RGPD seules ouvertes',
+    async (role) => {
+      const { email, accessToken } = await account();
+      // `center` et `federation` sont tenus au sein d'une organisation (de même type).
+      await harness.db.query(
+        `WITH o AS (
+           INSERT INTO organizations (type, name, country, verification_status)
+           SELECT $2::text::organization_type, 'Organisation de test', 'CM', 'verified'
+           WHERE $2::text IN ('center', 'federation') RETURNING id
+         )
+         INSERT INTO user_roles (user_id, role, organization_id)
+         SELECT u.id, $2::role_kind, (SELECT id FROM o) FROM users u WHERE u.email = $1`,
+        [email, role],
+      );
+      const refused = await request(server)
+        .get('/auth/sessions')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(403);
+      expect(errorOf(refused).code).toBe('AUTH_2FA_ENROLLMENT_REQUIRED');
+
+      const exportOf = (token: string) =>
+        request(server).get('/account/data-export').set('Authorization', `Bearer ${token}`);
+      await exportOf(accessToken).expect(200);
+      await request(server)
+        .post('/account/data-export')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ password: PASSWORD })
+        .expect(202);
+
+      await follow(accessToken).expect(200);
+      await ask(accessToken, { password: WRONG }).expect(403);
+      await ask(accessToken, { password: PASSWORD }).expect(202);
+      const again = await login(email);
+      expect((await follow(again).expect(200)).body).not.toEqual({ pending: null });
+      await cancel(again).expect(204);
+      expect(await requestsOf(email)).toEqual(['cancelled']);
+      await request(server)
+        .get('/auth/sessions')
+        .set('Authorization', `Bearer ${again}`)
+        .expect(403);
+    },
+  );
+
   it('ni mot de passe ni code au journal', async () => {
     const { accessToken, secret } = await enrolled();
     const code = generateTotpCode(secret, Date.now());

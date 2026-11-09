@@ -600,3 +600,82 @@ describe('sous un propriétaire soumis à la RLS (recette, production)', () => {
     }
   });
 });
+
+describe('exécution (lot 1.16cba)', () => {
+  it('D2 : échéance passée mais non exécutée, l’annulation l’emporte', async () => {
+    const owner = await user('tardif@example.test');
+    const requestId = await accepted(owner);
+    await makeDue(requestId);
+    expect(await as(owner, (tx) => cancelAccountDeletion(tx))).toBe(true);
+    expect(await anonymizeAccount(worker, requestId)).toBe('cancelled');
+    expect(await dueAccountDeletions(worker, 500)).not.toContain(requestId);
+  });
+
+  it('D3 : compte suspendu gelé (rien modifié, une alerte), anonymisé après la levée', async () => {
+    const owner = await user('gele@example.test');
+    const requestId = await accepted(owner);
+    await makeDue(requestId);
+    await db.query(`UPDATE users SET status = 'suspended' WHERE id = $1`, [owner]);
+    // Gel pas encore signalé : la demande est désignée une fois.
+    expect(await dueAccountDeletions(worker, 500)).toContain(requestId);
+    expect(await anonymizeAccount(worker, requestId)).toBe('frozen');
+    expect(await anonymizeAccount(worker, requestId)).toBe('frozen');
+    expect(await one(`SELECT email, deleted_at FROM users WHERE id = $1`, [owner])).toEqual({
+      email: 'gele@example.test',
+      deleted_at: null,
+    });
+    // Gel signalé : écartée du lot jusqu'à la levée (elle ne retient pas les autres demandes).
+    expect(await dueAccountDeletions(worker, 500)).not.toContain(requestId);
+    expect(
+      await db.query(
+        `SELECT metadata->>'request_id' AS request FROM audit_log
+         WHERE action = 'account.deletion.frozen' AND target_id = $1`,
+        [owner],
+      ),
+    ).toEqual([{ request: requestId }]);
+    await db.query(`UPDATE users SET status = 'active' WHERE id = $1`, [owner]);
+    expect(await dueAccountDeletions(worker, 500)).toContain(requestId);
+    expect(await anonymizeAccount(worker, requestId)).toBe('done');
+  });
+
+  it('D4 : dossier KYC ouvert clos `expired`, export en cours en échec audité', async () => {
+    const owner = await user('ouvert@example.test');
+    const player = await one<{ id: string }>(
+      `INSERT INTO players (user_id, first_name, last_name, birth_date, nationality, country)
+       VALUES ($1, 'Ouvert', 'Ouvert', '1994-02-03', 'CM', 'CM') RETURNING id`,
+      [owner],
+    );
+    await db.query(
+      `INSERT INTO kyc_cases (player_id, level, status, checks, submitted_at)
+       VALUES ($1, 2, 'submitted', '[{"note": "Ouvertmarqueur"}]', now())`,
+      [player.id],
+    );
+    const exported = await one<{ id: string }>(
+      `INSERT INTO data_export_requests (user_id) VALUES ($1) RETURNING id::text`,
+      [owner],
+    );
+    const requestId = await accepted(owner);
+    await makeDue(requestId);
+    expect(await anonymizeAccount(worker, requestId)).toBe('done');
+    expect(
+      await db.query(`SELECT status::text, checks FROM kyc_cases WHERE player_id = $1`, [
+        player.id,
+      ]),
+    ).toEqual([{ status: 'expired', checks: [] }]);
+    // Plus jamais décidable : la garde KYC fige un dossier `expired`.
+    await expect(
+      db.query(
+        `UPDATE kyc_cases SET status = 'approved', decided_by = $2, decided_at = now(),
+           decision_reason = 'tentative' WHERE player_id = $1`,
+        [player.id, owner],
+      ),
+    ).rejects.toThrow();
+    expect(
+      await db.query(
+        `SELECT metadata->>'reason' AS reason FROM audit_log
+         WHERE action = 'data.export.failed' AND metadata->>'request_id' = $1`,
+        [exported.id],
+      ),
+    ).toEqual([{ reason: 'account_gone' }]);
+  });
+});

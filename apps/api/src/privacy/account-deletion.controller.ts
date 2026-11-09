@@ -24,6 +24,7 @@ import {
   type AccountDeletionStatusOutput,
 } from '@oz/contracts';
 import { CurrentUser } from '../auth/current-user.decorator.js';
+import { TwoFactorEnrollment } from '../auth/two-factor-exempt.decorator.js';
 import { Authenticated } from '../authorization/decorators.js';
 import { ApiErrorDto } from '../common/errors/api-error.dto.js';
 import { ValidatedBody } from '../common/validation/validated-body.decorator.js';
@@ -47,6 +48,9 @@ const tooMany = {
 @ApiBearerAuth()
 @ApiUnauthorizedResponse({ type: ApiErrorDto, description: 'Session absente, expirée ou révoquée' })
 @Authenticated()
+// Droits RGPD ouverts à une session restreinte (2FA obligatoire non activée, lot 1.16cba) :
+// la ré-authentification par mot de passe reste exigée pour la suppression.
+@TwoFactorEnrollment()
 @Controller('account/deletion')
 export class AccountDeletionController {
   constructor(private readonly deletions: AccountDeletionService) {}

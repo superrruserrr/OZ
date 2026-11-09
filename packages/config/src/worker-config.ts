@@ -3,7 +3,7 @@ import { columnKey, ConfigError, mailbox, origin, pemCert } from './api-config.j
 import { APP_ENVS } from './security-headers.js';
 
 // Configuration du worker (lots 1.9b, 1.9cb, 1.16a et 1.16bb) : base, Redis, stockage, ClamAV,
-// maintenance du coffre et du journal d'audit, export des données personnelles (clé de chiffrement
+// maintenance du coffre et du journal d'audit, export des données personnelles, suppression de compte (1.16cba) (clé de chiffrement
 // colonne, SMTP de l'email « archive prête »). Mêmes règles que l'API pour
 // les variables partagées (TLS épinglé en recette et en production, D-006). En recette et en
 // production, le worker se connecte sous son rôle dédié `oz_worker` (`WORKER_DATABASE_URL`, seul
@@ -106,6 +106,15 @@ const schema = z
     // consommée (local) ; sans SMTP, l'archive est produite sans email (local).
     DATABASE_ENCRYPTION_KEY: columnKey,
     DATA_EXPORT_EVERY_MINUTES: everyMinutes(5, '15'),
+    // Suppression de compte (lot 1.16cba) : anonymisation des demandes échues à cadence fixe.
+    // Toujours active en recette et en production (EX-118 n° 3).
+    ACCOUNT_DELETION_ENABLED: orDefault(
+      z
+        .enum(['true', 'false'])
+        .default('true')
+        .transform((value) => value === 'true'),
+    ),
+    ACCOUNT_DELETION_EVERY_MINUTES: everyMinutes(5, '60'),
     APP_URL: orDefault(origin.optional()),
     SMTP_HOST: orDefault(
       z
@@ -141,6 +150,9 @@ const schema = z
       }
       if (!env.AUDIT_MAINTENANCE_ENABLED) {
         required('AUDIT_MAINTENANCE_ENABLED', 'toujours actif en recette et en production');
+      }
+      if (!env.ACCOUNT_DELETION_ENABLED) {
+        required('ACCOUNT_DELETION_ENABLED', 'toujours actif en recette et en production');
       }
       if (env.AUDIT_ANCHOR_LOCK_DAYS < 30) {
         required('AUDIT_ANCHOR_LOCK_DAYS', '30 jours au moins en recette et en production');
@@ -241,6 +253,7 @@ export interface WorkerConfig {
     /** Cadence de l'expiration et du balayage des demandes. */
     readonly everyMinutes: number;
   };
+  readonly accountDeletion: { readonly enabled: boolean; readonly everyMinutes: number };
   /** Absent : aucun email (local). */
   readonly smtp:
     | {
@@ -297,6 +310,10 @@ export function loadWorkerConfig(env: Readonly<Record<string, string | undefined
     dataExport: Object.freeze({
       encryptionKey: value.DATABASE_ENCRYPTION_KEY,
       everyMinutes: value.DATA_EXPORT_EVERY_MINUTES,
+    }),
+    accountDeletion: Object.freeze({
+      enabled: value.ACCOUNT_DELETION_ENABLED,
+      everyMinutes: value.ACCOUNT_DELETION_EVERY_MINUTES,
     }),
     smtp:
       value.SMTP_HOST === undefined || value.EMAIL_FROM === undefined || value.APP_URL === undefined

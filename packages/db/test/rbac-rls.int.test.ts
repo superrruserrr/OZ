@@ -108,6 +108,8 @@ interface PlayerSpec {
   /** Tuteur qui a donné le consentement, s'il n'est plus le tuteur du joueur. */
   readonly consentBy?: { readonly id: string };
   readonly deleted?: boolean;
+  /** Suppression du compte titulaire en attente (lot 1.16cba) : la fiche disparaît pour les tiers. */
+  readonly deletionPending?: boolean;
 }
 
 const newPlayer = async (spec: PlayerSpec): Promise<void> => {
@@ -126,6 +128,13 @@ const newPlayer = async (spec: PlayerSpec): Promise<void> => {
       spec.deleted === true ? new Date() : null,
     ],
   );
+  if (spec.deletionPending === true) {
+    await db.query(
+      `INSERT INTO account_deletion_requests (user_id, scheduled_for)
+       VALUES ($1, now() + interval '30 days')`,
+      [spec.userId],
+    );
+  }
   if (spec.consent !== undefined && spec.guardian !== undefined) {
     const { id: consent } = await one<{ id: string }>(
       `INSERT INTO consents (type, text_version, player_id, granted_by_guardian_id, deleted_at)
@@ -155,6 +164,7 @@ const newPlayer = async (spec: PlayerSpec): Promise<void> => {
         spec.consent === 'active' &&
         spec.guardian?.verified === true &&
         (spec.consentBy === undefined || spec.consentBy.id === spec.guardian.id),
+      deletionPending: spec.deletionPending === true,
     },
   });
 };
@@ -306,6 +316,29 @@ beforeAll(async () => {
   };
 
   await newPlayer({ name: 'majeur vérifié', birth: birthDate(25) });
+  // Lot 1.16cba (D1) : titulaire en délai de rétractation, invisible des tiers.
+  await newPlayer({
+    name: 'majeur vérifié en suppression',
+    birth: birthDate(25),
+    userId: await newUser(),
+    deletionPending: true,
+  });
+  await newPlayer({
+    name: 'mineur publié en suppression',
+    birth: birthDate(15),
+    userId: await newUser(),
+    guardian: publisher,
+    consent: 'active',
+    deletionPending: true,
+  });
+  await newPlayer({
+    name: 'mineur rattaché club en suppression',
+    birth: birthDate(13),
+    status: 'declared',
+    userId: await newUser(),
+    organization: orgs.club,
+    deletionPending: true,
+  });
   await newPlayer({
     name: 'mineur tuteur de publication supprimé',
     birth: birthDate(14),
@@ -479,6 +512,29 @@ describe('RLS ⇔ CASL sur la grille acteurs × joueurs (D1)', () => {
 });
 
 describe('politiques de lecture par rôle (tâche 1)', () => {
+  it('suppression en attente (lot 1.16cba, D1) : invisible des tiers, lue par l’admin et rendue à l’annulation', async () => {
+    const pending = ['majeur vérifié en suppression', 'mineur publié en suppression'];
+    for (const who of ['joueur', 'club', 'fédération', 'centre', 'recruteur', 'sans rôle']) {
+      for (const row of pending) expect(await sees(who, row), `${who} → ${row}`).toBe(false);
+    }
+    expect(await sees('club', 'mineur rattaché club en suppression')).toBe(false);
+    for (const row of [...pending, 'mineur rattaché club en suppression']) {
+      expect(await sees('admin', row), row).toBe(true);
+    }
+    expect(await sees('fédération', 'majeur vérifié')).toBe(true);
+    await db.query(
+      `UPDATE account_deletion_requests SET status = 'cancelled', cancelled_at = now()
+       WHERE user_id = (SELECT user_id FROM players WHERE id = $1)`,
+      [fixture('majeur vérifié en suppression').id],
+    );
+    expect(await sees('fédération', 'majeur vérifié en suppression')).toBe(true);
+    await db.query(
+      `INSERT INTO account_deletion_requests (user_id, scheduled_for)
+       SELECT user_id, now() + interval '30 days' FROM players WHERE id = $1`,
+      [fixture('majeur vérifié en suppression').id],
+    );
+  });
+
   it('académie et club lisent leurs mineurs rattachés, pas ceux des autres', async () => {
     expect(await sees('académie', 'mineur rattaché académie')).toBe(true);
     expect(await sees('académie', 'mineur rattaché club')).toBe(false);

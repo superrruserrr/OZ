@@ -111,6 +111,7 @@ describe('playerRecord', () => {
       organizationId: null,
       testedByOrganizationIds: [],
       hasPublicationConsent: false,
+      deletionPending: false,
       checkedAt: expect.any(Date) as Date,
     });
   });

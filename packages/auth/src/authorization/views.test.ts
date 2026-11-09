@@ -20,6 +20,7 @@ const record = (overrides: Partial<PlayerRecord> = {}): PlayerRecord => ({
   organizationId: null,
   testedByOrganizationIds: [],
   hasPublicationConsent: false,
+  deletionPending: false,
   ...overrides,
 });
 const child = (overrides: Partial<PlayerRecord> = {}): PlayerRecord =>

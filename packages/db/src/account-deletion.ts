@@ -46,7 +46,7 @@ export async function requestAccountDeletion(
   throw new Error('suppression : réponse inattendue de oz_account_deletion_request');
 }
 
-/** Annulation pendant la rétractation, auditée ; faux sans demande en attente. */
+/** Annulation tant que la demande n'est pas exécutée (lot 1.16cba, D2), auditée ; faux sinon. */
 export async function cancelAccountDeletion(tx: TransactionClient): Promise<boolean> {
   const rows = await tx.$queryRaw<{ done: boolean }[]>`
     SELECT oz_account_deletion_cancel() AS done`;
@@ -82,8 +82,11 @@ export async function dueAccountDeletions(db: Queryable, limit: number): Promise
   return rows.map((row) => row.id);
 }
 
-/** `done`, `not_due` (rétractation en cours), statut en place (`cancelled`, `done`) ou `unknown`. */
-export type AccountAnonymizeOutcome = 'done' | 'not_due' | 'cancelled' | 'unknown';
+/**
+ * `done`, `not_due` (rétractation en cours), statut en place (`cancelled`, `done`), `unknown`, ou
+ * `frozen` : compte suspendu, rien modifié, demande en attente (lot 1.16cba, D3).
+ */
+export type AccountAnonymizeOutcome = 'done' | 'frozen' | 'not_due' | 'cancelled' | 'unknown';
 
 /** Anonymise le compte d'une demande échue (registre d'effacement), auditée `account.deletion.done`. */
 export async function anonymizeAccount(

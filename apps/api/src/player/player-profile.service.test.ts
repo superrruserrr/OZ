@@ -39,6 +39,7 @@ const profile = (access: Record<string, unknown> = {}, visibility = {}) => ({
     organizationId: null,
     testedByOrganizationIds: [],
     hasPublicationConsent: false,
+    deletionPending: false,
     checkedAt,
     ...access,
   },

@@ -44,6 +44,7 @@ const record: fc.Arbitrary<PlayerRecord> = fc.record({
   organizationId: fc.constantFrom(null, ...ORGS),
   testedByOrganizationIds: fc.subarray([...ORGS]),
   hasPublicationConsent: fc.boolean(),
+  deletionPending: fc.boolean(),
 });
 
 /** Donnée complète, colonnes internes comprises : rien de ce qui n'est pas dans la vue ne doit sortir. */

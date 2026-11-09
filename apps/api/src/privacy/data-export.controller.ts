@@ -25,6 +25,7 @@ import {
   type DataExportStatusOutput,
 } from '@oz/contracts';
 import { CurrentUser } from '../auth/current-user.decorator.js';
+import { TwoFactorEnrollment } from '../auth/two-factor-exempt.decorator.js';
 import { Authenticated } from '../authorization/decorators.js';
 import { ApiErrorDto } from '../common/errors/api-error.dto.js';
 import { ValidatedBody } from '../common/validation/validated-body.decorator.js';
@@ -44,6 +45,9 @@ const retryAfter = {
 @ApiBearerAuth()
 @ApiUnauthorizedResponse({ type: ApiErrorDto, description: 'Session absente, expirée ou révoquée' })
 @Authenticated()
+// Droit d'accès RGPD ouvert à une session restreinte (2FA obligatoire non activée, lot 1.16cba) :
+// la demande exige toujours le mot de passe ; le téléchargement suit (risque accepté, auth.md).
+@TwoFactorEnrollment()
 @Controller('account/data-export')
 export class DataExportController {
   constructor(private readonly exports: DataExportService) {}

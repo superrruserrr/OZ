@@ -39,6 +39,11 @@ export interface PlayerRecord {
   readonly testedByOrganizationIds: readonly string[];
   /** Consentement de publication horodaté d'un tuteur vérifié en KYC 2 (EX-T16 n° 3). */
   readonly hasPublicationConsent: boolean;
+  /**
+   * Suppression du compte titulaire en attente (lot 1.16cba, D1) : la fiche est invisible des tiers
+   * pendant le délai de rétractation ; le titulaire, son tuteur et l'administrateur la lisent.
+   */
+  readonly deletionPending: boolean;
 }
 
 export type PlayerSubject = Omit<
@@ -89,7 +94,9 @@ type Rules = (builder: Builder, actor: Actor, organizationIds: readonly string[]
 
 const inOrganizations = (ids: readonly string[]): { readonly $in: string[] } => ({ $in: [...ids] });
 
-const PUBLIC_PROFILE = { isMinor: false, isVerified: true };
+/** Lecture par un tiers : jamais une fiche dont le titulaire a demandé la suppression (D1). */
+const LISTED = { deletionPending: false } as const;
+const PUBLIC_PROFILE = { isMinor: false, isVerified: true, ...LISTED };
 const PERSON_DOCUMENT = { documentType: { $in: [...PERSON_DOCUMENT_TYPES] } };
 /** Qui dépose une pièce peut la relire, une fois saine (lot 1.9ca, décision du 2026-11-02). */
 const DOCUMENT_ACTIONS: ('document.upload' | 'document.read')[] = [
@@ -105,7 +112,7 @@ function organizationDocumentRules({ can }: Builder, ids: readonly string[]): vo
     documentType: { $in: [...ORGANIZATION_DOCUMENT_TYPES] },
   });
 }
-const PUBLISHED_MINOR = { isMinor: true, isPublished: true };
+const PUBLISHED_MINOR = { isMinor: true, isPublished: true, ...LISTED };
 
 function attachedRules(builder: Builder, ids: readonly string[]): void {
   const { can } = builder;
@@ -149,7 +156,11 @@ const RULES: Readonly<Record<RbacRole, Rules>> = {
     can('player.read_public', 'Player', PUBLIC_PROFILE);
     can('player.search', 'PlayerSearch').because(LIMITED);
     can('player.read_minor', 'Player', PUBLISHED_MINOR).because(LIMITED);
-    can('player.read_minor', 'Player', { isMinor: true, organizationId: inOrganizations(ids) });
+    can('player.read_minor', 'Player', {
+      isMinor: true,
+      organizationId: inOrganizations(ids),
+      ...LISTED,
+    });
     can('list.manage', 'Shortlist');
   },
   club(builder, _actor, ids) {
@@ -158,7 +169,11 @@ const RULES: Readonly<Record<RbacRole, Rules>> = {
     can('player.read_public', 'Player', PUBLIC_PROFILE);
     can('player.search', 'PlayerSearch');
     can('player.read_minor', 'Player', PUBLISHED_MINOR);
-    can('player.read_minor', 'Player', { isMinor: true, organizationId: inOrganizations(ids) });
+    can('player.read_minor', 'Player', {
+      isMinor: true,
+      organizationId: inOrganizations(ids),
+      ...LISTED,
+    });
     can('list.manage', 'Shortlist');
   },
   federation(builder, _actor, ids) {

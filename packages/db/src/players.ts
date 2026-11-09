@@ -15,6 +15,8 @@ export interface PlayerAccessRecord {
   /** Aucune table de résultats de tests avant son lot (D8 du lot 1.4b). */
   readonly testedByOrganizationIds: readonly string[];
   readonly hasPublicationConsent: boolean;
+  /** Suppression du compte titulaire en attente (lot 1.16cba) : fiche invisible des tiers. */
+  readonly deletionPending: boolean;
   /**
    * Instant de la base (`now()`) auquel la RLS a jugé la ligne : à passer à `playerSubject` pour que
    * CASL décide de la minorité au même instant (D3), jamais l'horloge de l'API.
@@ -39,6 +41,7 @@ export async function playerRecord(
       guardian_user_id: string | null;
       organization_id: string | null;
       published: boolean;
+      deletion_pending: boolean;
       checked_at: Date;
     }[]
   >`
@@ -50,6 +53,7 @@ export async function playerRecord(
       THEN oz_current_user_id()::text END AS guardian_user_id,
       p.organization_id::text,
       oz_player_published(p.id, p.guardian_id, p.verification_status) AS published,
+      oz_account_deletion_pending(p.user_id) AS deletion_pending,
       now() AS checked_at
     FROM players p
     WHERE p.id = ${playerId}::uuid AND p.deleted_at IS NULL`;
@@ -63,6 +67,7 @@ export async function playerRecord(
     organizationId: row.organization_id,
     testedByOrganizationIds: [],
     hasPublicationConsent: row.published,
+    deletionPending: row.deletion_pending,
     checkedAt: row.checked_at,
   };
 }
@@ -137,6 +142,7 @@ export async function playerProfileByOzId(
       guardian_user_id: string | null;
       organization_id: string | null;
       published: boolean;
+      deletion_pending: boolean;
       kyc_level: number;
       visibility: unknown;
       checked_at: Date;
@@ -154,6 +160,7 @@ export async function playerProfileByOzId(
       p.organization_id::text,
       oz_player_published(p.id, p.guardian_id, p.verification_status) AS published,
       oz_player_kyc_level(p.id) AS kyc_level,
+      oz_account_deletion_pending(p.user_id) AS deletion_pending,
       p.visibility,
       now() AS checked_at
     FROM players p
@@ -171,6 +178,7 @@ export async function playerProfileByOzId(
       organizationId: row.organization_id,
       testedByOrganizationIds: [],
       hasPublicationConsent: row.published,
+      deletionPending: row.deletion_pending,
       checkedAt: row.checked_at,
     },
     data: {
