@@ -9,6 +9,7 @@ import type { TwoFactorService } from '../auth/two-factor.service.js';
 import type { RateLimiter } from '../common/rate-limit/rate-limiter.service.js';
 import { DataExportService } from './data-export.service.js';
 import type { ExportQueue } from './export-queue.js';
+import { Reauthentication } from './reauthentication.js';
 
 // Export des données (lots 1.16ba et 1.16bb) : ré-authentification, refus de la base, limites,
 // alerte, mise en file, téléchargement.
@@ -39,8 +40,11 @@ const sendDataExportRequested = vi.fn();
 const sent: Promise<void>[] = [];
 const service = new DataExportService(
   {} as PrismaClient,
-  { verify } as unknown as CredentialsService,
-  { state, checkSecondFactor } as unknown as TwoFactorService,
+  new Reauthentication(
+    {} as PrismaClient,
+    { verify } as unknown as CredentialsService,
+    { state, checkSecondFactor } as unknown as TwoFactorService,
+  ),
   { consume } as unknown as RateLimiter,
   { sendDataExportRequested } as unknown as AuthMailer,
   {

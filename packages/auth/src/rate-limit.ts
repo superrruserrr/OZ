@@ -32,6 +32,7 @@ export const RATE_LIMIT_RULES = [
   'player_visibility_update_account',
   'data_export_request_account',
   'data_export_download_account',
+  'account_deletion_account',
 ] as const;
 
 export type RateLimitRule = (typeof RATE_LIMIT_RULES)[number];
@@ -85,6 +86,8 @@ export const RATE_LIMIT_DEFAULTS: RateLimits = Object.freeze({
   data_export_request_account: { limit: 10, windowSeconds: HOUR },
   // Délivrance de l'URL de l'archive (lot 1.16bb) : URL de 5 minutes, auditée à chaque fois.
   data_export_download_account: { limit: 30, windowSeconds: HOUR },
+  // Suppression du compte (lot 1.16ca) : demande ré-authentifiée et annulation, quelques essais.
+  account_deletion_account: { limit: 10, windowSeconds: HOUR },
 });
 
 // Borne la taille d'un journal dans Redis (un membre par passage accepté).

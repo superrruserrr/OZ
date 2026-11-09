@@ -26,7 +26,7 @@ RUN pnpm exec turbo run build --filter=@oz/worker \
  && rm -rf /out/src /out/test /out/.turbo /out/*.md /out/tsconfig*.json /out/vitest.config.ts
 
 # distroless nodejs24, Debian 13, utilisateur nonroot
-FROM gcr.io/distroless/nodejs24-debian13@sha256:03980f6fd2a3245fa06e371c36fd33528ebbc676a1d0f84e3e21d95cd291b807 AS runtime
+FROM gcr.io/distroless/nodejs24-debian13@sha256:b770c59f44ed459329508a73794e6d284f6c10143f83c8012a8f775cd514eca2 AS runtime
 ENV NODE_ENV=production
 # L'image nonroot s'exécute déjà en 65532 : root le temps de préparer /app (propriété de root).
 USER 0:0

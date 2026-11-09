@@ -198,6 +198,34 @@ export function dataExportRequestedEmail(when: Date, resetUrl: string): MailCont
   };
 }
 
+// Suppression du compte (lot 1.16ca, D1) : date d'effet ; se reconnecter suffit pour annuler.
+export function accountDeletionScheduledEmail(scheduledFor: Date, resetUrl: string): MailContent {
+  return {
+    subject: 'Suppression de votre compte OZ programmée',
+    ...layout(
+      [
+        `La suppression de votre compte OZ a été demandée. Vos sessions ont été fermées et vos données seront anonymisées le ${formatWhen(scheduledFor)}.`,
+        "Jusqu'à cette date, vous pouvez vous reconnecter pour annuler la suppression ou exporter vos données.",
+        "Si vous n'êtes pas à l'origine de cette demande, reconnectez-vous pour l'annuler, changez votre mot de passe et contactez le support OZ.",
+      ],
+      { label: 'Changer mon mot de passe', href: resetUrl },
+    ),
+  };
+}
+
+export function accountDeletionCancelledEmail(when: Date, resetUrl: string): MailContent {
+  return {
+    subject: 'Suppression de votre compte OZ annulée',
+    ...layout(
+      [
+        `La suppression de votre compte OZ a été annulée le ${formatWhen(when)}. Votre compte reste actif.`,
+        "Si vous n'êtes pas à l'origine de cette annulation, changez votre mot de passe et contactez le support OZ.",
+      ],
+      { label: 'Changer mon mot de passe', href: resetUrl },
+    ),
+  };
+}
+
 export function recoveryCodeUsedEmail(when: Date, resetUrl: string): MailContent {
   return {
     subject: 'Code de secours utilisé sur votre compte OZ',

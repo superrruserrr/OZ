@@ -371,6 +371,17 @@ export const EXPORT_REGISTRY: ExportRegistry = {
     failure_reason: INTERNAL,
     updated_at: INTERNAL,
   },
+  // Lot 1.16ca : la demande en cours est suivie par `GET /account/deletion`.
+  account_deletion_requests: {
+    id: INTERNAL,
+    user_id: LINK,
+    status: INTERNAL,
+    requested_at: INTERNAL,
+    scheduled_for: INTERNAL,
+    cancelled_at: INTERNAL,
+    completed_at: INTERNAL,
+    updated_at: INTERNAL,
+  },
 };
 
 /** Champs attendus dans chaque section du JSON : colonnes exportées et champs calculés. */

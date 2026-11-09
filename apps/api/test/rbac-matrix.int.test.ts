@@ -115,9 +115,11 @@ const call = (method: string, path: string, token?: string) => {
   return token === undefined ? pending : pending.set('Authorization', `Bearer ${token}`);
 };
 
-/** Routes sans paramètre dont le 404 dit « aucune ressource » (lot 1.16bb : aucune archive prête). */
+/** Routes sans paramètre dont le 404 dit « aucune ressource » (aucune archive prête, 1.16bb ; aucune
+ * suppression programmée, 1.16ca). */
 const MOUNTED_NOT_FOUND: Readonly<Record<string, string>> = {
   'GET /account/data-export/download': 'DATA_EXPORT_NOT_FOUND',
+  'DELETE /account/deletion': 'ACCOUNT_DELETION_NOT_FOUND',
 };
 
 const errorCode = (response: { body: unknown }): string | undefined =>

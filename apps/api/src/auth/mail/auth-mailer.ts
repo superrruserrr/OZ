@@ -20,6 +20,10 @@ export interface AuthMailer {
   sendPhoneChanged(to: string, when: Date): Promise<void>;
   /** Export des données demandé (lot 1.16ba) : alerte au titulaire, jamais le contenu. */
   sendDataExportRequested(to: string, when: Date): Promise<void>;
+  /** Suppression du compte programmée (lot 1.16ca) : date d'effet et moyen d'annuler. */
+  sendAccountDeletionScheduled(to: string, scheduledFor: Date): Promise<void>;
+  /** Suppression du compte annulée (lot 1.16ca). */
+  sendAccountDeletionCancelled(to: string, when: Date): Promise<void>;
 }
 
 export const AUTH_MAILER = Symbol('AUTH_MAILER');

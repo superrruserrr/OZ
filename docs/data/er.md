@@ -6,6 +6,16 @@ Les partitions mensuelles de `audit_log` ne sont pas représentées.
 
 ```mermaid
 erDiagram
+  account_deletion_requests {
+    uuid id PK
+    uuid user_id FK
+    text status
+    timestamptz requested_at
+    timestamptz scheduled_for
+    timestamptz cancelled_at
+    timestamptz completed_at
+    timestamptz updated_at
+  }
   audit_chain_checks {
     uuid id PK
     timestamptz checked_at
@@ -330,6 +340,7 @@ erDiagram
     bytea phone_encrypted
     bytea phone_hmac
   }
+  account_deletion_requests }o--|| users : "user_id"
   audit_log }o--o| users : "actor_user_id"
   auth_recovery_codes }o--|| users : "user_id"
   auth_tokens }o--|| users : "user_id"

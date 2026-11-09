@@ -71,6 +71,8 @@ Aucune action ne permet de modifier son rôle, son niveau KYC ou son statut (CP-
 
 Export des données personnelles (lot 1.16ba, EX-118 n° 2) : toute personne exporte ses propres données, qu'elle tienne un rôle ou non ; les routes `/account/data-export` sont donc `authenticated` et non une action de la matrice, le titulaire venant de la session. La demande exige le mot de passe, plus le code TOTP ou de secours si la 2FA est active ; la base l'enregistre par `oz_data_export_request` (une à la fois, une par 24 heures) et l'audite (`data.export.requested`). L'assemblage (`oz_personal_data_export`) n'est exécutable que par `oz_worker`. Lot 1.16bb : l'archive prête est servie par `GET /account/data-export/download` (URL signée de 5 minutes de sa seule archive, auditée `data.export.downloaded` par `oz_data_export_download`). Détail : `docs/security/data-export.md`.
 
+Suppression du compte (lot 1.16ca, EX-118 n° 3) : toute personne supprime son propre compte ; les routes `/account/deletion` sont `authenticated`, le titulaire venant de la session. La demande exige la même ré-authentification que l'export ; la base l'enregistre par `oz_account_deletion_request` (une en attente au plus), révoque toutes les sessions et l'audite (`account.deletion.requested`). Le titulaire peut se reconnecter pendant 30 jours pour suivre ou annuler (`oz_account_deletion_cancel`, `account.deletion.cancelled`). L'anonymisation (`oz_account_anonymize`) n'est exécutable que par `oz_worker`. Détail : `docs/security/account-deletion.md`.
+
 ## RLS de lecture des joueurs (lot 1.4b)
 
 Pour un tiers, la base ne rend une ligne de `players` que si CASL en permet la lecture (`profile.read`, `player.read_public` ou `player.read_minor`) au même instant ; seule `players_owner` (titulaire et tuteur déclaré) reste plus large, jusqu'au lot 1.7 (D-089). `playerRecord` rend l'instant de la base (`checkedAt`), à passer à `playerSubject`. L'équivalence est prouvée sur une grille acteurs × joueurs par `packages/db/test/rbac-rls.int.test.ts`, y compris sous un propriétaire de fonctions soumis à la RLS (recette, production).
@@ -143,3 +145,6 @@ Les pages `/docs`, `/docs-json` et `/docs-yaml` (Swagger) sont servies hors cont
 | POST    | /account/data-export           | authenticated            |
 | GET     | /account/data-export           | authenticated            |
 | GET     | /account/data-export/download  | authenticated            |
+| POST    | /account/deletion              | authenticated            |
+| GET     | /account/deletion              | authenticated            |
+| DELETE  | /account/deletion              | authenticated            |

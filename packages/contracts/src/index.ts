@@ -109,3 +109,11 @@ export {
   type DataExportRequestInput,
   type DataExportStatusOutput,
 } from './privacy/data-export.schema.js';
+export {
+  accountDeletionOutputSchema,
+  accountDeletionRequestInputSchema,
+  accountDeletionStatusOutputSchema,
+  type AccountDeletionOutput,
+  type AccountDeletionRequestInput,
+  type AccountDeletionStatusOutput,
+} from './privacy/account-deletion.schema.js';

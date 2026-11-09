@@ -134,15 +134,16 @@ model User {
   updatedAt                  DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
   deletedAt                  DateTime?  @map("deleted_at") @db.Timestamptz(6)
 
-  roles             UserRole[]         @relation("UserRoleUser")
+  roles             UserRole[]               @relation("UserRoleUser")
   sessions          Session[]
   authTokens        AuthToken[]
   authRecoveryCodes AuthRecoveryCode[]
-  player            Player?            @relation("PlayerUser")
-  guardians         Guardian[]         @relation("GuardianUser")
-  consents          Consent[]          @relation("ConsentGrantedByUser")
+  player            Player?                  @relation("PlayerUser")
+  guardians         Guardian[]               @relation("GuardianUser")
+  consents          Consent[]                @relation("ConsentGrantedByUser")
   auditTrail        AuditLog[]
   dataExports       DataExportRequest[]
+  deletions         AccountDeletionRequest[]
 
   rolesCreated         UserRole[]     @relation("UserRoleCreatedBy")
   rolesUpdated         UserRole[]     @relation("UserRoleUpdatedBy")
@@ -631,6 +632,23 @@ model DataExportRequest {
   @@index([userId, requestedAt])
   @@index([status])
   @@map("data_export_requests")
+}
+
+/// Demande de suppression du compte (lot 1.16ca) : anonymisation à `scheduledFor` sauf annulation.
+model AccountDeletionRequest {
+  id           String    @id @default(dbgenerated("oz_uuid_v7()")) @db.Uuid
+  userId       String    @map("user_id") @db.Uuid
+  /// pending, cancelled ou done (contrainte en SQL).
+  status       String    @default("pending")
+  requestedAt  DateTime  @default(now()) @map("requested_at") @db.Timestamptz(6)
+  scheduledFor DateTime  @map("scheduled_for") @db.Timestamptz(6)
+  cancelledAt  DateTime? @map("cancelled_at") @db.Timestamptz(6)
+  completedAt  DateTime? @map("completed_at") @db.Timestamptz(6)
+  updatedAt    DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@map("account_deletion_requests")
 }
 
 /// Dossier de vérification d'un joueur ou d'une organisation (§5.4) ; quatre yeux si sensible (CP-16).
