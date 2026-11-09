@@ -29,6 +29,7 @@ export const RATE_LIMIT_RULES = [
   'document_read_account',
   'audit_log_read_account',
   'player_profile_read_account',
+  'player_document_account',
   'player_visibility_update_account',
   'data_export_request_account',
   'data_export_download_account',
@@ -80,6 +81,8 @@ export const RATE_LIMIT_DEFAULTS: RateLimits = Object.freeze({
   audit_log_read_account: { limit: 600, windowSeconds: HOUR },
   // Fiche joueur (lot 1.13a) : une recherche en ouvre des dizaines, un aspirateur des milliers.
   player_profile_read_account: { limit: 300, windowSeconds: HOUR },
+  // Lot 1.13b : QR, carte OZ ID et export PDF de la fiche (anti-aspiration, plan R8).
+  player_document_account: { limit: 20, windowSeconds: HOUR },
   // Réglage de visibilité (lot 1.13a) : quelques changements, jamais une rafale.
   player_visibility_update_account: { limit: 30, windowSeconds: HOUR },
   // Demande d'export (lot 1.16ba) : ré-authentification par mot de passe, quelques essais seulement.

@@ -640,7 +640,7 @@ Le marché de lancement est le **Cameroun**, avec une expansion prévue vers l'A
 14. UN guide utilisateur académie DOIT être rédigé (`docs/guides/academy.md`).
 
 ### EX-115 — Profil joueur et visibilité
-**Source :** lot 1.13 · **Priorité :** P0 · **Statut :** En cours (lot 1.13a : n° 1 à 3 et 6 côté API ; n° 4 et 5 au lot 1.13b ; écrans au lot 1.13c)
+**Source :** lot 1.13 · **Priorité :** P0 · **Statut :** En cours (lot 1.13a : n° 1 à 3 et 6 côté API ; lot 1.13b : n° 4 et 5 côté API, QR SVG et export PDF filigrané par vue ; écrans au lot 1.13c)
 
 1. LA fiche joueur DOIT être complète et sérialisée différemment selon le rôle du consultant (EX-104).
 2. LES badges de vérification DOIVENT être lisibles d'un coup d'œil et distinguer KYC 1, KYC 2 et KYC 3.
@@ -678,7 +678,7 @@ Le marché de lancement est le **Cameroun**, avec une expansion prévue vers l'A
 4. LE registre des traitements DOIT être rédigé (`docs/security/gdpr-register.md`).
 
 ### EX-119 — Carte OZ ID imprimable avec QR (proposition P1)
-**Source :** §14 P1, D-K08 · **Priorité :** P1 · **Statut :** Validé au kickoff
+**Source :** §14 P1, D-K08 · **Priorité :** P1 · **Statut :** En cours (lot 1.13b : n° 1, 2 sans photo et 4 côté API ; photo D-123 ; n° 3, page du QR pour un lecteur non autorisé, au lot 1.13c)
 
 **Récit :** En tant que joueur, je veux une carte imprimable avec mon OZ ID et un QR, afin de la montrer lors d'une détection.
 

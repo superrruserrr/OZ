@@ -1,7 +1,7 @@
 # OZ — Où en est le projet ?
 
 > Check-list tenue à jour à la fin de chaque étape, à transmettre telle quelle à Fabrice Olinga.
-> **Dernière mise à jour : 9 novembre 2026** — étape : 1.16cbb suppression par le tuteur et registre des traitements (étape 1.16 terminée).
+> **Dernière mise à jour : 9 novembre 2026** — étape : 1.13b QR du profil, carte OZ ID et fiche PDF filigranée.
 
 Légende : ✅ fait et vérifié · 🟡 en cours · ⬜ à faire · ⏸️ bloqué en attente d'une décision
 
@@ -47,21 +47,21 @@ la vérification d'identité, qui attend deux décisions (§ « Ce qui bloque »
 | 1.10b Vérification des recruteurs et organisations       | ⏸️   | Attend Q2 et l'étape 1.10                                             |
 | 1.11 Back-office d'administration                        | ⬜   | Après 1.10                                                            |
 | 1.12 Import de joueurs en masse                          | ⬜   | Après 1.7                                                             |
-| 1.13 Profil joueur public                                | 🟡   | 1.13a fait : fiche par rôle côté serveur ; restent QR, PDF et écrans  |
+| 1.13 Profil joueur public                                | 🟡   | 1.13a et 1.13b faits (fiche, QR, carte, PDF) ; restent les écrans     |
 | 1.14 Recherche                                           | ⬜   | Après 1.13 ; quotas selon Q8                                          |
 | 1.15 Notifications et emails                             | ⬜   | Après 1.7                                                             |
 | 1.16 Journal et conformité données (RGPD)                | ✅   | Journal, export, suppression (aussi par le tuteur), registre RGPD     |
 | 1.17 Tests de charge et recette                          | ⬜   | Fin de phase                                                          |
 | 1.18 Mise en production                                  | ⬜   | Fin de phase                                                          |
 
-**Bilan Phase 1 : 6 étapes sur 20 terminées, 1 en cours (1.13 : 1 partie sur 3).**
+**Bilan Phase 1 : 6 étapes sur 20 terminées, 1 en cours (1.13 : 2 parties sur 3).**
 
 ### Étape 1.13 en détail
 
 | Partie                                 | État | Ce que ça veut dire pour le produit                                                                 |
 | -------------------------------------- | ---- | --------------------------------------------------------------------------------------------------- |
 | 1.13a Fiche joueur et visibilité (API) | ✅   | Chacun reçoit seulement ce que son rôle permet ; badge de vérification ; le joueur masque des blocs |
-| 1.13b QR code et export PDF            | ⬜   | Carte OZ ID avec QR et fiche PDF filigranée                                                         |
+| 1.13b QR code et export PDF            | ✅   | Carte OZ ID avec QR (sans photo pour l'instant) ; fiche PDF filigranée au nom de qui la télécharge  |
 | 1.13c Écrans de la fiche               | ⏸️   | Attend la charte complète (1.5)                                                                     |
 
 ### Étape 1.16 en détail
@@ -91,6 +91,7 @@ la vérification d'identité, qui attend deux décisions (§ « Ce qui bloque »
 | Q19 | Nom du produit : « OZ FOOTBALL ID » ou « OZ FOOTBALL OS » ?                                                                                                                      | 1.5            |
 | Q20 | Quelle société encaisse et facture (Québec, Cameroun, autre) ?                                                                                                                   | 1.6, paiements |
 | Q21 | Suppression de compte : 30 jours pour changer d'avis (fiche cachée), compte suspendu gelé, puis anonymisation ; par le tuteur pour un mineur, annulée à sa majorité (D1 à D15) ? | À confirmer    |
+| Q22 | Fiche en PDF : tout lecteur autorisé télécharge sa vue, filigranée à son nom ; carte OZ ID sans photo pour l'instant (D1 à D4 du lot 1.13b) ?                                    | À confirmer    |
 
 ### De Gaëtan (et du juriste)
 
@@ -121,3 +122,4 @@ la vérification d'identité, qui attend deux décisions (§ « Ce qui bloque »
 | 2026-11-03 | 1.16ca Suppression de compte (1.16 en cours)               |
 | 2026-11-09 | 1.16cba Suppression exécutée à l'échéance (1.16 en cours)  |
 | 2026-11-09 | 1.16cbb Suppression par le tuteur, registre RGPD (1.16 ✅) |
+| 2026-11-09 | 1.13b QR, carte OZ ID et fiche PDF (1.13 en cours)         |

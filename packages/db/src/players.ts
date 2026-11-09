@@ -245,3 +245,21 @@ export async function recordPlayerProfileView(
     VALUES (${actorUserId}::uuid, 'player.profile.viewed', 'player', ${playerId}::uuid,
       'Fiche consultée', jsonb_build_object('view', ${view}::text))`;
 }
+
+/** Document de la fiche délivré (lot 1.13b) : carte OZ ID ou export PDF filigrané. */
+export type PlayerDocumentAction = 'player.card.issued' | 'player.profile.exported';
+
+/** Audit d'un document de la fiche, dans la transaction et avant la réponse : sans audit, rien. */
+export async function recordPlayerDocument(
+  tx: TransactionClient,
+  actorUserId: string,
+  playerId: string,
+  action: PlayerDocumentAction,
+  view: string,
+): Promise<void> {
+  const reason = action === 'player.card.issued' ? 'Carte OZ ID éditée' : 'Fiche exportée en PDF';
+  await tx.$executeRaw`
+    INSERT INTO audit_log (actor_user_id, action, target_type, target_id, reason, metadata)
+    VALUES (${actorUserId}::uuid, ${action}, 'player', ${playerId}::uuid, ${reason},
+      jsonb_build_object('view', ${view}::text))`;
+}
