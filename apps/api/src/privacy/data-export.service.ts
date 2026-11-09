@@ -6,7 +6,6 @@ import type {
   DataExportStatusOutput,
 } from '@oz/contracts';
 import {
-  accountEmail,
   dataExportDownloadKey,
   latestDataExport,
   requestDataExport,
@@ -19,13 +18,12 @@ import { AppException } from '../common/errors/api-error.js';
 import { RateLimitedException } from '../common/rate-limit/rate-limited.exception.js';
 import { RateLimiter } from '../common/rate-limit/rate-limiter.service.js';
 import { DB_CLIENT } from '../database/database.module.js';
-import { CredentialsService } from '../auth/credentials.service.js';
-import { RetryLaterException, UNAUTHENTICATED } from '../auth/errors.js';
+import { UNAUTHENTICATED } from '../auth/errors.js';
 import { AUTH_MAILER, type AuthMailer } from '../auth/mail/auth-mailer.js';
 import { MailDispatcher } from '../auth/mail/mail-dispatcher.js';
-import { TwoFactorService } from '../auth/two-factor.service.js';
 import { ExportQueue } from './export-queue.js';
 import { EXPORT_STORAGE } from './privacy.tokens.js';
+import { Reauthentication } from './reauthentication.js';
 
 /** Délai entre deux demandes acceptées (D3), le même qu'en base (`oz_data_export_request`). */
 const REQUEST_INTERVAL_MS = 24 * 60 * 60 * 1000;
@@ -43,7 +41,8 @@ class DataExportTooSoonException extends AppException {
 }
 
 /**
- * Export des données personnelles (lot 1.16ba, EX-118 n° 2) : demande ré-authentifiée (D2), une à
+ * Export des données personnelles (lot 1.16ba, EX-118 n° 2) : demande ré-authentifiée (D2,
+ * `Reauthentication`), une à
  * la fois et au plus une par 24 heures (D3), décidée et auditée par la base ; l'archive est produite
  * par le worker (lot 1.16bb). Ni mot de passe ni code ne sont journalisés.
  */
@@ -51,8 +50,7 @@ class DataExportTooSoonException extends AppException {
 export class DataExportService {
   constructor(
     @Inject(DB_CLIENT) private readonly db: PrismaClient,
-    private readonly credentials: CredentialsService,
-    private readonly twoFactor: TwoFactorService,
+    private readonly reauthentication: Reauthentication,
     private readonly limiter: RateLimiter,
     @Inject(AUTH_MAILER) private readonly mailer: AuthMailer,
     private readonly mail: MailDispatcher,
@@ -64,7 +62,7 @@ export class DataExportService {
   async request(userId: string, input: DataExportRequestInput): Promise<DataExportOutput> {
     const decision = await this.limiter.consume('data_export_request_account', userId);
     if (!decision.allowed) throw new RateLimitedException(decision.retryAfterSeconds);
-    await this.reauthenticate(userId, input);
+    await this.reauthentication.verify(userId, input, REJECTED);
 
     const outcome = await withUserContext(this.db, userId, (tx) => requestDataExport(tx));
     switch (outcome.outcome) {
@@ -143,25 +141,7 @@ export class DataExportService {
     return { url: signed.url, expiresAt: signed.expiresAt.toISOString() };
   }
 
-  /**
-   * Mot de passe sous le délai exponentiel partagé avec la connexion, puis second facteur si la 2FA
-   * est active (D2), comme `POST /auth/2fa/disable` : un code n'est consommé qu'après un mot de
-   * passe juste (une faute de frappe ne coûte pas un code de secours). Oracle résiduel : D-114.
-   */
-  private async reauthenticate(userId: string, input: DataExportRequestInput): Promise<void> {
-    const email = await this.emailOf(userId);
-    if (email === null) throw UNAUTHENTICATED();
-    const verdict = await this.credentials.verify(email, input.password);
-    if (verdict.result === 'retry_later') throw new RetryLaterException(verdict.retryAfterSeconds);
-    if (verdict.result !== 'ok') throw REJECTED();
-    const state = await this.twoFactor.state(userId);
-    if (state === null) throw UNAUTHENTICATED();
-    if (state.secret === null) return;
-    if (input.code === undefined) throw REJECTED();
-    if (!(await this.twoFactor.checkSecondFactor(userId, state, input.code))) throw REJECTED();
-  }
-
   private emailOf(userId: string): Promise<string | null> {
-    return withUserContext(this.db, userId, (tx) => accountEmail(tx));
+    return this.reauthentication.emailOf(userId);
   }
 }

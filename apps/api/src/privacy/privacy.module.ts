@@ -10,10 +10,13 @@ import { DocumentStorage } from '@oz/storage';
 import { RateLimitModule } from '../common/rate-limit/rate-limit.module.js';
 import { API_CONFIG } from '../config/config.module.js';
 import { DatabaseModule } from '../database/database.module.js';
+import { AccountDeletionController } from './account-deletion.controller.js';
+import { AccountDeletionService } from './account-deletion.service.js';
 import { DataExportController } from './data-export.controller.js';
 import { DataExportService } from './data-export.service.js';
 import { ExportQueue } from './export-queue.js';
 import { EXPORT_STORAGE } from './privacy.tokens.js';
+import { Reauthentication } from './reauthentication.js';
 
 /** Ferme le client S3 à l'arrêt de l'application. */
 @Injectable()
@@ -26,7 +29,7 @@ class StorageLifecycle implements OnModuleDestroy {
 }
 
 /**
- * Droits de la personne sur ses données (lots 1.16ba et 1.16bb) : monté avec l'authentification.
+ * Droits de la personne sur ses données (lots 1.16ba, 1.16bb et 1.16ca : export, suppression) : monté avec l'authentification.
  * Les archives sont produites par le worker (file `data-export`) et servies par URL signée.
  */
 @Module({})
@@ -35,9 +38,11 @@ export class PrivacyModule {
     return {
       module: PrivacyModule,
       imports: [DatabaseModule, RateLimitModule.forRoot(hmacKey)],
-      controllers: [DataExportController],
+      controllers: [DataExportController, AccountDeletionController],
       providers: [
         DataExportService,
+        AccountDeletionService,
+        Reauthentication,
         ExportQueue,
         StorageLifecycle,
         {

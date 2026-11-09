@@ -127,3 +127,19 @@ export {
   type DataExportTransition,
   type DueDataExport,
 } from './data-export-lifecycle.js';
+export {
+  anonymizeAccount,
+  cancelAccountDeletion,
+  dueAccountDeletions,
+  pendingAccountDeletion,
+  requestAccountDeletion,
+  type AccountAnonymizeOutcome,
+  type AccountDeletionRequestOutcome,
+  type PendingAccountDeletion,
+} from './account-deletion.js';
+export {
+  ERASURE_REGISTRY,
+  erasedColumns,
+  erasureInventory,
+  type ErasureAction,
+} from './erasure/registry.js';

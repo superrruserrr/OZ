@@ -13,6 +13,8 @@ import {
   sessionReuseAlertEmail,
   phoneChangedEmail,
   twoFactorDisabledEmail,
+  accountDeletionCancelledEmail,
+  accountDeletionScheduledEmail,
   dataExportRequestedEmail,
   twoFactorEnabledEmail,
   verificationEmail,
@@ -100,6 +102,14 @@ export class SmtpAuthMailer implements AuthMailer, OnApplicationShutdown {
 
   sendDataExportRequested(to: string, when: Date): Promise<void> {
     return this.send(to, dataExportRequestedEmail(when, this.resetUrl()));
+  }
+
+  sendAccountDeletionScheduled(to: string, scheduledFor: Date): Promise<void> {
+    return this.send(to, accountDeletionScheduledEmail(scheduledFor, this.resetUrl()));
+  }
+
+  sendAccountDeletionCancelled(to: string, when: Date): Promise<void> {
+    return this.send(to, accountDeletionCancelledEmail(when, this.resetUrl()));
   }
 
   /** Après `MailDispatcher.beforeApplicationShutdown` : plus aucun envoi en cours. */

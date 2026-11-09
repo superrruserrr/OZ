@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
+  accountDeletionCancelledEmail,
+  accountDeletionScheduledEmail,
   alreadyRegisteredEmail,
   passwordChangedEmail,
   passwordResetEmail,
@@ -71,11 +73,17 @@ describe('alertes de la 2FA (lot 1.3cb)', () => {
     ['utilisé', recoveryCodeUsedEmail],
     ['régénérés', recoveryCodesReplacedEmail],
     ['Export', dataExportRequestedEmail],
+    ['Suppression', accountDeletionScheduledEmail],
+    ['Suppression', accountDeletionCancelledEmail],
   ])('%s : date, lien de changement du mot de passe, texte et HTML', (word, template) => {
     const mail = template(WHEN, RESET);
     expect(mail.subject).toContain(word);
     expect(mail.text).toContain('2026');
     expect(mail.text).toContain(RESET);
     expect(mail.html).toContain(RESET);
+  });
+
+  it('suppression programmée : annonce l’échéance et la reconnexion pour annuler', () => {
+    expect(accountDeletionScheduledEmail(WHEN, RESET).text).toContain('reconnecter pour annuler');
   });
 });

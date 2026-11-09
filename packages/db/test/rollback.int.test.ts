@@ -80,14 +80,44 @@ describe('rollbackLast (db:rollback)', () => {
       [tooLarge?.id],
     );
 
-    // Dernière migration (lot 1.16bb) : une archive prête ne bloque pas le retour arrière.
+    // Dernière migration (lot 1.16ca) : une demande en attente et une session révoquée pour
+    // suppression ne bloquent pas le retour arrière ; le motif redevient `revoked_by_user`.
+    await db.query(
+      `INSERT INTO account_deletion_requests (user_id, scheduled_for)
+       SELECT id, now() + interval '30 days' FROM users WHERE email = 'retour@example.test'`,
+    );
+    await db.query(
+      `INSERT INTO sessions (user_id, family_id, refresh_token_hash, expires_at, revoked_at,
+         revoked_reason)
+       SELECT id, oz_uuid_v7(), repeat('b', 64), now() + interval '1 day', now(), 'account_deleted'
+       FROM users WHERE email = 'retour@example.test'`,
+    );
+    expect((await rollbackLast({ databaseUrl: db.url, appEnv: 'local' })).rolledBack).toBe(last);
+    expect(await applied()).not.toContain(last);
+    expect(await tableExists('account_deletion_requests')).toBe(false);
+    for (const fn of ['request', 'cancel', 'due', 'worker_only']) {
+      expect(await functionExists(`oz_account_deletion_${fn}`), fn).toBe(false);
+    }
+    expect(await functionExists('oz_account_anonymize')).toBe(false);
+    expect(await db.query(`SELECT DISTINCT revoked_reason FROM sessions`)).toEqual([
+      { revoked_reason: 'revoked_by_user' },
+    ]);
+    const [kycGuard] = await db.query<{ src: string }>(
+      `SELECT prosrc AS src FROM pg_proc WHERE proname = 'oz_kyc_cases_guard'`,
+    );
+    expect(kycGuard?.src).not.toContain('account_erasure');
+
+    // Lot 1.16bb : une archive prête ne bloque pas le retour arrière.
+    const before16ca = listMigrations(MIGRATIONS_DIR).at(-2)?.name;
     await db.query(
       `INSERT INTO data_export_requests (id, user_id, status, storage_key, ready_at, expires_at)
        SELECT r, id, 'ready', 'exports/' || r || '.json', now(), now() + interval '7 days'
        FROM users, gen_random_uuid() AS r WHERE email = 'retour@example.test'`,
     );
-    expect((await rollbackLast({ databaseUrl: db.url, appEnv: 'local' })).rolledBack).toBe(last);
-    expect(await applied()).not.toContain(last);
+    expect((await rollbackLast({ databaseUrl: db.url, appEnv: 'local' })).rolledBack).toBe(
+      before16ca,
+    );
+    expect(await applied()).not.toContain(before16ca);
     for (const fn of [
       'claim',
       'finish',
@@ -108,7 +138,7 @@ describe('rollbackLast (db:rollback)', () => {
     ).toEqual([]);
 
     // Lot 1.16ba : une demande d'export ne bloque pas le retour arrière.
-    const before16ba = listMigrations(MIGRATIONS_DIR).at(-2)?.name;
+    const before16ba = listMigrations(MIGRATIONS_DIR).at(-3)?.name;
     expect((await rollbackLast({ databaseUrl: db.url, appEnv: 'local' })).rolledBack).toBe(
       before16ba,
     );
@@ -125,7 +155,7 @@ describe('rollbackLast (db:rollback)', () => {
        WHERE user_id = (SELECT id FROM users WHERE email = 'retour@example.test')`,
     );
     expect((await rollbackLast({ databaseUrl: db.url, appEnv: 'local' })).rolledBack).toBe(
-      listMigrations(MIGRATIONS_DIR).at(-3)?.name,
+      listMigrations(MIGRATIONS_DIR).at(-4)?.name,
     );
     expect(await functionExists('oz_player_set_visibility')).toBe(false);
     expect(await functionExists('oz_player_kyc_level')).toBe(false);
@@ -138,7 +168,7 @@ describe('rollbackLast (db:rollback)', () => {
 
     // Lot 1.16a : fonctions du worker, vérifications et lecture admin retirées.
     const result = await rollbackLast({ databaseUrl: db.url, appEnv: 'local' });
-    expect(result.rolledBack).toBe(listMigrations(MIGRATIONS_DIR).at(-4)?.name);
+    expect(result.rolledBack).toBe(listMigrations(MIGRATIONS_DIR).at(-5)?.name);
     expect(await tableExists('audit_chain_checks')).toBe(false);
     expect(await functionExists('oz_audit_check')).toBe(false);
     expect(await functionExists('oz_audit_head')).toBe(false);
@@ -149,7 +179,7 @@ describe('rollbackLast (db:rollback)', () => {
 
     // Lot 1.9cb : fonctions de purge retirées, anciennes contraintes rétablies.
     expect((await rollbackLast({ databaseUrl: db.url, appEnv: 'local' })).rolledBack).toBe(
-      listMigrations(MIGRATIONS_DIR).at(-5)?.name,
+      listMigrations(MIGRATIONS_DIR).at(-6)?.name,
     );
     expect(await functionExists('oz_document_purge_due')).toBe(false);
     expect(await functionExists('oz_document_storage_orphans')).toBe(false);
@@ -162,7 +192,7 @@ describe('rollbackLast (db:rollback)', () => {
 
     // Lot 1.9ca, les précédentes intactes.
     expect((await rollbackLast({ databaseUrl: db.url, appEnv: 'local' })).rolledBack).toBe(
-      listMigrations(MIGRATIONS_DIR).at(-6)?.name,
+      listMigrations(MIGRATIONS_DIR).at(-7)?.name,
     );
     expect(await columnExists('documents', 'purged_at')).toBe(false);
     expect(await policyExists('documents', 'documents_admin_read')).toBe(false);
@@ -175,7 +205,7 @@ describe('rollbackLast (db:rollback)', () => {
     expect(await functionExists('oz_document_scan_claim')).toBe(true);
 
     // Lot 1.9b : un document rejeté redevient `error`.
-    const previous = listMigrations(MIGRATIONS_DIR).at(-7)?.name;
+    const previous = listMigrations(MIGRATIONS_DIR).at(-8)?.name;
     expect((await rollbackLast({ databaseUrl: db.url, appEnv: 'local' })).rolledBack).toBe(
       previous,
     );

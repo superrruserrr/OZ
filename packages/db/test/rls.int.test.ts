@@ -37,6 +37,8 @@ const EXPOSED_TABLES = [
   'auth_recovery_codes',
   // Lot 1.16ba
   'data_export_requests',
+  // Lot 1.16ca
+  'account_deletion_requests',
 ];
 
 let db: TestDatabase;

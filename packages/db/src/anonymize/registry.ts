@@ -329,4 +329,15 @@ export const ANONYMIZATION_REGISTRY: Registry = {
     failure_reason: 'technical',
     updated_at: 'technical',
   },
+  // Demandes de suppression de compte (lot 1.16ca) : dates et statut seuls.
+  account_deletion_requests: {
+    id: 'technical',
+    user_id: 'technical',
+    status: 'technical',
+    requested_at: 'technical',
+    scheduled_for: 'technical',
+    cancelled_at: 'technical',
+    completed_at: 'technical',
+    updated_at: 'technical',
+  },
 };
