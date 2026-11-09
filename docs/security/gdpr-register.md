@@ -57,7 +57,9 @@ manuelle.
 - **Données :** identité, date de naissance, nationalité, ville, téléphone et numéro de pièce
   chiffrés, données sportives ; fiche tuteur ; consentements ; OZ ID.
 - **Destinataires :** le joueur, son tuteur, son organisation ; les tiers selon la matrice des
-  droits (`rbac.md`) — un mineur n'est visible que vérifié et publié avec consentement.
+  droits (`rbac.md`) — un mineur n'est visible que vérifié et publié avec consentement. Lot
+  1.13b : carte OZ ID (titulaire, tuteur) et export PDF de la vue du lecteur, filigrané à son nom
+  et audité.
 - **Conservation :** durée du compte ; anonymisation à la suppression, OZ ID réservé à vie (EX-118
   n° 3, CP-03).
 - **Sécurité :** `rbac.md` (RLS alignée sur la matrice), `threats.md`.

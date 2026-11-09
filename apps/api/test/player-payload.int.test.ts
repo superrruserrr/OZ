@@ -3,13 +3,26 @@ import request from 'supertest';
 import type { App } from 'supertest/types.js';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { RELAXED_RATE_LIMITS, startAuthHarness, type AuthHarness } from './auth-harness.js';
+import { printedRows } from '../src/player/pdf/profile.js';
+import { pdfTexts } from './pdf-text.js';
 import { PLAYER_PHONE, playerFixtures, type Account } from './player-fixtures.js';
 
 // Inspection de payload (lot 1.13a, EX-115 n° 6, CP-10, CP-11) sur la pile réelle : pour chacun des
 // rôles et un compte sans rôle, les clés reçues de `GET /players/:ozId` sont exactement celles de la
-// vue attendue, sur un majeur, un mineur rattaché à un club et un mineur publié non rattaché.
+// vue attendue, sur un majeur, un mineur rattaché à un club et un mineur publié non rattaché. Lot
+// 1.13b : l'export PDF du même lecteur porte exactement les champs de cette réponse, et ses refus.
 
 const ORIGIN = 'http://localhost:3000';
+const binary = (
+  res: NodeJS.ReadableStream,
+  done: (error: Error | null, body: Buffer) => void,
+): void => {
+  const chunks: Buffer[] = [];
+  res.on('data', (chunk: Buffer) => chunks.push(chunk));
+  res.on('end', () => {
+    done(null, Buffer.concat(chunks));
+  });
+};
 
 type Reader = RbacRole | 'none' | 'self';
 type Target = 'adult' | 'attachedMinor' | 'publishedMinor';
@@ -128,4 +141,57 @@ describe.each(cases)('$reader lit $target', ({ reader, target, expected }) => {
     if (minor && (reader === 'guardian' || reader === 'admin'))
       expect(body.phone).toBe(PLAYER_PHONE);
   });
+
+  it(
+    typeof expected === 'number'
+      ? `PDF : refus ${String(expected)}`
+      : 'PDF : les champs de la vue, rien de plus',
+    async () => {
+      const get = (path: string) =>
+        request(server)
+          .get(`/players/${targets.get(target) ?? ''}${path}`)
+          .set('Origin', ORIGIN)
+          .set('Authorization', `Bearer ${readers.get(reader)?.token ?? ''}`);
+      const exported = await get('/profile.pdf')
+        .buffer(true)
+        .parse(binary as never);
+      if (typeof expected === 'number') {
+        expect(exported.status).toBe(expected);
+        return;
+      }
+      expect(exported.status).toBe(200);
+      const json = (await get('').expect(200)).body as Parameters<typeof printedRows>[0];
+      const texts = pdfTexts(exported.body as Buffer);
+      const printed = texts.filter((text) => !text.startsWith('Exporté par '));
+      // Chaque libellé et chaque valeur de la vue, et aucun autre libellé de champ (CP-10, CP-11).
+      const rows = printedRows(json);
+      for (const [label, value] of rows) {
+        expect(printed).toContain(label);
+        expect(printed.join('\n')).toContain(value);
+      }
+      const allLabels = printedRows({
+        ozId: '',
+        firstName: '',
+        lastName: '',
+        birthDate: '',
+        birthYear: 0,
+        nationality: '',
+        country: '',
+        region: '',
+        city: '',
+        primaryPosition: null,
+        secondaryPosition: null,
+        dominantFoot: null,
+        heightCm: 0,
+        weightKg: 0,
+        verificationStatus: 'declared',
+        verificationLevel: 0,
+        phone: '',
+      }).map(([label]) => label);
+      expect(printed.filter((text) => allLabels.includes(text)).sort()).toEqual(
+        rows.map(([label]) => label).sort(),
+      );
+      if (!('phone' in json)) expect(printed.join('\n')).not.toContain(PLAYER_PHONE);
+    },
+  );
 });

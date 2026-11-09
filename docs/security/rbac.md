@@ -45,6 +45,7 @@ La colonne `recruiter` vaut aussi pour l'agence. `player.read_public` ne porte q
 | `profile.update`            | Modifier un profil (hors KYC, rôle, statut)   | self-adult | child      | org         | org   | deny       | deny   | deny        | logged |
 | `profile.set_visibility`    | Régler les blocs visibles des tiers           | self-adult | child      | deny        | deny  | deny       | deny   | deny        | deny   |
 | `profile.delete`            | Supprimer la fiche d'un enfant mineur         | deny       | child      | deny        | deny  | deny       | deny   | deny        | deny   |
+| `profile.card`              | Éditer la carte OZ ID (PDF)                   | self-adult | child      | deny        | deny  | deny       | deny   | deny        | deny   |
 | `player.create`             | Créer ou importer des joueurs                 | deny       | deny       | org         | org   | deny       | deny   | deny        | allow  |
 | `player.read_public`        | Voir un profil majeur vérifié                 | allow      | allow      | allow       | allow | allow      | allow  | kyc3        | allow  |
 | `player.search`             | Rechercher des joueurs                        | deny       | deny       | limited     | allow | allow      | deny   | kyc3        | allow  |
@@ -105,6 +106,26 @@ Toutes les vues portent le badge `verificationLevel` (lot 1.13a) : 0 email seul,
 
 Le téléphone d'un mineur ne reste que pour qui a `player.read_minor_contact` : son tuteur et l'administrateur (CP-11). Aucun tiers ne reçoit la date de naissance complète. Sans lecture permise, aucune vue : l'appelant répond 403 ou 404. Un filet global (`PayloadGuardInterceptor`) bloque toute réponse portant une clé `*Encrypted`, `*Hmac` (hors booléens `isX`, `hasX`, `is_x`, `has_x`), `password`, `*passwordHash`, `*tokenHash`, `*codeHash`, `totpSecret` ou `documentNumber`, ou une valeur binaire hors `StreamableFile`, après `toJSON` : 500 sans le corps d'origine ni les cookies. Chaque vue exige en plus la relation qui la fonde : titulaire avec le rôle joueur, tuteur d'un mineur, administrateur, organisation de rattachement.
 
+## Documents de la fiche (lot 1.13b)
+
+Décisions [À CONFIRMER par Fabrice] : **D1** tout lecteur autorisé exporte **sa** vue en PDF
+(`GET /players/:ozId/profile.pdf`, même décision que `GET /players/:ozId`), champ pour champ, sans
+identifiant interne, filigranée sur chaque page à son email masqué (`j***@example.test`), son rôle et
+l'instant UTC (tous ses rôles sont imprimés) ; audit `player.profile.exported` (vue) dans la transaction, avant la réponse, à la
+place de `player.profile.viewed`. **D2** carte OZ ID (`GET /players/:ozId/card.pdf`, action
+`profile.card` : titulaire majeur, tuteur vérifié d'un mineur) au format ID-1, sans photo (initiales,
+D-123) : OZ ID, nom, badge à la date d'édition, QR, date d'édition et « le statut en ligne fait
+foi » ; ni date de naissance, ni ville, ni téléphone ; audit `player.card.issued`. **D3** QR
+(`GET /players/:ozId/qr.svg`, même décision que la fiche) vers `APP_URL/joueur/<OZ ID>` (design.md
+§11), SVG sans script, lien ni texte, `Content-Security-Policy: default-src 'none'` ; le QR ne porte que
+l'OZ ID déjà connu du demandeur : il n'est pas journalisé comme une lecture. Carte : nom coupé sur une ligne ; badge « Vérification suspendue » ou « refusée » selon le statut,
+prioritaire sur le niveau. **D4** PDF
+rendus dans l'API par pdfkit (polices standard, aucune image, police, lien ni ressource externe),
+sous 300 ms : hors file. Les trois routes partagent la règle `player_document_account` (20 par heure
+et par compte), répondent `no-store`, en pièce jointe sans OZ ID ni nom dans le nom de fichier, et le
+même 404 qu'une fiche inconnue hors droits. L'export par rôle est prouvé égal à la vue JSON du même
+lecteur (`apps/api/test/player-payload.int.test.ts`).
+
 ## Routes de l'API
 
 Toute route doit figurer ici. `public` : ouverte sans session. `authenticated` : session valide, sans droit particulier : la route n'agit que sur le compte de son titulaire. Une action de la matrice (`document.upload`) : session valide et rôle dont la cellule n'est pas `deny` (`@Can`), 403 sinon ; le service décide ensuite sur la cible.
@@ -140,6 +161,9 @@ Les pages `/docs`, `/docs-json` et `/docs-yaml` (Swagger) sont servies hors cont
 | POST    | /documents/upload/:id/complete | `document.upload`        |
 | GET     | /documents/:id/url             | `document.read`          |
 | GET     | /players/:ozId                 | `player.read_public`     |
+| GET     | /players/:ozId/qr.svg          | `player.read_public`     |
+| GET     | /players/:ozId/card.pdf        | `profile.card`           |
+| GET     | /players/:ozId/profile.pdf     | `player.read_public`     |
 | PATCH   | /players/:ozId/visibility      | `profile.set_visibility` |
 | POST    | /players/:ozId/deletion        | `profile.delete`         |
 | GET     | /players/:ozId/deletion        | `profile.delete`         |

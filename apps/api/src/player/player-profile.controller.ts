@@ -1,10 +1,11 @@
-import { Controller, Get, Header, Param, Patch } from '@nestjs/common';
+import { Controller, Get, Header, Param, Patch, StreamableFile } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiBody,
   ApiForbiddenResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
+  ApiProduces,
   ApiOperation,
   ApiParam,
   ApiTags,
@@ -29,6 +30,13 @@ import { openApiBodySchema } from '../docs/contract-schema.js';
 import { PlayerProfileService } from './player-profile.service.js';
 
 const NOT_FOUND = 'Joueur inconnu ou hors de vos droits';
+const DOCUMENTS_LIMIT = 'Plus de 20 QR, cartes ou exports dans l’heure';
+/** PDF en pièce jointe, nom de fichier sans OZ ID ni nom. */
+const pdf = (body: Buffer, filename: string): StreamableFile =>
+  new StreamableFile(body, {
+    type: 'application/pdf',
+    disposition: `attachment; filename="${filename}"`,
+  });
 const retryAfter = {
   'Retry-After': { description: 'Attente en secondes', schema: { type: 'integer' } },
 } as const;
@@ -69,6 +77,84 @@ export class PlayerProfileController {
   })
   read(@CurrentActor() actor: Actor, @Param('ozId') ozId: string): Promise<PlayerProfileOutput> {
     return this.players.read(actor, ozId);
+  }
+
+  @Get(':ozId/qr.svg')
+  @Can('player.read_public')
+  @Header('Cache-Control', 'no-store')
+  @Header('Content-Type', 'image/svg+xml')
+  @Header('Content-Security-Policy', "default-src 'none'; style-src 'unsafe-inline'")
+  @ApiOperation({
+    summary: 'QR du profil (SVG)',
+    description:
+      'QR vers la page du profil (`/joueur/<OZ ID>`), délivré à qui peut lire la fiche. Aucune donnée personnelle dans l’URL.',
+  })
+  @ApiParam({ name: 'ozId', example: 'OZ-CM-26-7K4M9Q-M' })
+  @ApiProduces('image/svg+xml')
+  @ApiOkResponse({ description: 'SVG autonome, sans script ni lien' })
+  @ApiForbiddenResponse({
+    type: ApiErrorDto,
+    description: 'Aucun rôle ne permet de lire une fiche',
+  })
+  @ApiNotFoundResponse({ type: ApiErrorDto, description: NOT_FOUND })
+  @ApiTooManyRequestsResponse({
+    type: ApiErrorDto,
+    description: DOCUMENTS_LIMIT,
+    headers: retryAfter,
+  })
+  async qr(@CurrentActor() actor: Actor, @Param('ozId') ozId: string): Promise<StreamableFile> {
+    const svg = await this.players.qr(actor, ozId);
+    return new StreamableFile(Buffer.from(svg, 'utf8'), { type: 'image/svg+xml' });
+  }
+
+  @Get(':ozId/card.pdf')
+  @Can('profile.card')
+  @Header('Cache-Control', 'no-store')
+  @ApiOperation({
+    summary: 'Carte OZ ID (PDF, format carte bancaire)',
+    description:
+      'Réservée au titulaire majeur et au tuteur vérifié d’un mineur : OZ ID, nom, badge à la date d’édition, QR du profil. Le statut en ligne fait foi. Chaque édition est inscrite au journal d’audit.',
+  })
+  @ApiParam({ name: 'ozId', example: 'OZ-CM-26-7K4M9Q-M' })
+  @ApiProduces('application/pdf')
+  @ApiOkResponse({ description: 'Carte en pièce jointe' })
+  @ApiForbiddenResponse({ type: ApiErrorDto, description: 'Ni joueur ni tuteur' })
+  @ApiNotFoundResponse({ type: ApiErrorDto, description: NOT_FOUND })
+  @ApiTooManyRequestsResponse({
+    type: ApiErrorDto,
+    description: DOCUMENTS_LIMIT,
+    headers: retryAfter,
+  })
+  async card(@CurrentActor() actor: Actor, @Param('ozId') ozId: string): Promise<StreamableFile> {
+    return pdf(await this.players.card(actor, ozId), 'carte-oz-id.pdf');
+  }
+
+  @Get(':ozId/profile.pdf')
+  @Can('player.read_public')
+  @Header('Cache-Control', 'no-store')
+  @ApiOperation({
+    summary: 'Exporter la fiche en PDF filigrané',
+    description:
+      'La vue du lecteur, champ pour champ, filigranée à son nom (email masqué), son rôle et l’instant, sur chaque page. Chaque export est inscrit au journal d’audit.',
+  })
+  @ApiParam({ name: 'ozId', example: 'OZ-CM-26-7K4M9Q-M' })
+  @ApiProduces('application/pdf')
+  @ApiOkResponse({ description: 'Fiche en pièce jointe' })
+  @ApiForbiddenResponse({
+    type: ApiErrorDto,
+    description: 'Aucun rôle ne permet de lire une fiche',
+  })
+  @ApiNotFoundResponse({ type: ApiErrorDto, description: NOT_FOUND })
+  @ApiTooManyRequestsResponse({
+    type: ApiErrorDto,
+    description: DOCUMENTS_LIMIT,
+    headers: retryAfter,
+  })
+  async exportPdf(
+    @CurrentActor() actor: Actor,
+    @Param('ozId') ozId: string,
+  ): Promise<StreamableFile> {
+    return pdf(await this.players.exportPdf(actor, ozId), 'fiche-joueur-oz.pdf');
   }
 
   @Patch(':ozId/visibility')

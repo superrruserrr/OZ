@@ -24,22 +24,36 @@ export function profileUrl(ozId: string, { baseUrl }: ProfileQrOptions): string 
 }
 
 /**
- * QR en SVG autonome : correction M, zone calme de 4 modules, un carré par module sombre. Aucun
- * script, lien ni texte : la donnée n'y figure qu'encodée.
+ * Matrice du QR (correction M, mode octet), sans zone calme : `true` = module sombre. Sert au SVG et
+ * aux documents PDF (lot 1.13b), qui dessinent la même matrice.
  */
-export function qrSvg(data: string): string {
+export function qrModules(data: string): boolean[][] {
   const qr = qrcode(0, 'M');
   qr.addData(data, 'Byte');
   qr.make();
   const count = qr.getModuleCount();
+  return Array.from({ length: count }, (_, row) =>
+    Array.from({ length: count }, (__, col) => qr.isDark(row, col)),
+  );
+}
+
+/** Zone calme recommandée autour de la matrice, en modules. */
+export const QR_QUIET_ZONE = QUIET_ZONE;
+
+/**
+ * QR en SVG autonome : correction M, zone calme de 4 modules, un carré par module sombre. Aucun
+ * script, lien ni texte : la donnée n'y figure qu'encodée.
+ */
+export function qrSvg(data: string): string {
+  const modules = qrModules(data);
+  const count = modules.length;
   const size = count + 2 * QUIET_ZONE;
   const squares: string[] = [];
-  for (let row = 0; row < count; row += 1) {
-    for (let col = 0; col < count; col += 1) {
-      if (qr.isDark(row, col))
-        squares.push(`M${String(col + QUIET_ZONE)} ${String(row + QUIET_ZONE)}h1v1h-1z`);
-    }
-  }
+  modules.forEach((line, row) => {
+    line.forEach((dark, col) => {
+      if (dark) squares.push(`M${String(col + QUIET_ZONE)} ${String(row + QUIET_ZONE)}h1v1h-1z`);
+    });
+  });
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${String(size)} ${String(size)}" shape-rendering="crispEdges">` +
     `<rect width="${String(size)}" height="${String(size)}" fill="#fff"/>` +

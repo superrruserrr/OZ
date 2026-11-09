@@ -151,6 +151,13 @@ Composants adaptés de shadcn/ui (code possédé, pas de paquet shadcn) sur les 
 | `sharp` | 0.35.5 (exact) | Apache-2.0 (libvips précompilée `@img/sharp-libvips-*` : LGPL-3.0-or-later, bibliothèque partagée non modifiée) | ≈ 1 Mo + ≈ 18 Mo de libvips par plateforme | Ré-encodage des images (EXIF, XMP, ICC et charges annexes détruits), bornes de dimensions lues sur l'en-tête, dHash (EX-110 n° 2 et 5, D5 du lot 1.9b) ; aucun script d'installation | Décodeurs JavaScript purs (jpeg-js, pngjs) : lents, sans WebP, surface de décodage maison | 1.9b |
 | `pdfjs-dist` | 6.4.299 (exact) | Apache-2.0 | ≈ 36 Mo | Lecture de la structure d'un PDF : nombre de pages réel, chiffré ou corrompu refusé, sans rendu ni JavaScript (EX-110 n° 2) ; dépendance optionnelle `@napi-rs/canvas` écartée (`ignoredOptionalDependencies`, aucun rendu) | Lecture maison de l'arbre des pages : flux compressés, références croisées et objets cassés à gérer, fragile face à un fichier hostile | 1.9b |
 
+## Documents PDF de la fiche joueur (apps/api) — lot 1.13b
+
+| Paquet | Version | Licence | Poids (décompressé) | Rôle | Alternative native envisagée | Ajouté |
+|---|---|---|---|---|---|---|
+| `pdfkit` | 0.20.2 (exact) | MIT | ≈ 10 Mo (fontkit, linebreak, png-js, fflate, @noble/hashes, @noble/ciphers) | Carte OZ ID et export filigrané de la fiche (EX-115 n° 5, EX-119) : polices standard PDF seules, aucune image ni police externe | Écriture PDF maison (objets, xref, encodage WinAnsi, flux) : faisable mais fragile, et sans mise en page du texte | 1.13b |
+| `@types/pdfkit` | 0.17.7 (exact) | MIT | ≈ 60 Ko | Types de pdfkit (API de dessin stable entre 0.17 et 0.20) | — | 1.13b |
+
 ## Correctifs forcés (overrides pnpm) — lot 0.3
 
 | Paquet | Version | Licence | Poids (décompressé) | Rôle | Alternative native envisagée | Ajouté |

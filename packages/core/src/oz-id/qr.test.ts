@@ -1,7 +1,7 @@
 import { createRequire } from 'node:module';
 import { describe, expect, it } from 'vitest';
 import { formatOzId, OzIdError } from './oz-id.js';
-import { profileQrSvg, profileUrl } from './qr.js';
+import { profileQrSvg, profileUrl, QR_QUIET_ZONE, qrModules, qrSvg } from './qr.js';
 
 // jsqr (décodeur de test) est un module CommonJS : chargé par `require`, typé ici au strict nécessaire.
 type JsQr = (data: Uint8ClampedArray, width: number, height: number) => { data: string } | null;
@@ -84,5 +84,16 @@ describe('profileQrSvg (EX-102 n° 7)', () => {
     expect(svg).not.toMatch(/<script|href|<a[\s>]|<text|<foreignObject|on\w+=/i);
     expect(svg).not.toContain(OZ_ID);
     expect(svg).toMatch(/^<svg xmlns="http:\/\/www\.w3\.org\/2000\/svg"[^>]*>.*<\/svg>$/s);
+  });
+});
+
+describe('qrModules (lot 1.13b)', () => {
+  it('matrice carrée dont le SVG dessine exactement les modules sombres', () => {
+    const modules = qrModules('https://oz.example/joueur/OZ-CM-26-7K4M9Q-M');
+    expect(modules.every((line) => line.length === modules.length)).toBe(true);
+    const dark = modules.flat().filter(Boolean).length;
+    const svg = qrSvg('https://oz.example/joueur/OZ-CM-26-7K4M9Q-M');
+    expect(svg.match(/h1v1h-1z/g)).toHaveLength(dark);
+    expect(QR_QUIET_ZONE).toBe(4);
   });
 });
