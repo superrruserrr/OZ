@@ -57,7 +57,10 @@ jobs:
       # Le lint typé lit les types des paquets compilés et du client Prisma généré : typecheck
       # (qui construit les dépendances et génère le client) passe d'abord.
       - run: pnpm typecheck
+      # ESLint typé sur tout le dépôt dépasse le tas par défaut du runner (2 Go, lot 1.16cbb).
       - run: pnpm lint
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
       - name: commitlint (commits de la PR)
         if: github.event_name == 'pull_request'
         env:
