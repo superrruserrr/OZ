@@ -16,6 +16,7 @@ d'un ADR.
 | [ADR-006](ADR-006-abstraction-paiements.md)         | Abstraction des fournisseurs de paiement                          | Accepté | 2026-10-27 |
 | [ADR-007](ADR-007-uuidv7-oz-id.md)                  | UUIDv7 technique, OZ ID métier                                    | Accepté | 2026-10-27 |
 | [ADR-008](ADR-008-conservation-pieces-identite.md)  | Conservation et purge des documents d'identité                    | Proposé | 2026-10-27 |
+| [ADR-009](ADR-009-identite-visuelle.md)             | Identité visuelle : charte OZ Football ID, clair et sombre        | Accepté | 2026-11-10 |
 
 ## Écrire un ADR
 

@@ -49,7 +49,31 @@ describe('page d’accueil provisoire (EX-004.3)', () => {
     const pillars = screen.getByRole('region', { name: 'Ce que OZ garantit' });
     expect(within(pillars).getAllByRole('listitem')).toHaveLength(3);
     expect(container.textContent).not.toMatch(/\d/);
-    expect(container.querySelectorAll('img')).toHaveLength(0);
+    // Seule image : le logo OZ (charte, ADR-009).
+    expect(container.querySelectorAll('img')).toHaveLength(1);
+  });
+
+  it.each([
+    ['fr', 'OZ Football ID'],
+    ['en', 'OZ Football ID'],
+  ] as const)('affiche le logo de la charte, nommé (%s)', (locale, name) => {
+    renderHome(locale);
+    const logo = screen.getByRole('img', { name });
+    expect(logo.closest('picture')?.dataset.testid).toBe('oz-logo');
+    expect(logo.closest('header')).not.toBeNull();
+  });
+
+  it('accroche en rose de la charte (ADR-009)', () => {
+    renderHome('fr');
+    const accent = screen.getByRole('heading', { level: 1 }).querySelector('span');
+    expect(accent?.className).toContain('text-oz-accent');
+  });
+
+  it('pied de page aux quatre couleurs du logo, décoratif', () => {
+    renderHome('fr');
+    const band = screen.getByTestId('home-brand-band');
+    expect(band.getAttribute('aria-hidden')).toBe('true');
+    expect(band.children).toHaveLength(4);
   });
 
   it('n’offre aucun lien vers une page qui n’existe pas encore', () => {

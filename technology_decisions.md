@@ -80,13 +80,13 @@ Ce fichier consigne chaque décision technologique d'OZ avec ses options, sa jus
 - **Compromis acceptés :** performances moindres que du natif sur appareils très modestes → budget d'effets réduit (design.md §8.7).
 - **Note :** la question d'une PWA en Phase 1 reste ouverte (Q16 de `requirements.md`).
 
-### TD-008 — Fondations UI/UX : WCAG AA · thème sombre · Tailwind + shadcn/ui + Radix
+### TD-008 — Fondations UI/UX : WCAG AA · thèmes clair et sombre · Tailwind + shadcn/ui + Radix
 - **Date :** 2026-10-24 · **Statut :** Confirmé (plan §4.2, `design.md` §8)
 - **Accessibilité :** WCAG 2.1 AA, Lighthouse ≥ 90.
 - **Référence visuelle :** maquettes `EX CHART/` ; jetons et effets de `design.md` §8.
 - **Bibliothèque de composants :** shadcn/ui (code possédé dans `packages/ui`) sur primitives Radix.
-- **Schéma de couleurs :** sombre natif (pas de thème clair en Phase 1).
-- **Compromis acceptés :** pas de thème clair → lisibilité en plein soleil à tester sur le terrain.
+- **Schéma de couleurs :** clair par défaut et sombre selon le réglage de l'appareil, charte OZ Football ID (ADR-009, lot 1.5a ; remplace « sombre natif »).
+- **Compromis acceptés :** pas de bascule manuelle entre les modes en 1.5a (DEBT D-126) ; chaque écran vérifié dans les deux modes.
 - **Complément (lot 0.10, D4-D5) :** composants shadcn adaptés à la main (pas de CLI shadcn) sur Radix Slot, Label, Select, Dialog et Toast ; variantes `class-variance-authority`, fusion `clsx` + `tailwind-merge` étendu aux couleurs `oz-*` ; icônes en SVG inline (pas de bibliothèque d'icônes) ; aucun texte en dur, tous les libellés arrivent traduits par les props. Effets E3-E5 en CSS seul, ombre et mise à l'échelle sous `motion-safe`.
 
 ### TD-009 — Hébergement Phases 1-2 : Scaleway (Paris) — Instances + Coolify, PostgreSQL managé
@@ -230,7 +230,7 @@ Ce fichier consigne chaque décision technologique d'OZ avec ses options, sa jus
 | Auth | Propriétaire : Argon2id, JWT + rotation, TOTP | 005 |
 | Tests | Vitest, fast-check, Supertest + Testcontainers, Playwright, k6 | 006 |
 | Mobile (Phase 2) | React Native + Expo | 007 |
-| UI | WCAG AA, sombre, Tailwind + shadcn/ui + Radix, `design.md` §8 | 008 |
+| UI | WCAG AA, clair et sombre (ADR-009), Tailwind + shadcn/ui + Radix, `design.md` §8 | 008 |
 | Hébergement | Scaleway Paris : Instances + Coolify, Cloudflare devant | 009 |
 | Stockage | Scaleway Object Storage | 010 |
 | Email | Scaleway Transactional Email + React Email | 011 |

@@ -1,7 +1,7 @@
 # OZ — Où en est le projet ?
 
 > Check-list tenue à jour à la fin de chaque étape, à transmettre telle quelle à Fabrice Olinga.
-> **Dernière mise à jour : 9 novembre 2026** — étape : 1.14a Recherche de joueurs (côté serveur).
+> **Dernière mise à jour : 10 novembre 2026** — étape : 1.5a Charte graphique OZ Football ID appliquée.
 
 Légende : ✅ fait et vérifié · 🟡 en cours · ⬜ à faire · ⏸️ bloqué en attente d'une décision
 
@@ -31,30 +31,39 @@ la vérification d'identité, qui attend deux décisions (§ « Ce qui bloque »
 
 ## Phase 1 — Première version ouverte au public (20 étapes)
 
-| Étape                                                    | État | Ce que ça veut dire pour le produit                                   |
-| -------------------------------------------------------- | ---- | --------------------------------------------------------------------- |
-| 1.1 Modèle des données (joueurs, tuteurs, organisations) | ✅   | Toutes les fiches sont prévues, les données d'identité chiffrées      |
-| 1.2 Identifiant OZ ID                                    | ✅   | Chaque joueur reçoit un identifiant unique, à vie, infalsifiable      |
-| 1.3 Connexion et sécurité des comptes                    | ✅   | Mot de passe, double authentification, sessions sécurisées            |
-| 1.4 Rôles et droits                                      | ✅   | Chacun ne voit que ce qu'il a le droit de voir (règles de l'Annexe B) |
-| 1.5 Charte graphique complète et écrans de base          | ⏸️   | Attend vos réponses Q6, Q16, Q18, Q19                                 |
-| 1.6 Site public et pages légales                         | ⏸️   | Attend le juriste (Q7) et les prix (Q8)                               |
-| 1.7 Inscription joueur                                   | ⬜   | Après 1.5                                                             |
-| 1.7b Tuteur légal (mineurs)                              | ⬜   | Après 1.7                                                             |
-| 1.8 Inscription organisation (académie, club…)           | ⬜   | Après 1.5                                                             |
-| 1.9 Coffre des documents d'identité                      | ✅   | Dépôt sécurisé, antivirus, lecture 5 minutes, effacement automatique  |
-| 1.10 Vérification d'identité (badge « Profil vérifié »)  | ⏸️   | Attend l'analyse d'impact validée et le choix du prestataire          |
-| 1.10b Vérification des recruteurs et organisations       | ⏸️   | Attend Q2 et l'étape 1.10                                             |
-| 1.11 Back-office d'administration                        | ⬜   | Après 1.10                                                            |
-| 1.12 Import de joueurs en masse                          | ⬜   | Après 1.7                                                             |
-| 1.13 Profil joueur public                                | 🟡   | 1.13a et 1.13b faits (fiche, QR, carte, PDF) ; restent les écrans     |
-| 1.14 Recherche                                           | 🟡   | 1.14a faite (recherche, filtres, droits) ; restent sauvegarde et CSV  |
-| 1.15 Notifications et emails                             | ⬜   | Après 1.7                                                             |
-| 1.16 Journal et conformité données (RGPD)                | ✅   | Journal, export, suppression (aussi par le tuteur), registre RGPD     |
-| 1.17 Tests de charge et recette                          | ⬜   | Fin de phase                                                          |
-| 1.18 Mise en production                                  | ⬜   | Fin de phase                                                          |
+| Étape                                                    | État | Ce que ça veut dire pour le produit                                                                 |
+| -------------------------------------------------------- | ---- | --------------------------------------------------------------------------------------------------- |
+| 1.1 Modèle des données (joueurs, tuteurs, organisations) | ✅   | Toutes les fiches sont prévues, les données d'identité chiffrées                                    |
+| 1.2 Identifiant OZ ID                                    | ✅   | Chaque joueur reçoit un identifiant unique, à vie, infalsifiable                                    |
+| 1.3 Connexion et sécurité des comptes                    | ✅   | Mot de passe, double authentification, sessions sécurisées                                          |
+| 1.4 Rôles et droits                                      | ✅   | Chacun ne voit que ce qu'il a le droit de voir (règles de l'Annexe B)                               |
+| 1.5 Charte graphique complète et écrans de base          | 🟡   | 1.5a fait : charte OZ Football ID (logo, couleurs, police), clair et sombre ; suite attend Q16, Q18 |
+| 1.6 Site public et pages légales                         | ⏸️   | Attend le juriste (Q7) et les prix (Q8)                                                             |
+| 1.7 Inscription joueur                                   | ⬜   | Après 1.5                                                                                           |
+| 1.7b Tuteur légal (mineurs)                              | ⬜   | Après 1.7                                                                                           |
+| 1.8 Inscription organisation (académie, club…)           | ⬜   | Après 1.5                                                                                           |
+| 1.9 Coffre des documents d'identité                      | ✅   | Dépôt sécurisé, antivirus, lecture 5 minutes, effacement automatique                                |
+| 1.10 Vérification d'identité (badge « Profil vérifié »)  | ⏸️   | Attend l'analyse d'impact validée et le choix du prestataire                                        |
+| 1.10b Vérification des recruteurs et organisations       | ⏸️   | Attend Q2 et l'étape 1.10                                                                           |
+| 1.11 Back-office d'administration                        | ⬜   | Après 1.10                                                                                          |
+| 1.12 Import de joueurs en masse                          | ⬜   | Après 1.7                                                                                           |
+| 1.13 Profil joueur public                                | 🟡   | 1.13a et 1.13b faits (fiche, QR, carte, PDF) ; restent les écrans                                   |
+| 1.14 Recherche                                           | 🟡   | 1.14a faite (recherche, filtres, droits) ; restent sauvegarde et CSV                                |
+| 1.15 Notifications et emails                             | ⬜   | Après 1.7                                                                                           |
+| 1.16 Journal et conformité données (RGPD)                | ✅   | Journal, export, suppression (aussi par le tuteur), registre RGPD                                   |
+| 1.17 Tests de charge et recette                          | ⬜   | Fin de phase                                                                                        |
+| 1.18 Mise en production                                  | ⬜   | Fin de phase                                                                                        |
 
 **Bilan Phase 1 : 6 étapes sur 20 terminées, 2 en cours (1.13 : 2 parties sur 3 ; 1.14 : 1 partie sur 2).**
+
+### Étape 1.5 en détail
+
+| Partie                                  | État | Ce que ça veut dire pour le produit                                                                            |
+| --------------------------------------- | ---- | -------------------------------------------------------------------------------------------------------------- |
+| 1.5a Charte graphique OZ Football ID    | ✅   | Logo, couleurs et police de la charte sur le site et le back-office ; mode clair, ou sombre selon le téléphone |
+| 1.5b Composants, coquille et navigation | ⬜   | Écrans de base communs (menus par rôle, chargement, erreurs) ; attend Q16 et Q18                               |
+
+Q6 (un seul système visuel) et Q19 (nom « OZ FOOTBALL ID ») sont tranchées par la charte (ADR-009).
 
 ### Étape 1.13 en détail
 
@@ -89,17 +98,16 @@ la vérification d'identité, qui attend deux décisions (§ « Ce qui bloque »
 | N°  | Question                                                                                                                                                                                                                                                                      | Pour débloquer |
 | --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
 | Q2  | La vérification des recruteurs et organisations est-elle bien dans la première version ?                                                                                                                                                                                      | 1.10b          |
-| Q6  | Fusion des deux univers visuels (doré / vert) en un seul système à deux registres ?                                                                                                                                                                                           | 1.5            |
 | Q7  | Qui rédige la politique de confidentialité et les CGU (juriste) ?                                                                                                                                                                                                             | 1.6, ouverture |
 | Q8  | Prix des formules et quotas de chacune                                                                                                                                                                                                                                        | 1.6, 1.14      |
 | Q15 | OZ Performance et le tableau de bord en Phase 2 (et non Phase 1) : d'accord ?                                                                                                                                                                                                 | Planning       |
 | Q16 | Le site web adapté au mobile suffit-il pour l'ouverture (application en Phase 2) ?                                                                                                                                                                                            | 1.5            |
 | Q18 | Retirer l'« OZ Score » des écrans de la première version ?                                                                                                                                                                                                                    | 1.5            |
-| Q19 | Nom du produit : « OZ FOOTBALL ID » ou « OZ FOOTBALL OS » ?                                                                                                                                                                                                                   | 1.5            |
 | Q20 | Quelle société encaisse et facture (Québec, Cameroun, autre) ?                                                                                                                                                                                                                | 1.6, paiements |
 | Q21 | Suppression de compte : 30 jours pour changer d'avis (fiche cachée), compte suspendu gelé, puis anonymisation ; par le tuteur pour un mineur, annulée à sa majorité (D1 à D15) ?                                                                                              | À confirmer    |
 | Q22 | Fiche en PDF : tout lecteur autorisé télécharge sa vue, filigranée à son nom ; carte OZ ID sans photo pour l'instant (D1 à D4 du lot 1.13b) ?                                                                                                                                 | À confirmer    |
 | Q23 | Recherche : une académie ne filtre ni sur la taille, le poids, ni le pied fort ; nul ne filtre sur l'organisation d'un autre ; texte libre sur le nom (encore lent à grande échelle) ; chaque mineur listé à un lecteur journalisé laissé au journal (D1 à D6 du lot 1.14a) ? | À confirmer    |
+| Q24 | Logo : le slogan des fichiers fournis est « Beyong potential » ; faut-il lire « Beyond potential » (anglais correct) avant toute impression ?                                                                                                                                 | 1.5            |
 
 ### De Gaëtan (et du juriste)
 
@@ -115,7 +123,7 @@ la vérification d'identité, qui attend deux décisions (§ « Ce qui bloque »
 
 - 6 contrôles automatiques au vert exigés avant chaque intégration.
 - Dernière mesure complète : plus de 2 500 tests automatiques, 97 % du code couvert par les tests.
-- 107 points techniques notés à reprendre plus tard (dette suivie dans `DEBT.md`).
+- 108 points techniques notés à reprendre plus tard (dette suivie dans `DEBT.md`).
 
 ## Historique des mises à jour
 
@@ -132,3 +140,4 @@ la vérification d'identité, qui attend deux décisions (§ « Ce qui bloque »
 | 2026-11-09 | 1.16cbb Suppression par le tuteur, registre RGPD (1.16 ✅) |
 | 2026-11-09 | 1.13b QR, carte OZ ID et fiche PDF (1.13 en cours)         |
 | 2026-11-09 | 1.14a Recherche de joueurs, côté serveur (1.14 en cours)   |
+| 2026-11-10 | 1.5a Charte graphique OZ Football ID (1.5 en cours)        |

@@ -37,8 +37,9 @@ export default function proxy(request: NextRequest): NextResponse {
 
 export const config = {
   // Toutes les pages, y compris une adresse contenant un point ou commençant par « api » ;
-  // seuls l'API, les fichiers de Next et les fichiers racine connus (robots, icônes, manifeste) sont exclus.
+  // seuls l'API, les fichiers de Next, les logos (`brand/oz-logo-*.png`) et les fichiers racine connus (robots, icônes,
+  // manifeste) sont exclus.
   matcher: [
-    '/((?!api/|_next/static/|_next/image|_vercel/|favicon\\.ico$|robots\\.txt$|sitemap\\.xml$|manifest\\.webmanifest$|(?:apple-)?icon(?:-\\w+)?\\.(?:svg|png|ico)$).*)',
+    '/((?!api/|brand/oz-logo-[\\w-]+\\.png$|_next/static/|_next/image|_vercel/|favicon\\.ico$|robots\\.txt$|sitemap\\.xml$|manifest\\.webmanifest$|(?:apple-)?icon(?:-\\w+)?\\.(?:svg|png|ico)$).*)',
   ],
 };

@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import { contrastRatio } from '../contrast.js';
-import { ozColors } from '../tokens.js';
+import { OZ_MODES, ozThemes } from '../tokens.js';
 import { Field } from './field.js';
 
 describe('Field', () => {
@@ -52,9 +52,13 @@ describe('Field', () => {
     expect(screen.getByLabelText('Téléphone').getAttribute('aria-busy')).toBe('true');
   });
 
-  it('contrastes AA : libellé, saisie et erreur sur le fond du champ', () => {
-    expect(contrastRatio(ozColors['text-label'], ozColors.bg)).toBeGreaterThanOrEqual(4.5);
-    expect(contrastRatio(ozColors.text, ozColors['surface-input'])).toBeGreaterThanOrEqual(4.5);
-    expect(contrastRatio(ozColors.danger, ozColors.bg)).toBeGreaterThanOrEqual(4.5);
-  });
+  it.each(OZ_MODES)(
+    'contrastes AA (%s) : libellé, saisie et erreur sur le fond du champ',
+    (mode) => {
+      const c = ozThemes[mode];
+      expect(contrastRatio(c['text-label'], c.bg)).toBeGreaterThanOrEqual(4.5);
+      expect(contrastRatio(c.text, c['surface-input'])).toBeGreaterThanOrEqual(4.5);
+      expect(contrastRatio(c.danger, c.bg)).toBeGreaterThanOrEqual(4.5);
+    },
+  );
 });

@@ -512,7 +512,7 @@ Le marché de lancement est le **Cameroun**, avec une expansion prévue vers l'A
 | Gérer abonnements, sauvegardes (DP §8.7) | — | — | Le sien | Le sien | Le sien | Le sien | Le sien | ✓ |
 
 ### EX-105 — Design system et coquille applicative
-**Source :** lot 1.5 · **Priorité :** P0 · **Statut :** Plan
+**Source :** lot 1.5 · **Priorité :** P0 · **Statut :** En cours — n° 1 fait (lot 1.5a, [ADR-009](docs/adr/ADR-009-identite-visuelle.md) : charte OZ Football ID, clair et sombre) ; n° 2 : jetons des deux modes, typographie Prompt et logo faits, grille, états et coquille au lot 1.5b
 
 1. L'identité visuelle DOIT faire converger les deux univers du DP §12.2 (doré / vert, sur fond sombre) en un système unique à deux registres, selon la direction de `design.md` §8, et la décision DOIT être consignée en ADR.
 2. LE design system DOIT fournir tokens, thème sombre, typographie, grille, composants de formulaire, états de chargement et d'erreur.

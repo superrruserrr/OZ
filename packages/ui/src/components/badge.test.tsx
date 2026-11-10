@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { contrastRatio } from '../contrast.js';
-import { ozColors } from '../tokens.js';
+import { OZ_MODES, ozThemes } from '../tokens.js';
 import { Badge } from './badge.js';
 
 describe('Badge', () => {
@@ -38,7 +38,11 @@ describe('Badge', () => {
     ['legal-text', 'legal-bg'],
     ['danger', 'surface-2'],
     ['text-muted', 'surface-2'],
-  ] as const)('contraste AA du texte %s sur %s', (fg, bg) => {
-    expect(contrastRatio(ozColors[fg], ozColors[bg])).toBeGreaterThanOrEqual(4.5);
+  ] as const)('contraste AA du texte %s sur %s, dans les deux modes', (fg, bg) => {
+    for (const mode of OZ_MODES) {
+      expect(contrastRatio(ozThemes[mode][fg], ozThemes[mode][bg]), mode).toBeGreaterThanOrEqual(
+        4.5,
+      );
+    }
   });
 });

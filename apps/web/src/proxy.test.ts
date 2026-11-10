@@ -52,6 +52,12 @@ describe('proxy web : nonce et en-têtes', () => {
     ['/apple-icon.png', false],
     ['/manifest.webmanifest', false],
     ['/en/icon.svg', true],
+    ['/brand/oz-logo-horizontal-fond-clair.png', false],
+    ['/brandon', true],
+    ['/brand/inexistant', true],
+    ['/brand/x/oz-logo-a.png', true],
+    ['/brand/oz-logo-a.png.html', true],
+    ['/en/brand/oz-logo.png', true],
   ] as const)('matcher : %s traité par le proxy → %s', (url, expected) => {
     expect(matches({ config, url })).toBe(expected);
   });

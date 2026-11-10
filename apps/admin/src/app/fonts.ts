@@ -1,16 +1,27 @@
 import localFont from 'next/font/local';
 
 /*
- * Back-office : Inter seule (design.md §8.5), sous-ensembles latin et latin-ext auto-hébergés.
- * Titres et chiffres retombent sur Inter (voir @oz/ui/base.css). next/font exige des littéraux.
+ * Back-office : Prompt 400 et 700 seule (charte OZ Football ID, design.md §8.5, ADR-009),
+ * sous-ensembles latin et latin-ext auto-hébergés. Le code et les OZ ID retombent sur Prompt
+ * (voir @oz/ui/base.css). next/font exige des littéraux.
  */
-export const interLatin = localFont({
-  src: '../../node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2',
-  weight: '100 900',
+export const promptLatin = localFont({
+  src: [
+    {
+      path: '../../node_modules/@fontsource/prompt/files/prompt-latin-400-normal.woff2',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: '../../node_modules/@fontsource/prompt/files/prompt-latin-700-normal.woff2',
+      weight: '700',
+      style: 'normal',
+    },
+  ],
   display: 'swap',
   preload: true,
   adjustFontFallback: false,
-  variable: '--oz-font-inter-latin',
+  variable: '--oz-font-prompt-latin',
   declarations: [
     {
       prop: 'unicode-range',
@@ -20,13 +31,23 @@ export const interLatin = localFont({
   ],
 });
 
-export const interLatinExt = localFont({
-  src: '../../node_modules/@fontsource-variable/inter/files/inter-latin-ext-wght-normal.woff2',
-  weight: '100 900',
+export const promptLatinExt = localFont({
+  src: [
+    {
+      path: '../../node_modules/@fontsource/prompt/files/prompt-latin-ext-400-normal.woff2',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: '../../node_modules/@fontsource/prompt/files/prompt-latin-ext-700-normal.woff2',
+      weight: '700',
+      style: 'normal',
+    },
+  ],
   display: 'swap',
   preload: false,
   adjustFontFallback: 'Arial',
-  variable: '--oz-font-inter-latin-ext',
+  variable: '--oz-font-prompt-latin-ext',
   declarations: [
     {
       prop: 'unicode-range',
@@ -36,4 +57,4 @@ export const interLatinExt = localFont({
   ],
 });
 
-export const fontVariables = `${interLatin.variable} ${interLatinExt.variable}`;
+export const fontVariables = `${promptLatin.variable} ${promptLatinExt.variable}`;

@@ -1,8 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { contrastRatio } from './contrast.js';
-import { ozColors, type OzColor } from './tokens.js';
+import { ozThemes, type OzColor, type OzMode } from './tokens.js';
 
-function Swatches() {
+function Swatches({ mode }: { mode: OzMode }) {
+  const ozColors = ozThemes[mode];
   const names = Object.keys(ozColors) as OzColor[];
   return (
     <ul className="grid grid-cols-[repeat(auto-fill,minmax(10rem,1fr))] gap-4">
@@ -41,7 +42,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'Jetons de design.md §8.3, source unique `tokens.ts`, posés en variables `--oz-*` par `styles/tokens.css`. Contraste calculé sur le fond `bg`.',
+          'Jetons de design.md §8.3, source unique `tokens.ts`, posés en variables `--oz-*` par `styles/tokens.css`. Deux jeux (clair, sombre), contraste calculé sur le fond `bg` du mode.',
       },
     },
   },
@@ -49,4 +50,6 @@ const meta = {
 
 export default meta;
 
-export const Nuancier: StoryObj<typeof meta> = {};
+export const Clair: StoryObj<typeof meta> = { args: { mode: 'light' } };
+
+export const Sombre: StoryObj<typeof meta> = { args: { mode: 'dark' } };

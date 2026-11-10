@@ -482,67 +482,94 @@ Les **planches annotées** (31 août, numérotées 01-06) sont la référence de
 
 ### 8.2 Concept : un système, deux registres
 
+> Mise à jour 1.5a (ADR-009) : la charte OZ Football ID remplace le doré, le lime et le néon des maquettes. Les deux registres restent ; leurs couleurs viennent de la charte.
+
 Le DP §12.2 décrit deux univers — **doré et sombre** (émotion, joueur, « Ton talent, notre mission ») et **vert et sombre** (institutionnel, donnée, « Le système d'exploitation du football ») — et recommande de converger vers **un système unique capable d'exprimer les deux registres selon la surface**. Les maquettes réalisent déjà cette convergence ; la direction proposée la formalise :
 
 | | **Registre Émotion** | **Registre Pilotage** |
 |---|---|---|
 | Où | Site public, landing par profil, splash, carte OZ ID, en-tête du profil joueur, stores, réseaux | Formulaires, KYC, recherche, tableaux de bord, back-office, mobile au quotidien |
-| Fond | Photo de joueurs, éclairage de stade, bokeh, globe | Noir quasi pur, surfaces légèrement teintées de vert |
-| Vert | **Lime néon** `#81F000` (titres accrochés, CTA marketing) | **Émeraude** `#35D468` (actions, états validés) |
-| Or / ambre | Liserés métalliques, distinctions (Premium, Élite, Vérifié+) | Uniquement le badge de niveau KYC exigé |
+| Fond | Photo de joueurs ou aplat rose/turquoise de la charte | `bg` clair `#F9F9F9` ou sombre `#1B161B`, surfaces `surface-*` |
+| Couleur d'appel | **Rose** `accent` (titres d'accroche, grand texte) | **Vert** `primary` (actions, états validés) |
+| Ambre | Distinctions éventuelles (Vérifié+), sans liseré doré | Uniquement le badge de niveau KYC exigé |
 | Effets | Glow, halos, verre dépoli, lumière | Aucun dégradé décoratif sauf le halo de la carte OZ ID |
-| Typo | Display italique extra-grasse, très serrée | Grotesque grasse serrée pour titres, régulière pour le corps |
+| Typo | Prompt 700, grande taille | Prompt 700 pour les titres, 400 pour le corps |
 
 **Règle d'or :** le registre Émotion ne descend jamais dans un écran où l'utilisateur saisit une donnée ou prend une décision. La confiance s'y lit dans la sobriété.
 
-### 8.3 Palette — jetons extraits
+### 8.3 Palette — jetons de la charte (clair et sombre)
 
-| Jeton | Hex | Origine (maquette) | Usage | Contraste sur `bg` |
-|---|---|---|---|---|
-| `bg` | `#070707` | Fond des écrans 03-06 | Fond d'application | — |
-| `bg-page` | `#090909` | Fond des planches | Fond web hors cartes | — |
-| `surface-1` | `#0C0E0D` | Panneau des routes | Panneaux, sidebar | — |
-| `surface-2` | `#10120F` | Encadré OTP, carte d'avertissement | Cartes, encadrés | — |
-| `surface-input` | `#171C16` | Champs de formulaire | Champs, boutons désactivés (`#161C15`) | — |
-| `surface-ozid` | `#141E16` | Carte OZ ID | Carte d'identité, cartes héros | — |
-| `tint-green` | `#0D2517` | Tuile d'icône (écran 04) | Fond des tuiles d'icônes | — |
-| `border` | `#131716` → `#1E2221` | Bordures de cartes | Séparateurs, contours au repos | — |
-| `text` | `#F2F4F1` | Titres | Texte principal | 18,2 |
-| `text-muted` | `#8C8E8B` | Sous-titres | Texte secondaire | 6,1 ✅ |
-| `text-label` | `#818680` | Libellés « PRÉNOM » | Libellés majuscules | 5,4 ✅ |
-| `text-disabled` | `#4A4F49` | Bouton « Vérifier » inactif | Uniquement texte désactivé | 2,4 (dérogation WCAG admise pour l'inactif) |
-| `primary` | `#35D468` | Centre du bouton principal | Action, état validé, progression | 10,3 ✅ |
-| `primary-from` → `primary-to` | `#3BE06A` → `#2CC45A` | Dégradé du bouton « Continuer » | Bouton principal actif uniquement | Texte `#06120A` : 9,8 ✅ |
-| `primary-bright` | `#41DD6A` / `#49E86F` | Pastille de sélection, coche | Coches, focus vif | — |
-| `on-primary` | `#06120A` | Texte du bouton vert | Texte sur vert | — |
-| `lime` | `#81F000` (`#7EE62B` UI) | « Talent », CTA de l'affiche | Registre Émotion seulement | 12,7 ✅ |
-| `legal` (bleu tuteur) | `#3B64F1` (icône), `#4971E4` (texte maquette) | Écrans 02, 05, routes | Tout ce qui relève du tuteur et du cadre légal | 4,6 ⚠️ |
-| `legal-text` | **`#6B8EF0`** *(correction proposée)* | — | Texte bleu de petite taille | 6,5 ✅ |
-| `legal-bg` / `legal-border` | `#0A111C` / `#222A37` | Encadré « Vous êtes mineur » | Encadrés légaux | — |
-| `kyc` (ambre) | `#C89137` (bordure `#3F3923`) | Badges « KYC 3 », « KYC 1/3 » | Niveau de vérification exigé ou atteint | 7,3 ✅ |
-| `danger` | `#E5484D` *(proposé, la maquette n'a que du rouge antialiasé `#991932`)* | « bloquant » (routes) | Étape bloquante, erreur, signalement | 5,2 ✅ |
-| `admin` | `#D29847` | Onglet « ADMIN OZ » | Repère du back-office | — |
-| `observer` | `#8C8E8B` | Onglet « FÉDÉRATION » | Mode observateur, lecture seule | — |
+Source : charte graphique OZ Football ID v1.0 (novembre 2026, PDF hors dépôt, sous NDA) ; décision en [ADR-009](docs/adr/ADR-009-identite-visuelle.md). Le mode clair est le défaut ; le mode sombre suit le réglage de l'appareil (`prefers-color-scheme`), sans bascule manuelle en 1.5a. Couleurs du logo : rose `#EC5C9F`, turquoise `#06BAF0`, vert clair `#9FFE91`, noir `#1D1D1B`, blanc `#F9F9F9` ; répartition recommandée : 60 % fond, 15 % fond secondaire, 10 % texte, le reste en couleurs.
 
-**Écart corrigé :** le bleu des maquettes `#4971E4` ne passe pas AA en petit texte (4,6 sur fond, 3,9 sur champ). Garder `#3B64F1` pour les icônes et grands titres, utiliser `#6B8EF0` pour le texte.
+| Jeton | Clair | Sombre | Usage |
+|---|---|---|---|
+| `bg` | `#F9F9F9` | `#1B161B` | Fond d'application |
+| `bg-page` | `#F9F9F9` | `#1B161B` | Fond web hors cartes |
+| `surface-1` | `#F3F3F1` | `#241E23` | Panneaux, barre latérale |
+| `surface-2` | `#F3F3F1` | `#31282E` | Cartes, encadrés |
+| `surface-input` | `#FFFFFF` | `#2A2328` | Champs de formulaire |
+| `surface-ozid` | `#F3F3F1` | `#31282E` | Carte OZ ID, cartes héros |
+| `tint-green` | `#E4F3E8` | `#1F3A26` | Tuiles d'icônes |
+| `border` | `#E2E2DF` | `#3D3339` | Séparateurs, contours |
+| `text` | `#1D1D1B` | `#F3ECEC` | Texte principal |
+| `text-muted` | `#5C5C59` | `#BDB3B7` | Texte secondaire |
+| `text-label` | `#5F625E` | `#B3A9AD` | Libellés |
+| `text-disabled` | `#A3A3A0` | `#6B6266` | Texte inactif seulement (sous AA, dérogation admise) |
+| `primary` | `#187A34` | `#9FFE91` | Action, état validé, liens |
+| `primary-from` | `#187A34` | `#9FFE91` | Bouton principal (haut) |
+| `primary-to` | `#166F33` | `#8BEF7D` | Bouton principal (bas) |
+| `primary-bright` | `#1E8E3E` | `#9FFE91` | Focus, coches (repère non textuel) |
+| `on-primary` | `#FFFFFF` | `#1D1D1B` | Texte sur bouton principal |
+| `accent` | `#EC5C9F` | `#EC5C9F` | Titres d'accroche, grand texte sur le fond nu seulement (≥ 3:1) |
+| `highlight` | `#06BAF0` | `#47BDE1` | Pictos et mises en avant, jamais de texte |
+| `legal` | `#2B57D9` | `#6B8EF0` | Icônes du cadre légal (tuteur) |
+| `legal-text` | `#2449B8` | `#9DB4F7` | Texte bleu du cadre légal |
+| `legal-bg` | `#EEF2FD` | `#1E2233` | Encadrés légaux |
+| `legal-border` | `#C9D5F5` | `#39405A` | Bordure des encadrés légaux |
+| `kyc` | `#8A5A00` | `#F2BE45` | Niveau de vérification |
+| `kyc-border` | `#E8C877` | `#5A4A22` | Bordure du badge KYC |
+| `danger` | `#C5221F` | `#FF7A6E` | Bloquant, erreur, signalement |
+| `admin` | `#93560F` | `#E8B06A` | Repère du back-office |
+| `observer` | `#5C5C59` | `#BDB3B7` | Mode observateur |
 
-Jetons prêts à poser dans `packages/ui` :
+**Écarts à la charte, pour l'AA (EX-T22) :** le vert des boutons et liens `#1E8E3E` ne donne que 4,0 sur le fond clair ; le texte et les boutons utilisent `#187A34` (4,8 à 5,4), `#1E8E3E` reste pour le focus. Le rose `#EC5C9F` (3,0 sur le fond clair, 2,9 sur les cartes) est réservé aux grands titres posés sur le fond nu. Le jaune et le rouge de la charte sont assombris en clair (`kyc`, `danger`) pour le petit texte. Le bleu légal n'existe pas dans la charte : il est conservé (règle §8.4) et accordé aux deux modes. Les rapports sont vérifiés par `packages/ui/src/contrast.test.ts`.
+
+Jetons posés dans `packages/ui` :
 
 ```css
 :root {
-  --oz-bg: #070707;          --oz-bg-page: #090909;
-  --oz-surface-1: #0C0E0D;   --oz-surface-2: #10120F;
-  --oz-surface-input: #171C16; --oz-surface-ozid: #141E16;
-  --oz-tint-green: #0D2517;  --oz-border: #1E2221;
-  --oz-text: #F2F4F1;        --oz-text-muted: #8C8E8B;
-  --oz-text-label: #818680;  --oz-text-disabled: #4A4F49;
-  --oz-primary: #35D468;     --oz-primary-from: #3BE06A; --oz-primary-to: #2CC45A;
-  --oz-primary-bright: #49E86F; --oz-on-primary: #06120A;
-  --oz-lime: #81F000;
-  --oz-legal: #3B64F1;       --oz-legal-text: #6B8EF0;
-  --oz-legal-bg: #0A111C;    --oz-legal-border: #222A37;
-  --oz-kyc: #C89137;         --oz-kyc-border: #3F3923;
-  --oz-danger: #E5484D;      --oz-admin: #D29847;
+  --oz-bg: #F9F9F9; --oz-bg-page: #F9F9F9;
+  --oz-surface-1: #F3F3F1; --oz-surface-2: #F3F3F1;
+  --oz-surface-input: #FFFFFF; --oz-surface-ozid: #F3F3F1;
+  --oz-tint-green: #E4F3E8; --oz-border: #E2E2DF;
+  --oz-text: #1D1D1B; --oz-text-muted: #5C5C59;
+  --oz-text-label: #5F625E; --oz-text-disabled: #A3A3A0;
+  --oz-primary: #187A34; --oz-primary-from: #187A34;
+  --oz-primary-to: #166F33; --oz-primary-bright: #1E8E3E;
+  --oz-on-primary: #FFFFFF; --oz-accent: #EC5C9F;
+  --oz-highlight: #06BAF0; --oz-legal: #2B57D9;
+  --oz-legal-text: #2449B8; --oz-legal-bg: #EEF2FD;
+  --oz-legal-border: #C9D5F5; --oz-kyc: #8A5A00;
+  --oz-kyc-border: #E8C877; --oz-danger: #C5221F;
+  --oz-admin: #93560F; --oz-observer: #5C5C59;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --oz-bg: #1B161B; --oz-bg-page: #1B161B;
+    --oz-surface-1: #241E23; --oz-surface-2: #31282E;
+    --oz-surface-input: #2A2328; --oz-surface-ozid: #31282E;
+    --oz-tint-green: #1F3A26; --oz-border: #3D3339;
+    --oz-text: #F3ECEC; --oz-text-muted: #BDB3B7;
+    --oz-text-label: #B3A9AD; --oz-text-disabled: #6B6266;
+    --oz-primary: #9FFE91; --oz-primary-from: #9FFE91;
+    --oz-primary-to: #8BEF7D; --oz-primary-bright: #9FFE91;
+    --oz-on-primary: #1D1D1B; --oz-accent: #EC5C9F;
+    --oz-highlight: #47BDE1; --oz-legal: #6B8EF0;
+    --oz-legal-text: #9DB4F7; --oz-legal-bg: #1E2233;
+    --oz-legal-border: #39405A; --oz-kyc: #F2BE45;
+    --oz-kyc-border: #5A4A22; --oz-danger: #FF7A6E;
+    --oz-admin: #E8B06A; --oz-observer: #BDB3B7;
+  }
 }
 ```
 
@@ -557,16 +584,20 @@ Jetons prêts à poser dans `packages/ui` :
 
 ### 8.5 Typographie
 
-| Rôle | Observé | Proposition (licence OFL, à faire passer par R12) |
-|---|---|---|
-| Logo / display marketing | Italique extra-grasse très serrée « OZ », « FOOTBALL ID » espacé | Logo à vectoriser par le designer ; display : **Archivo Black / Archivo ExtraBold Italic** |
-| Titres d'écran | Grotesque grasse, interlettrage négatif (« Votre identité », « Le réseau mondial… ») | **Inter Tight** 700-800, `letter-spacing: -0.03em` |
-| Corps | Grotesque régulière lisible | **Inter** 400-500, 15-16 px mobile |
-| Libellés | Majuscules petites, espacées, gris (« PRÉNOM », « PASSEPORT NUMÉRIQUE CRÉÉ ») | Inter 600, 11-12 px, `letter-spacing: 0.08em`, `text-label` |
-| OZ ID, codes, routes | Chasse fixe, vert, grasse et espacée | **JetBrains Mono** 600, `letter-spacing: 0.05em` |
-| Chiffres (scores, mesures) | Grasse, tabulaire | Inter Tight avec `font-variant-numeric: tabular-nums` |
+Charte v1.0 (ADR-009) : **Prompt** (licence OFL), une seule famille pour titres et texte, auto-hébergée et sous-ensemblée (latin + latin-ext) pour la connexion faible (EX-T22).
 
-Polices auto-hébergées et sous-ensemblées (latin + latin-ext) : connexion faible (EX-T22).
+| Rôle | Police | Taille web (px / interligne) |
+|---|---|---|
+| H1, accroche | Prompt 700 | 39 / 1,15 (31 sous 640 px) |
+| H2 | Prompt 700 | 31 / 1,2 |
+| H3 | Prompt 700 | 25 / 1,25 |
+| H4 | Prompt 700 | 20 / 1,3 |
+| Texte courant | Prompt 400 | 16 / 1,6 |
+| Petit, légende | Prompt 400 | 13 / 1,5 |
+| Libellés | Prompt 700, 11-12 px, majuscules, `letter-spacing: 0.08em`, `text-label` | — |
+| OZ ID, codes, routes | **JetBrains Mono** 600 (conservée hors charte : chiffres et lettres sans ambiguïté), `letter-spacing: 0.05em` | — |
+
+Le logo n'est jamais recomposé en texte : on utilise les fichiers fournis (horizontal sur grand écran, empilé sur mobile, version fond clair ou fond sombre).
 
 ### 8.6 Composants observés
 

@@ -23,9 +23,8 @@
     "typescript": "catalog:"
   },
   "dependencies": {
-    "@fontsource-variable/inter": "^5.3.0",
-    "@fontsource-variable/inter-tight": "^5.3.0",
     "@fontsource-variable/jetbrains-mono": "^5.3.0",
+    "@fontsource/prompt": "^5.3.0",
     "@hookform/resolvers": "^6.0.0",
     "@oz/config": "workspace:*",
     "@oz/contracts": "workspace:*",

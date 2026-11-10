@@ -10,14 +10,40 @@ async function settle(page: Page): Promise<void> {
   );
 }
 
-for (const path of ['/', '/en']) {
-  test(`${path} : aucune violation WCAG 2.1 AA (axe-core, EX-T22.1)`, async ({ page }) => {
+for (const [path, colorScheme] of [
+  ['/', 'light'],
+  ['/en', 'light'],
+  ['/', 'dark'],
+] as const) {
+  test(`${path} en mode ${colorScheme} : aucune violation WCAG 2.1 AA (axe-core, EX-T22.1)`, async ({
+    page,
+  }) => {
+    await page.emulateMedia({ colorScheme });
     await page.goto(path);
     await settle(page);
     const { violations } = await new AxeBuilder({ page }).withTags(WCAG_AA).analyze();
     expect(violations.map(({ id, nodes }) => `${id} (${String(nodes.length)})`)).toEqual([]);
   });
 }
+
+test('logo de la charte : version fond sombre en mode sombre, empilée sur mobile (ADR-009)', async ({
+  page,
+}) => {
+  const logo = page.getByTestId('oz-logo').locator('img');
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await page.goto('/');
+  await expect(logo).toHaveJSProperty('complete', true);
+  expect(await logo.evaluate((img: HTMLImageElement) => img.currentSrc)).toContain(
+    'oz-logo-horizontal-fond-sombre.png',
+  );
+  await page.setViewportSize({ width: 320, height: 640 });
+  await page.emulateMedia({ colorScheme: 'light' });
+  await page.goto('/');
+  expect(await logo.evaluate((img: HTMLImageElement) => img.currentSrc)).toContain(
+    'oz-logo-empile-fond-clair.png',
+  );
+  expect(await logo.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
+});
 
 test.describe('à 320 px de large (EX-T22.2)', () => {
   test.use({ viewport: { width: 320, height: 640 } });

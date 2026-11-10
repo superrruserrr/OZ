@@ -5,15 +5,15 @@ import { expect, test } from '@playwright/test';
 const root = new URL('../', import.meta.url);
 const sha256 = (url: URL): string => createHash('sha256').update(readFileSync(url)).digest('hex');
 
-// Seuls les sous-ensembles latin et latin-ext sont autorisés (design.md §8.5, EX-T22).
+// Seuls Prompt 400/700 et JetBrains Mono, sous-ensembles latin et latin-ext (design.md §8.5, EX-T22).
 const ALLOWED = [
-  'inter/files/inter-latin-wght-normal.woff2',
-  'inter/files/inter-latin-ext-wght-normal.woff2',
-  'inter-tight/files/inter-tight-latin-wght-normal.woff2',
-  'inter-tight/files/inter-tight-latin-ext-wght-normal.woff2',
-  'jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2',
-  'jetbrains-mono/files/jetbrains-mono-latin-ext-wght-normal.woff2',
-].map((file) => sha256(new URL(`apps/web/node_modules/@fontsource-variable/${file}`, root)));
+  '@fontsource/prompt/files/prompt-latin-400-normal.woff2',
+  '@fontsource/prompt/files/prompt-latin-700-normal.woff2',
+  '@fontsource/prompt/files/prompt-latin-ext-400-normal.woff2',
+  '@fontsource/prompt/files/prompt-latin-ext-700-normal.woff2',
+  '@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2',
+  '@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-ext-wght-normal.woff2',
+].map((file) => sha256(new URL(`apps/web/node_modules/${file}`, root)));
 
 test('le build n’émet que les polices latin et latin-ext autorisées', () => {
   const media = new URL('apps/web/.next/static/media/', root);

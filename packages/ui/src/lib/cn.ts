@@ -1,11 +1,11 @@
 import { clsx, type ClassValue } from 'clsx';
 import { extendTailwindMerge } from 'tailwind-merge';
-import { ozColors, type OzColor } from '../tokens.js';
+import { ozThemes, type OzColor } from '../tokens.js';
 
 // Classes de couleur exposées par tokens.css (`bg-oz-*`, `text-oz-*`…). Le bleu légal n'existe qu'en
 // `legal-icon` et `legal-text` (M8) : pas de classe `oz-legal` seule.
 const colorNames = [
-  ...(Object.keys(ozColors) as OzColor[]).filter((name) => name !== 'legal'),
+  ...(Object.keys(ozThemes.light) as OzColor[]).filter((name) => name !== 'legal'),
   'legal-icon',
 ].map((name) => `oz-${name}`);
 
