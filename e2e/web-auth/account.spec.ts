@@ -1,60 +1,26 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test, type BrowserContext, type Page } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { API_URL, WEB_ORIGIN } from '../auth/api-stack.js';
-import { mailTo, syntheticEmail, syntheticPassword, tokenIn } from '../auth/flows.js';
+import { syntheticEmail, syntheticPassword } from '../auth/flows.js';
+import {
+  ACCESS,
+  REFRESH,
+  logIn,
+  sessionCookie,
+  settle,
+  signUpAndConfirm,
+  watchApiCalls,
+} from './helpers.js';
 
 // Écrans de compte (lot 1.7ca, ADR-010) : le site relaie l'API, les jetons restent en cookies
 // HttpOnly. Données synthétiques seulement (example.test, mots de passe aléatoires).
 
 const WCAG_AA = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'];
-const ACCESS = '__Host-oz_access';
-const REFRESH = '__Host-oz_refresh';
+const FIRST_STEP = /\/onboarding\/identite$/;
 
-async function settle(page: Page): Promise<void> {
-  await page.waitForFunction(() =>
-    document
-      .getAnimations()
-      .filter((animation) => animation.effect?.getTiming().iterations !== Number.POSITIVE_INFINITY)
-      .every((animation) => animation.playState === 'finished'),
-  );
-}
-
-/** Toute requête du navigateur vers l'API trahirait un appel direct, interdit par l'ADR-010. */
-function watchApiCalls(page: Page): string[] {
-  const calls: string[] = [];
-  page.on('request', (request) => {
-    if (request.url().startsWith(API_URL)) calls.push(request.url());
-  });
-  return calls;
-}
-
-async function sessionCookie(context: BrowserContext, name: string) {
-  return (await context.cookies(WEB_ORIGIN)).find((cookie) => cookie.name === name);
-}
-
-async function signUpAndConfirm(page: Page, email: string, password: string): Promise<void> {
-  await page.goto('/auth/role');
-  await page.getByTestId('role-continue').click();
-  await expect(page).toHaveURL(/\/auth\/signup\/player$/);
-  await page.getByTestId('signup-email').fill(email);
-  await page.getByTestId('signup-password').fill(password);
-  // Jeton de formulaire (D6 du lot 1.3ca) : refusé avant 3 s.
-  await page.waitForTimeout(3_100);
-  await page.getByTestId('signup-submit').click();
-  await expect(page.getByTestId('signup-sent')).toBeVisible();
-
-  const token = tokenIn(await mailTo(email, 'Confirmez votre adresse email'));
-  await page.goto(`/auth/verify-email#token=${token}`);
-  await expect(page.getByTestId('verify-done')).toBeVisible();
-  // Le jeton est retiré de l'adresse et de l'historique dès sa lecture.
-  expect(new URL(page.url()).hash).toBe('');
-}
-
-async function logIn(page: Page, email: string, password: string): Promise<void> {
-  await page.getByTestId('login-email').fill(email);
-  await page.getByTestId('login-password').fill(password);
-  await page.getByTestId('login-submit').click();
-  await expect(page.getByTestId('onboarding-placeholder')).toBeVisible();
+async function logInToFirstStep(page: Page, email: string, password: string): Promise<void> {
+  await logIn(page, email, password);
+  await expect(page.getByTestId('onboarding-step-identity')).toBeVisible();
 }
 
 test.describe('écrans de compte (lot 1.7ca)', () => {
@@ -86,8 +52,8 @@ test.describe('écrans de compte (lot 1.7ca)', () => {
     await signUpAndConfirm(page, email, password);
     await page.getByTestId('verify-login').click();
     await expect(page).toHaveURL(/\/auth\/login\?next=%2Fonboarding$/);
-    await logIn(page, email, password);
-    await expect(page).toHaveURL(/\/onboarding$/);
+    await logInToFirstStep(page, email, password);
+    await expect(page).toHaveURL(FIRST_STEP);
 
     // Cookies posés par le site : HttpOnly, Secure, SameSite=Strict ; invisibles au JavaScript.
     for (const name of [ACCESS, REFRESH]) {
@@ -105,7 +71,7 @@ test.describe('écrans de compte (lot 1.7ca)', () => {
     // Jeton d'accès disparu : le site renouvelle la session avant le rendu.
     await context.clearCookies({ name: ACCESS });
     await page.reload();
-    await expect(page.getByTestId('onboarding-placeholder')).toBeVisible();
+    await expect(page.getByTestId('onboarding-step-identity')).toBeVisible();
     const rotated = (await sessionCookie(context, REFRESH))?.value ?? '';
     expect(rotated).toMatch(/^[A-Za-z0-9_-]{43}$/);
     expect(rotated).not.toBe(firstRefresh);
@@ -123,7 +89,7 @@ test.describe('écrans de compte (lot 1.7ca)', () => {
     expect(await sessionCookie(context, REFRESH)).toBeUndefined();
 
     // Nouvelle connexion, puis déconnexion : la page protégée renvoie de nouveau à la connexion.
-    await logIn(page, email, password);
+    await logInToFirstStep(page, email, password);
     await page.getByTestId('logout').click();
     await expect(page).toHaveURL(new RegExp(`^${WEB_ORIGIN}/$`));
     expect(await sessionCookie(context, REFRESH)).toBeUndefined();

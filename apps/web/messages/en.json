@@ -243,6 +243,23 @@
     },
     "token": {
       "invalid": "Invalid code or link."
+    },
+    "birthDate": {
+      "invalid": "Invalid date of birth.",
+      "tooYoung": "Minimum age: 6.",
+      "tooOld": "Maximum age: 45."
+    },
+    "country": {
+      "invalid": "Choose a country."
+    },
+    "phone": {
+      "invalid": "Number in international format (+…)."
+    },
+    "position": {
+      "duplicate": "Choose a position other than the main one."
+    },
+    "guardian": {
+      "contactRequired": "Enter a phone number or an email."
     }
   },
   "auth": {
@@ -334,8 +351,6 @@
       "back": "Back to login"
     },
     "onboarding": {
-      "title": "Your sign-up",
-      "lead": "Your account is ready. The steps of your player profile are coming soon.",
       "logout": "Log out"
     },
     "errors": {
@@ -349,5 +364,120 @@
       "invalid": "Check the highlighted fields.",
       "unavailable": "Service temporarily unavailable. Try again in a few minutes."
     }
+  },
+  "onboarding": {
+    "progress": "Step {step} of {total}",
+    "back": "Back",
+    "continue": "Continue",
+    "optional": "Optional",
+    "choose": "Choose",
+    "resume": "Draft saved, kept until {date}.",
+    "positions": {
+      "goalkeeper": "Goalkeeper",
+      "centreBack": "Centre-back",
+      "fullBack": "Full-back",
+      "defensiveMidfielder": "Defensive midfielder",
+      "centralMidfielder": "Central midfielder",
+      "attackingMidfielder": "Attacking midfielder",
+      "winger": "Winger",
+      "striker": "Striker"
+    },
+    "identity": {
+      "title": "Your identity",
+      "lead": "As shown on your identity document.",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "birthDate": "Date of birth",
+      "age": "{age} years old",
+      "nationality": "Nationality",
+      "country": "Country of residence",
+      "countryHint": "It sets the prefix of your OZ ID.",
+      "region": "Region",
+      "city": "City",
+      "minorTitle": "Minor player",
+      "minor": "A parent or legal guardian must be declared before the OZ ID is created."
+    },
+    "sport": {
+      "title": "Your football profile",
+      "lead": "Position, strong foot and measurements, editable later.",
+      "primaryPosition": "Main position",
+      "secondaryPosition": "Second position",
+      "none": "None",
+      "dominantFoot": "Strong foot",
+      "feet": {
+        "left": "Left",
+        "right": "Right",
+        "both": "Both"
+      },
+      "heightCm": "Height (cm)",
+      "heightHint": "Between 80 and 230 cm.",
+      "weightKg": "Weight (kg)",
+      "weightHint": "Between 15 and 150 kg."
+    },
+    "affiliation": {
+      "title": "Your affiliation",
+      "lead": "A club or academy will soon be able to sponsor you.",
+      "label": "Affiliation",
+      "none": "No club for now",
+      "noneDescription": "You can join a club later.",
+      "club": "Sponsored by a club",
+      "clubDescription": "Coming soon."
+    },
+    "guardian": {
+      "title": "Parent or legal guardian",
+      "lead": "Required for a minor player: their consent will be requested.",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "relationship": "Relationship to the player",
+      "relationships": {
+        "mother": "Mother",
+        "father": "Father",
+        "legalGuardian": "Legal guardian",
+        "other": "Other"
+      },
+      "country": "Country of residence",
+      "phone": "Phone",
+      "phoneHint": "International format, for example +237…",
+      "email": "Email",
+      "contactHint": "At least a phone number or an email."
+    },
+    "ozId": {
+      "title": "Your OZ ID",
+      "lead": "Check your details, then create your unique identifier.",
+      "name": "Name",
+      "birthDate": "Date of birth",
+      "country": "Country",
+      "position": "Position",
+      "submit": "Create my OZ ID",
+      "revealTitle": "Your OZ ID is ready",
+      "ozIdLabel": "OZ ID",
+      "declared": "Declared",
+      "declaredHint": "Declared profile: it will be verified by a club, an academy or OZ.",
+      "completeness": "Profile {value}% complete",
+      "finish": "Finish"
+    },
+    "done": {
+      "title": "Your player profile is created",
+      "lead": "Your player area is coming soon."
+    },
+    "unavailable": {
+      "title": "Service temporarily unavailable",
+      "lead": "Your saved details are kept. Try again in a moment.",
+      "retry": "Try again"
+    },
+    "errors": {
+      "invalid": "Some details need correcting.",
+      "retryLater": "Too many saves. Try again later.",
+      "retryAfter": "Too many saves. Try again in {seconds} s.",
+      "unavailable": "Service temporarily unavailable. Try again.",
+      "session": "Your session has expired.",
+      "completed": "Your sign-up is already complete.",
+      "refused": "Sign-up is not possible for this account.",
+      "guardianRequired": "A parent or legal guardian must be declared.",
+      "incomplete": "Some sign-up steps are missing.",
+      "required": "Required or invalid field.",
+      "tooLong": "80 characters at most."
+    },
+    "refusedTitle": "Sign-up not possible"
   }
 }

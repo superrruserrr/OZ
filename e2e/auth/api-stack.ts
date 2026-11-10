@@ -64,7 +64,12 @@ export default function startAuthStack(): Promise<() => Promise<void>> {
  * partagée avec l'API), la suppression et ses emails ; Redis exposé pour déclencher le passage.
  */
 export async function startApiStack(
-  options: { readonly documents?: boolean; readonly gdpr?: boolean } = {},
+  options: {
+    readonly documents?: boolean;
+    readonly gdpr?: boolean;
+    /** Mandataires de confiance devant l'API : 1 quand le site relaie l'API (ADR-010). */
+    readonly trustProxy?: number;
+  } = {},
 ): Promise<() => Promise<void>> {
   const documents = options.documents === true;
   const gdpr = options.gdpr === true;
@@ -138,6 +143,7 @@ export async function startApiStack(
       JWT_ACCESS_SECRET: secret(64),
       JWT_REFRESH_SECRET: secret(64),
       ...(documents ? { FEATURE_DOCUMENTS: 'true' } : {}),
+      ...(options.trustProxy === undefined ? {} : { TRUST_PROXY: String(options.trustProxy) }),
     },
   });
   process.env.E2E_MAILPIT_URL = `http://${mailpit.getHost()}:${String(mailpit.getMappedPort(8025))}`;

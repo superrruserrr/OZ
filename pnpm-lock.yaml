@@ -422,6 +422,9 @@ importers:
       '@oz/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
+      '@oz/core':
+        specifier: workspace:*
+        version: link:../../packages/core
       '@oz/ui':
         specifier: workspace:*
         version: link:../../packages/ui

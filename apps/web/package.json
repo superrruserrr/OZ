@@ -28,6 +28,7 @@
     "@hookform/resolvers": "^6.0.0",
     "@oz/config": "workspace:*",
     "@oz/contracts": "workspace:*",
+    "@oz/core": "workspace:*",
     "@oz/ui": "workspace:*",
     "next": "^16.4.3",
     "next-intl": "^4.14.9",

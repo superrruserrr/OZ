@@ -243,6 +243,23 @@
     },
     "token": {
       "invalid": "Code ou lien invalide."
+    },
+    "birthDate": {
+      "invalid": "Date de naissance invalide.",
+      "tooYoung": "Âge minimum : 6 ans.",
+      "tooOld": "Âge maximum : 45 ans."
+    },
+    "country": {
+      "invalid": "Choisissez un pays."
+    },
+    "phone": {
+      "invalid": "Numéro au format international (+…)."
+    },
+    "position": {
+      "duplicate": "Choisissez un poste différent du poste principal."
+    },
+    "guardian": {
+      "contactRequired": "Indiquez un téléphone ou un email."
     }
   },
   "auth": {
@@ -334,8 +351,6 @@
       "back": "Revenir à la connexion"
     },
     "onboarding": {
-      "title": "Votre inscription",
-      "lead": "Votre compte est prêt. Les étapes de votre profil joueur arrivent bientôt.",
       "logout": "Se déconnecter"
     },
     "errors": {
@@ -349,5 +364,120 @@
       "invalid": "Vérifiez les champs signalés.",
       "unavailable": "Service momentanément indisponible. Réessayez dans quelques minutes."
     }
+  },
+  "onboarding": {
+    "progress": "Étape {step} sur {total}",
+    "back": "Retour",
+    "continue": "Continuer",
+    "optional": "Facultatif",
+    "choose": "Choisir",
+    "resume": "Brouillon enregistré, conservé jusqu’au {date}.",
+    "positions": {
+      "goalkeeper": "Gardien",
+      "centreBack": "Défenseur central",
+      "fullBack": "Latéral",
+      "defensiveMidfielder": "Milieu défensif",
+      "centralMidfielder": "Milieu central",
+      "attackingMidfielder": "Milieu offensif",
+      "winger": "Ailier",
+      "striker": "Attaquant"
+    },
+    "identity": {
+      "title": "Votre identité",
+      "lead": "Telle qu’elle figure sur votre pièce d’identité.",
+      "firstName": "Prénom",
+      "lastName": "Nom",
+      "birthDate": "Date de naissance",
+      "age": "{age} ans",
+      "nationality": "Nationalité",
+      "country": "Pays de résidence",
+      "countryHint": "Il détermine le préfixe de votre OZ ID.",
+      "region": "Région",
+      "city": "Ville",
+      "minorTitle": "Joueur mineur",
+      "minor": "Un parent ou tuteur légal devra être déclaré avant la création de l’OZ ID."
+    },
+    "sport": {
+      "title": "Votre profil sportif",
+      "lead": "Poste, pied fort et mesures, modifiables plus tard.",
+      "primaryPosition": "Poste principal",
+      "secondaryPosition": "Poste secondaire",
+      "none": "Aucun",
+      "dominantFoot": "Pied fort",
+      "feet": {
+        "left": "Gauche",
+        "right": "Droit",
+        "both": "Les deux"
+      },
+      "heightCm": "Taille (cm)",
+      "heightHint": "Entre 80 et 230 cm.",
+      "weightKg": "Poids (kg)",
+      "weightHint": "Entre 15 et 150 kg."
+    },
+    "affiliation": {
+      "title": "Votre rattachement",
+      "lead": "Un club ou une académie pourra bientôt vous parrainer.",
+      "label": "Rattachement",
+      "none": "Sans club pour l’instant",
+      "noneDescription": "Vous pourrez rejoindre un club plus tard.",
+      "club": "Parrainage par un club",
+      "clubDescription": "Bientôt disponible."
+    },
+    "guardian": {
+      "title": "Parent ou tuteur légal",
+      "lead": "Obligatoire pour un joueur mineur : son accord sera demandé.",
+      "firstName": "Prénom",
+      "lastName": "Nom",
+      "relationship": "Lien avec le joueur",
+      "relationships": {
+        "mother": "Mère",
+        "father": "Père",
+        "legalGuardian": "Tuteur légal",
+        "other": "Autre"
+      },
+      "country": "Pays de résidence",
+      "phone": "Téléphone",
+      "phoneHint": "Format international, par exemple +237…",
+      "email": "Email",
+      "contactHint": "Un téléphone ou un email au moins."
+    },
+    "ozId": {
+      "title": "Votre OZ ID",
+      "lead": "Vérifiez vos informations, puis créez votre identifiant unique.",
+      "name": "Nom",
+      "birthDate": "Date de naissance",
+      "country": "Pays",
+      "position": "Poste",
+      "submit": "Créer mon OZ ID",
+      "revealTitle": "Votre OZ ID est prêt",
+      "ozIdLabel": "OZ ID",
+      "declared": "Déclaré",
+      "declaredHint": "Profil déclaré : il sera vérifié par un club, une académie ou OZ.",
+      "completeness": "Profil complété à {value} %",
+      "finish": "Terminer"
+    },
+    "done": {
+      "title": "Votre profil joueur est créé",
+      "lead": "Votre espace joueur arrive bientôt."
+    },
+    "unavailable": {
+      "title": "Service momentanément indisponible",
+      "lead": "Vos informations enregistrées sont conservées. Réessayez dans un instant.",
+      "retry": "Réessayer"
+    },
+    "errors": {
+      "invalid": "Certaines informations sont à corriger.",
+      "retryLater": "Trop d’enregistrements. Réessayez plus tard.",
+      "retryAfter": "Trop d’enregistrements. Réessayez dans {seconds} s.",
+      "unavailable": "Service momentanément indisponible. Réessayez.",
+      "session": "Votre session a expiré.",
+      "completed": "Votre inscription est déjà finalisée.",
+      "refused": "L’inscription est impossible pour ce compte.",
+      "guardianRequired": "Un parent ou tuteur légal doit être déclaré.",
+      "incomplete": "Des étapes de l’inscription manquent.",
+      "required": "Champ obligatoire ou invalide.",
+      "tooLong": "80 caractères au plus."
+    },
+    "refusedTitle": "Inscription impossible"
   }
 }
