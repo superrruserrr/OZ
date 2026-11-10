@@ -82,7 +82,8 @@ manuelle.
 - **Données :** champs de la fiche ouverts à chaque rôle (`rbac.md`, vues par rôle).
 - **Destinataires :** académies, clubs, fédérations, centres vérifiés, selon la matrice.
 - **Conservation :** aucune copie : lecture de la fiche (T2) ; fiche masquée pendant une suppression
-  demandée.
+  demandée. Lot 1.14a : chaque recherche est inscrite au journal (T6) sans valeur de critère ; un
+  mineur listé à un lecteur journalisé l'est aussi, visible de son tuteur.
 - **Sécurité :** `rbac.md`.
 
 ### T5 — Notifications

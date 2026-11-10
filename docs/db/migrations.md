@@ -127,3 +127,26 @@ Migration `20261102150000_rbac_rls`, vérifiée par `rbac-rls.int.test.ts` et `p
 - **Fonctions** : `oz_is_minor_at` et `oz_is_minor` (même règle que `isMinor`), `oz_has_verified_role`, `oz_is_verified_member`, `oz_player_published`. Aucune ne lit `players` : pas de récursion de politique.
 - **Droits d'exécution** : retirés à `PUBLIC`, accordés à `oz_app` (D-066). Tout rôle qui lit `players` en a besoin ; le banc de test crée `oz_app` avant les migrations, comme Terraform.
 - **Retour arrière** : `down.sql` supprime politiques et fonctions ; la lecture redevient celle du lot 1.1a (titulaire et tuteur).
+
+## Recherche de joueurs (lot 1.14a)
+
+Migration `20261114100000_player_search`, vérifiée par `player-search.int.test.ts`, `rollback.int.test.ts` et `player-search.load.test.ts` (hors CI) ; règles dans [docs/security/rbac.md](../security/rbac.md) :
+
+- **Index** : lieu (`players_search_place_idx`), naissance (`players_search_birth_idx`), nom (`players_search_name_idx`, `players_search_year_name_idx`), récents (`players_created_at_id_idx`) et trigrammes du nom complet (`players_search_full_name_trgm_idx`, GIN).
+- **Minorité développable** : `oz_is_minor` et `oz_is_minor_at` perdent leur `search_path` figé (appels qualifiés `public.`), ce qui permet au planificateur de les développer dans `players_third_party_read` : la politique coûte environ quatre fois moins par ligne.
+- **Retour arrière** : `down.sql` supprime les index et rend aux deux fonctions leur `search_path` figé.
+- **Charge** (100 000 profils synthétiques, lecteur fédération sous la RLS, rôle `oz_app`, 200 passes, page de 20) :
+
+| Scénario                         | p50      | p95      | p99      |
+| -------------------------------- | -------- | -------- | -------- |
+| Pays seul                        | 4,0 ms   | 7,1 ms   | 12,8 ms  |
+| Pays, âge, poste                 | 137,5 ms | 238,5 ms | 527,1 ms |
+| Ville et taille (bloc masquable) | 12,8 ms  | 17,7 ms  | 22,9 ms  |
+| Niveau 2, par âge                | 3,0 ms   | 4,6 ms   | 5,6 ms   |
+| Niveau 1, pays                   | 4,1 ms   | 6,9 ms   | 11,2 ms  |
+| Les plus récents                 | 3,4 ms   | 7,2 ms   | 15,7 ms  |
+| Page 3 du pays                   | 5,6 ms   | 7,5 ms   | 8,1 ms   |
+| Texte libre, pertinence          | 1 174 ms | 2 331 ms | 4 557 ms |
+| Texte libre, par nom             | 680 ms   | 937 ms   | 1 176 ms |
+
+Tous les filtres et tris tiennent p95 < 300 ms ; le texte libre non (dette D-125, lot 1.17) : sous la RLS, l'opérateur `<%` n'est pas « leakproof » et l'index GIN ne sert pas.

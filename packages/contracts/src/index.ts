@@ -97,6 +97,15 @@ export {
   type PlayerVisibilityOutput,
 } from './players/profile.schema.js';
 export {
+  PLAYER_SEARCH_SORTS,
+  playerSearchPageSchema,
+  playerSearchQuerySchema,
+  type PlayerSearchPageOutput,
+  type PlayerSearchQueryInput,
+  type PlayerSearchQueryOutput,
+  type PlayerSearchSortOutput,
+} from './players/search.schema.js';
+export {
   DATA_EXPORT_STATUSES,
   dataExportDownloadOutputSchema,
   dataExportJobSchema,

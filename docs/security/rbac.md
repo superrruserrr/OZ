@@ -126,6 +126,34 @@ et par compte), répondent `no-store`, en pièce jointe sans OZ ID ni nom dans l
 même 404 qu'une fiche inconnue hors droits. L'export par rôle est prouvé égal à la vue JSON du même
 lecteur (`apps/api/test/player-payload.int.test.ts`).
 
+## Recherche (lot 1.14a)
+
+Décisions du 2026-11-09 (EX-116, D1 à D6 du lot) : `GET /players` (action `player.search`, sujet
+`PlayerSearch`). **Portée** relue en base (`searchScopeFor`, `@oz/auth`) : complète pour le club, la
+fédération et l'administrateur (et le recruteur KYC 3 au lot 1.10) ; **réduite** pour l'académie
+(cellule `limited`) : taille, poids et pied fort refusés (`SEARCH_CRITERIA_FORBIDDEN`, 403, D1) ; pour
+toute portée hors administrateur, le filtre `organizationId` ne vise que les organisations du lecteur,
+le rattachement n'étant dans aucune vue tierce (pas d'oracle) ; aucune pour le joueur, le tuteur, le centre et le recruteur
+ou l'agence sans KYC 3 (403, CP-12). **Résultats** : requête sous la RLS du lecteur
+(`searchPlayers`, `@oz/db`), puis chaque ligne repasse par la décision et la vue de sa fiche
+(`playerViewFor`) ; une ligne sans vue n'est pas sérialisée ; le téléphone n'est jamais listé.
+**D2** le texte libre `q` ne porte que sur prénom et nom (similarité de mots par trigrammes, sans
+accents ni casse). **D4** un filtre sur un bloc masqué (`location`, `physical`, `sport`) exclut le
+joueur pour tout lecteur sauf l'administrateur ; aucun tri sur un champ masquable. **D5** l'âge se
+compte par année de naissance. **D6** tri `name`, `birthYear` (croissants par défaut), `recent`,
+`relevance` (décroissants par défaut, `relevance` avec `q` seulement) ; 20 résultats par page, 50 au
+plus ; curseur opaque signé (HMAC dérivé de `AUTH_HMAC_KEY`) lié au lecteur, à sa portée, aux critères et au
+tri, qui ne porte que l'identifiant de la dernière ligne : rejoué ailleurs, altéré ou périmé (dernière
+ligne devenue invisible), 422. **D3** chaque
+recherche est auditée (`player.search.performed` : tri, noms des critères sans leur valeur, nombre
+de résultats) et chaque mineur listé à un lecteur journalisé l'est aussi (`player.profile.listed`,
+visible du tuteur, CP-14), dans la transaction, avant la réponse. Règle de débit
+`player_search_account` (120 par heure et par compte), `no-store`. La grille par rôle prouve que la
+recherche rend la vue de la fiche du même lecteur (`apps/api/test/player-payload.int.test.ts`) ; le
+parcours E2E n° 4 la refuse au recruteur non vérifié (`pnpm test:e2e:search`). Charge : `oz_is_minor`
+et `oz_is_minor_at` sans `search_path` figé (appels qualifiés), donc développées dans la politique de
+lecture ; texte libre hors cible sous la RLS (dette D-125).
+
 ## Routes de l'API
 
 Toute route doit figurer ici. `public` : ouverte sans session. `authenticated` : session valide, sans droit particulier : la route n'agit que sur le compte de son titulaire. Une action de la matrice (`document.upload`) : session valide et rôle dont la cellule n'est pas `deny` (`@Can`), 403 sinon ; le service décide ensuite sur la cible.
@@ -160,6 +188,7 @@ Les pages `/docs`, `/docs-json` et `/docs-yaml` (Swagger) sont servies hors cont
 | POST    | /documents/upload              | `document.upload`        |
 | POST    | /documents/upload/:id/complete | `document.upload`        |
 | GET     | /documents/:id/url             | `document.read`          |
+| GET     | /players                       | `player.search`          |
 | GET     | /players/:ozId                 | `player.read_public`     |
 | GET     | /players/:ozId/qr.svg          | `player.read_public`     |
 | GET     | /players/:ozId/card.pdf        | `profile.card`           |

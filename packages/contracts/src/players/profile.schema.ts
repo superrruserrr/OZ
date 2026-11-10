@@ -10,7 +10,7 @@ export const playerProfileParamsSchema = z.strictObject({
 });
 export type PlayerProfileParamsInput = z.infer<typeof playerProfileParamsSchema>;
 
-const position = z.enum([
+export const playerPositionSchema = z.enum([
   'goalkeeper',
   'centre_back',
   'full_back',
@@ -34,8 +34,8 @@ export const playerProfileOutputSchema = z.strictObject({
   country: z.string().length(2).optional(),
   region: z.string().nullable().optional(),
   city: z.string().nullable().optional(),
-  primaryPosition: position.nullable().optional(),
-  secondaryPosition: position.nullable().optional(),
+  primaryPosition: playerPositionSchema.nullable().optional(),
+  secondaryPosition: playerPositionSchema.nullable().optional(),
   dominantFoot: z.enum(['left', 'right', 'both']).nullable().optional(),
   heightCm: z.number().int().nullable().optional(),
   weightKg: z.number().int().nullable().optional(),

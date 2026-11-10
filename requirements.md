@@ -650,7 +650,7 @@ Le marché de lancement est le **Cameroun**, avec une expansion prévue vers l'A
 6. UN test d'inspection de payload DOIT prouver qu'aucun champ interdit n'est présent dans la réponse réseau, pour chacun des sept rôles.
 
 ### EX-116 — Recherche version 1
-**Source :** lot 1.14 · **Priorité :** P0 · **Statut :** Plan
+**Source :** lot 1.14 · **Priorité :** P0 · **Statut :** En cours (lot 1.14a, côté API : n° 1, 2, 5 et 6 ; n° 3, 4 et 7 au lot 1.14b ; écrans au lot 1.13c ; parcours n° 5 au lot 1.10)
 
 1. LA recherche DOIT filtrer par pays, région, ville, âge, poste, pied fort, taille, poids, statut de vérification, organisation.
 2. LES résultats DOIVENT être triables et paginés par curseur.

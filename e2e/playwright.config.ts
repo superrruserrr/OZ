@@ -11,7 +11,7 @@ export default defineConfig({
   // `pnpm test:e2e:api` (e2e/api.config.ts) ; coffre documentaire : `pnpm test:e2e:documents`
   // (e2e/documents.config.ts) ; droits RGPD : `pnpm test:e2e:gdpr` (e2e/gdpr.config.ts). Expression ancrée sur e2e/ : un glob `documents/**` exclurait tout
   // dépôt cloné sous ~/Documents.
-  testIgnore: ['containers/**', 'auth/**', 'gdpr/**', /[\\/]e2e[\\/]documents[\\/]/],
+  testIgnore: ['containers/**', 'auth/**', 'gdpr/**', 'search/**', /[\\/]e2e[\\/]documents[\\/]/],
   fullyParallel: true,
   forbidOnly: true,
   reporter: 'line',

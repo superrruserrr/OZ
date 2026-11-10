@@ -42,6 +42,12 @@ export {
   type PlayerViewName,
 } from './views.js';
 export {
+  refusedSearchCriteria,
+  SEARCH_ADVANCED_CRITERIA,
+  searchScopeFor,
+  type SearchScope,
+} from './search-scope.js';
+export {
   parseRbacMatrix,
   RBAC_ROUTE_ACCESS,
   type RbacMatrix,

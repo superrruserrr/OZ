@@ -78,6 +78,8 @@ export {
   playerProfileByOzId,
   playerRecord,
   recordPlayerDocument,
+  recordPlayerSearch,
+  type PlayerSearchAudit,
   recordPlayerProfileView,
   setPlayerVisibility,
   type PlayerAccessRecord,
@@ -86,6 +88,13 @@ export {
   type PlayerVisibility,
   type PlayerVisibilityBlock,
 } from './players.js';
+export {
+  searchPlayers,
+  type PlayerSearchCriteria,
+  type PlayerSearchOptions,
+  type PlayerSearchPage,
+  type PlayerSearchSort,
+} from './player-search.js';
 export { readSetting } from './settings.js';
 export {
   AUDIT_LOG_MAX_PAGE,

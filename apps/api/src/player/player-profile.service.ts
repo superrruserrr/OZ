@@ -6,7 +6,6 @@ import {
   playerViewFor,
   serializeView,
   type Actor,
-  type PlayerViewData,
   type RateLimitRule,
 } from '@oz/auth';
 import type { ApiConfig } from '@oz/config';
@@ -36,10 +35,9 @@ import { DB_CLIENT } from '../database/database.module.js';
 import { PLAYER_NOT_FOUND } from './errors.js';
 import { cardPdf } from './pdf/card.js';
 import { profilePdf } from './pdf/profile.js';
+import { profileViewData } from './view-data.js';
 
 const READS = ['profile.read', 'player.read_public', 'player.read_minor'] as const;
-
-const isoDate = (date: Date): string => date.toISOString().slice(0, 10);
 
 /** Email masqué du filigrane : première lettre, puis le domaine (`j***@example.test`). */
 export function maskEmail(email: string | null): string {
@@ -181,16 +179,7 @@ export class PlayerProfileService {
     ) {
       await recordPlayerProfileView(tx, actor.userId, found.id, view.name);
     }
-    const data: PlayerViewData = {
-      ...found.data,
-      id: found.id,
-      birthDate: isoDate(found.access.birthDate),
-      birthYear: found.access.birthDate.getUTCFullYear(),
-      verificationStatus: found.access.verificationStatus,
-      verificationLevel: found.kycLevel,
-      organizationId: found.access.organizationId,
-      ...(phone === undefined ? {} : { phone }),
-    };
+    const data = profileViewData(found, phone);
     return {
       id: found.id,
       ozId: found.data.ozId,
