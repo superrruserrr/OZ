@@ -1,9 +1,11 @@
 import { create } from 'storybook/theming';
-import { ozColors } from '../src/tokens.js';
+import { ozThemes } from '../src/tokens.js';
 
-/** Thème sombre OZ de l'interface de Storybook et des pages de documentation (design.md §8.3). */
+const ozColors = ozThemes.light;
+
+/** Thème clair OZ (défaut de la charte, ADR-009) de l'interface de Storybook et de la documentation. */
 export const ozTheme = create({
-  base: 'dark',
+  base: 'light',
   brandTitle: 'OZ · Design system',
   colorPrimary: ozColors.primary,
   colorSecondary: ozColors.primary,
@@ -21,6 +23,6 @@ export const ozTheme = create({
   inputBg: ozColors['surface-input'],
   inputBorder: ozColors.border,
   inputTextColor: ozColors.text,
-  fontBase: "'Inter Variable', ui-sans-serif, system-ui, sans-serif",
+  fontBase: "'Prompt', ui-sans-serif, system-ui, sans-serif",
   fontCode: "'JetBrains Mono Variable', ui-monospace, monospace",
 });

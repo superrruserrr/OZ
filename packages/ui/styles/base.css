@@ -1,7 +1,8 @@
-/* Base commune web et admin : thème sombre natif (TD-008), focus visible, mouvements réduits. */
+/* Base commune web et admin : clair par défaut, sombre selon l'appareil (ADR-009), focus visible,
+   mouvements réduits. */
 @layer base {
   html {
-    color-scheme: dark;
+    color-scheme: light dark;
     background-color: var(--oz-bg);
     color: var(--oz-text);
     -webkit-text-size-adjust: 100%;
@@ -32,14 +33,11 @@
 
 /*
  * Familles composées : sous-ensemble latin puis latin-ext (déclarés par next/font dans chaque app).
- * Une app qui ne charge pas Inter Tight ou JetBrains Mono retombe sur Inter.
+ * Une app qui ne charge pas JetBrains Mono retombe sur Prompt.
  */
 :root {
-  --oz-font-inter: var(--oz-font-inter-latin), var(--oz-font-inter-latin-ext);
-  --oz-font-inter-tight:
-    var(--oz-font-inter-tight-latin, var(--oz-font-inter-latin)),
-    var(--oz-font-inter-tight-latin-ext, var(--oz-font-inter-latin-ext));
+  --oz-font-prompt: var(--oz-font-prompt-latin), var(--oz-font-prompt-latin-ext);
   --oz-font-jetbrains-mono:
-    var(--oz-font-jetbrains-mono-latin, var(--oz-font-inter-latin)),
-    var(--oz-font-jetbrains-mono-latin-ext, var(--oz-font-inter-latin-ext));
+    var(--oz-font-jetbrains-mono-latin, var(--oz-font-prompt-latin)),
+    var(--oz-font-jetbrains-mono-latin-ext, var(--oz-font-prompt-latin-ext));
 }

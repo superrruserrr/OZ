@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { contrastRatio } from '../contrast.js';
-import { ozColors } from '../tokens.js';
+import { OZ_MODES, ozThemes } from '../tokens.js';
 import { Button } from './button.js';
 
 describe('Button', () => {
@@ -66,13 +66,13 @@ describe('Button', () => {
     expect(link.dataset.variant).toBe('primary');
   });
 
-  it('contrastes AA : texte on-primary sur les deux bouts du dégradé', () => {
-    expect(contrastRatio(ozColors['on-primary'], ozColors['primary-from'])).toBeGreaterThanOrEqual(
-      4.5,
-    );
-    expect(contrastRatio(ozColors['on-primary'], ozColors['primary-to'])).toBeGreaterThanOrEqual(
-      4.5,
-    );
-    expect(contrastRatio(ozColors.text, ozColors.bg)).toBeGreaterThanOrEqual(4.5);
-  });
+  it.each(OZ_MODES)(
+    'contrastes AA (%s) : texte on-primary sur les deux bouts du dégradé',
+    (mode) => {
+      const c = ozThemes[mode];
+      expect(contrastRatio(c['on-primary'], c['primary-from'])).toBeGreaterThanOrEqual(4.5);
+      expect(contrastRatio(c['on-primary'], c['primary-to'])).toBeGreaterThanOrEqual(4.5);
+      expect(contrastRatio(c.text, c.bg)).toBeGreaterThanOrEqual(4.5);
+    },
+  );
 });

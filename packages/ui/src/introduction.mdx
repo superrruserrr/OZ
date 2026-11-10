@@ -4,8 +4,8 @@ import { Meta } from '@storybook/addon-docs/blocks';
 
 # OZ · Design system
 
-Composants et jetons partagés par le site public, le back-office et l'application (lot 0.10). Thème
-sombre natif, aucun mode clair (TD-008). Tous les textes arrivent déjà traduits par les props : aucun
+Composants et jetons partagés par le site public, le back-office et l'application (lot 0.10). Charte
+OZ Football ID (ADR-009) : clair par défaut, sombre selon le réglage de l'appareil, police Prompt. Tous les textes arrivent déjà traduits par les props : aucun
 composant ne contient de libellé.
 
 ## Deux registres (design.md §8.2)
@@ -13,8 +13,8 @@ composant ne contient de libellé.
 |        | Émotion                                      | Pilotage                                                   |
 | ------ | -------------------------------------------- | ---------------------------------------------------------- |
 | Où     | Site public, landing, carte OZ ID, marketing | Formulaires, KYC, recherche, tableaux de bord, back-office |
-| Vert   | Lime `lime`, registre Émotion seulement      | Émeraude `primary` : actions, états validés                |
-| Effets | Halo, lumière, verre dépoli                  | Aucun dégradé décoratif                                    |
+| Appel  | Rose `accent`, grand texte seulement         | Vert `primary` : actions, états validés                    |
+| Effets | Aplats de la charte, sans néon               | Aucun dégradé décoratif                                    |
 
 **Règle d'or :** le registre Émotion ne descend jamais dans un écran où l'on saisit une donnée ou
 prend une décision. Les composants de ce lot relèvent du registre Pilotage.
@@ -22,7 +22,7 @@ prend une décision. Les composants de ce lot relèvent du registre Pilotage.
 ## Jetons (design.md §8.3)
 
 Une seule source, `src/tokens.ts`, reprise en variables CSS `--oz-*` par `styles/tokens.css` et en
-classes Tailwind `bg-oz-*`, `text-oz-*`, `border-oz-*`. Voir **Fondations / Jetons de couleur**. Le
+classes Tailwind `bg-oz-*`, `text-oz-*`, `border-oz-*`. Deux jeux de valeurs (clair, sombre), mêmes noms. Voir **Fondations / Jetons de couleur**. Le
 bleu légal n'existe qu'en `legal-icon` (icônes, grands titres) et `legal-text` (texte, AA).
 
 ## Règles de couleur (design.md §8.4)

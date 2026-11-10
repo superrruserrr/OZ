@@ -7,7 +7,7 @@ const preview: Preview = {
   parameters: {
     layout: 'centered',
     docs: { theme: ozTheme },
-    // Fond OZ unique : le thème est sombre natif (TD-008), aucun autre fond à proposer.
+    // Fond donné par les jetons : clair, ou sombre selon le réglage de l'appareil (ADR-009).
     backgrounds: { disable: true },
     // WCAG 2.1 AA bloquant : une violation axe-core fait échouer la story en test (EX-T22.1).
     a11y: { test: 'error', options: { runOnly: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] } },

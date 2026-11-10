@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { ozColors } from './tokens.js';
+import { OZ_MODES, ozThemes } from './tokens.js';
 
 const read = (path: string): string => readFileSync(new URL(path, import.meta.url), 'utf8');
 
@@ -15,33 +15,43 @@ function cssTokens(css: string): Map<string, string> {
   );
 }
 
+/** Coupe un CSS en bloc clair (`:root` hors média) et bloc sombre (`prefers-color-scheme: dark`). */
+function byMode(css: string): Record<'light' | 'dark', Map<string, string>> {
+  const darkStart = css.indexOf('@media (prefers-color-scheme: dark)');
+  if (darkStart < 0) throw new Error('bloc sombre absent');
+  return { light: cssTokens(css.slice(0, darkStart)), dark: cssTokens(css.slice(darkStart)) };
+}
+
+const fromTs = (mode: 'light' | 'dark') =>
+  new Map(Object.entries(ozThemes[mode]).map(([k, v]) => [k, v.toUpperCase()]));
 const designBlock = /### 8\.3[\s\S]*?```css\n([\s\S]*?)```/.exec(read('../../../design.md'))?.[1];
 const stylesheet = read('../styles/tokens.css');
 
-describe('jetons OZ (design.md §8.3)', () => {
-  it('reprennent exactement le bloc CSS de design.md, plus le gris observateur du tableau', () => {
-    const expected = cssTokens(designBlock ?? '');
-    expect(expected.size).toBe(26);
-    expected.set('observer', '#8C8E8B');
-    const fromTs = new Map(Object.entries(ozColors).map(([k, v]) => [k, v.toUpperCase()]));
-    expect(fromTs).toEqual(expected);
+describe('jetons OZ (design.md §8.3, ADR-009)', () => {
+  it.each(OZ_MODES)('%s : identiques au bloc CSS de design.md', (mode) => {
+    const expected = byMode(designBlock ?? '')[mode];
+    expect(expected.size).toBe(28);
+    expect(fromTs(mode)).toEqual(expected);
   });
 
-  it('sont posés à l’identique dans styles/tokens.css', () => {
-    const fromTs = new Map(Object.entries(ozColors).map(([k, v]) => [k, v.toUpperCase()]));
-    expect(cssTokens(stylesheet)).toEqual(fromTs);
+  it.each(OZ_MODES)('%s : posés à l’identique dans styles/tokens.css', (mode) => {
+    expect(byMode(stylesheet)[mode]).toEqual(fromTs(mode));
+  });
+
+  it('les deux modes ont les mêmes noms', () => {
+    expect(Object.keys(ozThemes.dark)).toEqual(Object.keys(ozThemes.light));
   });
 
   it('exposent chaque jeton au thème Tailwind ; le bleu légal seulement en icône (M8)', () => {
-    for (const name of Object.keys(ozColors).filter((key) => key !== 'legal')) {
+    for (const name of Object.keys(ozThemes.light).filter((key) => key !== 'legal')) {
       expect(stylesheet, name).toContain(`--color-oz-${name}: var(--oz-${name});`);
     }
-    // #3B64F1 ne passe pas AA en petit texte : pas de `--color-oz-legal`, donc pas de `text-oz-legal`.
     expect(stylesheet).not.toMatch(/--color-oz-legal:/);
     expect(stylesheet).toContain('--color-oz-legal-icon: var(--oz-legal);');
   });
 
   it('sont gelés', () => {
-    expect(Object.isFrozen(ozColors)).toBe(true);
+    expect(Object.isFrozen(ozThemes)).toBe(true);
+    for (const mode of OZ_MODES) expect(Object.isFrozen(ozThemes[mode])).toBe(true);
   });
 });

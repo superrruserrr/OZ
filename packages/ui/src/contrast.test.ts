@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { contrastRatio } from './contrast.js';
-import { ozColors } from './tokens.js';
+import { OZ_MODES, ozThemes } from './tokens.js';
 
 describe('contrastRatio (WCAG 2.1)', () => {
   it('donne 21 pour noir sur blanc et 1 pour une couleur sur elle-même', () => {
@@ -20,7 +20,8 @@ describe('contrastRatio (WCAG 2.1)', () => {
   });
 });
 
-describe('contrastes des jetons de texte (EX-T22, AA ≥ 4,5)', () => {
+describe.each(OZ_MODES)('contrastes des jetons, mode %s (EX-T22, AA ≥ 4,5)', (mode) => {
+  const c = ozThemes[mode];
   const onBackground = [
     'text',
     'text-muted',
@@ -29,44 +30,44 @@ describe('contrastes des jetons de texte (EX-T22, AA ≥ 4,5)', () => {
     'legal-text',
     'kyc',
     'danger',
-    'lime',
     'admin',
   ] as const;
 
-  const surfaces = ['bg', 'bg-page', 'surface-1', 'surface-2', 'legal-bg'] as const;
+  const surfaces = ['bg', 'bg-page', 'surface-1', 'surface-2', 'legal-bg', 'tint-green'] as const;
   const fieldSurfaces = ['surface-input', 'surface-ozid'] as const;
 
   it.each(onBackground)(
     '%s sur le fond, les panneaux, les cartes et les encadrés légaux',
     (name) => {
       for (const surface of surfaces) {
-        expect(contrastRatio(ozColors[name], ozColors[surface]), surface).toBeGreaterThanOrEqual(
-          4.5,
-        );
+        expect(contrastRatio(c[name], c[surface]), surface).toBeGreaterThanOrEqual(4.5);
       }
     },
   );
 
-  it.each(onBackground.filter((name) => name !== 'danger'))(
-    '%s dans un champ et sur la carte OZ ID',
-    (name) => {
-      for (const surface of fieldSurfaces) {
-        expect(contrastRatio(ozColors[name], ozColors[surface]), surface).toBeGreaterThanOrEqual(
-          4.5,
-        );
-      }
-    },
-  );
-
-  it('danger reste sous AA dans un champ (4,4) : message d’erreur hors du champ (DEBT D-012)', () => {
-    expect(contrastRatio(ozColors.danger, ozColors['surface-input'])).toBeLessThan(4.5);
+  it.each(onBackground)('%s dans un champ et sur la carte OZ ID', (name) => {
+    for (const surface of fieldSurfaces) {
+      expect(contrastRatio(c[name], c[surface]), surface).toBeGreaterThanOrEqual(4.5);
+    }
   });
 
   it.each(['primary-from', 'primary-to', 'primary'] as const)('on-primary sur %s', (name) => {
-    expect(contrastRatio(ozColors['on-primary'], ozColors[name])).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(c['on-primary'], c[name])).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it('accent (rose) : grand texte sur le fond nu seulement, ≥ 3', () => {
+    for (const surface of ['bg', 'bg-page'] as const) {
+      expect(contrastRatio(c.accent, c[surface]), surface).toBeGreaterThanOrEqual(3);
+    }
+  });
+
+  it('repères non textuels (focus, icône légale) ≥ 3 sur le fond', () => {
+    for (const name of ['primary-bright', 'legal'] as const) {
+      expect(contrastRatio(c[name], c.bg), name).toBeGreaterThanOrEqual(3);
+    }
   });
 
   it('text-disabled reste sous AA : réservé à l’inactif (dérogation WCAG admise)', () => {
-    expect(contrastRatio(ozColors['text-disabled'], ozColors.bg)).toBeLessThan(4.5);
+    expect(contrastRatio(c['text-disabled'], c.bg)).toBeLessThan(4.5);
   });
 });

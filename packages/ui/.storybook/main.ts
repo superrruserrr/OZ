@@ -5,6 +5,8 @@ const config: StorybookConfig = {
   stories: ['../src/**/*.mdx', '../src/**/*.stories.tsx'],
   addons: ['@storybook/addon-docs', '@storybook/addon-a11y', '@storybook/addon-vitest'],
   framework: { name: '@storybook/react-vite', options: {} },
+  // Logos de la charte (ADR-009) servis comme sur le site : `/brand/…`.
+  staticDirs: [{ from: '../../../apps/web/public/brand', to: '/brand' }],
   // Aucune donnée d'usage envoyée (R12).
   core: { disableTelemetry: true, disableWhatsNewNotifications: true },
   async viteFinal(viteConfig) {

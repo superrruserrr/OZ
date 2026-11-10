@@ -1,35 +1,70 @@
 /*
- * Jetons OZ (design.md §8.3). Valeurs identiques à src/tokens.ts (vérifié par test).
- * À importer après `@import 'tailwindcss';` : le bloc @theme expose les classes `bg-oz-*`, `text-oz-*`…
+ * Jetons OZ (design.md §8.3, ADR-009). Valeurs identiques à src/tokens.ts (vérifié par test) : clair
+ * par défaut, sombre selon le réglage de l'appareil. À importer après `@import 'tailwindcss';` : le bloc
+ * @theme expose les classes `bg-oz-*`, `text-oz-*`…
  */
 :root {
-  --oz-bg: #070707;
-  --oz-bg-page: #090909;
-  --oz-surface-1: #0c0e0d;
-  --oz-surface-2: #10120f;
-  --oz-surface-input: #171c16;
-  --oz-surface-ozid: #141e16;
-  --oz-tint-green: #0d2517;
-  --oz-border: #1e2221;
-  --oz-text: #f2f4f1;
-  --oz-text-muted: #8c8e8b;
-  --oz-text-label: #818680;
-  --oz-text-disabled: #4a4f49;
-  --oz-primary: #35d468;
-  --oz-primary-from: #3be06a;
-  --oz-primary-to: #2cc45a;
-  --oz-primary-bright: #49e86f;
-  --oz-on-primary: #06120a;
-  --oz-lime: #81f000;
-  --oz-legal: #3b64f1;
-  --oz-legal-text: #6b8ef0;
-  --oz-legal-bg: #0a111c;
-  --oz-legal-border: #222a37;
-  --oz-kyc: #c89137;
-  --oz-kyc-border: #3f3923;
-  --oz-danger: #e5484d;
-  --oz-admin: #d29847;
-  --oz-observer: #8c8e8b;
+  --oz-bg: #f9f9f9;
+  --oz-bg-page: #f9f9f9;
+  --oz-surface-1: #f3f3f1;
+  --oz-surface-2: #f3f3f1;
+  --oz-surface-input: #ffffff;
+  --oz-surface-ozid: #f3f3f1;
+  --oz-tint-green: #e4f3e8;
+  --oz-border: #e2e2df;
+  --oz-text: #1d1d1b;
+  --oz-text-muted: #5c5c59;
+  --oz-text-label: #5f625e;
+  --oz-text-disabled: #a3a3a0;
+  --oz-primary: #187a34;
+  --oz-primary-from: #187a34;
+  --oz-primary-to: #166f33;
+  --oz-primary-bright: #1e8e3e;
+  --oz-on-primary: #ffffff;
+  --oz-accent: #ec5c9f;
+  --oz-highlight: #06baf0;
+  --oz-legal: #2b57d9;
+  --oz-legal-text: #2449b8;
+  --oz-legal-bg: #eef2fd;
+  --oz-legal-border: #c9d5f5;
+  --oz-kyc: #8a5a00;
+  --oz-kyc-border: #e8c877;
+  --oz-danger: #c5221f;
+  --oz-admin: #93560f;
+  --oz-observer: #5c5c59;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --oz-bg: #1b161b;
+    --oz-bg-page: #1b161b;
+    --oz-surface-1: #241e23;
+    --oz-surface-2: #31282e;
+    --oz-surface-input: #2a2328;
+    --oz-surface-ozid: #31282e;
+    --oz-tint-green: #1f3a26;
+    --oz-border: #3d3339;
+    --oz-text: #f3ecec;
+    --oz-text-muted: #bdb3b7;
+    --oz-text-label: #b3a9ad;
+    --oz-text-disabled: #6b6266;
+    --oz-primary: #9ffe91;
+    --oz-primary-from: #9ffe91;
+    --oz-primary-to: #8bef7d;
+    --oz-primary-bright: #9ffe91;
+    --oz-on-primary: #1d1d1b;
+    --oz-accent: #ec5c9f;
+    --oz-highlight: #47bde1;
+    --oz-legal: #6b8ef0;
+    --oz-legal-text: #9db4f7;
+    --oz-legal-bg: #1e2233;
+    --oz-legal-border: #39405a;
+    --oz-kyc: #f2be45;
+    --oz-kyc-border: #5a4a22;
+    --oz-danger: #ff7a6e;
+    --oz-admin: #e8b06a;
+    --oz-observer: #bdb3b7;
+  }
 }
 
 @theme inline {
@@ -50,7 +85,9 @@
   --color-oz-primary-to: var(--oz-primary-to);
   --color-oz-primary-bright: var(--oz-primary-bright);
   --color-oz-on-primary: var(--oz-on-primary);
-  --color-oz-lime: var(--oz-lime);
+  /* Rose : grand texte sur le fond nu (`bg`) seulement. Turquoise : pictos et mises en avant, jamais de texte. */
+  --color-oz-accent: var(--oz-accent);
+  --color-oz-highlight: var(--oz-highlight);
   /* M8 : #3B64F1 ne passe pas AA en petit texte. Exposé pour les icônes et bordures seulement ;
      le texte bleu utilise `text-oz-legal-text`. Aucune classe `text-oz-legal` n'existe. */
   --color-oz-legal-icon: var(--oz-legal);
@@ -63,7 +100,7 @@
   --color-oz-admin: var(--oz-admin);
   --color-oz-observer: var(--oz-observer);
 
-  --font-sans: var(--oz-font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--oz-font-inter-tight), var(--oz-font-inter), ui-sans-serif, sans-serif;
+  --font-sans: var(--oz-font-prompt), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--oz-font-prompt), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--oz-font-jetbrains-mono), ui-monospace, monospace;
 }
