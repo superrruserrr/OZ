@@ -48,13 +48,13 @@ la vérification d'identité, qui attend deux décisions (§ « Ce qui bloque »
 | 1.11 Back-office d'administration                        | ⬜   | Après 1.10                                                                                          |
 | 1.12 Import de joueurs en masse                          | ⬜   | Après 1.7                                                                                           |
 | 1.13 Profil joueur public                                | 🟡   | 1.13a et 1.13b faits (fiche, QR, carte, PDF) ; restent les écrans                                   |
-| 1.14 Recherche                                           | 🟡   | 1.14a faite (recherche, filtres, droits) ; restent sauvegarde et CSV                                |
+| 1.14 Recherche                                           | 🟡   | 1.14a et 1.14b faites côté serveur (recherche, sauvegarde, CSV) ; restent les écrans (1.13c)        |
 | 1.15 Notifications et emails                             | ⬜   | Après 1.7                                                                                           |
 | 1.16 Journal et conformité données (RGPD)                | ✅   | Journal, export, suppression (aussi par le tuteur), registre RGPD                                   |
 | 1.17 Tests de charge et recette                          | ⬜   | Fin de phase                                                                                        |
 | 1.18 Mise en production                                  | ⬜   | Fin de phase                                                                                        |
 
-**Bilan Phase 1 : 6 étapes sur 20 terminées, 2 en cours (1.13 : 2 parties sur 3 ; 1.14 : 1 partie sur 2).**
+**Bilan Phase 1 : 6 étapes sur 20 terminées, 3 en cours (1.5 : 1 partie ; 1.13 : 2 parties sur 3 ; 1.14 : serveur fait, écrans en 1.13c).**
 
 ### Étape 1.5 en détail
 
@@ -78,7 +78,7 @@ Q6 (un seul système visuel) et Q19 (nom « OZ FOOTBALL ID ») sont tranchées p
 | Partie                                  | État | Ce que ça veut dire pour le produit                                                                      |
 | --------------------------------------- | ---- | -------------------------------------------------------------------------------------------------------- |
 | 1.14a Recherche de joueurs (serveur)    | ✅   | Clubs, fédérations et académies trouvent un joueur par critères ; un recruteur non vérifié, aucun mineur |
-| 1.14b Recherches sauvegardées et export | ⬜   | Sauvegarder une recherche, export CSV filigrané et limité (palier gratuit en attendant Q8)               |
+| 1.14b Recherches sauvegardées et export | ✅   | Sauvegarder une recherche ; export CSV filigrané au nom du demandeur, limité (palier gratuit, Q8)        |
 
 ### Étape 1.16 en détail
 
@@ -99,7 +99,7 @@ Q6 (un seul système visuel) et Q19 (nom « OZ FOOTBALL ID ») sont tranchées p
 | --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
 | Q2  | La vérification des recruteurs et organisations est-elle bien dans la première version ?                                                                                                                                                                                      | 1.10b          |
 | Q7  | Qui rédige la politique de confidentialité et les CGU (juriste) ?                                                                                                                                                                                                             | 1.6, ouverture |
-| Q8  | Prix des formules et quotas de chacune                                                                                                                                                                                                                                        | 1.6, 1.14      |
+| Q8  | Prix des formules et quotas de chacune ; en attendant, palier gratuit appliqué : 3 exports CSV par jour et 200 lignes par organisation, aucun export pour une académie                                                                                                        | 1.6, 1.14      |
 | Q15 | OZ Performance et le tableau de bord en Phase 2 (et non Phase 1) : d'accord ?                                                                                                                                                                                                 | Planning       |
 | Q16 | Le site web adapté au mobile suffit-il pour l'ouverture (application en Phase 2) ?                                                                                                                                                                                            | 1.5            |
 | Q18 | Retirer l'« OZ Score » des écrans de la première version ?                                                                                                                                                                                                                    | 1.5            |
@@ -123,7 +123,7 @@ Q6 (un seul système visuel) et Q19 (nom « OZ FOOTBALL ID ») sont tranchées p
 
 - 6 contrôles automatiques au vert exigés avant chaque intégration.
 - Dernière mesure complète : plus de 2 500 tests automatiques, 97 % du code couvert par les tests.
-- 108 points techniques notés à reprendre plus tard (dette suivie dans `DEBT.md`).
+- 109 points techniques notés à reprendre plus tard (dette suivie dans `DEBT.md`).
 
 ## Historique des mises à jour
 
@@ -141,3 +141,4 @@ Q6 (un seul système visuel) et Q19 (nom « OZ FOOTBALL ID ») sont tranchées p
 | 2026-11-09 | 1.13b QR, carte OZ ID et fiche PDF (1.13 en cours)         |
 | 2026-11-09 | 1.14a Recherche de joueurs, côté serveur (1.14 en cours)   |
 | 2026-11-10 | 1.5a Charte graphique OZ Football ID (1.5 en cours)        |
+| 2026-11-10 | 1.14b Recherches sauvegardées et export CSV (1.14 serveur) |

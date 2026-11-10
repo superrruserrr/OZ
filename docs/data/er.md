@@ -272,6 +272,24 @@ erDiagram
     uuid updated_by FK
     tsvector search_vector
   }
+  saved_searches {
+    uuid id PK
+    uuid user_id FK
+    text name
+    jsonb criteria
+    text sort
+    text direction
+    timestamptz created_at
+  }
+  search_exports {
+    uuid id PK
+    uuid user_id FK
+    uuid organization_id FK
+    integer row_count
+    text sort
+    text_array criteria_keys
+    timestamptz created_at
+  }
   sessions {
     uuid id PK
     uuid user_id FK
@@ -393,6 +411,9 @@ erDiagram
   players }o--o| users : "created_by"
   players }o--o| users : "updated_by"
   players }o--o| users : "user_id"
+  saved_searches }o--|| users : "user_id"
+  search_exports }o--o| organizations : "organization_id"
+  search_exports }o--|| users : "user_id"
   sessions }o--|| users : "user_id"
   subscriptions }o--|| organizations : "organization_id"
   subscriptions }o--o| users : "created_by"

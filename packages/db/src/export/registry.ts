@@ -384,6 +384,26 @@ export const EXPORT_REGISTRY: ExportRegistry = {
     completed_at: INTERNAL,
     updated_at: INTERNAL,
   },
+  // Lot 1.14b : lues par `GET /players/saved-searches` ; critères et tri seuls, sans résultat.
+  saved_searches: {
+    id: INTERNAL,
+    user_id: LINK,
+    name: excluded('lue par `GET /players/saved-searches`'),
+    criteria: excluded('lue par `GET /players/saved-searches`'),
+    sort: excluded('lue par `GET /players/saved-searches`'),
+    direction: excluded('lue par `GET /players/saved-searches`'),
+    created_at: INTERNAL,
+  },
+  // Lot 1.14b : traçabilité du filigrane et compte du quota ; l'export est aussi au journal d'audit.
+  search_exports: {
+    id: INTERNAL,
+    user_id: LINK,
+    organization_id: NOT_PERSONAL('organisation imputée'),
+    row_count: INTERNAL,
+    sort: INTERNAL,
+    criteria_keys: INTERNAL,
+    created_at: INTERNAL,
+  },
 };
 
 /** Champs attendus dans chaque section du JSON : colonnes exportées et champs calculés. */

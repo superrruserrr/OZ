@@ -50,6 +50,8 @@ const MARKERS = {
   kycCheck: 'KYCMARQUEUR',
   decisionReason: 'Motifmarqueur',
   sendError: 'ERREURMARQUEUR',
+  savedSearchName: 'Sauvegardemarqueur',
+  savedSearchText: 'Textemarqueur',
 } as const;
 const OTHER = 'Autremarqueur';
 
@@ -342,6 +344,12 @@ describe('preuve d’anonymisation', () => {
       `INSERT INTO notifications (recipient_user_id, channel, template, payload, status, last_error)
        VALUES ($1, 'email', 'auth.password_reset', jsonb_build_object('player_id', $2::text), 'failed', $3)`,
       [id('subject'), id('subjectPlayer'), MARKERS.sendError],
+    );
+    // Lot 1.14b : un nom de sauvegarde ou un texte libre peut nommer quelqu'un.
+    await db.query(
+      `INSERT INTO saved_searches (user_id, name, criteria, sort)
+       VALUES ($1, $2, jsonb_build_object('q', $3::text), 'relevance')`,
+      [id('subject'), MARKERS.savedSearchName, MARKERS.savedSearchText],
     );
     ids.exportReady = (
       await one<{ id: string }>(

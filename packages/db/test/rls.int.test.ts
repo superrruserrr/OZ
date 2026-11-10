@@ -39,6 +39,9 @@ const EXPOSED_TABLES = [
   'data_export_requests',
   // Lot 1.16ca
   'account_deletion_requests',
+  // Lot 1.14b
+  'saved_searches',
+  'search_exports',
 ];
 
 let db: TestDatabase;

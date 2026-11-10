@@ -83,7 +83,10 @@ manuelle.
 - **Destinataires :** académies, clubs, fédérations, centres vérifiés, selon la matrice.
 - **Conservation :** aucune copie : lecture de la fiche (T2) ; fiche masquée pendant une suppression
   demandée. Lot 1.14a : chaque recherche est inscrite au journal (T6) sans valeur de critère ; un
-  mineur listé à un lecteur journalisé l'est aussi, visible de son tuteur.
+  mineur listé à un lecteur journalisé l'est aussi, visible de son tuteur. Lot 1.14b : recherches
+  sauvegardées (`saved_searches`, critères et tri, privées au compte, supprimées à la clôture du
+  compte) ; exports CSV inscrits (`search_exports`, sans valeur de critère, conservés pour la
+  traçabilité du filigrane et le quota) et audités, fichier filigrané au nom du demandeur.
 - **Sécurité :** `rbac.md`.
 
 ### T5 — Notifications
@@ -157,5 +160,7 @@ registre d'effacement (`packages/db/src/erasure/gdpr-register.test.ts`).
 | `audit_chain_checks`        | T6          |
 | `data_export_requests`      | T7          |
 | `account_deletion_requests` | T7          |
+| `saved_searches`            | T4          |
+| `search_exports`            | T4          |
 
 <!-- /gdpr:tables -->
