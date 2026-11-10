@@ -64,6 +64,39 @@ const EXPECTED: Readonly<Record<Reader, Readonly<Record<Target, Expected>>>> = {
 /** Rôles qui recherchent (rbac `player.search`) ; recruteur : pas avant le KYC 3. */
 const SEARCHERS: readonly Reader[] = ['academy', 'club', 'federation', 'admin'];
 
+/** Rôles qui exportent (lot 1.14b, D1) : portée complète ; l'académie n'exporte pas. */
+const EXPORTERS: readonly Reader[] = ['club', 'federation', 'admin'];
+
+/** Lignes d'un CSV RFC 4180 (BOM et filigrane retirés), cellules sans guillemets. */
+function parseCsv(text: string): string[][] {
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let cell = '';
+  let quoted = false;
+  const body = text.replace(/^\uFEFF/, '');
+  for (let i = 0; i < body.length; i += 1) {
+    const char = body[i] ?? '';
+    if (quoted) {
+      if (char === '"' && body[i + 1] === '"') {
+        cell += '"';
+        i += 1;
+      } else if (char === '"') quoted = false;
+      else cell += char;
+    } else if (char === '"') quoted = true;
+    else if (char === ',') {
+      row.push(cell);
+      cell = '';
+    } else if (char === '\r' && body[i + 1] === '\n') {
+      row.push(cell);
+      rows.push(row);
+      row = [];
+      cell = '';
+      i += 1;
+    } else cell += char;
+  }
+  return rows.slice(1);
+}
+
 const THIRD_PARTY_VIEWS: readonly PlayerViewName[] = ['PlayerPublicView'];
 const FORBIDDEN_KEY = /encrypted|hmac|hash|secret|password|token|documentNumber/i;
 
@@ -230,6 +263,53 @@ describe.each(cases)('$reader lit $target', ({ reader, target, expected }) => {
         PLAYER_VIEWS[expected].fields.filter((field) => field !== 'phone').sort(),
       );
       expect(JSON.stringify(items)).not.toContain(PLAYER_PHONE);
+    },
+  );
+
+  it(
+    EXPORTERS.includes(reader)
+      ? typeof expected === 'number'
+        ? 'export CSV : absent'
+        : 'export CSV : la vue de la recherche, champ pour champ, sans téléphone'
+      : 'export CSV : refus 403',
+    async () => {
+      const as = (path: string) =>
+        request(server)
+          .get(path)
+          .query({ q: 'Synthétique' })
+          .set('Origin', ORIGIN)
+          .set('Authorization', `Bearer ${readers.get(reader)?.token ?? ''}`);
+      const exported = await as('/players/export.csv');
+      if (!EXPORTERS.includes(reader)) {
+        expect(exported.status).toBe(403);
+        expect(exported.text).not.toMatch(/Synthétique|Yaoundé|\+237/);
+        return;
+      }
+      expect(exported.status).toBe(200);
+      expect(exported.text).not.toContain(PLAYER_PHONE);
+      const [header = [], ...rows] = parseCsv(exported.text);
+      expect(header).not.toContain('phone');
+      const row = rows.find((cells) => cells[header.indexOf('ozId')] === targets.get(target));
+      if (typeof expected === 'number') {
+        expect(row).toBeUndefined();
+        return;
+      }
+      expect(row).toBeDefined();
+      const items = (
+        (await as('/players').expect(200)).body as { items: Record<string, unknown>[] }
+      ).items;
+      const item = items.find((entry) => entry.ozId === targets.get(target)) ?? {};
+      // Chaque colonne : la valeur JSON de la vue, vide hors vue (CP-10, CP-11).
+      for (const [index, column] of header.entries()) {
+        if (column === 'ref') continue;
+        const value = item[column];
+        expect(row?.[index], column).toBe(
+          value === null || value === undefined ? '' : String(value as string | number),
+        );
+        if (!PLAYER_VIEWS[expected].fields.includes(column as never)) {
+          expect(row?.[index], `${column} hors vue`).toBe('');
+        }
+      }
     },
   );
 });

@@ -342,4 +342,24 @@ export const ANONYMIZATION_REGISTRY: Registry = {
     completed_at: 'technical',
     updated_at: 'technical',
   },
+  // Lot 1.14b : un nom de sauvegarde ou un texte libre `q` peut nommer quelqu'un.
+  saved_searches: {
+    id: 'technical',
+    user_id: 'technical',
+    name: 'free_text',
+    criteria: 'empty_json',
+    sort: 'technical',
+    direction: 'technical',
+    created_at: 'technical',
+  },
+  // Lot 1.14b : noms des critères seuls, jamais leurs valeurs.
+  search_exports: {
+    id: 'technical',
+    user_id: 'technical',
+    organization_id: 'technical',
+    row_count: 'technical',
+    sort: 'technical',
+    criteria_keys: 'technical',
+    created_at: 'technical',
+  },
 };

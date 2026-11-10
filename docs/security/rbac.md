@@ -154,6 +154,30 @@ parcours E2E n° 4 la refuse au recruteur non vérifié (`pnpm test:e2e:search`)
 et `oz_is_minor_at` sans `search_path` figé (appels qualifiés), donc développées dans la politique de
 lecture ; texte libre hors cible sous la RLS (dette D-125).
 
+## Recherches sauvegardées et export (lot 1.14b)
+
+Décisions du 2026-11-10 (EX-116 n° 3, 4 et 7, D1 à D5 du lot), quotas à confirmer (Q8). **D1** aucune
+action nouvelle : `GET`, `POST /players/saved-searches`, `DELETE /players/saved-searches/:id` et
+`GET /players/export.csv` relèvent de `player.search`, portée relue en base à chaque appel ; la
+portée réduite (académie, cellule `limited`, « sans export ») sauvegarde sans critère avancé
+(`SEARCH_CRITERIA_FORBIDDEN`) mais n'exporte pas (403). **D2** une sauvegarde ne porte que critères et
+tri, jamais un résultat ni un OZ ID ; privée au compte (RLS), 20 au plus (`SAVED_SEARCH_LIMIT`, 409),
+rejouée par `GET /players`, donc revérifiée. **D3** l'export est imputé à une organisation du demandeur (club, fédération, recruteur KYC 3 ; `quotaOrganizationId` requis s'il en a plusieurs, 422) ;
+palier gratuit par défaut : 3 exports par 24 heures glissantes et 200 lignes, surchargés par
+`subscriptions.quotas` (`searchExportsPerDay`, `searchExportRows`, 1 000 lignes au plus) de
+l'abonnement courant, relu à chaque export par la base elle-même (`oz_search_export_quota`, CP-33, jamais reçu de l'API) ; quota et nombre de lignes tenus sous verrou par `oz_search_export_record` ; épuisé : 429 `EXPORT_QUOTA_EXCEEDED`, palier en détail, `Retry-After`
+jusqu'à la remise à zéro, rien d'inscrit ni d'audité ; l'administrateur n'a ni organisation ni quota.
+**D4** fichier filigrané : ligne `# OZ Football ID — export <id> — <email masqué> (<rôles>) — <instant
+UTC> — <n> lignes`, colonne `ref` par ligne (HMAC de l'export et de l'OZ ID, dérivé de `AUTH_HMAC_KEY`), colonnes de la fiche
+dans la vue du lecteur, sans téléphone ; formules neutralisées (`=`, `+`, `-`, `@`, `|`, pleine chasse, après espaces) ; pièce jointe `oz-recherche.csv`,
+`no-store`. **D5** chaque export est inscrit (`search_exports` : compte, organisation, lignes, tri,
+noms des critères) et audité (`player.search.exported`), et chaque mineur listé à un lecteur
+journalisé l'est aussi (`player.profile.listed`, avec l'export), dans la transaction, avant la
+réponse. Règles de débit `player_saved_search_account` (60 par heure) et
+`player_search_export_account` (10 par heure). La grille par rôle prouve que le CSV rend la vue de
+la recherche champ pour champ (`apps/api/test/player-payload.int.test.ts`) ; le parcours E2E n° 4
+refuse sauvegarde et export au recruteur non vérifié.
+
 ## Routes de l'API
 
 Toute route doit figurer ici. `public` : ouverte sans session. `authenticated` : session valide, sans droit particulier : la route n'agit que sur le compte de son titulaire. Une action de la matrice (`document.upload`) : session valide et rôle dont la cellule n'est pas `deny` (`@Can`), 403 sinon ; le service décide ensuite sur la cible.
@@ -189,6 +213,10 @@ Les pages `/docs`, `/docs-json` et `/docs-yaml` (Swagger) sont servies hors cont
 | POST    | /documents/upload/:id/complete | `document.upload`        |
 | GET     | /documents/:id/url             | `document.read`          |
 | GET     | /players                       | `player.search`          |
+| GET     | /players/saved-searches        | `player.search`          |
+| POST    | /players/saved-searches        | `player.search`          |
+| DELETE  | /players/saved-searches/:id    | `player.search`          |
+| GET     | /players/export.csv            | `player.search`          |
 | GET     | /players/:ozId                 | `player.read_public`     |
 | GET     | /players/:ozId/qr.svg          | `player.read_public`     |
 | GET     | /players/:ozId/card.pdf        | `profile.card`           |

@@ -150,3 +150,13 @@ Migration `20261114100000_player_search`, vérifiée par `player-search.int.test
 | Texte libre, par nom             | 680 ms   | 937 ms   | 1 176 ms |
 
 Tous les filtres et tris tiennent p95 < 300 ms ; le texte libre non (dette D-125, lot 1.17) : sous la RLS, l'opérateur `<%` n'est pas « leakproof » et l'index GIN ne sert pas.
+
+## Recherches sauvegardées et exports (lot 1.14b)
+
+Migration `20261115100000_search_saved_exports`, vérifiée par `search-exports.int.test.ts`, `account-deletion.int.test.ts` et `rollback.int.test.ts` ; règles dans [docs/security/rbac.md](../security/rbac.md) :
+
+- **Tables** : `saved_searches` (nom, critères `jsonb` de 2 Ko au plus, tri et sens ; lecture et suppression par le titulaire, création par `oz_saved_search_create`, aucune modification) et `search_exports` (compte, organisation imputée, lignes, tri, noms des critères ; lecture par le demandeur, écriture par `oz_search_export_record` seulement), RLS forcée.
+- **Limite de 20** : `oz_saved_search_create` rend `limit` sans lever ; le déclencheur `saved_searches_limit` la tient aussi pour toute insertion, sous le même verrou consultatif du compte.
+- **Quota** : `oz_search_export_quota` (interne, sans droit d'exécution pour `oz_app`) relit le palier de l'abonnement courant, palier gratuit par défaut (3 exports, 200 lignes), valeurs hors bornes ignorées ; `oz_search_export_record` vérifie l'appartenance vérifiée à l'organisation (club, fédération, recruteur ; sans organisation, administrateur seul), prend un verrou consultatif de l'organisation, refuse plus de lignes que le palier, compte les exports des 24 dernières heures (remise à zéro juste même quand le palier baisse sous l'usage), puis inscrit et audite `player.search.exported`, ou rend `quota_exceeded` et la remise à zéro sans rien écrire.
+- **Effacement** : `users_erase_saved_searches` supprime les sauvegardes quand `users.deleted_at` est posé (anonymisation du compte) ; les exports restent (preuve).
+- **Retour arrière** : `down.sql` supprime fonctions, déclencheur et tables.

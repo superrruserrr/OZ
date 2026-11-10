@@ -388,6 +388,30 @@ export const ERASURE_REGISTRY: ErasureRegistry = {
       completed_at: 'proof',
     },
   },
+  saved_searches: {
+    scope:
+      'Les recherches sauvegardées du compte : supprimées dès que le compte est clos (déclencheur sur `users.deleted_at`) ; un nom ou un texte libre peut nommer quelqu’un.',
+    columns: {
+      ...pick('id', 'created_at'),
+      user_id: 'technical',
+      name: 'erase',
+      criteria: 'erase',
+      sort: 'technical',
+      direction: 'technical',
+    },
+  },
+  search_exports: {
+    scope:
+      'Les exports du compte : conservés (traçabilité du filigrane, compte du quota) ; noms des critères seuls, jamais leurs valeurs.',
+    columns: {
+      ...pick('id', 'created_at'),
+      user_id: 'proof',
+      organization_id: 'proof',
+      row_count: 'aggregate',
+      sort: 'aggregate',
+      criteria_keys: 'aggregate',
+    },
+  },
 };
 
 function pick<K extends string>(...names: K[]): Record<K, 'technical'> {

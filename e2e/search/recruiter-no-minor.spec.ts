@@ -4,7 +4,8 @@ import { login, registerAndConfirm, syntheticEmail, syntheticPassword } from '..
 
 // Parcours n° 4 (design.md §7.5, EX-116 n° 6, CP-12) : un recruteur non vérifié KYC 3 lance une
 // recherche et ne voit aucun mineur, ni par la recherche, ni par la fiche, ni par le QR. Témoin : un
-// club vérifié trouve bien ce mineur publié. Le parcours n° 5 (recruteur KYC 3) attend le lot 1.10.
+// club vérifié trouve bien ce mineur publié. Lot 1.14b : ni export CSV ni recherche sauvegardée pour
+// le recruteur ; le club témoin exporte le mineur publié. Le parcours n° 5 (recruteur KYC 3) attend le lot 1.10.
 
 const fromApi = createRequire(new URL('../../apps/api/package.json', import.meta.url));
 interface SqlClient {
@@ -111,6 +112,12 @@ test('recruteur non vérifié → recherche → aucun mineur visible', async ({ 
   expect(found.status()).toBe(200);
   const { items } = (await found.json()) as { items: { ozId: string }[] };
   expect(items.map((item) => item.ozId)).toContain(minor);
+  const exported = await request.get('/players/export.csv', {
+    headers: club,
+    params: { q: 'Parcoursquatre' },
+  });
+  expect(exported.status()).toBe(200);
+  expect(await exported.text()).toContain(minor);
 
   // Recruteur d'une agence vérifiée, sans KYC 3 : aucune recherche, aucune fiche, aucun QR.
   const recruiter = await member(request, 'recruiter', 'agency');
@@ -120,6 +127,15 @@ test('recruteur non vérifié → recherche → aucun mineur visible', async ({ 
     await request.get(`/players/${minor}`, { headers: recruiter }),
     await request.get(`/players/${minor}/qr.svg`, { headers: recruiter }),
     await request.get(`/players/${minor}/profile.pdf`, { headers: recruiter }),
+    await request.get('/players/export.csv', {
+      headers: recruiter,
+      params: { q: 'Parcoursquatre' },
+    }),
+    await request.get('/players/saved-searches', { headers: recruiter }),
+    await request.post('/players/saved-searches', {
+      headers: recruiter,
+      data: { name: 'Mineurs', criteria: { ageMax: 17 } },
+    }),
   ]) {
     expect(response.status()).toBe(403);
     const body = await response.text();

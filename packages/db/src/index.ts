@@ -78,6 +78,7 @@ export {
   playerProfileByOzId,
   playerRecord,
   recordPlayerDocument,
+  recordListedPlayers,
   recordPlayerSearch,
   type PlayerSearchAudit,
   recordPlayerProfileView,
@@ -95,6 +96,21 @@ export {
   type PlayerSearchPage,
   type PlayerSearchSort,
 } from './player-search.js';
+export {
+  createSavedSearch,
+  deleteSavedSearch,
+  listSavedSearches,
+  type SavedSearchCreateOutcome,
+  type SavedSearchDraft,
+  type SavedSearchRecord,
+} from './saved-searches.js';
+export {
+  currentSubscription,
+  recordSearchExport,
+  type CurrentSubscription,
+  type SearchExportEntry,
+  type SearchExportOutcome,
+} from './search-exports.js';
 export { readSetting } from './settings.js';
 export {
   AUDIT_LOG_MAX_PAGE,

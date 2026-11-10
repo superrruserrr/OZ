@@ -284,15 +284,32 @@ export async function recordPlayerSearch(
       'Recherche de joueurs', jsonb_build_object('sort', ${summary.sort}::text,
         'criteria', ${JSON.stringify([...summary.criteria])}::jsonb,
         'results', ${summary.results}::int))`;
-  if (listedMinorIds.length === 0) return;
-  if (!listedMinorIds.every((id) => UUID.test(id))) {
+  await recordListedPlayers(tx, actorUserId, listedMinorIds, 'search');
+}
+
+/**
+ * Une entrée `player.profile.listed` par joueur listé (CP-14), visible du tuteur : par une page de
+ * recherche (lot 1.14a) ou un export CSV (lot 1.14b, `exportId` en métadonnée).
+ */
+export async function recordListedPlayers(
+  tx: TransactionClient,
+  actorUserId: string,
+  playerIds: readonly string[],
+  source: 'search' | { readonly exportId: string },
+): Promise<void> {
+  if (playerIds.length === 0) return;
+  if (!playerIds.every((id) => UUID.test(id))) {
     throw new Error('Audit de recherche : identifiant de joueur invalide.');
   }
+  const [reason, metadata] =
+    source === 'search'
+      ? ['Fiche listée par une recherche', {}]
+      : ['Fiche listée par un export de recherche', { export_id: source.exportId }];
   await tx.$executeRaw`
     INSERT INTO audit_log (actor_user_id, action, target_type, target_id, reason, metadata)
     SELECT ${actorUserId}::uuid, 'player.profile.listed', 'player', listed.id,
-      'Fiche listée par une recherche', '{}'::jsonb
-    FROM unnest(${[...listedMinorIds]}::uuid[]) AS listed(id)`;
+      ${reason}, ${JSON.stringify(metadata)}::jsonb
+    FROM unnest(${[...playerIds]}::uuid[]) AS listed(id)`;
 }
 
 /** Document de la fiche délivré (lot 1.13b) : carte OZ ID ou export PDF filigrané. */

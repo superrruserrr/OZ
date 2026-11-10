@@ -145,6 +145,8 @@ model User {
   dataExports       DataExportRequest[]
   deletions         AccountDeletionRequest[] @relation("AccountDeletionUser")
   childDeletions    AccountDeletionRequest[] @relation("AccountDeletionRequestedBy")
+  savedSearches     SavedSearch[]
+  searchExports     SearchExport[]
 
   rolesCreated         UserRole[]     @relation("UserRoleCreatedBy")
   rolesUpdated         UserRole[]     @relation("UserRoleUpdatedBy")
@@ -253,6 +255,7 @@ model Organization {
   documentUploads DocumentUpload[]
   kycCases        KycCase[]
   imports         Import[]
+  searchExports   SearchExport[]
 
   @@map("organizations")
 }
@@ -636,6 +639,41 @@ model DataExportRequest {
   @@index([userId, requestedAt])
   @@index([status])
   @@map("data_export_requests")
+}
+
+/// Recherche sauvegardée (lot 1.14b, D2) : critères et tri seuls, 20 au plus par compte (déclencheur).
+model SavedSearch {
+  id        String   @id @default(dbgenerated("oz_uuid_v7()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  name      String
+  criteria  Json     @default("{}")
+  sort      String
+  direction String?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([userId, createdAt])
+  @@map("saved_searches")
+}
+
+/// Export CSV de la recherche (lot 1.14b, D3 à D5) : inscrit par oz_search_export_record.
+model SearchExport {
+  id             String   @id @default(dbgenerated("oz_uuid_v7()")) @db.Uuid
+  userId         String   @map("user_id") @db.Uuid
+  /// Organisation imputée (quota de son palier) ; NULL pour l'administrateur.
+  organizationId String?  @map("organization_id") @db.Uuid
+  rowCount       Int      @map("row_count")
+  sort           String
+  criteriaKeys   String[] @default([]) @map("criteria_keys")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Restrict)
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+
+  @@index([organizationId, createdAt])
+  @@index([userId, createdAt])
+  @@map("search_exports")
 }
 
 /// Demande de suppression du compte (lot 1.16ca) : anonymisation à `scheduledFor` sauf annulation.
