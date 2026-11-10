@@ -38,7 +38,7 @@ la vérification d'identité, qui attend deux décisions (§ « Ce qui bloque »
 | 1.3 Connexion et sécurité des comptes                    | ✅   | Mot de passe, double authentification, sessions sécurisées                                                         |
 | 1.4 Rôles et droits                                      | ✅   | Chacun ne voit que ce qu'il a le droit de voir (règles de l'Annexe B)                                              |
 | 1.5 Charte graphique complète et écrans de base          | 🟡   | 1.5a fait : charte OZ Football ID (logo, couleurs, police), clair et sombre ; suite débloquée (Q16, Q18 tranchées) |
-| 1.6 Site public et pages légales                         | ⏸️   | Attend le juriste (Q7) ; prix (Q8) seulement s'ils sont affichés                                                   |
+| 1.6 Site public et pages légales                         | ⬜   | Débloqué : textes légaux et tarifs provisoires (Q7, Q8)                                                            |
 | 1.7 Inscription joueur                                   | ⬜   | Après 1.5                                                                                                          |
 | 1.7b Tuteur légal (mineurs)                              | ⬜   | Après 1.7                                                                                                          |
 | 1.8 Inscription organisation (académie, club…)           | ⬜   | Après 1.5                                                                                                          |
@@ -95,12 +95,12 @@ Q6 (un seul système visuel) et Q19 (nom « OZ FOOTBALL ID ») sont tranchées p
 
 ### De Fabrice
 
-| N°  | Question                                                                                                                                                                              | Pour débloquer   |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
-| Q7  | Qui rédige la politique de confidentialité et les CGU ? L'OAPI protège la marque, pas les données personnelles : il faut encore un juriste (protection des données)                   | 1.6, ouverture   |
-| Q8  | Prix des formules : fournis plus tard, pour l'application (Phase 2) ; requis seulement avant la page tarifs (1.6, si les prix y figurent) et les paiements ; d'ici là, palier gratuit | 1.6, paiements   |
-| Q20 | Quelle société encaisse et facture (Québec, Cameroun, autre) ?                                                                                                                        | 1.6, paiements   |
-| Q24 | Logo : « Beyond potential » confirmé ; fichiers du logo corrigés (PNG et SVG) à demander au graphiste                                                                                 | Impression, 1.5b |
+| N°  | Question                                                                                                             | Pour débloquer   |
+| --- | -------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| Q7  | Confidentialité et CGU : textes provisoires rédigés (`docs/legal/`) ; à faire relire par un juriste en fin de projet | Production       |
+| Q8  | Prix : grille provisoire proposée (`docs/legal/tarifs-provisoires.md`) ; prix définitifs à fournir en fin de projet  | Paiements        |
+| Q20 | Quelle société encaisse et facture (Québec, Cameroun, autre) ?                                                       | 1.6, paiements   |
+| Q24 | Logo : « Beyond potential » confirmé ; fichiers du logo corrigés (PNG et SVG) à demander au graphiste                | Impression, 1.5b |
 
 ### De Gaëtan (et du juriste)
 
@@ -116,7 +116,7 @@ Q6 (un seul système visuel) et Q19 (nom « OZ FOOTBALL ID ») sont tranchées p
 
 - 6 contrôles automatiques au vert exigés avant chaque intégration.
 - Dernière mesure complète : plus de 2 500 tests automatiques, 97 % du code couvert par les tests.
-- 109 points techniques notés à reprendre plus tard (dette suivie dans `DEBT.md`).
+- 110 points techniques notés à reprendre plus tard (dette suivie dans `DEBT.md`).
 
 ## Historique des mises à jour
 
@@ -136,3 +136,4 @@ Q6 (un seul système visuel) et Q19 (nom « OZ FOOTBALL ID ») sont tranchées p
 | 2026-11-10 | 1.5a Charte graphique OZ Football ID (1.5 en cours)        |
 | 2026-11-10 | 1.14b Recherches sauvegardées et export CSV (1.14 serveur) |
 | 2026-11-10 | Réponses de Fabrice (Q2, Q15, Q16, Q18, Q21 à Q24)         |
+| 2026-11-10 | Textes légaux et tarifs provisoires (Q7, Q8)               |

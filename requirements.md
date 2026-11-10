@@ -1089,8 +1089,8 @@ Le marché de lancement est le **Cameroun**, avec une expansion prévue vers l'A
 | Q18 | ~~« OZ Score » / « OZ Index » des maquettes~~ — **Tranché par Fabrice Olinga le 2026-11-10 : retiré de la première version** (aucune note de potentiel affichée) ; repris en Phase 2-3 avec OZ Performance et EX-303 | — | — | — |
 | Q20 | **Entité qui encaisse et facture** (EXISTE au Québec, société OZ au Cameroun, autre ?) : comptes Stripe et CinetPay, TVA, conformité des factures (TD-013) | Billing, mentions légales | Fabrice Olinga | Lot 2.10 (mentions légales : lot 1.6) |
 | Q19 | ~~Nom de marque~~ — **Tranché le 2026-11-10 : « OZ Football ID »** ([ADR-009](docs/adr/ADR-009-identite-visuelle.md)) | — | — | — |
-| Q7 | Qui rédige la politique de confidentialité et les CGU (juriste) ? Réponse du 2026-11-10 : « la protection est déjà faite au niveau de l'OAPI », ce qui couvre la marque (propriété intellectuelle), pas la protection des données ni les CGU : **précision demandée** | Bloquant ouverture | Fabrice Olinga | Lot 1.6 |
-| Q8 | Montants des formules (paliers connus : DP §13.3) et quotas chiffrés de chacune. Réponse du 2026-11-10 : prix fournis par Fabrice Olinga, introduits avec l'application (Phase 2) ; d'ici là, palier gratuit seul (quotas du lot 1.14b) | Page tarifs (1.6), billing (2.10) | Fabrice Olinga | Lot 2.10 (page tarifs : lot 1.6 si affichée) |
+| Q7 | Politique de confidentialité et CGU : **textes provisoires rédigés le 2026-11-10** à la demande de Fabrice Olinga ([confidentialité](docs/legal/politique-confidentialite.md), [CGU](docs/legal/cgu.md)) ; relecture par un juriste en fin de projet, avant l'ouverture en production (l'OAPI couvre la marque, pas la protection des données) | Ouverture en production | Fabrice Olinga | Fin de projet |
+| Q8 | Montants des formules : **grille provisoire proposée le 2026-11-10** ([tarifs](docs/legal/tarifs-provisoires.md)) à la demande de Fabrice Olinga, qui fournira les prix définitifs en fin de projet ; en Phase 1, palier gratuit seul appliqué | Billing (2.10) | Fabrice Olinga | Fin de projet (avant le lot 2.10) |
 
 ### 6.3 Confirmations du 2026-11-10 (Fabrice Olinga)
 
