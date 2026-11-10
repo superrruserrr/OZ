@@ -1,11 +1,12 @@
 // @vitest-environment node
 import { unstable_doesMiddlewareMatch as matches } from 'next/experimental/testing/server';
-import { NextRequest } from 'next/server';
+import { NextRequest, type NextResponse } from 'next/server';
 import { describe, expect, it } from 'vitest';
 import proxy, { config } from './proxy';
 
+// Pages publiques : réponse synchrone (seuls les écrans connectés attendent l'API).
 const call = (url: string, headers: Record<string, string> = {}) =>
-  proxy(new NextRequest(url, { headers }));
+  proxy(new NextRequest(url, { headers })) as NextResponse;
 
 const nonceOf = (csp: string | null): string | undefined => /'nonce-([^']+)'/.exec(csp ?? '')?.[1];
 

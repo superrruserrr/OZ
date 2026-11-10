@@ -530,7 +530,7 @@ Le marché de lancement est le **Cameroun**, avec une expansion prévue vers l'A
 5. LES pages légales DOIVENT être publiées avant l'ouverture des inscriptions [BLOQUANT].
 
 ### EX-107 — Inscription joueur et attribution de l'OZ ID
-**Source :** lot 1.7 · **Priorité :** P0 · **Statut :** En cours (1.7a serveur fait : n° 2, 3 C2 et C4, 4, 5, 6 ; écrans, n° 1, 7 et 8 au lot 1.7c ; photo, D-131)
+**Source :** lot 1.7 · **Priorité :** P0 · **Statut :** En cours (1.7a serveur fait : n° 2, 3 C2 et C4, 4, 5, 6 ; 1.7ca : étape compte du n° 1 et session du site, ADR-010 ; parcours, n° 1, 7 et 8 au lot 1.7cb ; photo, D-131)
 
 **Récit :** En tant que jeune joueur avec une connexion instable, je veux m'inscrire en plusieurs fois sans perdre ce que j'ai saisi, afin d'obtenir mon OZ ID.
 

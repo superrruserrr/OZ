@@ -9,7 +9,10 @@ const NAV = [
   ['/contact', 'contact'],
 ] as const;
 
-/** En-tête du site public (lot 1.6) : logo vers l'accueil, liens principaux (≥ 640 px), langues. */
+/**
+ * En-tête du site public (lot 1.6) : logo vers l'accueil, liens principaux (≥ 640 px), connexion et
+ * création de compte (lot 1.7ca), langues.
+ */
 export function SiteHeader() {
   const t = useTranslations('site');
   return (
@@ -33,6 +36,20 @@ export function SiteHeader() {
             ))}
           </ul>
         </nav>
+        <Link
+          href="/auth/login"
+          data-testid="site-login"
+          className="inline-flex min-h-11 items-center rounded-md px-3 text-sm font-semibold text-oz-text-muted hover:text-oz-text"
+        >
+          {t('login')}
+        </Link>
+        <Link
+          href="/auth/role"
+          data-testid="site-signup"
+          className="hidden min-h-11 items-center rounded-md px-3 text-sm font-semibold text-oz-text hover:underline sm:inline-flex"
+        >
+          {t('signup')}
+        </Link>
         <LocaleSwitcher />
       </div>
     </header>

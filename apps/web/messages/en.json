@@ -77,7 +77,9 @@
     "privacy": "Privacy policy",
     "terms": "Terms of use",
     "signupSoon": "Sign-ups opening soon",
-    "rights": "OZ Football ID"
+    "rights": "OZ Football ID",
+    "login": "Log in",
+    "signup": "Create an account"
   },
   "legal": {
     "provisional": "Provisional version: this text will be reviewed by a lawyer before sign-ups open.",
@@ -232,6 +234,120 @@
       "invalidCharacters": "Characters not allowed.",
       "tooLong": "Message too long (2,000 characters at most).",
       "tooShort": "Message too short (20 characters at least)."
+    },
+    "password": {
+      "required": "Enter your password.",
+      "tooShort": "Password too short (at least 12 characters).",
+      "tooLong": "Password too long.",
+      "invalid": "Invalid password."
+    },
+    "token": {
+      "invalid": "Invalid code or link."
+    }
+  },
+  "auth": {
+    "meta": {
+      "role": "Create an account",
+      "signup": "Create a player account",
+      "login": "Log in",
+      "verify": "Confirm your email address",
+      "onboarding": "Player sign-up"
+    },
+    "layout": {
+      "skip": "Skip to content",
+      "home": "Back to home"
+    },
+    "role": {
+      "title": "Which account do you want to create?",
+      "lead": "Choose the profile that fits you.",
+      "group": "Account type",
+      "soon": "Coming soon",
+      "continue": "Continue",
+      "haveAccount": "Already have an account?",
+      "login": "Log in",
+      "options": {
+        "player": {
+          "title": "Player",
+          "description": "Get my OZ ID and a verified profile"
+        },
+        "guardian": {
+          "title": "Legal guardian",
+          "description": "Support a player under 18"
+        },
+        "academy": {
+          "title": "Academy",
+          "description": "Register and follow my players"
+        },
+        "club": {
+          "title": "Club",
+          "description": "Search and follow players"
+        },
+        "federation": {
+          "title": "Federation",
+          "description": "Observe players from my country"
+        },
+        "center": {
+          "title": "OZ Performance centre",
+          "description": "Certify measurements"
+        },
+        "recruiter": {
+          "title": "Recruiter",
+          "description": "Search verified players"
+        }
+      }
+    },
+    "signup": {
+      "title": "Create my player account",
+      "lead": "Step 1: your account. You will then complete your profile, even in several sittings.",
+      "email": "Email",
+      "password": "Password",
+      "passwordHint": "At least 12 characters. Avoid a password you use elsewhere.",
+      "website": "Website (leave empty)",
+      "terms": "By creating an account, you accept the terms of use and the privacy policy.",
+      "termsLink": "Terms of use",
+      "privacyLink": "Privacy policy",
+      "submit": "Create my account",
+      "sentTitle": "Check your inbox",
+      "sent": "If this address can be used, a confirmation email has just been sent to it. Open the link it contains to continue.",
+      "unavailable": "Sign-up is temporarily unavailable. Try again in a few minutes."
+    },
+    "verify": {
+      "title": "Email address confirmation",
+      "pending": "Confirming…",
+      "done": "Your address is confirmed. Log in to complete your sign-up.",
+      "invalid": "This link is no longer valid. It may have been used already or expired.",
+      "missing": "Open the link you received by email to confirm your address.",
+      "login": "Log in"
+    },
+    "login": {
+      "title": "Log in",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Log in",
+      "noAccount": "No account yet?",
+      "signup": "Create an account",
+      "codeTitle": "Two-factor authentication",
+      "codeLead": "Enter the 6-digit code from your authenticator app.",
+      "codeLabel": "Login code",
+      "digit": "Digit {position} of {total}",
+      "codeSubmit": "Confirm",
+      "back": "Back to login"
+    },
+    "onboarding": {
+      "title": "Your sign-up",
+      "lead": "Your account is ready. The steps of your player profile are coming soon.",
+      "logout": "Log out"
+    },
+    "errors": {
+      "invalidCredentials": "Incorrect email or password.",
+      "emailUnverified": "Confirm your email address first: open the link you received by email.",
+      "retryLater": "Too many attempts. Try again in a few minutes.",
+      "retryAfter": "Too many attempts. Try again in {seconds, plural, one {# second} other {# seconds}}.",
+      "passwordBreached": "This password appears in known data breaches. Choose another one.",
+      "linkInvalid": "This link is no longer valid.",
+      "codeInvalid": "Incorrect or expired code.",
+      "invalid": "Check the highlighted fields.",
+      "unavailable": "Service temporarily unavailable. Try again in a few minutes."
     }
   }
 }

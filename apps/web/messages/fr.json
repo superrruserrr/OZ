@@ -77,7 +77,9 @@
     "privacy": "Politique de confidentialité",
     "terms": "Conditions générales d’utilisation",
     "signupSoon": "Inscriptions bientôt ouvertes",
-    "rights": "OZ Football ID"
+    "rights": "OZ Football ID",
+    "login": "Se connecter",
+    "signup": "Créer un compte"
   },
   "legal": {
     "provisional": "Version provisoire : ce texte sera relu par un juriste avant l’ouverture des inscriptions.",
@@ -232,6 +234,120 @@
       "invalidCharacters": "Caractères non autorisés.",
       "tooLong": "Message trop long (2 000 caractères au plus).",
       "tooShort": "Message trop court (20 caractères au moins)."
+    },
+    "password": {
+      "required": "Saisissez votre mot de passe.",
+      "tooShort": "Mot de passe trop court (12 caractères au moins).",
+      "tooLong": "Mot de passe trop long.",
+      "invalid": "Mot de passe invalide."
+    },
+    "token": {
+      "invalid": "Code ou lien invalide."
+    }
+  },
+  "auth": {
+    "meta": {
+      "role": "Créer un compte",
+      "signup": "Créer un compte joueur",
+      "login": "Se connecter",
+      "verify": "Confirmer l’adresse email",
+      "onboarding": "Inscription joueur"
+    },
+    "layout": {
+      "skip": "Aller au contenu",
+      "home": "Retour à l’accueil"
+    },
+    "role": {
+      "title": "Quel compte voulez-vous créer ?",
+      "lead": "Choisissez le profil qui vous correspond.",
+      "group": "Type de compte",
+      "soon": "Bientôt disponible",
+      "continue": "Continuer",
+      "haveAccount": "Déjà un compte ?",
+      "login": "Se connecter",
+      "options": {
+        "player": {
+          "title": "Joueur",
+          "description": "Obtenir mon OZ ID et mon profil vérifié"
+        },
+        "guardian": {
+          "title": "Tuteur légal",
+          "description": "Accompagner un joueur mineur"
+        },
+        "academy": {
+          "title": "Académie",
+          "description": "Inscrire et suivre mes joueurs"
+        },
+        "club": {
+          "title": "Club",
+          "description": "Rechercher et suivre des joueurs"
+        },
+        "federation": {
+          "title": "Fédération",
+          "description": "Observer les joueurs de mon pays"
+        },
+        "center": {
+          "title": "Centre OZ Performance",
+          "description": "Certifier des mesures"
+        },
+        "recruiter": {
+          "title": "Recruteur",
+          "description": "Rechercher des joueurs vérifiés"
+        }
+      }
+    },
+    "signup": {
+      "title": "Créer mon compte joueur",
+      "lead": "Étape 1 : votre compte. Vous compléterez ensuite votre profil, même en plusieurs fois.",
+      "email": "Email",
+      "password": "Mot de passe",
+      "passwordHint": "12 caractères au moins. Évitez un mot de passe déjà utilisé ailleurs.",
+      "website": "Site web (laisser vide)",
+      "terms": "En créant un compte, vous acceptez les conditions générales d’utilisation et la politique de confidentialité.",
+      "termsLink": "Conditions générales",
+      "privacyLink": "Politique de confidentialité",
+      "submit": "Créer mon compte",
+      "sentTitle": "Vérifiez votre boîte mail",
+      "sent": "Si cette adresse peut être utilisée, un email de confirmation vient d’y être envoyé. Ouvrez le lien qu’il contient pour continuer.",
+      "unavailable": "L’inscription est momentanément indisponible. Réessayez dans quelques minutes."
+    },
+    "verify": {
+      "title": "Confirmation de votre adresse email",
+      "pending": "Confirmation en cours…",
+      "done": "Votre adresse est confirmée. Connectez-vous pour compléter votre inscription.",
+      "invalid": "Ce lien n’est plus valable. Il a peut-être déjà servi ou expiré.",
+      "missing": "Ouvrez le lien reçu par email pour confirmer votre adresse.",
+      "login": "Se connecter"
+    },
+    "login": {
+      "title": "Se connecter",
+      "email": "Email",
+      "password": "Mot de passe",
+      "submit": "Se connecter",
+      "noAccount": "Pas encore de compte ?",
+      "signup": "Créer un compte",
+      "codeTitle": "Double authentification",
+      "codeLead": "Saisissez le code à 6 chiffres de votre application d’authentification.",
+      "codeLabel": "Code de connexion",
+      "digit": "Chiffre {position} sur {total}",
+      "codeSubmit": "Valider",
+      "back": "Revenir à la connexion"
+    },
+    "onboarding": {
+      "title": "Votre inscription",
+      "lead": "Votre compte est prêt. Les étapes de votre profil joueur arrivent bientôt.",
+      "logout": "Se déconnecter"
+    },
+    "errors": {
+      "invalidCredentials": "Email ou mot de passe incorrect.",
+      "emailUnverified": "Confirmez d’abord votre adresse email : ouvrez le lien reçu par email.",
+      "retryLater": "Trop de tentatives. Réessayez dans quelques minutes.",
+      "retryAfter": "Trop de tentatives. Réessayez dans {seconds, plural, one {# seconde} other {# secondes}}.",
+      "passwordBreached": "Ce mot de passe figure dans des fuites de données connues. Choisissez-en un autre.",
+      "linkInvalid": "Ce lien n’est plus valable.",
+      "codeInvalid": "Code incorrect ou expiré.",
+      "invalid": "Vérifiez les champs signalés.",
+      "unavailable": "Service momentanément indisponible. Réessayez dans quelques minutes."
     }
   }
 }
