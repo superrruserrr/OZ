@@ -1,0 +1,53 @@
+# Effets d'interface — catalogue et coût
+
+Référence : `design.md` §8.7, ADR-009. Lots 1.5ba (registre Pilotage) et 1.5bb (registre Émotion).
+Composants : `packages/ui`. Règles :
+
+- seuls `transform` et `opacity` sont animés ;
+- chaque effet a un repli sous `prefers-reduced-motion`, testé dans Chromium (`effects.browser.test.tsx`) ;
+- aucun effet de confiance avant la réponse du serveur (CP-19) ;
+- aucun effet lié à l'âge d'un joueur (EX-T16).
+
+## Statut
+
+| #   | Effet                   | Composant                       | Statut                                                |
+| --- | ----------------------- | ------------------------------- | ----------------------------------------------------- |
+| E1  | Halo vert               | `Halo`                          | Fait (1.5bb)                                          |
+| E2  | Révélation de l'OZ ID   | `OzIdCard reveal`, `OzIdReveal` | Fait (1.5bb)                                          |
+| E3  | Dégradé du bouton       | `Button`                        | Fait (0.10, 1.5a)                                     |
+| E4  | Activation du vert      | `Button`                        | Fait (0.10)                                           |
+| E5  | Focus de champ          | `Field`, `Select`               | Fait (0.10)                                           |
+| E6  | Bloc mineur             | `Callout open live`             | Fait (1.5ba)                                          |
+| E7  | Progression d'étape     | `StepProgress`                  | Fait (1.5ba)                                          |
+| E8  | Case du code active     | `OtpInput`                      | Fait (1.5ba)                                          |
+| E9  | Sélection de carte      | `ChoiceCardGroup`               | Fait (1.5ba)                                          |
+| E10 | Anneau de score         | —                               | Retiré : OZ Score hors première version (Q18)         |
+| E11 | Radar                   | —                               | Phase 2 (tests de performance)                        |
+| E12 | Barres de mesure        | `MeasureBar`                    | Fait (1.5ba)                                          |
+| E13 | Badge « Vérifié »       | `Badge confirmed animate`       | Fait (1.5ba)                                          |
+| E14 | Squelettes              | `Skeleton`, `SkeletonGroup`     | Fait (1.5ba)                                          |
+| E15 | Pagination du splash    | `DotPagination`                 | Fait (1.5ba)                                          |
+| E16 | Cercles du terrain      | `PitchCircles`                  | Fait (1.5bb)                                          |
+| E17 | Néon lime               | —                               | Retiré par la charte (ADR-009 : rose, sans néon)      |
+| E18 | Verre dépoli            | `GlassPanel`                    | Fait (1.5bb) ; repli opaque sans support ou réduit    |
+| E19 | Carte d'Afrique         | —                               | Reporté : tableau de bord fédération, Phase 2 (D-129) |
+| E20 | Puces pays flottantes   | `FloatingChip`                  | Fait (1.5bb)                                          |
+| E21 | Lumière de stade, bokeh | —                               | Reporté : photo libre de droits à fournir (D-129)     |
+| E22 | Cadres métalliques or   | —                               | Retiré par la charte (ADR-009 : pas d'or)             |
+
+## Coût mesuré
+
+`pnpm --filter @oz/ui test:perf` mesure les effets en boucle : images par seconde sur 2 s, Chromium sans
+affichage, processeur ralenti ×4 par CDP (proche d'un Android d'entrée de gamme). Le seuil est de 50 i/s.
+La commande est hors CI, car le résultat dépend de la machine.
+
+| Effet                  | Mesure du 2026-11-11 (Mac, Chromium, ×4) |
+| ---------------------- | ---------------------------------------- |
+| E1 halo                | 60,2 i/s                                 |
+| E14 squelettes (8)     | 60,3 i/s                                 |
+| E16 cercles du terrain | 60,4 i/s                                 |
+| E18 verre dépoli       | 60,2 i/s                                 |
+| E20 puces pays (6)     | 60,2 i/s                                 |
+
+Les effets ponctuels (E2, E6 à E9, E12, E13, E15) durent moins de 1 s, en transform et opacité. La
+mesure sur un vrai téléphone d'entrée de gamme reste à faire en recette (D-129).

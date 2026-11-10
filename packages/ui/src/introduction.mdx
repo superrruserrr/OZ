@@ -61,5 +61,13 @@ barres de mesure, carte OZ ID (initiales, sans photo). Icônes et QR sont fourni
 (`ReactNode`), sans bibliothèque d'icônes. Chaque composant est rendu à 320 px sans défilement
 horizontal (`effects.browser.test.tsx`).
 
+## Coquille et registre Émotion (lot 1.5bb)
+
+`AppShell` : en-tête, contenu principal, barre d'onglets en bas sur téléphone et rail latéral à
+partir de 1024 px ; les onglets par rôle sont une donnée de l'application (`apps/web`,
+`src/navigation/role-tabs.ts`). Effets d'émotion, jamais dans un formulaire, le KYC ou le
+back-office : `Halo` (E1), `OzIdCard reveal` (E2), `PitchCircles` (E16), `GlassPanel` (E18, repli
+opaque), `FloatingChip` (E20). Statut de chaque effet et coût mesuré : `docs/ui/effets.md`.
+
 Seuls `transform` et `opacity` (et la couleur du contour) sont animés. Chaque story est contrôlée
 par axe-core (WCAG 2.1 AA, bloquant) avec `pnpm --filter @oz/ui test:stories`.

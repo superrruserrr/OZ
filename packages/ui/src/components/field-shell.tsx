@@ -1,3 +1,5 @@
+'use client';
+
 import { Root as Label } from '@radix-ui/react-label';
 import type { ReactNode } from 'react';
 
