@@ -147,6 +147,7 @@ model User {
   childDeletions    AccountDeletionRequest[] @relation("AccountDeletionRequestedBy")
   savedSearches     SavedSearch[]
   searchExports     SearchExport[]
+  playerSignup      PlayerSignup?
 
   rolesCreated         UserRole[]     @relation("UserRoleCreatedBy")
   rolesUpdated         UserRole[]     @relation("UserRoleUpdatedBy")
@@ -642,6 +643,25 @@ model DataExportRequest {
 }
 
 /// Recherche sauvegardée (lot 1.14b, D2) : critères et tri seuls, 20 au plus par compte (déclencheur).
+/// Brouillon d'inscription joueur (lot 1.7a) : une colonne chiffrée par étape, écrit par
+/// oz_player_signup_save, supprimé à la finalisation ou à la clôture du compte.
+model PlayerSignup {
+  id          String   @id @default(dbgenerated("oz_uuid_v7()")) @db.Uuid
+  userId      String   @unique @map("user_id") @db.Uuid
+  identity    Bytes?
+  sport       Bytes?
+  affiliation Bytes?
+  guardian    Bytes?
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+  expiresAt   DateTime @map("expires_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([expiresAt])
+  @@map("player_signups")
+}
+
 model SavedSearch {
   id        String   @id @default(dbgenerated("oz_uuid_v7()")) @db.Uuid
   userId    String   @map("user_id") @db.Uuid

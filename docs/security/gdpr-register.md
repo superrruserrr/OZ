@@ -55,7 +55,9 @@ manuelle.
   publication.
 - **Personnes :** joueurs, dont des mineurs dès 6 ans ; tuteurs.
 - **Données :** identité, date de naissance, nationalité, ville, téléphone et numéro de pièce
-  chiffrés, données sportives ; fiche tuteur ; consentements ; OZ ID.
+  chiffrés, données sportives ; fiche tuteur ; consentements ; OZ ID. Lot 1.7a : brouillon
+  d'inscription (`player_signups`, chaque étape chiffrée, supprimé à la finalisation, 30 jours
+  après la dernière saisie ou à la clôture du compte).
 - **Destinataires :** le joueur, son tuteur, son organisation ; les tiers selon la matrice des
   droits (`rbac.md`) — un mineur n'est visible que vérifié et publié avec consentement. Lot
   1.13b : carte OZ ID (titulaire, tuteur) et export PDF de la vue du lecteur, filigrané à son nom
@@ -160,6 +162,7 @@ registre d'effacement (`packages/db/src/erasure/gdpr-register.test.ts`).
 | `audit_chain_checks`        | T6          |
 | `data_export_requests`      | T7          |
 | `account_deletion_requests` | T7          |
+| `player_signups`            | T2          |
 | `saved_searches`            | T4          |
 | `search_exports`            | T4          |
 

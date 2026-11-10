@@ -384,6 +384,19 @@ export const EXPORT_REGISTRY: ExportRegistry = {
     completed_at: INTERNAL,
     updated_at: INTERNAL,
   },
+  // Lot 1.7a : brouillon d'inscription, chiffré, relu en entier par `GET /players/signup` ;
+  // supprimé à la finalisation (la fiche créée est exportée) ou 30 jours après la dernière saisie.
+  player_signups: {
+    id: INTERNAL,
+    user_id: LINK,
+    identity: excluded('brouillon relu par `GET /players/signup`'),
+    sport: excluded('brouillon relu par `GET /players/signup`'),
+    affiliation: excluded('brouillon relu par `GET /players/signup`'),
+    guardian: excluded('brouillon relu par `GET /players/signup`'),
+    created_at: INTERNAL,
+    updated_at: INTERNAL,
+    expires_at: INTERNAL,
+  },
   // Lot 1.14b : lues par `GET /players/saved-searches` ; critères et tri seuls, sans résultat.
   saved_searches: {
     id: INTERNAL,

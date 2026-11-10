@@ -241,6 +241,17 @@ erDiagram
     uuid player_id FK
     timestamptz issued_at
   }
+  player_signups {
+    uuid id PK
+    uuid user_id FK
+    bytea identity
+    bytea sport
+    bytea affiliation
+    bytea guardian
+    timestamptz created_at
+    timestamptz updated_at
+    timestamptz expires_at
+  }
   players {
     uuid id PK,FK
     uuid user_id FK
@@ -405,6 +416,7 @@ erDiagram
   organizations }o--o| users : "created_by"
   organizations }o--o| users : "updated_by"
   oz_id_registry }o--|| players : "player_id"
+  player_signups }o--|| users : "user_id"
   players }o--o| guardians : "guardian_id"
   players }o--o| organizations : "organization_id"
   players }o--o| oz_id_registry : "oz_id,id"

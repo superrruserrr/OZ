@@ -106,11 +106,13 @@ async function grant(userId: string, role: RbacRole, organization: string | null
 const PLACEHOLDERS: Record<string, string> = {
   ':id': '00000000-0000-4000-8000-000000000001',
   ':ozId': 'OZ-CM-26-000000-0',
+  // Étape d'inscription (lot 1.7a) : corps vide, donc 422.
+  ':step': 'identity',
 };
 
 const call = (method: string, path: string, token?: string) => {
   const url = path.replace(/:\w+/g, (param) => PLACEHOLDERS[param] ?? param);
-  const verb = method.toLowerCase() as 'get' | 'post' | 'patch' | 'delete';
+  const verb = method.toLowerCase() as 'get' | 'post' | 'put' | 'patch' | 'delete';
   const pending = request(server)[verb](url).set('Origin', ORIGIN);
   return token === undefined ? pending : pending.set('Authorization', `Bearer ${token}`);
 };

@@ -105,6 +105,17 @@ export {
   type SavedSearchRecord,
 } from './saved-searches.js';
 export {
+  completePlayerSignup,
+  PLAYER_SIGNUP_STEPS,
+  readPlayerSignup,
+  savePlayerSignupStep,
+  type PlayerSignupCompleteOutcome,
+  type PlayerSignupDraft,
+  type PlayerSignupReadOutcome,
+  type PlayerSignupSaveOutcome,
+  type PlayerSignupStep,
+} from './player-signup.js';
+export {
   currentSubscription,
   recordSearchExport,
   type CurrentSubscription,
