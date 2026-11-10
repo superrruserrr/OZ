@@ -690,7 +690,7 @@ La planche `PHOTO-2026-08-31-11-22-46.jpg` fixe la structure de l'app (React Nat
 | # | Écart | Règle concernée | Correction demandée |
 |---|---|---|---|
 | M1 | OZ ID affiché `OZ-CM-08-4K7X2` (5 caractères, sans checksum, « 08 » ambigu) | EX-102, §5.3 du plan | Format `OZ-CM-26-7K4M9Q-3` (Q17) |
-| M2 | « OZ Score / OZ Index » (85-92) sur les écrans de recherche, profil, radar | EX-303 (Phase 3), mineurs | Retirer ou remplacer par des mesures certifiées brutes jusqu'à décision (Q18) |
+| M2 | « OZ Score / OZ Index » (85-92) sur les écrans de recherche, profil, radar | EX-303 (Phase 3), mineurs | Retiré de la première version (Q18, tranchée le 2026-11-10) ; mesures certifiées brutes seulement |
 | M3 | Joueurs de 16-17 ans (mineurs) mis en avant dans « Top players this week » et notés | EX-T16 n° 2 et n° 9 | Aucun classement public de mineurs ; visibles uniquement aux rôles autorisés |
 | M4 | Logos FIFA, CAF, Puma, Turkish Airlines, MTN sur l'affiche | Droit des marques | Retirer tant qu'aucun partenariat n'est signé |
 | M5 | Chiffres « 128 450 joueurs vérifiés », « 54 pays » | Confiance, DP §3.5 | Ne jamais afficher de chiffre fictif comme réel ; compteurs branchés sur la base |
