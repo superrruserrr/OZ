@@ -40,6 +40,7 @@ const EXPOSED_TABLES = [
   // Lot 1.16ca
   'account_deletion_requests',
   // Lot 1.14b
+  'player_signups',
   'saved_searches',
   'search_exports',
 ];

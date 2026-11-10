@@ -343,6 +343,18 @@ export const ANONYMIZATION_REGISTRY: Registry = {
     updated_at: 'technical',
   },
   // Lot 1.14b : un nom de sauvegarde ou un texte libre `q` peut nommer quelqu'un.
+  // Lot 1.7a : brouillon chiffré, effacé dans la copie (aucune valeur synthétique utile).
+  player_signups: {
+    id: 'technical',
+    user_id: 'technical',
+    identity: 'null',
+    sport: 'null',
+    affiliation: 'null',
+    guardian: 'null',
+    created_at: 'technical',
+    updated_at: 'technical',
+    expires_at: 'technical',
+  },
   saved_searches: {
     id: 'technical',
     user_id: 'technical',

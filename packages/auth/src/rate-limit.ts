@@ -34,6 +34,7 @@ export const RATE_LIMIT_RULES = [
   'player_search_account',
   'player_saved_search_account',
   'player_search_export_account',
+  'player_signup_account',
   'data_export_request_account',
   'data_export_download_account',
   'account_deletion_account',
@@ -94,6 +95,8 @@ export const RATE_LIMIT_DEFAULTS: RateLimits = Object.freeze({
   player_saved_search_account: { limit: 60, windowSeconds: HOUR },
   // Export CSV (lot 1.14b) : borné par le quota du palier ; ce plafond freine un script en boucle.
   player_search_export_account: { limit: 10, windowSeconds: HOUR },
+  // Inscription joueur (lot 1.7a) : une sauvegarde par étape, quelques retours en arrière.
+  player_signup_account: { limit: 120, windowSeconds: HOUR },
   // Demande d'export (lot 1.16ba) : ré-authentification par mot de passe, quelques essais seulement.
   data_export_request_account: { limit: 10, windowSeconds: HOUR },
   // Délivrance de l'URL de l'archive (lot 1.16bb) : URL de 5 minutes, auditée à chaque fois.

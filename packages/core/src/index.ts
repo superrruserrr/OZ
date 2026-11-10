@@ -35,3 +35,9 @@ export {
   qrSvg,
   type ProfileQrOptions,
 } from './oz-id/qr.js';
+export { ageAt, isMinor, MAJORITY_AGE } from './age/age.js';
+export {
+  COMPLETENESS_WEIGHTS,
+  profileCompleteness,
+  type CompletenessInput,
+} from './profile/completeness.js';

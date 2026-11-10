@@ -1,7 +1,7 @@
 # OZ — Où en est le projet ?
 
 > Check-list tenue à jour à la fin de chaque étape, à transmettre telle quelle à Fabrice Olinga.
-> **Dernière mise à jour : 11 novembre 2026** — étape : 1.6 Site public et pages légales.
+> **Dernière mise à jour : 11 novembre 2026** — étape : 1.7a Inscription joueur, côté serveur.
 
 Légende : ✅ fait et vérifié · 🟡 en cours · ⬜ à faire · ⏸️ bloqué en attente d'une décision
 
@@ -39,7 +39,7 @@ la vérification d'identité, qui attend deux décisions (§ « Ce qui bloque »
 | 1.4 Rôles et droits                                      | ✅   | Chacun ne voit que ce qu'il a le droit de voir (règles de l'Annexe B)                         |
 | 1.5 Charte graphique complète et écrans de base          | ✅   | Charte, composants, menus par rôle, écrans d'erreur et de chargement ; testé mobile et 3G     |
 | 1.6 Site public et pages légales                         | ✅   | Accueil, 7 pages profils, tarifs, à propos, contact, textes légaux provisoires ; testé 320 px |
-| 1.7 Inscription joueur                                   | ⬜   | Après 1.5                                                                                     |
+| 1.7 Inscription joueur                                   | 🟡   | 1.7a fait côté serveur (étapes sauvegardées, reprise, OZ ID) ; restent les écrans (1.7c)      |
 | 1.7b Tuteur légal (mineurs)                              | ⬜   | Après 1.7                                                                                     |
 | 1.8 Inscription organisation (académie, club…)           | ⬜   | Après 1.5                                                                                     |
 | 1.9 Coffre des documents d'identité                      | ✅   | Dépôt sécurisé, antivirus, lecture 5 minutes, effacement automatique                          |
@@ -54,7 +54,7 @@ la vérification d'identité, qui attend deux décisions (§ « Ce qui bloque »
 | 1.17 Tests de charge et recette                          | ⬜   | Fin de phase                                                                                  |
 | 1.18 Mise en production                                  | ⬜   | Fin de phase                                                                                  |
 
-**Bilan Phase 1 : 8 étapes sur 20 terminées, 2 en cours (1.13 : 2 parties sur 3 ; 1.14 : serveur fait, écrans en 1.13c).**
+**Bilan Phase 1 : 8 étapes sur 20 terminées, 3 en cours (1.7 : serveur fait, écrans en 1.7c ; 1.13 : 2 parties sur 3 ; 1.14 : serveur fait, écrans en 1.13c).**
 
 ### Étape 1.5 en détail
 
