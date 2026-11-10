@@ -66,7 +66,8 @@ test.describe('à 320 px de large (EX-T22.2)', () => {
       const box = await link.boundingBox();
       // Masqué visuellement (lien d'évitement hors focus) : mesuré dans le test suivant.
       if (!box || box.width <= 1) continue;
-      expect(box.height, await link.innerText()).toBeGreaterThanOrEqual(44);
+      // Arrondi au centième : la mise en page rend parfois 43,99997 px pour une hauteur de 44 px.
+      expect(Math.round(box.height * 100) / 100, await link.innerText()).toBeGreaterThanOrEqual(44);
     }
   });
 
@@ -75,7 +76,9 @@ test.describe('à 320 px de large (EX-T22.2)', () => {
     await page.keyboard.press('Tab');
     const skip = page.getByTestId('home-skip-link');
     await expect(skip).toBeFocused();
-    expect((await skip.boundingBox())?.height ?? 0).toBeGreaterThanOrEqual(44);
+    expect(
+      Math.round(((await skip.boundingBox())?.height ?? 0) * 100) / 100,
+    ).toBeGreaterThanOrEqual(44);
     await page.keyboard.press('Enter');
     await expect(page.getByRole('main')).toBeFocused();
   });
