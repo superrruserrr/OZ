@@ -27,15 +27,33 @@ export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
   tone: BadgeTone;
   /** Statut métier porté par `data-testid="badge-{status}"` ; vaut le ton par défaut. */
   status?: string;
+  /** Statut confirmé par la réponse du serveur (CP-19). */
+  confirmed?: boolean;
+  /**
+   * Joue le tampon E13 (1,15 → 1, 300 ms). À ne poser qu'au moment où le serveur vient de confirmer
+   * le statut, jamais à l'affichage d'un statut déjà connu ; sans effet sans `confirmed`.
+   */
+  animate?: boolean;
 }
 
-export function Badge({ tone, status, className, ...props }: BadgeProps) {
+export function Badge({
+  tone,
+  status,
+  confirmed = false,
+  animate = false,
+  className,
+  ...props
+}: BadgeProps) {
   return (
     <span
       {...props}
       data-testid={`badge-${status ?? tone}`}
       data-tone={tone}
-      className={cn(badgeVariants({ tone }), className)}
+      className={cn(
+        badgeVariants({ tone }),
+        confirmed && animate && 'motion-safe:animate-oz-stamp',
+        className,
+      )}
     />
   );
 }
