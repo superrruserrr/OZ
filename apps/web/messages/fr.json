@@ -9,7 +9,6 @@
     "back": "Retour à l’accueil"
   },
   "home": {
-    "skipLink": "Aller au contenu",
     "brand": "OZ Football ID",
     "kicker": "Identité football vérifiée",
     "title": "Ton talent,",
@@ -30,7 +29,9 @@
         "body": "Seules des organisations vérifiées consultent les profils, avec des droits définis rôle par rôle."
       }
     },
-    "status": "Bientôt disponible"
+    "status": "Bientôt disponible",
+    "profilesTitle": "Pour qui ?",
+    "pricingLink": "Voir les tarifs"
   },
   "localeSwitcher": {
     "label": "Langue",
@@ -61,6 +62,176 @@
       "import": "Import",
       "journal": "Journal",
       "observer": "Observatoire"
+    }
+  },
+  "site": {
+    "skip": "Aller au contenu",
+    "nav": "Navigation du site",
+    "profiles": "Profils",
+    "pricing": "Tarifs",
+    "about": "À propos",
+    "contact": "Contact",
+    "footer": "Pied de page",
+    "legal": "Informations légales",
+    "legalNotice": "Mentions légales",
+    "privacy": "Politique de confidentialité",
+    "terms": "Conditions générales d’utilisation",
+    "signupSoon": "Inscriptions bientôt ouvertes",
+    "rights": "OZ Football ID"
+  },
+  "legal": {
+    "provisional": "Version provisoire : ce texte sera relu par un juriste avant l’ouverture des inscriptions.",
+    "frenchOnly": "Ce document n’existe qu’en français.",
+    "titles": {
+      "cgu": "Conditions générales d’utilisation",
+      "confidentialite": "Politique de confidentialité",
+      "mentions": "Mentions légales"
+    }
+  },
+  "profiles": {
+    "title": "Pour qui ?",
+    "lead": "OZ Football ID sert chaque acteur du football, avec des droits adaptés à chacun.",
+    "more": "Découvrir",
+    "items": {
+      "joueur": {
+        "title": "Joueur",
+        "lead": "Votre identité de footballeur, vérifiée et gratuite, à vie.",
+        "p1": "Un OZ ID unique, jamais réattribué, et une carte à partager.",
+        "p2": "Une fiche vérifiée : identité et âge contrôlés, badge « Profil vérifié ».",
+        "p3": "Découvert par des clubs et des recruteurs vérifiés, sans jamais payer."
+      },
+      "tuteur": {
+        "title": "Tuteur légal",
+        "lead": "Vous gardez la main sur le profil de votre enfant mineur.",
+        "p1": "Rien n'est publié sans votre consentement, que vous pouvez retirer à tout moment.",
+        "p2": "Vous voyez qui a consulté son profil, avec le nom de l'organisation.",
+        "p3": "Personne ne reçoit ses coordonnées : tout contact passe par vous ou par son club."
+      },
+      "academie": {
+        "title": "Académie",
+        "lead": "Suivez vos joueurs et faites reconnaître leur formation.",
+        "p1": "Un effectif à jour, rattaché à des identités vérifiées.",
+        "p2": "L'import de vos joueurs existants, sans ressaisie.",
+        "p3": "Une recherche adaptée à la formation, sans critère physique."
+      },
+      "club": {
+        "title": "Club",
+        "lead": "Recrutez sur des identités et des âges vérifiés.",
+        "p1": "Une recherche par poste, âge, pied fort, région et niveau de vérification.",
+        "p2": "Des fiches filigranées à votre nom, chaque consultation tracée.",
+        "p3": "Des listes de joueurs suivis et des exports dans la limite de votre formule."
+      },
+      "federation": {
+        "title": "Fédération",
+        "lead": "Une vue d'ensemble fiable des licenciés, en lecture seule.",
+        "p1": "Des indicateurs agrégés par région et par catégorie d'âge.",
+        "p2": "Des identités vérifiées pour lutter contre la fraude à l'âge.",
+        "p3": "Une offre sur mesure, sans prise de contact directe avec les joueurs."
+      },
+      "centre": {
+        "title": "Centre OZ Performance",
+        "lead": "Certifiez les performances mesurées sur le terrain.",
+        "p1": "L'OZ ID scanné en début de séance : aucune confusion d'identité.",
+        "p2": "Des mesures certifiées « centre », distinctes des données déclarées.",
+        "p3": "Les tests et la saisie en séance arrivent avec la Phase 2."
+      },
+      "recruteur": {
+        "title": "Recruteur",
+        "lead": "Découvrez des talents sans douter de leur identité.",
+        "p1": "Des profils dont l'identité et l'âge sont vérifiés.",
+        "p2": "L'accès aux joueurs mineurs réservé aux recruteurs vérifiés.",
+        "p3": "Chaque consultation d'un mineur est visible de son tuteur : la confiance est réciproque."
+      }
+    }
+  },
+  "about": {
+    "title": "À propos d’OZ Football ID",
+    "lead": "OZ Football ID donne à chaque joueur de football une identité sportive vérifiée, unique et à vie.",
+    "problemTitle": "Le problème",
+    "problem": "Sans dossier fiable, l’âge et l’identité d’un jeune joueur sont mis en doute, et son talent passe inaperçu. Les fausses promesses visent d’abord les mineurs.",
+    "answerTitle": "Notre réponse",
+    "answer": "Un OZ ID gratuit pour chaque joueur, une vérification d’identité faite par l’équipe OZ, et des règles strictes : un mineur n’est visible qu’avec l’accord de son tuteur, et seulement d’organisations vérifiées.",
+    "principlesTitle": "Nos principes",
+    "p1": "Un joueur n’a jamais à payer pour exister et être découvert.",
+    "p2": "Aucune coordonnée de mineur n’est communiquée à quiconque.",
+    "p3": "Aucune donnée n’est vendue ; aucune publicité ciblée."
+  },
+  "pricing": {
+    "title": "Tarifs",
+    "lead": "Le joueur est toujours gratuit. Les organisations choisissent la formule adaptée à leur taille.",
+    "provisional": "Tarifs indicatifs, susceptibles d’évoluer : aucun paiement n’est encore possible.",
+    "players": "Joueurs",
+    "organisations": "Organisations",
+    "plan": "Formule",
+    "perMonthXaf": "FCFA par mois",
+    "perMonthEur": "EUR par mois",
+    "free": "Gratuit",
+    "managed": "Joueurs gérés",
+    "users": "Utilisateurs",
+    "exports": "Exports par jour",
+    "unlimited": "Sans limite",
+    "federations": "Fédérations : offre sur mesure, sur devis.",
+    "annual": "Abonnement annuel : 12 mois pour le prix de 10.",
+    "plans": {
+      "playerFree": "Joueur — Gratuit",
+      "playerPremium": "Joueur — Premium",
+      "orgFree": "Gratuit",
+      "discovery": "Découverte",
+      "pro": "Pro",
+      "elite": "Élite / Institution"
+    },
+    "desc": {
+      "playerFree": "OZ ID, fiche, badge vérifié, carte OZ ID, découverte par les organisations",
+      "playerPremium": "Mise en avant dans les résultats, statistiques avancées (bientôt)"
+    }
+  },
+  "contactPage": {
+    "title": "Nous contacter",
+    "lead": "Une question, un partenariat, une académie à inscrire ? Écrivez-nous.",
+    "sent": "Merci, votre message a bien été reçu.",
+    "failed": "L’envoi n’a pas abouti. Réessayez dans quelques instants."
+  },
+  "contact": {
+    "form": {
+      "name": "Nom",
+      "email": "Email",
+      "organisationType": "Vous êtes",
+      "choose": "Choisir…",
+      "message": "Message",
+      "consent": "J’accepte que mes coordonnées servent à me répondre.",
+      "submit": "Envoyer"
+    },
+    "organisationType": {
+      "player": "Joueur",
+      "guardian": "Tuteur légal",
+      "academy": "Académie",
+      "club": "Club",
+      "federation": "Fédération",
+      "recruiter": "Recruteur",
+      "other": "Autre",
+      "performanceCenter": "Centre OZ Performance"
+    }
+  },
+  "validation": {
+    "consent": {
+      "required": "Votre accord est nécessaire pour vous répondre."
+    },
+    "email": {
+      "invalid": "Adresse email invalide.",
+      "tooLong": "Adresse email trop longue."
+    },
+    "name": {
+      "invalid": "Nom invalide.",
+      "tooLong": "Nom trop long.",
+      "tooShort": "Nom trop court."
+    },
+    "organisationType": {
+      "invalid": "Choisissez une option."
+    },
+    "text": {
+      "invalidCharacters": "Caractères non autorisés.",
+      "tooLong": "Message trop long (2 000 caractères au plus).",
+      "tooShort": "Message trop court (20 caractères au moins)."
     }
   }
 }

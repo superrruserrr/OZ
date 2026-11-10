@@ -1,5 +1,8 @@
+'use client';
+
 import type { ReactNode } from 'react';
 import { cn } from '../lib/cn.js';
+import { cssomStyle } from '../lib/cssom-style.js';
 import { OzIdReveal } from './emotion.js';
 
 export interface OzIdCardProps {
@@ -94,7 +97,11 @@ export function OzIdCard({
               'grid size-24 shrink-0 place-items-center rounded-xl bg-oz-primary p-2 text-oz-on-primary',
               reveal && 'motion-safe:animate-oz-fade-in',
             )}
-            style={reveal ? { animationDelay: `${String(500 + 40 * ozId.length)}ms` } : undefined}
+            ref={
+              reveal
+                ? cssomStyle({ animationDelay: `${String(500 + 40 * ozId.length)}ms` })
+                : undefined
+            }
           >
             {qr}
           </div>

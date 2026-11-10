@@ -79,7 +79,9 @@ export function ContactForm({ onSubmit, t = identity }: ContactFormProps): React
         </option>
         {ORGANISATION_TYPES.map((type) => (
           <option key={type} value={type}>
-            {t(`contact.organisationType.${type}`)}
+            {t(
+              `contact.organisationType.${type.replace(/_([a-z])/g, (_, c: string) => c.toUpperCase())}`,
+            )}
           </option>
         ))}
       </select>

@@ -5,7 +5,21 @@ import { expect, type Page, test } from '@playwright/test';
 // Lighthouse lui-même est passé en recette (D-129) ; ces mesures en tiennent lieu en CI.
 
 const WCAG_AA = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'];
-const PAGES = ['/', '/en', '/page-inexistante'] as const;
+const PAGES = [
+  '/',
+  '/en',
+  '/page-inexistante',
+  // Site public (lot 1.6)
+  '/tarifs',
+  '/en/tarifs',
+  '/a-propos',
+  '/contact',
+  '/legal/cgu',
+  '/legal/confidentialite',
+  '/legal/mentions',
+  '/profils/joueur',
+  '/profils/federation',
+] as const;
 
 /** Profil « Fast 3G » des outils de Chromium : 562,5 ms de latence, 1,44 Mbit/s descendant. */
 const FAST_3G = {
@@ -19,7 +33,11 @@ const P95_BUDGET_MS = 2500;
 
 async function settle(page: Page): Promise<void> {
   await page.waitForFunction(() =>
-    document.getAnimations().every((animation) => animation.playState === 'finished'),
+    document
+      .getAnimations()
+      // Les boucles (flottement des puces, E20) ne finissent jamais : seules les entrées comptent.
+      .filter((animation) => animation.effect?.getTiming().iterations !== Number.POSITIVE_INFINITY)
+      .every((animation) => animation.playState === 'finished'),
   );
 }
 
