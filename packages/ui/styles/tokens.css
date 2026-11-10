@@ -104,3 +104,74 @@
   --font-display: var(--oz-font-prompt), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--oz-font-jetbrains-mono), ui-monospace, monospace;
 }
+
+/*
+ * Effets d'interface (design.md §8.7, lot 1.5ba) : `transform` et `opacity` seulement. Replis : base.css
+ * ramène toute animation à 0,01 ms sous `prefers-reduced-motion` ; les effets décoratifs en boucle
+ * sont en plus coupés par `motion-reduce:` dans les composants.
+ */
+@theme {
+  --animate-oz-shake: oz-shake 300ms ease-in-out;
+  --animate-oz-pop: oz-pop 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  --animate-oz-unfold: oz-unfold 250ms ease-out both;
+  --animate-oz-shimmer: oz-shimmer 1.5s ease-in-out infinite;
+  --animate-oz-grow: oz-grow 500ms ease-out both;
+  --animate-oz-stamp: oz-stamp 300ms ease-out both;
+
+  /* E8 : trois allers-retours de 4 px. */
+  @keyframes oz-shake {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    16%,
+    50%,
+    83% {
+      transform: translateX(-4px);
+    }
+    33%,
+    66% {
+      transform: translateX(4px);
+    }
+  }
+
+  /* E9 : pastille cochée, ressort léger. */
+  @keyframes oz-pop {
+    from {
+      transform: scale(0.6);
+    }
+  }
+
+  /* E6 : l'encadré se déplie depuis le haut. */
+  @keyframes oz-unfold {
+    from {
+      opacity: 0;
+      transform: translateY(-4px) scaleY(0.96);
+    }
+  }
+
+  /* E14 : balayage lumineux lent. */
+  @keyframes oz-shimmer {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(100%);
+    }
+  }
+
+  /* E12 : la barre part de zéro jusqu'à sa valeur (transform posé par le composant). */
+  @keyframes oz-grow {
+    from {
+      transform: scaleX(0);
+    }
+  }
+
+  /* E13 : tampon, après confirmation serveur seulement. */
+  @keyframes oz-stamp {
+    from {
+      opacity: 0;
+      transform: scale(1.15);
+    }
+  }
+}
