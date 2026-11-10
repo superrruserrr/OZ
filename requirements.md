@@ -1078,19 +1078,28 @@ Le marché de lancement est le **Cameroun**, avec une expansion prévue vers l'A
 | # | Question | Impact | Responsable | Avant |
 |---|---|---|---|---|
 | Q1 | ~~Cellules déduites (*) de la matrice EX-104~~ — **Tranché par Gaëtan Wassu le 2026-11-02** (décisions D1 à D7 du lot 1.4a) | — | — | — |
-| Q2 | Le KYC 3 organisationnel est-il bien inclus en Phase 1 (EX-112) ? | Parcours recruteur, critère J2 n° 1 et n° 5 | Fabrice Olinga + Gaëtan Wassu | Lot 1.10 |
+| Q2 | ~~Le KYC 3 organisationnel est-il bien inclus en Phase 1 (EX-112) ?~~ — **Tranché par Fabrice Olinga le 2026-11-10 : oui**, validation manuelle par l'équipe OZ au départ | — | — | — |
 | Q3 | ~~Contradiction §7.3 / §7.4 sur l'approbation automatique~~ — **Tranché par TD-016** : revue humaine au lancement, approbation automatique des majeurs activable par drapeau après preuve mesurée | — | — | — |
 | Q4 | ~~Checksum OZ ID~~ — **Tranché par TD-017** : Damm sur base 32 Crockford, identifiant entier | — | — | — |
 | Q5 | ~~Fournisseur OCR, vivacité, concordance faciale~~ — **Tranché par TD-015** : fournisseur spécialisé, POC Veriff / Smile ID au lot 1.10 | — | — | — |
-| Q6 | Valider la convergence proposée des deux univers du DP §12.2 (doré et sombre « Ton talent, notre mission » / vert et sombre « Le système d'exploitation du football ») en un système unique à deux registres (`design.md` §8) | ADR du lot 1.5 | Fabrice Olinga | Lot 1.5 |
-| Q15 | **Périmètre de Phase 1 :** le DP §14 y place OZ Performance et le tableau de bord ; le plan technique les met en Phase 2. Fabrice Olinga valide-t-il le découpage du plan ? | Contrat, jalon J2, promesse « tenue dès la Phase 1 » | Fabrice Olinga | Phase 0 |
-| Q16 | Le mobile étant la surface principale (DP §7.2) mais livré en Phase 2, le web responsive de Phase 1 suffit-il pour l'ouverture des inscriptions ? Sinon : PWA installable en Phase 1 ? | Adoption terrain | Fabrice Olinga + Gaëtan Wassu | Lot 1.5 |
+| Q6 | ~~Convergence des deux univers du DP §12.2~~ — **Tranché le 2026-11-10 par la charte OZ Football ID v1.0** ([ADR-009](docs/adr/ADR-009-identite-visuelle.md)) | — | — | — |
+| Q15 | ~~Périmètre de Phase 1 (OZ Performance et tableau de bord)~~ — **Tranché par Fabrice Olinga le 2026-11-10 : en Phase 2**, découpage du plan validé | — | — | — |
+| Q16 | ~~Web responsive suffisant pour l'ouverture ?~~ — **Tranché par Fabrice Olinga le 2026-11-10 : oui**, site conçu d'abord pour le téléphone, sans PWA installable en Phase 1 ; application mobile en Phase 2 | — | — | — |
 | Q17 | **Format OZ ID :** les maquettes affichent `OZ-CM-08-4K7X2` (année 2008 = naissance ? 5 caractères, pas de checksum) ; le plan impose `OZ-CM-26-7K4M9Q-3` (année d'émission, 6 caractères + checksum). Le plan prévaut sauf décision contraire ; les maquettes sont à corriger | Format immuable à vie | Gaëtan Wassu | Lot 1.2 |
-| Q18 | **« OZ Score » / « OZ Index » des maquettes** (notes 85-92 sur les cartes, recherche, radar) : c'est un scoring de potentiel (EX-303, Phase 3), soumis à l'explicabilité et interdit comme décision sur un mineur. Faut-il le retirer des écrans de Phase 1-2 ou le remplacer par des mesures certifiées brutes ? | Gouvernance IA, mineurs | Fabrice Olinga | Lot 1.5 |
+| Q18 | ~~« OZ Score » / « OZ Index » des maquettes~~ — **Tranché par Fabrice Olinga le 2026-11-10 : retiré de la première version** (aucune note de potentiel affichée) ; repris en Phase 2-3 avec OZ Performance et EX-303 | — | — | — |
 | Q20 | **Entité qui encaisse et facture** (EXISTE au Québec, société OZ au Cameroun, autre ?) : comptes Stripe et CinetPay, TVA, conformité des factures (TD-013) | Billing, mentions légales | Fabrice Olinga | Lot 2.10 (mentions légales : lot 1.6) |
-| Q19 | **Nom de marque :** les maquettes alternent « OZ FOOTBALL ID » (affiches) et « OZ FOOTBALL OS » / logo « OZ4 » (écrans). Lequel est le nom produit ? | Logo, splash, stores | Fabrice Olinga | Lot 1.5 |
-| Q7 | Qui rédige la politique de confidentialité et les CGU (juriste) ? | Bloquant ouverture | Fabrice Olinga | Lot 1.6 |
-| Q8 | Montants des formules (paliers connus : DP §13.3) et quotas chiffrés de chacune | Page tarifs (1.6), quotas (1.14), billing (2.10) | Fabrice Olinga | Lot 1.6 |
+| Q19 | ~~Nom de marque~~ — **Tranché le 2026-11-10 : « OZ Football ID »** ([ADR-009](docs/adr/ADR-009-identite-visuelle.md)) | — | — | — |
+| Q7 | Qui rédige la politique de confidentialité et les CGU (juriste) ? Réponse du 2026-11-10 : « la protection est déjà faite au niveau de l'OAPI », ce qui couvre la marque (propriété intellectuelle), pas la protection des données ni les CGU : **précision demandée** | Bloquant ouverture | Fabrice Olinga | Lot 1.6 |
+| Q8 | Montants des formules (paliers connus : DP §13.3) et quotas chiffrés de chacune. Réponse du 2026-11-10 : prix fournis par Fabrice Olinga, introduits avec l'application (Phase 2) ; d'ici là, palier gratuit seul (quotas du lot 1.14b) | Page tarifs (1.6), billing (2.10) | Fabrice Olinga | Lot 2.10 (page tarifs : lot 1.6 si affichée) |
+
+### 6.3 Confirmations du 2026-11-10 (Fabrice Olinga)
+
+| # | Décision confirmée | Référence |
+|---|---|---|
+| Q21 | Suppression de compte : 30 jours pour changer d'avis (fiche cachée), compte suspendu gelé, puis anonymisation ; pour un mineur, demande du tuteur, annulée à sa majorité | [account-deletion.md](docs/security/account-deletion.md), lots 1.16ca à 1.16cbb |
+| Q22 | Fiche en PDF : tout lecteur autorisé télécharge sa vue, filigranée à son nom ; carte OZ ID sans photo | Lot 1.13b |
+| Q23 | Recherche : l'académie ne filtre ni sur la taille, le poids, ni le pied fort ; nul ne filtre sur l'organisation d'un autre ; texte libre sur le nom ; mineurs listés journalisés | [rbac.md](docs/security/rbac.md), lot 1.14a |
+| Q24 | Slogan du logo : « Beyond potential » (et non « Beyong ») ; fichiers corrigés à obtenir du graphiste avant toute impression | [ADR-009](docs/adr/ADR-009-identite-visuelle.md), D-126 |
 
 ### 6.2 Non bloquantes (hypothèse par défaut si non tranchées)
 

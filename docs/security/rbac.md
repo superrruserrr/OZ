@@ -156,7 +156,7 @@ lecture ; texte libre hors cible sous la RLS (dette D-125).
 
 ## Recherches sauvegardées et export (lot 1.14b)
 
-Décisions du 2026-11-10 (EX-116 n° 3, 4 et 7, D1 à D5 du lot), quotas à confirmer (Q8). **D1** aucune
+Décisions du 2026-11-10 (EX-116 n° 3, 4 et 7, D1 à D5 du lot), quotas du palier gratuit seuls jusqu'aux paliers payants (Q8 : prix avec l'application). **D1** aucune
 action nouvelle : `GET`, `POST /players/saved-searches`, `DELETE /players/saved-searches/:id` et
 `GET /players/export.csv` relèvent de `player.search`, portée relue en base à chaque appel ; la
 portée réduite (académie, cellule `limited`, « sans export ») sauvegarde sans critère avancé
