@@ -12,7 +12,7 @@ async function messages(code, filePath) {
 const page = (body) => `export default function Page() {\n  return ${body};\n}\n`;
 
 describe('i18n : chaîne en dur interdite dans les pages', () => {
-  it.each(['apps/web/src/app/[locale]/page.tsx', 'apps/admin/src/app/page.tsx'])(
+  it.each(['apps/web/src/app/[locale]/(site)/page.tsx', 'apps/admin/src/app/page.tsx'])(
     'refuse un texte JSX littéral (%s)',
     async (filePath) => {
       expect(await messages(page('<p>Bienvenue</p>'), filePath)).toContain('no-restricted-syntax');
@@ -21,21 +21,21 @@ describe('i18n : chaîne en dur interdite dans les pages', () => {
 
   it('refuse aussi un texte dans un attribut lisible (alt, aria-label, title, placeholder)', async () => {
     const code = page('<img alt="Logo OZ" src="/a.svg" />');
-    expect(await messages(code, 'apps/web/src/app/[locale]/page.tsx')).toContain(
+    expect(await messages(code, 'apps/web/src/app/[locale]/(site)/page.tsx')).toContain(
       'no-restricted-syntax',
     );
   });
 
   it('accepte une traduction et les espaces de mise en page', async () => {
     const code = `import { useTranslations } from 'next-intl';\n${page("<p>\n  {useTranslations('home')('title')}\n</p>")}`;
-    expect(await messages(code, 'apps/web/src/app/[locale]/page.tsx')).not.toContain(
+    expect(await messages(code, 'apps/web/src/app/[locale]/(site)/page.tsx')).not.toContain(
       'no-restricted-syntax',
     );
   });
 });
 
 describe('CSP : aucun attribut style en dur (style-src sans unsafe-inline)', () => {
-  it.each(['apps/web/src/app/[locale]/page.tsx', 'apps/admin/src/app/page.tsx'])(
+  it.each(['apps/web/src/app/[locale]/(site)/page.tsx', 'apps/admin/src/app/page.tsx'])(
     'refuse style={{…}} (%s)',
     async (filePath) => {
       expect(await messages(page("<p style={{ color: 'red' }} />"), filePath)).toContain(
@@ -46,7 +46,7 @@ describe('CSP : aucun attribut style en dur (style-src sans unsafe-inline)', () 
 });
 
 describe('contournements relevés en revue (lot 0.4, tour 2)', () => {
-  const file = 'apps/web/src/app/[locale]/page.tsx';
+  const file = 'apps/web/src/app/[locale]/(site)/page.tsx';
   it.each([
     ['texte entre accolades', page("<p>{'Bienvenue'}</p>")],
     ['gabarit entre accolades', page('<p>{`Bienvenue`}</p>')],
@@ -78,7 +78,7 @@ describe('contournements relevés en revue (lot 0.4, tour 2)', () => {
 });
 
 describe('contournements relevés en revue (lot 0.4, tour 3)', () => {
-  const file = 'apps/web/src/app/[locale]/page.tsx';
+  const file = 'apps/web/src/app/[locale]/(site)/page.tsx';
   const withFlag = (body) =>
     `export default function Page({ x }: { x: boolean }) {\n  return ${body};\n}\n`;
   it.each([
