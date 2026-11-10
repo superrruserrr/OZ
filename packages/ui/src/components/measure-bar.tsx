@@ -1,4 +1,7 @@
+'use client';
+
 import { cn } from '../lib/cn.js';
+import { cssomStyle } from '../lib/cssom-style.js';
 
 export interface MeasureBarProps {
   /** Nom de la mesure, déjà traduit (« Vitesse sur 30 m »). */
@@ -55,10 +58,10 @@ export function MeasureBar({
         <div
           data-testid={`${testId}-fill`}
           className="h-full w-full origin-left animate-oz-grow rounded-full bg-oz-primary"
-          style={{
+          ref={cssomStyle({
             transform: `scaleX(${String(Math.round(ratio * 1000) / 1000)})`,
             animationDelay: `${String(Math.max(0, Math.floor(index)) * 60)}ms`,
-          }}
+          })}
         />
       </div>
     </div>

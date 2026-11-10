@@ -521,7 +521,7 @@ Le marché de lancement est le **Cameroun**, avec une expansion prévue vers l'A
 5. Storybook DOIT documenter l'ensemble des composants.
 
 ### EX-106 — Site public et pages légales
-**Source :** lot 1.6 · **Priorité :** P0 · **Statut :** Plan
+**Source :** lot 1.6 · **Priorité :** P0 · **Statut :** Fait (lot 1.6 ; n° 4 mesuré en LCP 3G, Lighthouse en recette, D-129 ; textes provisoires, D-128)
 
 1. LE site DOIT présenter : accueil, page par profil (joueur, tuteur, académie, club, fédération, centre, recruteur), tarifs, à propos, contact, mentions légales, politique de confidentialité, CGU.
 2. LES pages publiques DOIVENT avoir métadonnées SEO et sociales, et un sitemap.

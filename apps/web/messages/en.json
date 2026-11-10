@@ -9,7 +9,6 @@
     "back": "Back to home"
   },
   "home": {
-    "skipLink": "Skip to content",
     "brand": "OZ Football ID",
     "kicker": "Verified football identity",
     "title": "Your talent,",
@@ -30,7 +29,9 @@
         "body": "Only verified organisations can view profiles, with rights set role by role."
       }
     },
-    "status": "Coming soon"
+    "status": "Coming soon",
+    "profilesTitle": "Who is it for?",
+    "pricingLink": "See pricing"
   },
   "localeSwitcher": {
     "label": "Language",
@@ -61,6 +62,176 @@
       "import": "Import",
       "journal": "Journal",
       "observer": "Observatory"
+    }
+  },
+  "site": {
+    "skip": "Skip to content",
+    "nav": "Site navigation",
+    "profiles": "Profiles",
+    "pricing": "Pricing",
+    "about": "About",
+    "contact": "Contact",
+    "footer": "Footer",
+    "legal": "Legal information",
+    "legalNotice": "Legal notice",
+    "privacy": "Privacy policy",
+    "terms": "Terms of use",
+    "signupSoon": "Sign-ups opening soon",
+    "rights": "OZ Football ID"
+  },
+  "legal": {
+    "provisional": "Provisional version: this text will be reviewed by a lawyer before sign-ups open.",
+    "frenchOnly": "This document is available in French only; the French version is authoritative.",
+    "titles": {
+      "cgu": "Terms of use",
+      "confidentialite": "Privacy policy",
+      "mentions": "Legal notice"
+    }
+  },
+  "profiles": {
+    "title": "Who is it for?",
+    "lead": "OZ Football ID serves everyone in football, with rights suited to each.",
+    "more": "Discover",
+    "items": {
+      "joueur": {
+        "title": "Player",
+        "lead": "Your football identity, verified and free, for life.",
+        "p1": "A unique OZ ID, never reassigned, and a card to share.",
+        "p2": "A verified profile: identity and age checked, “Verified profile” badge.",
+        "p3": "Discovered by verified clubs and scouts, without ever paying."
+      },
+      "tuteur": {
+        "title": "Legal guardian",
+        "lead": "You stay in control of your minor child's profile.",
+        "p1": "Nothing is published without your consent, which you can withdraw at any time.",
+        "p2": "You see who viewed the profile, with the organisation's name.",
+        "p3": "Nobody receives their contact details: every contact goes through you or their club."
+      },
+      "academie": {
+        "title": "Academy",
+        "lead": "Follow your players and get their training recognised.",
+        "p1": "An up-to-date roster linked to verified identities.",
+        "p2": "Import your existing players without retyping.",
+        "p3": "A search suited to training, without physical criteria."
+      },
+      "club": {
+        "title": "Club",
+        "lead": "Recruit on verified identities and ages.",
+        "p1": "Search by position, age, strong foot, region and verification level.",
+        "p2": "Profiles watermarked with your name, every view traced.",
+        "p3": "Followed players and exports within the limits of your plan."
+      },
+      "federation": {
+        "title": "Federation",
+        "lead": "A reliable overview of registered players, read-only.",
+        "p1": "Indicators aggregated by region and age group.",
+        "p2": "Verified identities to fight age fraud.",
+        "p3": "A tailored offer, with no direct contact with players."
+      },
+      "centre": {
+        "title": "OZ Performance centre",
+        "lead": "Certify performance measured on the pitch.",
+        "p1": "The OZ ID is scanned at the start of each session: no identity mix-up.",
+        "p2": "“Centre-certified” measurements, distinct from declared data.",
+        "p3": "Tests and in-session entry arrive with Phase 2."
+      },
+      "recruteur": {
+        "title": "Scout",
+        "lead": "Discover talent without doubting their identity.",
+        "p1": "Profiles whose identity and age are verified.",
+        "p2": "Access to minor players reserved for verified scouts.",
+        "p3": "Every view of a minor is visible to their guardian: trust works both ways."
+      }
+    }
+  },
+  "about": {
+    "title": "About OZ Football ID",
+    "lead": "OZ Football ID gives every football player a verified sporting identity, unique and for life.",
+    "problemTitle": "The problem",
+    "problem": "Without a reliable record, a young player's age and identity are doubted, and their talent goes unnoticed. False promises target minors first.",
+    "answerTitle": "Our answer",
+    "answer": "A free OZ ID for every player, identity verification carried out by the OZ team, and strict rules: a minor is visible only with their guardian's consent, and only to verified organisations.",
+    "principlesTitle": "Our principles",
+    "p1": "A player never has to pay to exist and be discovered.",
+    "p2": "No minor's contact details are ever shared with anyone.",
+    "p3": "No data is sold; no targeted advertising."
+  },
+  "pricing": {
+    "title": "Pricing",
+    "lead": "Players are always free. Organisations choose the plan that fits their size.",
+    "provisional": "Indicative prices, subject to change: no payment is possible yet.",
+    "players": "Players",
+    "organisations": "Organisations",
+    "plan": "Plan",
+    "perMonthXaf": "XAF per month",
+    "perMonthEur": "EUR per month",
+    "free": "Free",
+    "managed": "Players managed",
+    "users": "Users",
+    "exports": "Exports per day",
+    "unlimited": "Unlimited",
+    "federations": "Federations: tailored offer, on quotation.",
+    "annual": "Annual subscription: 12 months for the price of 10.",
+    "plans": {
+      "playerFree": "Player — Free",
+      "playerPremium": "Player — Premium",
+      "orgFree": "Free",
+      "discovery": "Discovery",
+      "pro": "Pro",
+      "elite": "Elite / Institution"
+    },
+    "desc": {
+      "playerFree": "OZ ID, profile, verified badge, OZ ID card, discovery by organisations",
+      "playerPremium": "Highlighting in results, advanced statistics (coming soon)"
+    }
+  },
+  "contactPage": {
+    "title": "Contact us",
+    "lead": "A question, a partnership, an academy to register? Write to us.",
+    "sent": "Thank you, your message has been received.",
+    "failed": "Sending failed. Please try again in a moment."
+  },
+  "contact": {
+    "form": {
+      "name": "Name",
+      "email": "Email",
+      "organisationType": "You are",
+      "choose": "Choose…",
+      "message": "Message",
+      "consent": "I agree that my details are used to reply to me.",
+      "submit": "Send"
+    },
+    "organisationType": {
+      "player": "Player",
+      "guardian": "Legal guardian",
+      "academy": "Academy",
+      "club": "Club",
+      "federation": "Federation",
+      "recruiter": "Scout",
+      "other": "Other",
+      "performanceCenter": "OZ Performance centre"
+    }
+  },
+  "validation": {
+    "consent": {
+      "required": "Your consent is required to reply to you."
+    },
+    "email": {
+      "invalid": "Invalid email address.",
+      "tooLong": "Email address too long."
+    },
+    "name": {
+      "invalid": "Invalid name.",
+      "tooLong": "Name too long.",
+      "tooShort": "Name too short."
+    },
+    "organisationType": {
+      "invalid": "Choose an option."
+    },
+    "text": {
+      "invalidCharacters": "Characters not allowed.",
+      "tooLong": "Message too long (2,000 characters at most).",
+      "tooShort": "Message too short (20 characters at least)."
     }
   }
 }

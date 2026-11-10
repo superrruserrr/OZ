@@ -672,6 +672,8 @@ La planche `PHOTO-2026-08-31-11-22-46.jpg` fixe la structure de l'app (React Nat
 - **(performance)** — Phase 2 : `/performance/session/scan` (22, QR OZ ID) · `/performance/session/[id]` (23) · `/performance/progression` (24, cohorte) · `/performance/soumettre` (source B)
 - **(gestion)** `/shortlist` (27) · `/rapports/[id]` (28) · `/academie/effectif` (29) · `/academie/import` (30, CSV 10 000 lignes) · `/abonnement` (31, mobile money) · `/admin/kyc/file` (32, quatre yeux) · `/federation/observateur`
 
+**Site public (web seulement, lot 1.6, routes ajoutées à valider) :** `/` · `/profils/[profil]` (`joueur`, `tuteur`, `academie`, `club`, `federation`, `centre`, `recruteur`) · `/tarifs` · `/a-propos` · `/contact` · `/legal/cgu`, `/legal/confidentialite`, `/legal/mentions` ; préfixe `/en` pour l'anglais. Textes légaux en français seul.
+
 **Onglets par rôle :** Joueur (Accueil · Recherche · Messages · Profil · Plus) · Recruteur (Accueil · Recherche · Messages · Shortlist · Plus) · Académie (Effectif · Import · Messages · Rapports · Plus) · Tuteur (Consentements · Journal de consultation · Signalement) · Centre OZ (Scan QR · Session · Saisie · Clôture signée) · Fédération (Observateur : lecture seule, agrégats, aucun contact) · Admin OZ (File KYC · Quatre yeux · Audit · Signalements 48 h).
 
 **Règle de la planche, alignée sur R4 :** les garde-fous sont appliqués côté serveur ; une route interdite renvoie **404, pas un écran masqué**.

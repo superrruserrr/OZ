@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from 'react';
 import { cn } from '../lib/cn.js';
+import { cssomStyle } from '../lib/cssom-style.js';
 
 /*
  * Effets du registre Émotion (lot 1.5bb, design.md §8.2 et §8.7) : site public, carte OZ ID,
@@ -152,7 +153,7 @@ export function FloatingChip({ children, index = 0, className }: FloatingChipPro
         'inline-flex h-8 items-center gap-1.5 rounded-full border border-oz-border bg-oz-surface-2 px-3 text-xs font-semibold text-oz-text motion-safe:animate-oz-float',
         className,
       )}
-      style={{ animationDelay: `${String(-1000 * Math.max(0, Math.floor(index)))}ms` }}
+      ref={cssomStyle({ animationDelay: `${String(-1000 * Math.max(0, Math.floor(index)))}ms` })}
     >
       {children}
     </span>

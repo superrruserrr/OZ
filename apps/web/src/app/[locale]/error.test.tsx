@@ -5,7 +5,7 @@ import type { AnchorHTMLAttributes, ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import fr from '../../../messages/fr.json';
 import ErrorPage from './error';
-import Loading from './loading';
+import { PageLoading as Loading } from '../../navigation/page-loading';
 
 vi.mock('../../i18n/navigation', () => ({
   Link: (props: AnchorHTMLAttributes<HTMLAnchorElement>) => <a {...props} />,
