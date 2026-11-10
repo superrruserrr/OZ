@@ -11,6 +11,8 @@ import { PLAYER_PHONE, playerFixtures, type Account } from './player-fixtures.js
 // rôles et un compte sans rôle, les clés reçues de `GET /players/:ozId` sont exactement celles de la
 // vue attendue, sur un majeur, un mineur rattaché à un club et un mineur publié non rattaché. Lot
 // 1.13b : l'export PDF du même lecteur porte exactement les champs de cette réponse, et ses refus.
+// Lot 1.14a : la recherche rend le même joueur dans la même vue, sans téléphone ; un joueur caché
+// n'y figure pas ; un rôle sans recherche reçoit 403 (CP-12).
 
 const ORIGIN = 'http://localhost:3000';
 const binary = (
@@ -58,6 +60,9 @@ const EXPECTED: Readonly<Record<Reader, Readonly<Record<Target, Expected>>>> = {
     publishedMinor: 'PlayerAdminView',
   },
 };
+
+/** Rôles qui recherchent (rbac `player.search`) ; recruteur : pas avant le KYC 3. */
+const SEARCHERS: readonly Reader[] = ['academy', 'club', 'federation', 'admin'];
 
 const THIRD_PARTY_VIEWS: readonly PlayerViewName[] = ['PlayerPublicView'];
 const FORBIDDEN_KEY = /encrypted|hmac|hash|secret|password|token|documentNumber/i;
@@ -192,6 +197,39 @@ describe.each(cases)('$reader lit $target', ({ reader, target, expected }) => {
         rows.map(([label]) => label).sort(),
       );
       if (!('phone' in json)) expect(printed.join('\n')).not.toContain(PLAYER_PHONE);
+    },
+  );
+
+  it(
+    SEARCHERS.includes(reader)
+      ? typeof expected === 'number'
+        ? 'recherche : absent'
+        : 'recherche : la vue de la fiche, sans téléphone'
+      : 'recherche : refus 403',
+    async () => {
+      const response = await request(server)
+        .get('/players')
+        .query({ q: 'Synthétique', limit: 50 })
+        .set('Origin', ORIGIN)
+        .set('Authorization', `Bearer ${readers.get(reader)?.token ?? ''}`);
+      if (!SEARCHERS.includes(reader)) {
+        expect(response.status).toBe(403);
+        expect(JSON.stringify(response.body)).not.toMatch(/Synthétique|Yaoundé|\+237/);
+        return;
+      }
+      expect(response.status).toBe(200);
+      const items = (response.body as { items: Record<string, unknown>[] }).items;
+      const item = items.find((entry) => entry.ozId === targets.get(target));
+      if (typeof expected === 'number') {
+        expect(item).toBeUndefined();
+        return;
+      }
+      expect(item).toBeDefined();
+      const keys = Object.keys(item ?? {}).sort();
+      expect(keys).toEqual(
+        PLAYER_VIEWS[expected].fields.filter((field) => field !== 'phone').sort(),
+      );
+      expect(JSON.stringify(items)).not.toContain(PLAYER_PHONE);
     },
   );
 });

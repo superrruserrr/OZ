@@ -1,6 +1,7 @@
 // Lecture d'un joueur en entrée de décision CASL (lot 1.4b) : forme de `PlayerRecord` (@oz/auth),
 // lue sous le contexte du lecteur, donc après la RLS (D1).
 
+import { Prisma } from './generated/prisma/client.js';
 import type { TransactionClient } from './session-context.js';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -115,58 +116,56 @@ function visibilityOf(value: unknown): PlayerVisibility {
   return out;
 }
 
-/** Fiche `ozId` telle que le lecteur du contexte a le droit de la voir ; `null` sinon, sans distinction. */
-export async function playerProfileByOzId(
-  tx: TransactionClient,
-  ozId: string,
-): Promise<PlayerProfileRecord | null> {
-  if (!OZ_ID.test(ozId)) return null;
-  const rows = await tx.$queryRaw<
-    {
-      id: string;
-      oz_id: string;
-      user_id: string | null;
-      first_name: string;
-      last_name: string;
-      birth_date: Date;
-      nationality: string;
-      country: string;
-      region: string | null;
-      city: string | null;
-      primary_position: string | null;
-      secondary_position: string | null;
-      dominant_foot: string | null;
-      height_cm: number | null;
-      weight_kg: number | null;
-      verification_status: string;
-      guardian_user_id: string | null;
-      organization_id: string | null;
-      published: boolean;
-      deletion_pending: boolean;
-      kyc_level: number;
-      visibility: unknown;
-      checked_at: Date;
-    }[]
-  >`
-    SELECT p.id::text, p.oz_id, p.user_id::text, p.first_name, p.last_name, p.birth_date,
-      p.nationality, p.country, p.region, p.city, p.primary_position::text,
-      p.secondary_position::text, p.dominant_foot::text, p.height_cm, p.weight_kg,
-      p.verification_status::text,
-      CASE WHEN EXISTS (
-        SELECT 1 FROM guardians g
-        WHERE g.id = p.guardian_id AND g.user_id = oz_current_user_id()
-          AND g.deleted_at IS NULL AND g.verification_status = 'verified')
-      THEN oz_current_user_id()::text END AS guardian_user_id,
-      p.organization_id::text,
-      oz_player_published(p.id, p.guardian_id, p.verification_status) AS published,
-      oz_player_kyc_level(p.id) AS kyc_level,
-      (oz_account_deletion_pending(p.user_id) OR oz_player_deletion_pending(p.id)) AS deletion_pending,
-      p.visibility,
-      now() AS checked_at
-    FROM players p
-    WHERE p.oz_id = ${ozId} AND p.deleted_at IS NULL`;
-  const row = rows[0];
-  if (row === undefined) return null;
+/** Ligne lue pour une fiche : colonnes de `PROFILE_COLUMNS`. */
+export interface PlayerProfileRow {
+  id: string;
+  oz_id: string;
+  user_id: string | null;
+  first_name: string;
+  last_name: string;
+  birth_date: Date;
+  nationality: string;
+  country: string;
+  region: string | null;
+  city: string | null;
+  primary_position: string | null;
+  secondary_position: string | null;
+  dominant_foot: string | null;
+  height_cm: number | null;
+  weight_kg: number | null;
+  verification_status: string;
+  guardian_user_id: string | null;
+  organization_id: string | null;
+  published: boolean;
+  deletion_pending: boolean;
+  kyc_level: number;
+  visibility: unknown;
+  checked_at: Date;
+}
+
+/**
+ * Colonnes d'une fiche sur `players p`, sous la RLS du lecteur : entrée de CASL, champs des vues,
+ * badge et blocs masqués. Partagées par la lecture par OZ ID et la recherche (lot 1.14a).
+ */
+export const PROFILE_COLUMNS = Prisma.sql`
+  p.id::text, p.oz_id, p.user_id::text, p.first_name, p.last_name, p.birth_date,
+  p.nationality, p.country, p.region, p.city, p.primary_position::text,
+  p.secondary_position::text, p.dominant_foot::text, p.height_cm, p.weight_kg,
+  p.verification_status::text,
+  CASE WHEN EXISTS (
+    SELECT 1 FROM guardians g
+    WHERE g.id = p.guardian_id AND g.user_id = oz_current_user_id()
+      AND g.deleted_at IS NULL AND g.verification_status = 'verified')
+  THEN oz_current_user_id()::text END AS guardian_user_id,
+  p.organization_id::text,
+  oz_player_published(p.id, p.guardian_id, p.verification_status) AS published,
+  oz_player_kyc_level(p.id) AS kyc_level,
+  (oz_account_deletion_pending(p.user_id) OR oz_player_deletion_pending(p.id)) AS deletion_pending,
+  p.visibility,
+  now() AS checked_at`;
+
+/** Fiche d'une ligne de `PROFILE_COLUMNS`. */
+export function profileRecordOf(row: PlayerProfileRow): PlayerProfileRecord {
   const level = row.kyc_level;
   return {
     id: row.id,
@@ -198,6 +197,20 @@ export async function playerProfileByOzId(
     kycLevel: level === 2 ? 2 : level === 1 ? 1 : 0,
     visibility: visibilityOf(row.visibility),
   };
+}
+
+/** Fiche `ozId` telle que le lecteur du contexte a le droit de la voir ; `null` sinon, sans distinction. */
+export async function playerProfileByOzId(
+  tx: TransactionClient,
+  ozId: string,
+): Promise<PlayerProfileRecord | null> {
+  if (!OZ_ID.test(ozId)) return null;
+  const rows = await tx.$queryRaw<PlayerProfileRow[]>`
+    SELECT ${PROFILE_COLUMNS}
+    FROM players p
+    WHERE p.oz_id = ${ozId} AND p.deleted_at IS NULL`;
+  const row = rows[0];
+  return row === undefined ? null : profileRecordOf(row);
 }
 
 /** Téléphone déchiffré d'un joueur visible du lecteur ; `null` s'il n'en a pas ou s'il est caché. */
@@ -244,6 +257,42 @@ export async function recordPlayerProfileView(
     INSERT INTO audit_log (actor_user_id, action, target_type, target_id, reason, metadata)
     VALUES (${actorUserId}::uuid, 'player.profile.viewed', 'player', ${playerId}::uuid,
       'Fiche consultée', jsonb_build_object('view', ${view}::text))`;
+}
+
+/** Résumé d'une recherche (lot 1.14a, D3) : ni texte libre, ni valeur de filtre, ni joueur. */
+export interface PlayerSearchAudit {
+  readonly sort: string;
+  /** Noms des critères employés (`country`, `ageMin`…), sans leur valeur. */
+  readonly criteria: readonly string[];
+  readonly results: number;
+}
+
+/**
+ * Recherche auditée (D3) : une entrée `player.search.performed`, puis une `player.profile.listed`
+ * par mineur listé à un lecteur journalisé (CP-14), visibles du tuteur. Dans la transaction de la
+ * recherche, avant la réponse : sans audit, aucune page.
+ */
+export async function recordPlayerSearch(
+  tx: TransactionClient,
+  actorUserId: string,
+  summary: PlayerSearchAudit,
+  listedMinorIds: readonly string[],
+): Promise<void> {
+  await tx.$executeRaw`
+    INSERT INTO audit_log (actor_user_id, action, target_type, target_id, reason, metadata)
+    VALUES (${actorUserId}::uuid, 'player.search.performed', 'player_search', NULL,
+      'Recherche de joueurs', jsonb_build_object('sort', ${summary.sort}::text,
+        'criteria', ${JSON.stringify([...summary.criteria])}::jsonb,
+        'results', ${summary.results}::int))`;
+  if (listedMinorIds.length === 0) return;
+  if (!listedMinorIds.every((id) => UUID.test(id))) {
+    throw new Error('Audit de recherche : identifiant de joueur invalide.');
+  }
+  await tx.$executeRaw`
+    INSERT INTO audit_log (actor_user_id, action, target_type, target_id, reason, metadata)
+    SELECT ${actorUserId}::uuid, 'player.profile.listed', 'player', listed.id,
+      'Fiche listée par une recherche', '{}'::jsonb
+    FROM unnest(${[...listedMinorIds]}::uuid[]) AS listed(id)`;
 }
 
 /** Document de la fiche délivré (lot 1.13b) : carte OZ ID ou export PDF filigrané. */

@@ -22,6 +22,11 @@ export interface PlayerSeed {
   readonly status?: string;
   readonly guardianId?: string | null;
   readonly organizationId?: string | null;
+  /** Recherche (lot 1.14a) : noms distincts par cas, ville, blocs masqués. */
+  readonly firstName?: string;
+  readonly lastName?: string;
+  readonly city?: string;
+  readonly visibility?: Readonly<Record<string, boolean>>;
 }
 
 export interface PlayerFixtures {
@@ -100,7 +105,7 @@ export async function playerFixtures(
         `INSERT INTO players (user_id, first_name, last_name, birth_date, nationality, country, region,
            city, height_cm, weight_kg, primary_position, dominant_foot, verification_status,
            guardian_id, organization_id, phone_encrypted, phone_hmac)
-         VALUES ($1, 'Joueur', 'Synthétique', $2::date, 'CM', 'CM', 'Centre', 'Yaoundé', 180, 75,
+         VALUES ($1, $9, $10, $2::date, 'CM', 'CM', 'Centre', $11, 180, 75,
            'striker', 'right', $3::verification_status, $4, $5, oz_encrypt($6, $7),
            oz_blind_index($6, $8))
          RETURNING id`,
@@ -113,9 +118,18 @@ export async function playerFixtures(
           PLAYER_PHONE,
           ENCRYPTION_KEY,
           BLIND_INDEX_KEY,
+          seed.firstName ?? 'Joueur',
+          seed.lastName ?? 'Synthétique',
+          seed.city ?? 'Yaoundé',
         ],
       );
       const id = created.rows[0]?.id ?? '';
+      if (seed.visibility !== undefined) {
+        await harness.db.query(`UPDATE players SET visibility = $2::jsonb WHERE id = $1`, [
+          id,
+          JSON.stringify(seed.visibility),
+        ]);
+      }
       // Émis par un administrateur, comme le ferait le back-office (partie aléatoire déterministe).
       const client = await harness.db.connect();
       try {

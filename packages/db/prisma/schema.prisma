@@ -308,6 +308,8 @@ model Player {
   @@index([guardianId])
   @@index([organizationId])
   @@index([searchVector], type: Gin)
+  /// Recherche (lot 1.14a) : tri par création ; index d'expressions des filtres en SQL seulement.
+  @@index([createdAt, id])
   @@map("players")
 }
 

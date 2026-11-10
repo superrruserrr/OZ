@@ -142,13 +142,14 @@ export async function startApiStack(
   });
   process.env.E2E_MAILPIT_URL = `http://${mailpit.getHost()}:${String(mailpit.getMappedPort(8025))}`;
   await waitForHealth(Date.now() + 60_000);
+  // Base de la pile (données synthétiques posées par les parcours : rôles, fiches, OZ ID).
+  process.env.E2E_DATABASE_URL = services.env.DATABASE_URL;
 
   let worker: ReturnType<typeof spawn> | undefined;
   if (withWorker) {
     // Base, Redis et stockage de l'API ; en local, le worker se replie sur `DATABASE_URL`.
     const workerLog = join(mkdtempSync(join(tmpdir(), 'oz-e2e-')), 'worker.log');
     process.env.E2E_WORKER_LOG = workerLog;
-    process.env.E2E_DATABASE_URL = services.env.DATABASE_URL;
     process.env.E2E_S3_ENDPOINT = services.env.S3_ENDPOINT;
     process.env.E2E_S3_ACCESS_KEY = services.env.S3_ACCESS_KEY;
     process.env.E2E_S3_SECRET_KEY = services.env.S3_SECRET_KEY;
