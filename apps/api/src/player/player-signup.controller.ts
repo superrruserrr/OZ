@@ -23,7 +23,7 @@ import {
   signupStepParamsSchema,
   type SignupCompleteOutput,
   type SignupStatusOutput,
-  type SignupStepParams,
+  type SignupStepParamsInput,
 } from '@oz/contracts';
 import { CurrentUser } from '../auth/current-user.decorator.js';
 import { Authenticated } from '../authorization/decorators.js';
@@ -89,7 +89,7 @@ export class PlayerSignupController {
   @ApiTooManyRequestsResponse(tooMany)
   async save(
     @CurrentUser() user: AccessTokenSubject,
-    @Param(new ZodValidationPipe(signupStepParamsSchema)) params: SignupStepParams,
+    @Param(new ZodValidationPipe(signupStepParamsSchema)) params: SignupStepParamsInput,
     // Contrat choisi selon l'étape : validé ici (C2) avant tout appel au service.
     @Body() body: unknown,
   ): Promise<SignupStatusOutput> {

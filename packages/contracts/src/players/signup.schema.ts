@@ -6,7 +6,6 @@ import { playerPositionSchema } from './profile.schema.js';
 // par la base (C4). La date de naissance est bornée de 6 à 45 ans à chaque couche (EX-107 n° 3).
 
 export const SIGNUP_STEPS = ['identity', 'sport', 'affiliation', 'guardian'] as const;
-export type SignupStep = (typeof SIGNUP_STEPS)[number];
 
 /** Âges permis à l'inscription, en années révolues (EX-107 n° 3). */
 export const SIGNUP_AGE_MIN = 6;
@@ -37,7 +36,7 @@ const safeAge = (value: string): number | null => {
   }
 };
 
-export const birthDate = z.iso
+const birthDate = z.iso
   .date({ error: 'validation.birthDate.invalid', abort: true })
   .refine((value) => (safeAge(value) ?? SIGNUP_AGE_MIN) >= SIGNUP_AGE_MIN, {
     error: 'validation.birthDate.tooYoung',
@@ -91,16 +90,8 @@ export const signupGuardianSchema = z
   });
 export type SignupGuardianInput = z.infer<typeof signupGuardianSchema>;
 
-/** Contrat de chaque étape, pour l'API et le navigateur. */
-export const signupStepSchemas = {
-  identity: signupIdentitySchema,
-  sport: signupSportSchema,
-  affiliation: signupAffiliationSchema,
-  guardian: signupGuardianSchema,
-} as const satisfies Record<SignupStep, z.ZodType>;
-
 export const signupStepParamsSchema = z.strictObject({ step: z.enum(SIGNUP_STEPS) });
-export type SignupStepParams = z.infer<typeof signupStepParamsSchema>;
+export type SignupStepParamsInput = z.infer<typeof signupStepParamsSchema>;
 
 /** Brouillon relu (reprise après interruption, EX-107 n° 2) : étapes enregistrées seulement. */
 export const signupStatusOutputSchema = z.strictObject({

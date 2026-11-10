@@ -9,7 +9,7 @@ import {
   signupSportSchema,
   type SignupCompleteOutput,
   type SignupStatusOutput,
-  type SignupStep,
+  type SignupStepParamsInput,
 } from '@oz/contracts';
 import {
   completePlayerSignup,
@@ -27,6 +27,8 @@ import { RateLimitedException } from '../common/rate-limit/rate-limited.exceptio
 import { RateLimiter } from '../common/rate-limit/rate-limiter.service.js';
 import { API_CONFIG } from '../config/config.module.js';
 import { DB_CLIENT } from '../database/database.module.js';
+
+type SignupStep = SignupStepParamsInput['step'];
 
 const STEP_SCHEMAS = {
   identity: signupIdentitySchema,
