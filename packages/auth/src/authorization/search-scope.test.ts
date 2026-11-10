@@ -42,6 +42,8 @@ describe('searchScopeFor', () => {
   it('portée réduite : les organisations de l’académie', () => {
     expect(scope(['academy'])).toEqual({ kind: 'limited', organizationIds: [ORG] });
     expect(scope(['admin'])).toEqual({ kind: 'full', organizationIds: null });
+    // Rôle sans organisation (joueur) cumulé : aucune organisation ajoutée.
+    expect(scope(['player', 'club'])).toEqual({ kind: 'full', organizationIds: [ORG] });
   });
 });
 
