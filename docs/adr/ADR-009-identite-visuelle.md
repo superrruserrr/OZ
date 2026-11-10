@@ -53,5 +53,6 @@ Option 1.
   et `highlight` (turquoise, jamais pour du texte).
 - Tout nouvel écran est testé dans les deux modes (axe-core en E2E).
 - Les logos sont des PNG détourés tant que les fichiers vectoriels ne sont pas fournis (dette D-126).
-- Le slogan des fichiers fournis porte « Beyong potential » ; la charte écrit aussi « Beyond
-  potential » : à confirmer par OZ avant toute impression (question Q24).
+- Le slogan des fichiers fournis porte « Beyong potential » ; OZ a tranché le 2026-11-10 pour
+  « Beyond potential » (Q24) : fichiers corrigés à obtenir du graphiste avant toute impression, les
+  PNG du dépôt gardent la coquille d'ici là (D-126).

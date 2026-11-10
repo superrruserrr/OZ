@@ -263,7 +263,7 @@ Terminées — voir `technology_decisions.md` (TD-001 à TD-017).
 1. Justificatifs par type (licence, mandat, licence d'agent, convention)
 2. Revue manuelle à quatre yeux ; 2FA requise pour les centres
 3. Effet sur les droits (accès aux mineurs, recherche)
-**Deliverable :** E2E n° 5 possible. **Exigences :** EX-112 (Q2 à confirmer).
+**Deliverable :** E2E n° 5 possible. **Exigences :** EX-112 (Q2 tranchée le 2026-11-10 : incluse).
 
 ### Phase 1.11 — Back-office d'administration · A
 **Goal :** un dossier traité en moins de 90 s, tout tracé.
@@ -437,7 +437,7 @@ Phase 2 : 2.1 ◄ 1.4, 1.10 · 2.2/2.3/2.4 ◄ 2.1 · 2.5 ◄ 1.8 · 2.6 ◄ 2.5
 | AIPD non prête → lot 1.10 bloqué | Moyenne | Haute | Lancer l'AIPD pendant la Phase 0 |
 | Charge de revue KYC humaine (TD-016) | Haute | Moyenne | Écran < 90 s ; priorisation ; activation progressive du drapeau sur preuve |
 | Délivrabilité SMS / WhatsApp au Cameroun | Moyenne | Haute | Double canal, double fournisseur, mesure au lot 1.3 |
-| Périmètre Phase 1 contesté (DP vs plan, Q15) | Moyenne | Haute | Faire valider Q15 par Fabrice Olinga avant J1 |
+| Périmètre Phase 1 contesté (DP vs plan, Q15) | Moyenne | Haute | Validé par Fabrice Olinga le 2026-11-10 (Q15) |
 | Textes légaux non prêts (Q7) | Moyenne | Bloquant | Engager le juriste dès J0 |
 | Environnement macOS ≠ production Linux | Faible | Moyenne | Tout en conteneur ; CI sur Linux ; Testcontainers |
 | Versions d'outils plus récentes que le plan | Haute | Faible | Versions stables du moment au lot 0.1, consignées (`technology_decisions.md`) |

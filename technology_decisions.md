@@ -78,7 +78,7 @@ Ce fichier consigne chaque décision technologique d'OZ avec ses options, sa jus
 - **Options considérées :** Expo (TypeScript, réutilise `packages/contracts`, mises à jour OTA) · Flutter (performant, mais second langage et aucun partage de schémas) · PWA seule (pas de stockage sécurisé natif, notifications limitées sur iOS)
 - **Justification :** même langage, mêmes schémas Zod, même API ; stockage sécurisé Keychain/Keystore.
 - **Compromis acceptés :** performances moindres que du natif sur appareils très modestes → budget d'effets réduit (design.md §8.7).
-- **Note :** la question d'une PWA en Phase 1 reste ouverte (Q16 de `requirements.md`).
+- **Note :** pas de PWA installable en Phase 1 : le web conçu d'abord pour le téléphone suffit à l'ouverture (Q16, tranchée le 2026-11-10).
 
 ### TD-008 — Fondations UI/UX : WCAG AA · thèmes clair et sombre · Tailwind + shadcn/ui + Radix
 - **Date :** 2026-10-24 · **Statut :** Confirmé (plan §4.2, `design.md` §8)
