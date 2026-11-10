@@ -1,3 +1,5 @@
+'use client';
+
 import * as Dialog from '@radix-ui/react-dialog';
 import { useRef, useState, type SubmitEvent, type ReactNode } from 'react';
 import { cn } from '../lib/cn.js';

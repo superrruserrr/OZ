@@ -61,4 +61,21 @@ describe('OzIdCard', () => {
     expect(card.className).toContain('bg-oz-surface-ozid');
     expect(card.outerHTML).not.toMatch(/animate-/);
   });
+
+  it('révélation (E2) : la carte monte, l’OZ ID reste lisible en entier, le QR apparaît après la frappe', () => {
+    render(
+      <OzIdCard
+        name="Junior"
+        ozId="OZ-CM-26-7K4M9Q-3"
+        ozIdLabel="OZ ID"
+        qr={<span>QR</span>}
+        reveal
+      />,
+    );
+    expect(screen.getByTestId('oz-id-card').className).toContain('motion-safe:animate-oz-rise');
+    expect(screen.getByTestId('oz-id-reveal-full').textContent).toBe('OZ-CM-26-7K4M9Q-3');
+    const qr = screen.getByTestId('oz-id-card-qr');
+    expect(qr.className).toContain('motion-safe:animate-oz-fade-in');
+    expect(qr.style.animationDelay).toBe('1180ms');
+  });
 });

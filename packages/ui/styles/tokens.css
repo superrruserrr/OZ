@@ -117,6 +117,11 @@
   --animate-oz-shimmer: oz-shimmer 1.5s ease-in-out infinite;
   --animate-oz-grow: oz-grow 500ms ease-out both;
   --animate-oz-stamp: oz-stamp 300ms ease-out both;
+  --animate-oz-breathe: oz-breathe 4s ease-in-out infinite alternate;
+  --animate-oz-rise: oz-rise 500ms ease-out both;
+  --animate-oz-fade-in: oz-fade-in 400ms ease-out both;
+  --animate-oz-spin-slow: oz-spin-slow 60s linear infinite;
+  --animate-oz-float: oz-float 6s ease-in-out infinite;
 
   /* E8 : trois allers-retours de 4 px. */
   @keyframes oz-shake {
@@ -172,6 +177,46 @@
     from {
       opacity: 0;
       transform: scale(1.15);
+    }
+  }
+
+  /* E1 : respiration lente du halo (lot 1.5bb). */
+  @keyframes oz-breathe {
+    to {
+      transform: scale(1.04);
+    }
+  }
+
+  /* E2 : la carte monte. */
+  @keyframes oz-rise {
+    from {
+      opacity: 0;
+      transform: translateY(24px);
+    }
+  }
+
+  /* E2 : le QR apparaît en fondu. */
+  @keyframes oz-fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  /* E16 : rotation imperceptible des cercles du terrain. */
+  @keyframes oz-spin-slow {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* E20 : flottement des puces pays. */
+  @keyframes oz-float {
+    0%,
+    100% {
+      transform: translateY(-4px);
+    }
+    50% {
+      transform: translateY(4px);
     }
   }
 }

@@ -11,5 +11,14 @@
     "title": "Page not found",
     "body": "This address does not exist in the back office.",
     "back": "Back to home"
+  },
+  "error": {
+    "title": "Something went wrong",
+    "body": "The page could not be displayed. Your data is safe.",
+    "retry": "Try again",
+    "home": "Back to home"
+  },
+  "loading": {
+    "label": "Loading"
   }
 }

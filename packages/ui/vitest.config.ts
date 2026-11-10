@@ -7,7 +7,7 @@ export default defineConfig({
     name: '@oz/ui',
     environment: 'jsdom',
     include: ['src/**/*.test.{ts,tsx}'],
-    exclude: ['src/**/*.browser.test.tsx'],
+    exclude: ['src/**/*.browser.test.tsx', 'src/**/*.perf.test.tsx'],
     setupFiles: ['./src/test/setup.ts'],
   },
 });
