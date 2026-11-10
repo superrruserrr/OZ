@@ -55,6 +55,10 @@ describe.each(OZ_MODES)('contrastes des jetons, mode %s (EX-T22, AA ≥ 4,5)', (
     expect(contrastRatio(c['on-primary'], c[name])).toBeGreaterThanOrEqual(4.5);
   });
 
+  it('pastille de compteur des onglets : bg sur danger (lot 1.5ba)', () => {
+    expect(contrastRatio(c.bg, c.danger)).toBeGreaterThanOrEqual(4.5);
+  });
+
   it('accent (rose) : grand texte sur le fond nu seulement, ≥ 3', () => {
     for (const surface of ['bg', 'bg-page'] as const) {
       expect(contrastRatio(c.accent, c[surface]), surface).toBeGreaterThanOrEqual(3);

@@ -41,5 +41,25 @@ bleu légal n'existe qu'en `legal-icon` (icônes, grands titres) et `legal-text`
 | E4  | Activation du vert en 200 ms quand l'action devient possible                      | Bascule instantanée            |
 | E5  | Contour vert de 1,5 px en 150 ms au focus d'un champ                              | Contour seul                   |
 
+| E6 | Encadré qui se déplie en 250 ms (bloc mineur, `Callout`) | Apparition directe |
+| E7 | Progression d'étape en 300 ms (`StepProgress`) | Saut à la valeur |
+| E8 | Case active du code en vert ; erreur : secousse 3 × 4 px en 300 ms (`OtpInput`) | Contour rouge seul |
+| E9 | Pastille cochée en « pop » 200 ms (`ChoiceCardGroup`) | Coche statique |
+| E12 | Barres de mesure de 0 à la valeur en 500 ms, décalées de 60 ms (`MeasureBar`) | Barres pleines |
+| E13 | Tampon du badge, **après confirmation serveur seulement** (`Badge confirmed animate`) | Badge statique |
+| E14 | Squelettes à balayage lent de 1,5 s (`Skeleton`, `SkeletonGroup`) | Blocs fixes |
+| E15 | Point actif étiré en pilule en 250 ms (`DotPagination`) | Saut |
+
+Les effets d'émotion (E1, E2, E16 à E22) arrivent au lot 1.5bb. Pas d'anneau de score ni de note :
+l'OZ Score est retiré (Q18) ; le radar (E11) est en Phase 2. Aucun effet ne met en avant un mineur.
+
+## Composants du lot 1.5ba (design.md §8.6)
+
+Progression d'étape, code à 6 chiffres, cartes de choix et tuile d'icône, encadré (info, légal) et
+liste à coches, puces de filtre, barre d'onglets (5 au plus), pagination à points, squelettes,
+barres de mesure, carte OZ ID (initiales, sans photo). Icônes et QR sont fournis par l'écran
+(`ReactNode`), sans bibliothèque d'icônes. Chaque composant est rendu à 320 px sans défilement
+horizontal (`effects.browser.test.tsx`).
+
 Seuls `transform` et `opacity` (et la couleur du contour) sont animés. Chaque story est contrôlée
 par axe-core (WCAG 2.1 AA, bloquant) avec `pnpm --filter @oz/ui test:stories`.
