@@ -122,6 +122,23 @@ export {
   type PlayerSearchExportQueryOutput,
 } from './players/search-export.schema.js';
 export {
+  SIGNUP_STEPS,
+  signupAffiliationSchema,
+  signupCompleteOutputSchema,
+  signupGuardianSchema,
+  signupIdentitySchema,
+  signupSportSchema,
+  signupStatusOutputSchema,
+  signupStepParamsSchema,
+  type SignupAffiliationInput,
+  type SignupCompleteOutput,
+  type SignupGuardianInput,
+  type SignupIdentityInput,
+  type SignupSportInput,
+  type SignupStatusOutput,
+  type SignupStepParamsInput,
+} from './players/signup.schema.js';
+export {
   DATA_EXPORT_STATUSES,
   dataExportDownloadOutputSchema,
   dataExportJobSchema,

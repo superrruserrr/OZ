@@ -388,6 +388,21 @@ export const ERASURE_REGISTRY: ErasureRegistry = {
       completed_at: 'proof',
     },
   },
+  player_signups: {
+    scope:
+      'Le brouillon d’inscription joueur du compte (lot 1.7a) : supprimé à la finalisation et dès que le compte est clos (déclencheur sur `users.deleted_at`).',
+    columns: {
+      id: 'technical',
+      user_id: 'technical',
+      identity: 'erase',
+      sport: 'erase',
+      affiliation: 'erase',
+      guardian: 'erase',
+      created_at: 'technical',
+      updated_at: 'technical',
+      expires_at: 'technical',
+    },
+  },
   saved_searches: {
     scope:
       'Les recherches sauvegardées du compte : supprimées dès que le compte est clos (déclencheur sur `users.deleted_at`) ; un nom ou un texte libre peut nommer quelqu’un.',
