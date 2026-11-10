@@ -205,7 +205,7 @@ Terminées — voir `technology_decisions.md` (TD-001 à TD-017).
 **Goal :** OZ existe publiquement, avec ses documents légaux.
 **Tasks :**
 1. Accueil (registre Émotion), pages par profil (7), tarifs (paliers DP §13.3), à propos, contact
-2. Mentions légales, politique de confidentialité, CGU (textes fournis par le juriste — Q7)
+2. Mentions légales, politique de confidentialité, CGU (textes provisoires dans `docs/legal/`, relus par un juriste en fin de projet — Q7)
 3. SEO, métadonnées sociales, sitemap ; `robots.txt` interdisant tout profil
 4. Corriger les écarts M4, M5, M7 des maquettes
 **Deliverable :** Lighthouse performance ≥ 85 mobile ; pages légales publiées [BLOQUANT]. **Exigences :** EX-106.
@@ -438,7 +438,7 @@ Phase 2 : 2.1 ◄ 1.4, 1.10 · 2.2/2.3/2.4 ◄ 2.1 · 2.5 ◄ 1.8 · 2.6 ◄ 2.5
 | Charge de revue KYC humaine (TD-016) | Haute | Moyenne | Écran < 90 s ; priorisation ; activation progressive du drapeau sur preuve |
 | Délivrabilité SMS / WhatsApp au Cameroun | Moyenne | Haute | Double canal, double fournisseur, mesure au lot 1.3 |
 | Périmètre Phase 1 contesté (DP vs plan, Q15) | Moyenne | Haute | Validé par Fabrice Olinga le 2026-11-10 (Q15) |
-| Textes légaux non prêts (Q7) | Moyenne | Bloquant | Engager le juriste dès J0 |
+| Textes légaux non prêts (Q7) | Moyenne | Bloquant | Textes provisoires rédigés (2026-11-10) ; relecture juriste avant la production |
 | Environnement macOS ≠ production Linux | Faible | Moyenne | Tout en conteneur ; CI sur Linux ; Testcontainers |
 | Versions d'outils plus récentes que le plan | Haute | Faible | Versions stables du moment au lot 0.1, consignées (`technology_decisions.md`) |
 | Effets visuels coûteux sur appareils modestes | Moyenne | Moyenne | Budget `transform`/`opacity`, replis, mesure par effet (`design.md` §8.7) |

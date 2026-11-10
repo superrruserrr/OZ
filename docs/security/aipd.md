@@ -79,16 +79,16 @@ Les recruteurs, clubs et fédérations **ne voient jamais** les pièces d'identi
 
 ## 3. Nécessité et proportionnalité
 
-| Principe     | Mesure dans OZ                                                                                              |
-| ------------ | ----------------------------------------------------------------------------------------------------------- |
-| Finalité     | Une seule : prouver l'identité et l'âge pour le badge (§2.1)                                                |
-| Minimisation | Le prestataire renvoie des signaux, il ne décide pas (TD-015) ; aucune donnée exclue par §6.7 n° 7          |
-| Exactitude   | Concordance déclaratif ↔ OCR ; un écart est escaladé en revue humaine, jamais rejeté seul (§7.2)            |
-| Conservation | OZ garde la preuve de la vérification, pas le document (§7.4, ADR-008)                                      |
-| Information  | Politique de confidentialité avant l'ouverture des inscriptions [BLOQUANT] (lot 1.6, Q7)                    |
-| Consentement | Consentement explicite avant tout selfie, du tuteur pour un mineur (EX-T24 n° 6) — lot 1.10                 |
-| Droits       | Accès, rectification, effacement, portabilité (lot 1.16) ; contestation d'une décision automatique (TD-016) |
-| Alternative  | Aucune vérification sans biométrie n'atteint la valeur du badge ; à confirmer par le juriste (§9)           |
+| Principe     | Mesure dans OZ                                                                                                                                        |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Finalité     | Une seule : prouver l'identité et l'âge pour le badge (§2.1)                                                                                          |
+| Minimisation | Le prestataire renvoie des signaux, il ne décide pas (TD-015) ; aucune donnée exclue par §6.7 n° 7                                                    |
+| Exactitude   | Concordance déclaratif ↔ OCR ; un écart est escaladé en revue humaine, jamais rejeté seul (§7.2)                                                      |
+| Conservation | OZ garde la preuve de la vérification, pas le document (§7.4, ADR-008)                                                                                |
+| Information  | Politique de confidentialité avant l'ouverture des inscriptions [BLOQUANT] (lot 1.6, Q7 : texte provisoire `docs/legal/politique-confidentialite.md`) |
+| Consentement | Consentement explicite avant tout selfie, du tuteur pour un mineur (EX-T24 n° 6) — lot 1.10                                                           |
+| Droits       | Accès, rectification, effacement, portabilité (lot 1.16) ; contestation d'une décision automatique (TD-016)                                           |
+| Alternative  | Aucune vérification sans biométrie n'atteint la valeur du badge ; à confirmer par le juriste (§9)                                                     |
 
 ## 4. Décision automatisée (RGPD art. 22)
 
