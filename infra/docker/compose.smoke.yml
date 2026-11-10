@@ -115,6 +115,9 @@ services:
     environment:
       APP_ENV: preview
       HOSTNAME: oz-web-smoke-container
+      # ADR-010 : le serveur du site relaie l'API ; exigées hors local.
+      API_URL: http://api:3001
+      APP_URL: http://127.0.0.1:3200
     ports:
       - '127.0.0.1:3200:3000'
 

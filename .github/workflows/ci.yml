@@ -134,6 +134,9 @@ jobs:
       # Lot 1.14a : parcours n° 4 (recruteur non vérifié → recherche → aucun mineur), API compilée.
       # Aucun artefact : les réponses portent des jetons.
       - run: pnpm test:e2e:search
+      # Lot 1.7ca (ADR-010) : écrans de compte du site relayant l'API compilée (compte, email,
+      # connexion, rotation, rejeu, déconnexion). Aucun artefact : les cookies portent des jetons.
+      - run: pnpm test:e2e:web-auth
       # Lot 0.10 : chaque story rendue dans Chromium, interactions `play` et axe-core WCAG 2.1 AA
       # bloquant, puis replis `prefers-reduced-motion` de Button et Field.
       - run: pnpm test:stories

@@ -30,6 +30,20 @@ describe('register (démarrage du serveur, D-021)', () => {
     await expect(register()).rejects.toThrow(/APP_ENV/);
   });
 
+  it('arrête le serveur sans API_URL hors local (ADR-010)', async () => {
+    vi.stubEnv('NEXT_RUNTIME', 'nodejs');
+    vi.stubEnv('APP_ENV', 'staging');
+    vi.stubEnv('API_URL', '');
+    vi.stubEnv('APP_URL', 'https://oz.test');
+    const exit = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
+    const stderr = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+    await register();
+    expect(exit).toHaveBeenCalledWith(1);
+    expect(String(stderr.mock.calls[0]?.[0])).toMatch(/API_URL/);
+    exit.mockRestore();
+    stderr.mockRestore();
+  });
+
   it('démarre avec un APP_ENV valide', async () => {
     vi.stubEnv('NODE_ENV', 'production');
     vi.stubEnv('APP_ENV', 'preview');

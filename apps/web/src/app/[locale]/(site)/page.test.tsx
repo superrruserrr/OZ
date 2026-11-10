@@ -114,7 +114,7 @@ describe('accueil et gabarit du site public (lot 1.6, EX-106)', () => {
     renderHome('fr');
     const hrefs = new Set(screen.getAllByRole('link').map((link) => link.getAttribute('href')));
     const allowed =
-      /^(#contenu|\/|\/en|\/tarifs|\/a-propos|\/contact|\/profils\/[a-z]+|\/legal\/(cgu|confidentialite|mentions))$/;
+      /^(#contenu|\/|\/en|\/tarifs|\/a-propos|\/contact|\/profils\/[a-z]+|\/legal\/(cgu|confidentialite|mentions)|\/auth\/(login|role))$/;
     for (const href of hrefs) expect(href, String(href)).toMatch(allowed);
     expect(screen.getByTestId('home-signup-soon').closest('a')).toBeNull();
   });

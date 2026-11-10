@@ -68,6 +68,7 @@ Ce fichier consigne chaque décision technologique d'OZ avec ses options, sa jus
 - **Options considérées :** propriétaire NestJS · Auth0 / Clerk (rapides, mais l'identité vérifiée est le cœur de valeur et les données partiraient chez un tiers hors UE) · Keycloak / Zitadel auto-hébergé (robuste, mais lourd à opérer pour une équipe d'une personne)
 - **Justification :** l'identité vérifiée *est* le produit ; minorité calculée à chaque requête ; contrôle total sur la rotation et la détection de réutilisation.
 - **Compromis acceptés :** responsabilité sécurité entière → couverture de tests à 100 % (R6) et revue adversariale systématique.
+- **Site web (2026-11-10, ADR-010) :** le serveur du site relaie l'API ; jetons d'accès et de rafraîchissement en cookies `HttpOnly` posés par le site, CSP `connect-src 'self'` inchangée.
 
 ### TD-006 — Tests : Vitest · fast-check · Supertest + Testcontainers · Playwright · k6
 - **Date :** 2026-10-24 · **Statut :** Confirmé (plan §4.2, §11) ; `fast-check` ajouté pour les propriétés de `design.md` §4
