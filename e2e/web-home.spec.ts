@@ -6,7 +6,11 @@ const WCAG_AA = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'];
 /** axe mesure le contraste à l'instant T : attendre la fin des animations d'entrée (état final). */
 async function settle(page: Page): Promise<void> {
   await page.waitForFunction(() =>
-    document.getAnimations().every((animation) => animation.playState === 'finished'),
+    document
+      .getAnimations()
+      // Les boucles (flottement des puces, E20) ne finissent jamais : seules les entrées comptent.
+      .filter((animation) => animation.effect?.getTiming().iterations !== Number.POSITIVE_INFINITY)
+      .every((animation) => animation.playState === 'finished'),
   );
 }
 

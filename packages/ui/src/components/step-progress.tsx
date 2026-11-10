@@ -1,4 +1,7 @@
+'use client';
+
 import { cn } from '../lib/cn.js';
+import { cssomStyle } from '../lib/cssom-style.js';
 
 export interface StepProgressProps {
   /** Étape courante, de 0 à `total`. */
@@ -77,7 +80,7 @@ export function StepProgress({
         <div
           data-testid={`${testId}-fill`}
           className="h-full w-full origin-left rounded-full bg-oz-primary transition-transform duration-300 ease-out"
-          style={{ transform: `scaleX(${String(now / max)})` }}
+          ref={cssomStyle({ transform: `scaleX(${String(now / max)})` })}
         />
       </div>
     </div>

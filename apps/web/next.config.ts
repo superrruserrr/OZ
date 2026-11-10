@@ -8,6 +8,8 @@ const config: NextConfig = {
   // Serveur Node autonome, empaqueté dans l'image Docker déployée par Coolify (lot 0.8).
   output: 'standalone',
   poweredByHeader: false,
+  // Textes légaux lus par le serveur (lot 1.6) : copiés dans l'image autonome.
+  outputFileTracingIncludes: { '/[locale]/legal/[doc]': ['../../docs/legal/*.md'] },
   reactStrictMode: true,
   transpilePackages: ['@oz/ui', '@oz/contracts', '@oz/config'],
   // 404 rendue côté serveur malgré un layout racine dynamique ([locale]) : app/global-not-found.tsx.

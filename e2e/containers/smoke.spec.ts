@@ -47,7 +47,13 @@ test.describe('web conteneurisé (HOSTNAME arbitraire, D-013)', () => {
   test('aucune violation WCAG 2.1 AA', async ({ page }) => {
     await page.goto('/');
     await page.waitForFunction(() =>
-      document.getAnimations().every((animation) => animation.playState === 'finished'),
+      document
+        .getAnimations()
+        // Les boucles (flottement des puces, E20) ne finissent jamais : seules les entrées comptent.
+        .filter(
+          (animation) => animation.effect?.getTiming().iterations !== Number.POSITIVE_INFINITY,
+        )
+        .every((animation) => animation.playState === 'finished'),
     );
     const { violations } = await new AxeBuilder({ page })
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])

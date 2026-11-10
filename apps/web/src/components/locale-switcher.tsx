@@ -1,18 +1,21 @@
+'use client';
+
 import { useLocale, useTranslations } from 'next-intl';
-import { Link } from '../i18n/navigation';
+import { Link, usePathname } from '../i18n/navigation';
 import { routing } from '../i18n/routing';
 
-/** Liens vers l'accueil de chaque langue ; chaque nom de langue est écrit dans sa propre langue. */
+/** Même page dans chaque langue ; chaque nom de langue est écrit dans sa propre langue. */
 export function LocaleSwitcher() {
   const t = useTranslations('localeSwitcher');
   const current = useLocale();
+  const pathname = usePathname();
   return (
     <nav aria-label={t('label')}>
       <ul className="flex gap-1">
         {routing.locales.map((locale) => (
           <li key={locale}>
             <Link
-              href="/"
+              href={pathname}
               locale={locale}
               lang={locale}
               hrefLang={locale}
