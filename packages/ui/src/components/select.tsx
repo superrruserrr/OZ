@@ -1,3 +1,5 @@
+'use client';
+
 import * as RadixSelect from '@radix-ui/react-select';
 import { cn } from '../lib/cn.js';
 import { controlClassName, FieldShell } from './field-shell.js';

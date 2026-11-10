@@ -36,5 +36,31 @@
     "label": "Langue",
     "fr": "Français",
     "en": "English"
+  },
+  "error": {
+    "title": "Un problème est survenu",
+    "body": "La page n’a pas pu s’afficher. Vos données ne sont pas perdues.",
+    "retry": "Réessayer",
+    "home": "Retour à l’accueil"
+  },
+  "loading": {
+    "label": "Chargement en cours"
+  },
+  "nav": {
+    "label": "Navigation principale",
+    "skip": "Aller au contenu",
+    "unread": "{count, plural, one {# non lu} other {# non lus}}",
+    "tabs": {
+      "home": "Accueil",
+      "search": "Recherche",
+      "messages": "Messages",
+      "profile": "Profil",
+      "more": "Plus",
+      "shortlist": "Sélection",
+      "roster": "Effectif",
+      "import": "Import",
+      "journal": "Journal",
+      "observer": "Observatoire"
+    }
   }
 }

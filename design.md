@@ -656,6 +656,8 @@ Les effets sont la signature d'OZ, mais ils doivent tenir sur un téléphone d'e
 | E21 | **Lumière de stade et bokeh** | Hero, splash marketing | Photo traitée, faisceaux de projecteurs, particules floues ; image optimisée (AVIF/WebP, < 120 Ko en mobile) | Émotion | Image fixe |
 | E22 | **Cadres métalliques or** | Mises en scène des téléphones (stores, marketing) | Liseré dégradé or-bronze sur les maquettes de device | Émotion (lien avec la direction « dorée » du DP §12.2) | — |
 
+**Statut d'implémentation et coût mesuré :** [docs/ui/effets.md](docs/ui/effets.md) (lots 1.5ba et 1.5bb : E10 retiré avec l'OZ Score, E17 et E22 retirés par la charte, E11, E19 et E21 reportés).
+
 **Interdits :** pas d'effet sur une donnée de mineur qui la rende plus visible (pas de mise en avant animée d'un profil mineur) ; pas d'animation de célébration avant décision serveur ; pas de verre dépoli ni de néon dans les formulaires, le KYC ou le back-office.
 
 ### 8.8 Architecture d'information (planche des routes)

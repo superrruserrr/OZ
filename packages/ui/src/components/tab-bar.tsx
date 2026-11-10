@@ -13,7 +13,7 @@ export interface TabItem {
   count?: number | undefined;
 }
 
-interface LinkProps {
+export interface NavLinkProps {
   href: string;
   className?: string | undefined;
   children?: ReactNode | undefined;
@@ -29,7 +29,7 @@ export interface TabBarProps {
   /** Texte du compteur lu après le libellé (« 3 non lus ») ; la pastille seule n'est pas lue. */
   countLabel?: ((count: number) => string) | undefined;
   /** Lien du routeur de l'application (`next/link`) ; `<a>` par défaut. */
-  linkComponent?: ComponentType<LinkProps> | undefined;
+  linkComponent?: ComponentType<NavLinkProps> | undefined;
   className?: string | undefined;
 }
 
@@ -43,7 +43,7 @@ export function TabBar({
   items,
   activeId,
   countLabel,
-  linkComponent: Link = 'a' as unknown as ComponentType<LinkProps>,
+  linkComponent: Link = 'a' as unknown as ComponentType<NavLinkProps>,
   className,
 }: TabBarProps) {
   if (items.length > TAB_BAR_MAX) {

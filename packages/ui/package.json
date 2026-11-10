@@ -13,6 +13,10 @@
       "types": "./dist/components/logo.d.ts",
       "default": "./dist/components/logo.js"
     },
+    "./tokens": {
+      "types": "./dist/tokens.d.ts",
+      "default": "./dist/tokens.js"
+    },
     "./tokens.css": "./styles/tokens.css",
     "./base.css": "./styles/base.css"
   },
@@ -26,7 +30,8 @@
     "test": "vitest run",
     "storybook": "STORYBOOK_DISABLE_TELEMETRY=1 storybook dev --port 6006 --no-open",
     "test:stories": "STORYBOOK_DISABLE_TELEMETRY=1 vitest run --config vitest.storybook.config.ts",
-    "build-storybook": "STORYBOOK_DISABLE_TELEMETRY=1 storybook build --quiet"
+    "build-storybook": "STORYBOOK_DISABLE_TELEMETRY=1 storybook build --quiet",
+    "test:perf": "vitest run --config vitest.perf.config.ts"
   },
   "peerDependencies": {
     "react": "^19.3.1",

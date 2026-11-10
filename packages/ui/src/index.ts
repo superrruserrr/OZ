@@ -40,3 +40,16 @@ export {
 } from './components/skeleton.js';
 export { MeasureBar, type MeasureBarProps } from './components/measure-bar.js';
 export { OzIdCard, type OzIdCardProps } from './components/oz-id-card.js';
+export { AppShell, type AppShellNav, type AppShellProps } from './components/app-shell.js';
+export { type NavLinkProps } from './components/tab-bar.js';
+export {
+  FloatingChip,
+  GlassPanel,
+  Halo,
+  OzIdReveal,
+  PitchCircles,
+  type FloatingChipProps,
+  type GlassPanelProps,
+  type HaloProps,
+  type OzIdRevealProps,
+} from './components/emotion.js';

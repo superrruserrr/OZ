@@ -36,5 +36,31 @@
     "label": "Language",
     "fr": "Français",
     "en": "English"
+  },
+  "error": {
+    "title": "Something went wrong",
+    "body": "The page could not be displayed. Your data is safe.",
+    "retry": "Try again",
+    "home": "Back to home"
+  },
+  "loading": {
+    "label": "Loading"
+  },
+  "nav": {
+    "label": "Main navigation",
+    "skip": "Skip to content",
+    "unread": "{count, plural, one {# unread} other {# unread}}",
+    "tabs": {
+      "home": "Home",
+      "search": "Search",
+      "messages": "Messages",
+      "profile": "Profile",
+      "more": "More",
+      "shortlist": "Shortlist",
+      "roster": "Roster",
+      "import": "Import",
+      "journal": "Journal",
+      "observer": "Observatory"
+    }
   }
 }

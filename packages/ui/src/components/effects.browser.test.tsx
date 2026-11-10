@@ -3,7 +3,9 @@ import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { userEvent } from 'vitest/browser';
 import '../../.storybook/storybook.css';
+import { AppShell } from './app-shell.js';
 import { Badge } from './badge.js';
+import { FloatingChip, GlassPanel, Halo, OzIdReveal, PitchCircles } from './emotion.js';
 import { Callout } from './callout.js';
 import { ChoiceCardGroup } from './choice-card.js';
 import { DotPagination } from './dot-pagination.js';
@@ -153,6 +155,46 @@ const SAMPLES: [string, ReactNode][] = [
       badge={<Badge tone="verified">Profil vérifié</Badge>}
     />,
   ],
+  [
+    'halo et révélation (E1, E2)',
+    <Halo key="h">
+      <OzIdCard
+        name="Junior"
+        ozId="OZ-CM-26-7K4M9Q-3"
+        ozIdLabel="OZ ID"
+        qr={<span>QR</span>}
+        reveal
+      />
+    </Halo>,
+  ],
+  ['cercles du terrain (E16)', <PitchCircles key="pc" className="size-40" />],
+  ['verre dépoli (E18)', <GlassPanel key="g">Pourquoi OZ</GlassPanel>],
+  [
+    'puces pays (E20)',
+    <div key="fc" className="flex flex-wrap gap-2">
+      <FloatingChip index={1}>Cameroun</FloatingChip>
+      <FloatingChip index={2}>Sénégal</FloatingChip>
+    </div>,
+  ],
+  [
+    'coquille',
+    <AppShell
+      key="as"
+      skipLabel="Aller au contenu"
+      header={<span>OZ</span>}
+      nav={{
+        label: 'Navigation',
+        activeId: 'a',
+        items: ['a', 'b', 'c', 'd', 'e'].map((id) => ({
+          id,
+          label: `Onglet ${id}`,
+          href: `#${id}`,
+        })),
+      }}
+    >
+      <p>Contenu</p>
+    </AppShell>,
+  ],
 ];
 
 afterEach(() => {
@@ -181,6 +223,19 @@ describe('effets du lot 1.5ba avec mouvement réduit', () => {
     await userEvent.click(screen.getByTestId('rc-a'));
     const shimmer = document.querySelector('[aria-hidden="true"].relative') as Element;
     expect(getComputedStyle(shimmer, '::after').display).toBe('none');
+  });
+});
+
+describe('émotion avec mouvement réduit (lot 1.5bb)', () => {
+  it('révélation : OZ ID affiché d’emblée ; verre dépoli opaque sans flou', () => {
+    render(
+      <>
+        <OzIdReveal ozId="OZ-CM-26-7K4M9Q-3" />
+        <GlassPanel testId="glass">x</GlassPanel>
+      </>,
+    );
+    expect(screen.getByTestId('oz-id-reveal-typed').textContent).toBe('OZ-CM-26-7K4M9Q-3');
+    expect(getComputedStyle(screen.getByTestId('glass')).backdropFilter).toBe('none');
   });
 });
 

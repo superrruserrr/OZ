@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { cn } from '../lib/cn.js';
+import { OzIdReveal } from './emotion.js';
 
 export interface OzIdCardProps {
   /** Nom affiché (prénom et nom). */
@@ -14,6 +15,11 @@ export interface OzIdCardProps {
   qr?: ReactNode | undefined;
   /** Badge de vérification (`Badge`), selon le statut lu sur le serveur. */
   badge?: ReactNode | undefined;
+  /**
+   * E2, fin d'inscription seulement : la carte monte, l'OZ ID se tape, le QR apparaît en fondu.
+   * Jamais lié à l'âge du joueur.
+   */
+  reveal?: boolean | undefined;
   className?: string | undefined;
 }
 
@@ -37,6 +43,7 @@ export function OzIdCard({
   details = [],
   qr,
   badge,
+  reveal = false,
   className,
 }: OzIdCardProps) {
   const line = details.filter((detail): detail is string => Boolean(detail?.trim())).join(' · ');
@@ -45,6 +52,7 @@ export function OzIdCard({
       data-testid="oz-id-card"
       className={cn(
         'flex w-full max-w-sm flex-col gap-4 rounded-2xl border border-oz-border bg-oz-surface-ozid p-5 text-oz-text',
+        reveal && 'motion-safe:animate-oz-rise',
         className,
       )}
     >
@@ -75,14 +83,18 @@ export function OzIdCard({
             data-testid="oz-id-card-value"
             className="font-mono text-base font-semibold whitespace-nowrap text-oz-primary select-all"
           >
-            {ozId}
+            {reveal ? <OzIdReveal ozId={ozId} /> : ozId}
           </span>
           {badge ? <div>{badge}</div> : null}
         </div>
         {qr ? (
           <div
             data-testid="oz-id-card-qr"
-            className="grid size-24 shrink-0 place-items-center rounded-xl bg-oz-primary p-2 text-oz-on-primary"
+            className={cn(
+              'grid size-24 shrink-0 place-items-center rounded-xl bg-oz-primary p-2 text-oz-on-primary',
+              reveal && 'motion-safe:animate-oz-fade-in',
+            )}
+            style={reveal ? { animationDelay: `${String(500 + 40 * ozId.length)}ms` } : undefined}
           >
             {qr}
           </div>

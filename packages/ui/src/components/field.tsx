@@ -1,3 +1,5 @@
+'use client';
+
 import type { InputHTMLAttributes } from 'react';
 import { cn } from '../lib/cn.js';
 import { controlClassName, FieldShell } from './field-shell.js';

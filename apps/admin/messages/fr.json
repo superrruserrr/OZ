@@ -11,5 +11,14 @@
     "title": "Page introuvable",
     "body": "Cette adresse n’existe pas dans le back-office.",
     "back": "Retour à l’accueil"
+  },
+  "error": {
+    "title": "Un problème est survenu",
+    "body": "La page n’a pas pu s’afficher. Vos données ne sont pas perdues.",
+    "retry": "Réessayer",
+    "home": "Retour à l’accueil"
+  },
+  "loading": {
+    "label": "Chargement en cours"
   }
 }
