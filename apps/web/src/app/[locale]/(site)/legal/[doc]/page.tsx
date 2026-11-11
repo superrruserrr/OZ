@@ -8,6 +8,7 @@ import { Markdown } from '../../../../../legal/markdown';
 import { pageMetadata } from '../../../../../site/metadata';
 import { isLegalDoc, legalHref } from '../../../../../site/routes';
 import { localizedPath } from '../../../../../site/metadata';
+import { SiteSection } from '../../../../../site/site-section';
 
 interface Props {
   params: Promise<{ doc: string }>;
@@ -35,21 +36,23 @@ export default async function LegalPage({ params }: Props) {
     loadLegalDoc(doc),
   ]);
   return (
-    <article lang="fr" className="max-w-3xl" data-testid={`legal-${doc}`}>
-      <div className="mb-6 flex flex-col gap-3" lang={locale}>
-        <Callout tone="legal" testId="legal-provisional">
-          {t('provisional')}
-        </Callout>
-        {locale === 'fr' ? null : <p className="text-sm text-oz-text-muted">{t('frenchOnly')}</p>}
-      </div>
-      <Markdown
-        source={source}
-        skipLeadingQuote
-        resolveHref={(href) => {
-          const target = legalHref(href);
-          return target ? localizedPath(locale, target) : undefined;
-        }}
-      />
-    </article>
+    <SiteSection narrow>
+      <article lang="fr" data-testid={`legal-${doc}`}>
+        <div className="mb-6 flex flex-col gap-3" lang={locale}>
+          <Callout tone="legal" testId="legal-provisional">
+            {t('provisional')}
+          </Callout>
+          {locale === 'fr' ? null : <p className="text-sm text-oz-text-muted">{t('frenchOnly')}</p>}
+        </div>
+        <Markdown
+          source={source}
+          skipLeadingQuote
+          resolveHref={(href) => {
+            const target = legalHref(href);
+            return target ? localizedPath(locale, target) : undefined;
+          }}
+        />
+      </article>
+    </SiteSection>
   );
 }

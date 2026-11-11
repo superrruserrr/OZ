@@ -31,7 +31,29 @@
     },
     "status": "Coming soon",
     "profilesTitle": "Who is it for?",
-    "pricingLink": "See pricing"
+    "pricingLink": "See pricing",
+    "live": {
+      "status": "Player sign-up open",
+      "title": "One identity,",
+      "highlight": "verified.",
+      "body": "Players sign up for free and receive their OZ ID; organisations join OZ once verified.",
+      "facts": {
+        "player": {
+          "label": "Player",
+          "value": "Free, for life"
+        },
+        "minor": {
+          "label": "Minor",
+          "value": "Guardian decides"
+        },
+        "orgs": {
+          "label": "Organisations",
+          "value": "Verified"
+        }
+      }
+    },
+    "pillarsKicker": "Our commitments",
+    "profilesKicker": "Profiles"
   },
   "localeSwitcher": {
     "label": "Language",
@@ -79,7 +101,12 @@
     "signupSoon": "Sign-ups opening soon",
     "rights": "OZ Football ID",
     "login": "Log in",
-    "signup": "Create an account"
+    "signup": "Create an account",
+    "menu": "Menu",
+    "close": "Close menu",
+    "signupCta": "Create my account",
+    "tagline": "Football’s verified digital identity.",
+    "signupSoonProfile": "Sign-up for this profile opens soon"
   },
   "legal": {
     "provisional": "Provisional version: this text will be reviewed by a lawyer before sign-ups open.",
@@ -156,7 +183,8 @@
     "principlesTitle": "Our principles",
     "p1": "A player never has to pay to exist and be discovered.",
     "p2": "No minor's contact details are ever shared with anyone.",
-    "p3": "No data is sold; no targeted advertising."
+    "p3": "No data is sold; no targeted advertising.",
+    "kickerLabel": "Our mission"
   },
   "pricing": {
     "title": "Pricing",
@@ -185,13 +213,15 @@
     "desc": {
       "playerFree": "OZ ID, profile, verified badge, OZ ID card, discovery by organisations",
       "playerPremium": "Highlighting in results, advanced statistics (coming soon)"
-    }
+    },
+    "kickerLabel": "Pricing"
   },
   "contactPage": {
     "title": "Contact us",
     "lead": "A question, a partnership, an academy to register? Write to us.",
     "sent": "Thank you, your message has been received.",
-    "failed": "Sending failed. Please try again in a moment."
+    "failed": "Sending failed. Please try again in a moment.",
+    "kickerLabel": "Write to us"
   },
   "contact": {
     "form": {

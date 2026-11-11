@@ -73,17 +73,29 @@ describe('accueil et gabarit du site public (lot 1.6, EX-106)', () => {
     },
   );
 
-  it('accroche en rose de la charte (ADR-009)', () => {
+  it('héros de stade : accroche en lime, panneau « en direct » sans chiffre (1.5cba, ADR-012)', () => {
     renderHome('fr');
-    const accent = screen.getByRole('heading', { level: 1 }).querySelector('span');
+    const accent = screen.getByRole('heading', { level: 1 }).querySelector('em');
     expect(accent?.className).toContain('text-oz-accent');
+    expect(screen.getByTestId('stadium-hero-grid')).toBeTruthy();
+    expect(screen.getByTestId('home-live-panel').textContent).not.toMatch(/\d/);
   });
 
-  it('pied de page : bande aux quatre couleurs, profils, site et informations légales', () => {
+  it('appel à l’inscription vers le choix du rôle, tarifs à côté', () => {
     renderHome('fr');
-    const band = screen.getByTestId('home-brand-band');
-    expect(band.getAttribute('aria-hidden')).toBe('true');
-    expect(band.children).toHaveLength(4);
+    expect(screen.getByTestId('home-signup').getAttribute('href')).toBe('/auth/role');
+    expect(screen.getByTestId('home-pricing-link').getAttribute('href')).toBe('/tarifs');
+  });
+
+  it('en-tête « sport » : menu mobile et lien de création de compte', () => {
+    renderHome('fr');
+    expect(screen.getByTestId('site-menu-button').getAttribute('aria-label')).toBe('Menu');
+    expect(screen.getAllByTestId('site-signup')[0]?.getAttribute('href')).toBe('/auth/role');
+  });
+
+  it('pied de page : profils, site et informations légales, sans la bande de l’ancienne charte', () => {
+    renderHome('fr');
+    expect(screen.queryByTestId('home-brand-band')).toBeNull();
     const legal = screen.getByRole('navigation', { name: 'Informations légales' });
     expect(
       within(legal)
@@ -110,13 +122,12 @@ describe('accueil et gabarit du site public (lot 1.6, EX-106)', () => {
     ]);
   });
 
-  it('seulement des liens vers des pages qui existent ; inscriptions annoncées sans lien (lot 1.7)', () => {
+  it('seulement des liens vers des pages qui existent', () => {
     renderHome('fr');
     const hrefs = new Set(screen.getAllByRole('link').map((link) => link.getAttribute('href')));
     const allowed =
       /^(#contenu|\/|\/en|\/tarifs|\/a-propos|\/contact|\/profils\/[a-z]+|\/legal\/(cgu|confidentialite|mentions)|\/auth\/(login|role))$/;
     for (const href of hrefs) expect(href, String(href)).toMatch(allowed);
-    expect(screen.getByTestId('home-signup-soon').closest('a')).toBeNull();
   });
 
   it('langues : même page, langue courante signalée', () => {

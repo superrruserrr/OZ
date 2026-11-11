@@ -88,6 +88,8 @@
   --animate-oz-stamp: oz-stamp 300ms ease-out both;
   --animate-oz-breathe: oz-breathe 4s ease-in-out infinite alternate;
   --animate-oz-rise: oz-rise 500ms ease-out both;
+  /* Montée sans fondu (1.5cba) : le contenu principal reste visible dès la première image (LCP). */
+  --animate-oz-lift: oz-lift 500ms ease-out both;
   --animate-oz-fade-in: oz-fade-in 400ms ease-out both;
   --animate-oz-spin-slow: oz-spin-slow 60s linear infinite;
   --animate-oz-float: oz-float 6s ease-in-out infinite;
@@ -162,6 +164,12 @@
     from {
       opacity: 0;
       transform: translateY(24px);
+    }
+  }
+
+  @keyframes oz-lift {
+    from {
+      transform: translateY(16px);
     }
   }
 

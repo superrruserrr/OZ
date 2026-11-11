@@ -3,7 +3,10 @@ import type { ReactNode } from 'react';
 import { SiteFooter } from '../../../site/site-footer';
 import { SiteHeader } from '../../../site/site-header';
 
-/** Gabarit des pages publiques (lot 1.6) : lien d'évitement, en-tête, contenu, pied de page. */
+/**
+ * Gabarit des pages publiques (lot 1.6, refonte 1.5cba) : lien d'évitement, en-tête, contenu pleine
+ * largeur (chaque page pose son conteneur, `SiteSection`), pied de page.
+ */
 export default function SiteLayout({ children }: { children: ReactNode }) {
   const t = useTranslations('site');
   return (
@@ -16,11 +19,7 @@ export default function SiteLayout({ children }: { children: ReactNode }) {
         {t('skip')}
       </a>
       <SiteHeader />
-      <main
-        id="contenu"
-        tabIndex={-1}
-        className="mx-auto w-full max-w-5xl overflow-x-clip px-5 pt-10 pb-6 outline-none sm:pt-16"
-      >
+      <main id="contenu" tabIndex={-1} className="w-full overflow-x-clip outline-none">
         {children}
       </main>
       <SiteFooter />

@@ -40,3 +40,6 @@ crash.log
 storybook-static/
 # Captures d'échec des tests navigateur (Vitest, `test:stories`).
 .vitest/
+
+# Worktrees des sessions Claude Code (jamais versionnés)
+.claude/worktrees/

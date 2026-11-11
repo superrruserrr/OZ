@@ -1,7 +1,10 @@
+'use client';
+
+import { SiteTopbar } from '@oz/ui';
 import { Logo } from '@oz/ui/logo';
 import { useTranslations } from 'next-intl';
 import { LocaleSwitcher } from '../components/locale-switcher';
-import { Link } from '../i18n/navigation';
+import { Link, usePathname } from '../i18n/navigation';
 
 const NAV = [
   ['/tarifs', 'pricing'],
@@ -10,48 +13,46 @@ const NAV = [
 ] as const;
 
 /**
- * En-tête du site public (lot 1.6) : logo vers l'accueil, liens principaux (≥ 640 px), connexion et
- * création de compte (lot 1.7ca), langues.
+ * En-tête du site public (lot 1.6, refonte 1.5cba, ADR-012) : `SiteTopbar` vitré et collant, logo
+ * vers l'accueil, liens principaux, connexion, création de compte en lime, langues ; feuille plein
+ * écran sous 640 px. Composant client : le lien localisé est passé à la brique de `@oz/ui`.
  */
 export function SiteHeader() {
   const t = useTranslations('site');
+  const pathname = usePathname();
+  const active = NAV.find(([href]) => pathname.startsWith(href))?.[1];
   return (
-    <header className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4 px-5 py-3">
-      <Link href="/" className="inline-flex min-h-11 items-center" data-testid="site-home-link">
-        <Logo alt={t('rights')} />
-      </Link>
-      <div className="flex items-center gap-2">
-        <nav aria-label={t('nav')} className="hidden sm:block">
-          <ul className="flex gap-1">
-            {NAV.map(([href, key]) => (
-              <li key={href}>
-                <Link
-                  href={href}
-                  data-testid={`site-nav-${key}`}
-                  className="inline-flex min-h-11 items-center rounded-md px-3 text-sm font-semibold text-oz-text-muted hover:text-oz-text"
-                >
-                  {t(key)}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-        <Link
-          href="/auth/login"
-          data-testid="site-login"
-          className="inline-flex min-h-11 items-center rounded-md px-3 text-sm font-semibold text-oz-text-muted hover:text-oz-text"
-        >
-          {t('login')}
+    <SiteTopbar
+      brand={
+        <Link href="/" className="inline-flex min-h-11 items-center" data-testid="site-home-link">
+          <Logo alt={t('rights')} className="h-10 max-sm:h-12" />
         </Link>
-        <Link
-          href="/auth/role"
-          data-testid="site-signup"
-          className="hidden min-h-11 items-center rounded-md px-3 text-sm font-semibold text-oz-text hover:underline sm:inline-flex"
-        >
-          {t('signup')}
-        </Link>
-        <LocaleSwitcher />
-      </div>
-    </header>
+      }
+      navLabel={t('nav')}
+      links={NAV.map(([href, key]) => ({ id: key, href, label: t(key) }))}
+      activeId={active}
+      menuLabel={t('menu')}
+      closeLabel={t('close')}
+      linkComponent={Link}
+      actions={
+        <>
+          <Link
+            href="/auth/login"
+            data-testid="site-login"
+            className="inline-flex min-h-11 items-center justify-center rounded-lg px-3 text-sm font-medium text-oz-text-muted hover:text-oz-text"
+          >
+            {t('login')}
+          </Link>
+          <Link
+            href="/auth/role"
+            data-testid="site-signup"
+            className="inline-flex min-h-11 items-center justify-center rounded-full bg-oz-primary px-4 text-sm font-medium text-oz-on-primary hover:bg-oz-primary-to"
+          >
+            {t('signupCta')}
+          </Link>
+          <LocaleSwitcher />
+        </>
+      }
+    />
   );
 }

@@ -117,10 +117,10 @@ export function Markdown({ source, skipLeadingQuote = false, resolveHref }: Mark
                 key={key}
                 className={
                   block.level === 1
-                    ? 'font-display text-3xl font-bold'
+                    ? 'font-display text-3xl font-medium'
                     : block.level === 2
-                      ? 'mt-4 font-display text-xl font-bold'
-                      : 'font-semibold'
+                      ? 'mt-4 font-display text-xl font-medium'
+                      : 'font-medium'
                 }
               >
                 {inline(block.text, resolveHref)}
@@ -162,7 +162,7 @@ export function Markdown({ source, skipLeadingQuote = false, resolveHref }: Mark
                         <th
                           key={String(cellIndex)}
                           scope="col"
-                          className="border-b border-oz-border p-2 font-semibold"
+                          className="border-b border-oz-border p-2 font-medium"
                         >
                           {inline(cell, resolveHref)}
                         </th>

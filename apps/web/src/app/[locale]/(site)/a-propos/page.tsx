@@ -1,8 +1,9 @@
-import { CheckList } from '@oz/ui';
+import { CheckList, Kicker, SplitHeading } from '@oz/ui';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { locale as rootLocale } from 'next/root-params';
 import { pageMetadata } from '../../../../site/metadata';
+import { SiteSection } from '../../../../site/site-section';
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await rootLocale();
@@ -15,15 +16,28 @@ export default async function AboutPage() {
   const locale = await rootLocale();
   const t = await getTranslations({ locale, namespace: 'about' });
   return (
-    <article className="max-w-2xl">
-      <h1 className="font-display text-3xl font-bold">{t('title')}</h1>
-      <p className="mt-4 text-lg text-oz-text-muted">{t('lead')}</p>
-      <h2 className="mt-10 font-display text-xl font-bold">{t('problemTitle')}</h2>
-      <p className="mt-2 text-oz-text-muted">{t('problem')}</p>
-      <h2 className="mt-8 font-display text-xl font-bold">{t('answerTitle')}</h2>
-      <p className="mt-2 text-oz-text-muted">{t('answer')}</p>
-      <h2 className="mt-8 font-display text-xl font-bold">{t('principlesTitle')}</h2>
-      <CheckList className="mt-3 gap-3 text-base" items={[t('p1'), t('p2'), t('p3')]} />
-    </article>
+    <SiteSection>
+      <article>
+        <div className="flex max-w-2xl flex-col items-start gap-5">
+          <Kicker>{t('kickerLabel')}</Kicker>
+          <SplitHeading as="h1" size="hero" lead={t('title')} />
+          <p className="text-lg text-oz-text-muted">{t('lead')}</p>
+        </div>
+        <div className="mt-12 grid gap-4 md:grid-cols-3">
+          <section className="rounded-2xl border border-oz-border bg-oz-surface-1 p-6">
+            <h2 className="font-display text-xl font-medium">{t('problemTitle')}</h2>
+            <p className="mt-3 text-oz-text-muted">{t('problem')}</p>
+          </section>
+          <section className="rounded-2xl border border-oz-border bg-oz-surface-1 p-6">
+            <h2 className="font-display text-xl font-medium">{t('answerTitle')}</h2>
+            <p className="mt-3 text-oz-text-muted">{t('answer')}</p>
+          </section>
+          <section className="rounded-2xl border border-oz-primary/35 bg-oz-primary/8 p-6">
+            <h2 className="font-display text-xl font-medium">{t('principlesTitle')}</h2>
+            <CheckList className="mt-3 gap-3 text-base" items={[t('p1'), t('p2'), t('p3')]} />
+          </section>
+        </div>
+      </article>
+    </SiteSection>
   );
 }
