@@ -53,7 +53,7 @@ export function ValueCard({
       <Title className="font-display text-xl font-medium text-oz-text">
         <Link
           href={href}
-          className="outline-none after:absolute after:inset-0 after:rounded-2xl after:content-['']"
+          className="inline-flex min-h-11 items-center outline-none after:absolute after:inset-0 after:rounded-2xl after:content-['']"
         >
           {title}
         </Link>

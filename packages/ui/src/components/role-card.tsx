@@ -58,15 +58,14 @@ export function RoleCard({
       >
         {icon ?? <span className="size-2 rounded-full bg-current" />}
       </span>
-      <span className="flex min-w-0 flex-1 flex-col">
-        <Link
-          href={href}
-          className="truncate font-medium text-oz-text outline-none after:absolute after:inset-0 after:rounded-xl after:content-['']"
-        >
-          {title}
-        </Link>
+      {/* Lien sur le rôle et son sous-titre : cible ≥ 44 px (WCAG 2.5.8, lot 1.5cba), nommé par le rôle puis le sous-titre. */}
+      <Link
+        href={href}
+        className="flex min-h-11 min-w-0 flex-1 flex-col justify-center outline-none after:absolute after:inset-0 after:rounded-xl after:content-['']"
+      >
+        <span className="truncate font-medium text-oz-text">{title}</span>
         <span className="truncate text-sm text-oz-text-muted">{subtitle}</span>
-      </span>
+      </Link>
       <svg
         aria-hidden="true"
         viewBox="0 0 16 16"

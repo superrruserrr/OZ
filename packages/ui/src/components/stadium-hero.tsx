@@ -69,7 +69,7 @@ export function StadiumHero({ copy, aside, media, className }: StadiumHeroProps)
         data-testid="stadium-hero-grid"
         className="mx-auto grid min-h-[min(78vh,46rem)] w-full max-w-6xl min-w-0 content-center gap-10 px-4 py-14 sm:px-6 sm:py-20 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] lg:items-center lg:gap-16 lg:py-24"
       >
-        <div className="min-w-0 motion-safe:animate-oz-rise">{copy}</div>
+        <div className="min-w-0 motion-safe:animate-oz-lift">{copy}</div>
         {aside ? (
           <div className="min-w-0 motion-safe:animate-oz-rise motion-safe:[animation-delay:120ms]">
             {aside}

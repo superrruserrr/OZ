@@ -31,7 +31,29 @@
     },
     "status": "Bientôt disponible",
     "profilesTitle": "Pour qui ?",
-    "pricingLink": "Voir les tarifs"
+    "pricingLink": "Voir les tarifs",
+    "live": {
+      "status": "Inscriptions joueurs ouvertes",
+      "title": "Une identité,",
+      "highlight": "vérifiée.",
+      "body": "Le joueur s’inscrit gratuitement et reçoit son OZ ID ; les organisations rejoignent OZ après vérification.",
+      "facts": {
+        "player": {
+          "label": "Joueur",
+          "value": "Gratuit, à vie"
+        },
+        "minor": {
+          "label": "Mineur",
+          "value": "Le tuteur décide"
+        },
+        "orgs": {
+          "label": "Organisations",
+          "value": "Vérifiées"
+        }
+      }
+    },
+    "pillarsKicker": "Nos engagements",
+    "profilesKicker": "Profils"
   },
   "localeSwitcher": {
     "label": "Langue",
@@ -79,7 +101,12 @@
     "signupSoon": "Inscriptions bientôt ouvertes",
     "rights": "OZ Football ID",
     "login": "Se connecter",
-    "signup": "Créer un compte"
+    "signup": "Créer un compte",
+    "menu": "Menu",
+    "close": "Fermer le menu",
+    "signupCta": "Créer mon compte",
+    "tagline": "L’identité numérique vérifiée du football.",
+    "signupSoonProfile": "Inscriptions bientôt ouvertes pour ce profil"
   },
   "legal": {
     "provisional": "Version provisoire : ce texte sera relu par un juriste avant l’ouverture des inscriptions.",
@@ -156,7 +183,8 @@
     "principlesTitle": "Nos principes",
     "p1": "Un joueur n’a jamais à payer pour exister et être découvert.",
     "p2": "Aucune coordonnée de mineur n’est communiquée à quiconque.",
-    "p3": "Aucune donnée n’est vendue ; aucune publicité ciblée."
+    "p3": "Aucune donnée n’est vendue ; aucune publicité ciblée.",
+    "kickerLabel": "Notre mission"
   },
   "pricing": {
     "title": "Tarifs",
@@ -185,13 +213,15 @@
     "desc": {
       "playerFree": "OZ ID, fiche, badge vérifié, carte OZ ID, découverte par les organisations",
       "playerPremium": "Mise en avant dans les résultats, statistiques avancées (bientôt)"
-    }
+    },
+    "kickerLabel": "Tarifs"
   },
   "contactPage": {
     "title": "Nous contacter",
     "lead": "Une question, un partenariat, une académie à inscrire ? Écrivez-nous.",
     "sent": "Merci, votre message a bien été reçu.",
-    "failed": "L’envoi n’a pas abouti. Réessayez dans quelques instants."
+    "failed": "L’envoi n’a pas abouti. Réessayez dans quelques instants.",
+    "kickerLabel": "Nous écrire"
   },
   "contact": {
     "form": {
