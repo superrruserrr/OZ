@@ -36,7 +36,7 @@ describe('page d’erreur', () => {
 });
 
 describe('chargement', () => {
-  it('squelettes annoncés une fois', () => {
+  it('balle animée annoncée une fois', () => {
     render(<Loading />, { wrapper });
     const status = screen.getByRole('status', { name: 'Chargement en cours' });
     expect(status.getAttribute('aria-busy')).toBe('true');
