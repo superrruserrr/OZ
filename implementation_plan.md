@@ -206,7 +206,8 @@ Terminées — voir `technology_decisions.md` (TD-001 à TD-017).
 **Décisions (2026-11-10, Gaëtan Wassu) :** charte ADR-009 conservée (pas le lime ni Inter de la maquette) ; sombre partout ([ADR-011](docs/adr/ADR-011-theme-sombre-unique.md)) ; pages déjà livrées seulement ; pas de score, pas de mineur mis en avant, pas de chiffre fictif.
 **Tasks :**
 1. 1.5ca — ADR-011 et jetons sombres par défaut ; primitives (libellé, titre scindé, pilule, bouton à halo) ; héros de stade et panneau « en direct » ; cartes de valeur et de rôle, barres au défilement ; coquille v2 (en-tête vitré, rail à sections, onglets bas, menu mobile) ; coût, contrastes, Storybook (`phase1.5ca_plan.md`)
-2. 1.5cb — pages de `apps/web` refaites avec ces composants : accueil, profils, tarifs, à propos, contact, légal, connexion, choix du rôle, inscription, vérification de l'email, onboarding ; audit responsive (1280, 768, 375, 320 px), axe, Lighthouse
+2. 1.5cc — thème « Workspace » noir et lime ([ADR-012](docs/adr/ADR-012-theme-noir-lime.md)) : jetons `#0A0D0E` et `#C6FF3D`, séries bleue et ambre ; police système type Helvetica (Prompt retirée, graisses 400 et 500) ; `StatTile`, `Sparkline`, `RingChart`, `PitchPositions` ; `MediaFrame` (4:5, 16:9, 1:1, 9:16) et `AdSlot` (IAB, « Sponsorisé », sans script tiers) ; coquille avec en-tête de rail et entrée active encadrée ; stories, contrastes, perf, E2E (`phase1.5cc_plan.md`)
+3. 1.5cb — pages de `apps/web` refaites avec ces composants : accueil, profils, tarifs, à propos, contact, légal, connexion, choix du rôle, inscription, vérification de l'email, onboarding ; audit responsive (1280, 768, 375, 320 px), axe, Lighthouse
 **Deliverable :** Storybook « Direction sport » ; site refait. **Exigences :** EX-105, EX-106, EX-T22.
 
 ### Phase 1.6 — Site public et pages légales · B

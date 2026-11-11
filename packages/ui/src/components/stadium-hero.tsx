@@ -6,7 +6,7 @@ import { PitchCircles } from './emotion.js';
  * Opacité de chaque faisceau de projecteur. Bornes testées : même superposés au même point, le texte
  * secondaire et les libellés restent AA (EX-T22). Les classes ci-dessous reprennent ces valeurs.
  */
-export const STADIUM_GLOWS = Object.freeze({ primary: 0.12, highlight: 0.08, accent: 0.05 });
+export const STADIUM_GLOWS = Object.freeze({ primary: 0.08, highlight: 0.06, accent: 0.03 });
 
 export interface StadiumHeroProps {
   /** Colonne de texte (libellé, titre, accroche, actions). */
@@ -48,9 +48,9 @@ export function StadiumHero({ copy, aside, media, className }: StadiumHeroProps)
         <div className="absolute inset-0 bg-linear-to-r from-oz-bg via-oz-bg/70 to-oz-bg/10" />
         <div className="absolute inset-x-0 bottom-0 h-1/3 bg-linear-to-t from-oz-bg to-transparent" />
         {/* Projecteurs : un vert à gauche, un turquoise à droite, un rose diffus au centre. */}
-        <div className="absolute -top-1/3 -left-1/4 h-[90%] w-[70%] origin-top-left -rotate-12 bg-[radial-gradient(ellipse_at_top,color-mix(in_srgb,var(--oz-primary)_12%,transparent),transparent_68%)] motion-safe:animate-oz-breathe" />
-        <div className="absolute -top-1/3 -right-1/4 h-[90%] w-[70%] origin-top-right rotate-12 bg-[radial-gradient(ellipse_at_top,color-mix(in_srgb,var(--oz-highlight)_8%,transparent),transparent_68%)] motion-safe:animate-oz-breathe motion-safe:[animation-delay:-2s]" />
-        <div className="absolute top-1/4 left-1/3 h-1/2 w-1/2 bg-[radial-gradient(circle,color-mix(in_srgb,var(--oz-accent)_5%,transparent),transparent_70%)]" />
+        <div className="absolute -top-1/3 -left-1/4 h-[90%] w-[70%] origin-top-left -rotate-12 bg-[radial-gradient(ellipse_at_top,color-mix(in_srgb,var(--oz-primary)_8%,transparent),transparent_68%)] motion-safe:animate-oz-breathe" />
+        <div className="absolute -top-1/3 -right-1/4 h-[90%] w-[70%] origin-top-right rotate-12 bg-[radial-gradient(ellipse_at_top,color-mix(in_srgb,var(--oz-highlight)_6%,transparent),transparent_68%)] motion-safe:animate-oz-breathe motion-safe:[animation-delay:-2s]" />
+        <div className="absolute top-1/4 left-1/3 h-1/2 w-1/2 bg-[radial-gradient(circle,color-mix(in_srgb,var(--oz-accent)_3%,transparent),transparent_70%)]" />
         {/* Lignes du terrain en perspective, très discrètes. */}
         <svg
           viewBox="0 0 1200 400"

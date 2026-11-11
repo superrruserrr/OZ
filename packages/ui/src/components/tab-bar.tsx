@@ -71,7 +71,7 @@ export function TabBar({
                 data-testid={`tab-${item.id}`}
                 {...(active ? { 'aria-current': 'page' as const } : {})}
                 className={cn(
-                  'relative flex min-h-14 flex-col items-center justify-center gap-1 px-1 py-2 text-xs font-semibold',
+                  'relative flex min-h-14 flex-col items-center justify-center gap-1 px-1 py-2 text-xs font-medium',
                   active ? 'text-oz-primary' : 'text-oz-text-muted',
                 )}
               >

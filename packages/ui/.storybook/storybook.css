@@ -1,13 +1,9 @@
 /*
- * Aperçu Storybook : même chaîne CSS que web et admin (Tailwind 4, jetons, base), et polices OZ
- * auto-hébergées (Fontsource, design.md §8.5). Les apps chargent les polices par next/font ; ici, les
+ * Aperçu Storybook : même chaîne CSS que web et admin (Tailwind 4, jetons, base), et police de chasse fixe
+ * auto-hébergée (Fontsource, design.md §8.5 ; texte en pile système, ADR-012). Les apps chargent les polices par next/font ; ici, les
  * familles Fontsource alimentent les mêmes variables `--oz-font-*` que base.css enchaîne.
  */
 @import 'tailwindcss';
-@import '@fontsource/prompt/latin-400.css';
-@import '@fontsource/prompt/latin-700.css';
-@import '@fontsource/prompt/latin-ext-400.css';
-@import '@fontsource/prompt/latin-ext-700.css';
 @import '@fontsource-variable/jetbrains-mono/index.css';
 @import '../styles/tokens.css';
 @import '../styles/base.css';
@@ -15,8 +11,6 @@
 @source '../src';
 
 :root {
-  --oz-font-prompt-latin: 'Prompt';
-  --oz-font-prompt-latin-ext: 'Prompt';
   --oz-font-jetbrains-mono-latin: 'JetBrains Mono Variable';
   --oz-font-jetbrains-mono-latin-ext: 'JetBrains Mono Variable';
 }

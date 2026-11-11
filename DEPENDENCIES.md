@@ -75,7 +75,6 @@ Audit : `pnpm audit --audit-level high` — aucune vulnérabilité connue au 202
 | `next-intl` | ^4.14.9 | MIT | ≈ 410 Ko | i18n : routage `/` français, `/en` anglais, messages ICU (EX-T21.3, D2) | Dictionnaires maison : pluriels et formats ICU à réécrire | 0.4 |
 | `tailwindcss` | ^4.3.3 | MIT | ≈ 770 Ko | Styles utilitaires branchés sur les jetons OZ (TD-008) | CSS modules : jetons à recâbler composant par composant | 0.4 |
 | `@tailwindcss/postcss` | ^4.3.3 | MIT | ≈ 100 Ko | Intégration de Tailwind 4 au pipeline CSS de Next | Aucune : intégration officielle | 0.4 |
-| `@fontsource/prompt` | ^5.3.0 | OFL-1.1 | ≈ 2,5 Mo (seuls latin et latin-ext 400 et 700 servis, ≈ 73 Ko) | Police unique de la charte OZ Football ID, titres et texte, auto-hébergée (design.md §8.5, ADR-009) | Google Fonts : appel à un tiers, refusé (R12, connexion faible) | 1.5a |
 | `@fontsource-variable/jetbrains-mono` | ^5.3.0 | OFL-1.1 | ≈ 200 Ko (latin et latin-ext servis) | Chasse fixe des OZ ID et codes (design.md §8.5) | Police monospace système : rendu variable selon l'appareil | 0.4 |
 | `@next/eslint-plugin-next` | ^16.4.3 | MIT | ≈ 105 Ko | Règles ESLint de Next et Core Web Vitals (EX-T22) | eslint-config-next : embarque des règles redondantes avec typescript-eslint | 0.4 |
 | `@playwright/test` | ^1.64.1 | Apache-2.0 | ≈ 30 Ko (+ playwright-core ≈ 13,7 Mo, navigateurs hors dépôt) | Fumée navigateur sur le build autonome (D4) ; parcours E2E ensuite (TD-006) | Cypress : écarté en TD-006 | 0.4 |

@@ -485,54 +485,56 @@ Les **planches annotées** (31 août, numérotées 01-06) sont la référence de
 > Mise à jour 1.5a (ADR-009) : la charte OZ Football ID remplace le doré, le lime et le néon des maquettes. Les deux registres restent ; leurs couleurs viennent de la charte.
 >
 > Mise à jour 1.5ca (ADR-011) : thème sombre unique et direction « sport » d'après la maquette Manus (héros de stade, cartes vitrées, coquille rail + onglets bas), toujours aux couleurs de la charte.
+>
+> Mise à jour 1.5cc (ADR-012) : thème « Workspace » noir et lime (`#0A0D0E`, `#C6FF3D`, séries bleue `#7AA7FF` et ambre `#FFD36B`), police système douce type Helvetica, briques de statistiques et kit de cadres (photo, vidéo, publicité).
 
 Le DP §12.2 décrit deux univers — **doré et sombre** (émotion, joueur, « Ton talent, notre mission ») et **vert et sombre** (institutionnel, donnée, « Le système d'exploitation du football ») — et recommande de converger vers **un système unique capable d'exprimer les deux registres selon la surface**. Les maquettes réalisent déjà cette convergence ; la direction proposée la formalise :
 
 | | **Registre Émotion** | **Registre Pilotage** |
 |---|---|---|
 | Où | Site public, landing par profil, splash, carte OZ ID, en-tête du profil joueur, stores, réseaux | Formulaires, KYC, recherche, tableaux de bord, back-office, mobile au quotidien |
-| Fond | Photo de joueurs ou aplat rose/turquoise de la charte | `bg` clair `#F9F9F9` ou sombre `#1B161B`, surfaces `surface-*` |
+| Fond | Photo de joueurs dans un cadre `MediaFrame`, halos lime discrets | `bg` sombre `#0A0D0E` (clair `#F9F9F9` pour l'impression), surfaces `surface-*` |
 | Couleur d'appel | **Rose** `accent` (titres d'accroche, grand texte) | **Vert** `primary` (actions, états validés) |
 | Ambre | Distinctions éventuelles (Vérifié+), sans liseré doré | Uniquement le badge de niveau KYC exigé |
 | Effets | Glow, halos, verre dépoli, lumière | Aucun dégradé décoratif sauf le halo de la carte OZ ID |
-| Typo | Prompt 700, grande taille | Prompt 700 pour les titres, 400 pour le corps |
+| Typo | Police système 500, grande taille | Police système 500 pour les titres, 400 pour le corps |
 
 **Règle d'or :** le registre Émotion ne descend jamais dans un écran où l'utilisateur saisit une donnée ou prend une décision. La confiance s'y lit dans la sobriété.
 
 ### 8.3 Palette — jetons de la charte (clair et sombre)
 
-Source : charte graphique OZ Football ID v1.0 (novembre 2026, PDF hors dépôt, sous NDA) ; décision en [ADR-009](docs/adr/ADR-009-identite-visuelle.md). Le mode clair est le défaut ; le mode sombre suit le réglage de l'appareil (`prefers-color-scheme`), sans bascule manuelle en 1.5a. **Mise à jour 1.5ca ([ADR-011](docs/adr/ADR-011-theme-sombre-unique.md)) : le web ne sert plus que le jeu sombre, quel que soit le réglage de l'appareil ; le jeu clair reste défini pour le mobile et l'impression.** Couleurs du logo : rose `#EC5C9F`, turquoise `#06BAF0`, vert clair `#9FFE91`, noir `#1D1D1B`, blanc `#F9F9F9` ; répartition recommandée : 60 % fond, 15 % fond secondaire, 10 % texte, le reste en couleurs.
+Source : charte graphique OZ Football ID v1.0 (novembre 2026, PDF hors dépôt, sous NDA) ; décision en [ADR-009](docs/adr/ADR-009-identite-visuelle.md). Le mode clair est le défaut ; le mode sombre suit le réglage de l'appareil (`prefers-color-scheme`), sans bascule manuelle en 1.5a. **Mise à jour 1.5ca ([ADR-011](docs/adr/ADR-011-theme-sombre-unique.md)) : le web ne sert plus que le jeu sombre, quel que soit le réglage de l'appareil ; le jeu clair reste défini pour le mobile et l'impression. Mise à jour 1.5cc ([ADR-012](docs/adr/ADR-012-theme-noir-lime.md)) : jeu sombre noir et lime — fond `#0A0D0E`, lime `#C6FF3D` pour l'action, l'accroche et la première série des graphiques, bleu `#7AA7FF` puis ambre `#FFD36B` pour les séries suivantes.** Couleurs du logo : rose `#EC5C9F`, turquoise `#06BAF0`, vert clair `#9FFE91`, noir `#1D1D1B`, blanc `#F9F9F9` ; répartition recommandée : 60 % fond, 15 % fond secondaire, 10 % texte, le reste en couleurs.
 
 | Jeton | Clair | Sombre | Usage |
 |---|---|---|---|
-| `bg` | `#F9F9F9` | `#1B161B` | Fond d'application |
-| `bg-page` | `#F9F9F9` | `#1B161B` | Fond web hors cartes |
-| `surface-1` | `#F3F3F1` | `#241E23` | Panneaux, barre latérale |
-| `surface-2` | `#F3F3F1` | `#31282E` | Cartes, encadrés |
-| `surface-input` | `#FFFFFF` | `#2A2328` | Champs de formulaire |
-| `surface-ozid` | `#F3F3F1` | `#31282E` | Carte OZ ID, cartes héros |
-| `tint-green` | `#E4F3E8` | `#1F3A26` | Tuiles d'icônes |
-| `border` | `#E2E2DF` | `#3D3339` | Séparateurs, contours |
-| `text` | `#1D1D1B` | `#F3ECEC` | Texte principal |
-| `text-muted` | `#5C5C59` | `#BDB3B7` | Texte secondaire |
-| `text-label` | `#5F625E` | `#B3A9AD` | Libellés |
-| `text-disabled` | `#A3A3A0` | `#6B6266` | Texte inactif seulement (sous AA, dérogation admise) |
-| `primary` | `#187A34` | `#9FFE91` | Action, état validé, liens |
-| `primary-from` | `#187A34` | `#9FFE91` | Bouton principal (haut) |
-| `primary-to` | `#166F33` | `#8BEF7D` | Bouton principal (bas) |
-| `primary-bright` | `#1E8E3E` | `#9FFE91` | Focus, coches (repère non textuel) |
-| `on-primary` | `#FFFFFF` | `#1D1D1B` | Texte sur bouton principal |
-| `accent` | `#EC5C9F` | `#EC5C9F` | Titres d'accroche, grand texte sur le fond nu seulement (≥ 3:1) |
-| `highlight` | `#06BAF0` | `#47BDE1` | Pictos et mises en avant, jamais de texte |
+| `bg` | `#F9F9F9` | `#0A0D0E` | Fond d'application |
+| `bg-page` | `#F9F9F9` | `#0A0D0E` | Fond web hors cartes |
+| `surface-1` | `#F3F3F1` | `#101517` | Panneaux, barre latérale |
+| `surface-2` | `#F3F3F1` | `#172023` | Cartes, encadrés |
+| `surface-input` | `#FFFFFF` | `#0E1315` | Champs de formulaire |
+| `surface-ozid` | `#F3F3F1` | `#172023` | Carte OZ ID, cartes héros |
+| `tint-green` | `#E4F3E8` | `#1C2A0C` | Tuiles d'icônes |
+| `border` | `#E2E2DF` | `#222B2E` | Séparateurs, contours |
+| `text` | `#1D1D1B` | `#F2F5F3` | Texte principal |
+| `text-muted` | `#5C5C59` | `#9AA4A6` | Texte secondaire |
+| `text-label` | `#5F625E` | `#8E989A` | Libellés |
+| `text-disabled` | `#A3A3A0` | `#5A6466` | Texte inactif seulement (sous AA, dérogation admise) |
+| `primary` | `#187A34` | `#C6FF3D` | Action, état validé, liens |
+| `primary-from` | `#187A34` | `#C6FF3D` | Bouton principal (haut) |
+| `primary-to` | `#166F33` | `#A8E62A` | Bouton principal (bas) |
+| `primary-bright` | `#1E8E3E` | `#C6FF3D` | Focus, coches (repère non textuel) |
+| `on-primary` | `#FFFFFF` | `#0A0D0E` | Texte sur bouton principal |
+| `accent` | `#EC5C9F` | `#C6FF3D` | Titres d'accroche (sombre : lime, ADR-012 ; clair : rose, grand texte seulement) |
+| `highlight` | `#06BAF0` | `#7AA7FF` | Pictos, mises en avant, 2ᵉ série des graphiques (sombre : bleu) |
 | `legal` | `#2B57D9` | `#6B8EF0` | Icônes du cadre légal (tuteur) |
 | `legal-text` | `#2449B8` | `#9DB4F7` | Texte bleu du cadre légal |
-| `legal-bg` | `#EEF2FD` | `#1E2233` | Encadrés légaux |
-| `legal-border` | `#C9D5F5` | `#39405A` | Bordure des encadrés légaux |
-| `kyc` | `#8A5A00` | `#F2BE45` | Niveau de vérification |
-| `kyc-border` | `#E8C877` | `#5A4A22` | Bordure du badge KYC |
-| `danger` | `#C5221F` | `#FF7A6E` | Bloquant, erreur, signalement |
+| `legal-bg` | `#EEF2FD` | `#111A2B` | Encadrés légaux |
+| `legal-border` | `#C9D5F5` | `#2B3756` | Bordure des encadrés légaux |
+| `kyc` | `#8A5A00` | `#FFD36B` | Niveau de vérification |
+| `kyc-border` | `#E8C877` | `#5A4A1E` | Bordure du badge KYC |
+| `danger` | `#C5221F` | `#FF6B5E` | Bloquant, erreur, signalement |
 | `admin` | `#93560F` | `#E8B06A` | Repère du back-office |
-| `observer` | `#5C5C59` | `#BDB3B7` | Mode observateur |
+| `observer` | `#5C5C59` | `#9AA4A6` | Mode observateur |
 
 **Écarts à la charte, pour l'AA (EX-T22) :** le vert des boutons et liens `#1E8E3E` ne donne que 4,0 sur le fond clair ; le texte et les boutons utilisent `#187A34` (4,8 à 5,4), `#1E8E3E` reste pour le focus. Le rose `#EC5C9F` (3,0 sur le fond clair, 2,9 sur les cartes) est réservé aux grands titres posés sur le fond nu. Le jaune et le rouge de la charte sont assombris en clair (`kyc`, `danger`) pour le petit texte. Le bleu légal n'existe pas dans la charte : il est conservé (règle §8.4) et accordé aux deux modes. Les rapports sont vérifiés par `packages/ui/src/contrast.test.ts`.
 
@@ -557,20 +559,20 @@ Jetons posés dans `packages/ui` :
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --oz-bg: #1B161B; --oz-bg-page: #1B161B;
-    --oz-surface-1: #241E23; --oz-surface-2: #31282E;
-    --oz-surface-input: #2A2328; --oz-surface-ozid: #31282E;
-    --oz-tint-green: #1F3A26; --oz-border: #3D3339;
-    --oz-text: #F3ECEC; --oz-text-muted: #BDB3B7;
-    --oz-text-label: #B3A9AD; --oz-text-disabled: #6B6266;
-    --oz-primary: #9FFE91; --oz-primary-from: #9FFE91;
-    --oz-primary-to: #8BEF7D; --oz-primary-bright: #9FFE91;
-    --oz-on-primary: #1D1D1B; --oz-accent: #EC5C9F;
-    --oz-highlight: #47BDE1; --oz-legal: #6B8EF0;
-    --oz-legal-text: #9DB4F7; --oz-legal-bg: #1E2233;
-    --oz-legal-border: #39405A; --oz-kyc: #F2BE45;
-    --oz-kyc-border: #5A4A22; --oz-danger: #FF7A6E;
-    --oz-admin: #E8B06A; --oz-observer: #BDB3B7;
+    --oz-bg: #0A0D0E; --oz-bg-page: #0A0D0E;
+    --oz-surface-1: #101517; --oz-surface-2: #172023;
+    --oz-surface-input: #0E1315; --oz-surface-ozid: #172023;
+    --oz-tint-green: #1C2A0C; --oz-border: #222B2E;
+    --oz-text: #F2F5F3; --oz-text-muted: #9AA4A6;
+    --oz-text-label: #8E989A; --oz-text-disabled: #5A6466;
+    --oz-primary: #C6FF3D; --oz-primary-from: #C6FF3D;
+    --oz-primary-to: #A8E62A; --oz-primary-bright: #C6FF3D;
+    --oz-on-primary: #0A0D0E; --oz-accent: #C6FF3D;
+    --oz-highlight: #7AA7FF; --oz-legal: #6B8EF0;
+    --oz-legal-text: #9DB4F7; --oz-legal-bg: #111A2B;
+    --oz-legal-border: #2B3756; --oz-kyc: #FFD36B;
+    --oz-kyc-border: #5A4A1E; --oz-danger: #FF6B5E;
+    --oz-admin: #E8B06A; --oz-observer: #9AA4A6;
   }
 }
 ```
@@ -583,21 +585,26 @@ Jetons posés dans `packages/ui` :
 4. **Le rouge est réservé au bloquant et au danger** : étape bloquante, rejet, signalement, erreur.
 5. **Une couleur par rôle** dans la navigation (planche des routes) : vert (joueur, recruteur, académie, centre), bleu (tuteur), gris (fédération, observateur), orange (admin OZ).
 6. **Badge « Vérifié » :** pastille verte avec bouclier ou coche ; affiché **uniquement** après confirmation serveur (CP-19). « Vérifié+ » (KYC 3) : variante or proposée, à valider (Q6).
+7. **Séries de graphiques (1.5cc, ADR-012)** dans cet ordre : lime `primary`, bleu `highlight`, ambre `kyc`, puis gris. Chaque valeur est aussi dite en texte (légende, tuile) ; aucune note ni aucun score de joueur.
+8. **Publicité (1.5cc)** : emplacement `AdSlot` toujours marqué « Sponsorisé », bordure pointillée, aucun script tiers ; une régie demandera son propre ADR (consentement, CSP).
 
 ### 8.5 Typographie
 
-Charte v1.0 (ADR-009) : **Prompt** (licence OFL), une seule famille pour titres et texte, auto-hébergée et sous-ensemblée (latin + latin-ext) pour la connexion faible (EX-T22).
+Lot 1.5cc (ADR-012, remplace Prompt de l'ADR-009) : **police système douce type Helvetica**, `'Helvetica Neue', Helvetica, Arial, sans-serif`, une seule pile pour titres et texte. Aucun fichier à télécharger (connexion faible, EX-T22), graisses 400 et 500, pas de majuscules forcées sauf les petits libellés.
 
 | Rôle | Police | Taille web (px / interligne) |
 |---|---|---|
-| H1, accroche | Prompt 700 | 39 / 1,15 (31 sous 640 px) |
-| H2 | Prompt 700 | 31 / 1,2 |
-| H3 | Prompt 700 | 25 / 1,25 |
-| H4 | Prompt 700 | 20 / 1,3 |
-| Texte courant | Prompt 400 | 16 / 1,6 |
-| Petit, légende | Prompt 400 | 13 / 1,5 |
-| Libellés | Prompt 700, 11-12 px, majuscules, `letter-spacing: 0.08em`, `text-label` | — |
-| OZ ID, codes, routes | **JetBrains Mono** 600 (conservée hors charte : chiffres et lettres sans ambiguïté), `letter-spacing: 0.05em` | — |
+| H1, accroche | Système 500, `letter-spacing: -0.01em` | 39 / 1,15 (31 sous 640 px) |
+| H2 | Système 500 | 31 / 1,2 |
+| H3 | Système 500 | 25 / 1,25 |
+| H4 | Système 500 | 20 / 1,3 |
+| Texte courant | Système 400 | 16 / 1,6 |
+| Petit, légende | Système 400 | 13 / 1,5 |
+| Chiffres des tuiles | Système 500, chiffres tabulaires (`tabular-nums`) | 30 / 1,2 |
+| Libellés | Système 500, 11-12 px, majuscules, `letter-spacing: 0.08em`, `text-label` | — |
+| OZ ID, codes, routes | **JetBrains Mono** 600 (conservée : chiffres et lettres sans ambiguïté), `letter-spacing: 0.05em` | — |
+
+Le 700 reste rare (aucun composant de `@oz/ui` ne l'emploie).
 
 Le logo n'est jamais recomposé en texte : on utilise les fichiers fournis (horizontal sur grand écran, empilé sur mobile, version fond clair ou fond sombre).
 

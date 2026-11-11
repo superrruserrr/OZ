@@ -150,7 +150,7 @@ export function FloatingChip({ children, index = 0, className }: FloatingChipPro
     <span
       data-floating=""
       className={cn(
-        'inline-flex h-8 items-center gap-1.5 rounded-full border border-oz-border bg-oz-surface-2 px-3 text-xs font-semibold text-oz-text motion-safe:animate-oz-float',
+        'inline-flex h-8 items-center gap-1.5 rounded-full border border-oz-border bg-oz-surface-2 px-3 text-xs font-medium text-oz-text motion-safe:animate-oz-float',
         className,
       )}
       ref={cssomStyle({ animationDelay: `${String(-1000 * Math.max(0, Math.floor(index)))}ms` })}

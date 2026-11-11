@@ -97,7 +97,7 @@ export function Notification({
         className={cn('mt-1.5 size-2 shrink-0 rounded-full', dotClass[tone])}
       />
       <div className="flex flex-col gap-1">
-        <Toast.Title className="text-sm font-semibold">{title}</Toast.Title>
+        <Toast.Title className="text-sm font-medium">{title}</Toast.Title>
         {description ? (
           <Toast.Description className="text-sm text-oz-text-muted">
             {description}

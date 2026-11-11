@@ -81,7 +81,7 @@ export function MeasureBar({
         <span className="text-oz-text-muted" aria-hidden="true">
           {label}
         </span>
-        <span className="font-semibold text-oz-text tabular-nums" aria-hidden="true">
+        <span className="font-medium text-oz-text tabular-nums" aria-hidden="true">
           {text}
         </span>
       </div>

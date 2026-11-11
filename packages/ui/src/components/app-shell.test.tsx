@@ -80,6 +80,7 @@ describe('AppShell', () => {
       <AppShell
         skipLabel="s"
         header={null}
+        railHeader={<p>Espace OZ</p>}
         railFooter={<p>Profil</p>}
         nav={{
           label: 'Navigation',
@@ -102,8 +103,10 @@ describe('AppShell', () => {
     expect(within(rail).getByTestId('rail-help')).toBeTruthy();
     expect(within(rail).getByText('Profil')).toBeTruthy();
     const active = within(rail).getByTestId('rail-home');
-    expect(active.className).toContain('bg-oz-primary/10');
-    expect(active.className).toContain('before:bg-oz-primary');
+    // v3 (lot 1.5cc, ADR-012) : entrée active encadrée de lime, en-tête de rail.
+    expect(active.className).toContain('bg-oz-primary/8');
+    expect(active.className).toContain('border-oz-primary/35');
+    expect(within(rail).getByTestId('app-shell-rail-header').textContent).toBe('Espace OZ');
     // Les entrées secondaires restent hors de la barre du bas (cinq onglets au plus).
     expect(within(screen.getByTestId('app-shell-tabs')).queryByTestId('tab-help')).toBeNull();
   });

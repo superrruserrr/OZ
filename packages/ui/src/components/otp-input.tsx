@@ -104,7 +104,7 @@ export function OtpInput({
     <div className="flex w-full flex-col gap-3">
       <span
         id={labelId}
-        className="text-xs font-semibold tracking-[0.08em] text-oz-text-label uppercase"
+        className="text-xs font-medium tracking-[0.08em] text-oz-text-label uppercase"
       >
         {label}
       </span>
@@ -145,7 +145,7 @@ export function OtpInput({
             }}
             className={cn(
               controlClassName,
-              'h-14 min-w-0 flex-1 px-0 text-center text-xl font-semibold',
+              'h-14 min-w-0 flex-1 px-0 text-center text-xl font-medium',
             )}
           />
         ))}
@@ -161,7 +161,7 @@ export function OtpInput({
           data-testid={`${testId}-resend`}
           disabled={resendDisabled}
           onClick={onResend}
-          className="self-start text-sm font-semibold text-oz-primary disabled:cursor-not-allowed disabled:text-oz-text-muted"
+          className="self-start text-sm font-medium text-oz-primary disabled:cursor-not-allowed disabled:text-oz-text-muted"
         >
           {resendLabel}
         </button>

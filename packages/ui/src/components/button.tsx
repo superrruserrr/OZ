@@ -15,7 +15,7 @@ import { Spinner } from './spinner.js';
  */
 const buttonVariants = cva(
   [
-    'relative isolate inline-flex items-center justify-center gap-2 overflow-hidden font-semibold',
+    'relative isolate inline-flex items-center justify-center gap-2 overflow-hidden font-medium',
     'select-none transition-[transform,box-shadow,filter,color,border-color] duration-200',
     'disabled:cursor-not-allowed data-[state=inactive]:pointer-events-none',
     // Flèche finale (icône marquée `data-arrow`) qui glisse au survol, comme la maquette sport.

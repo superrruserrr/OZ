@@ -35,7 +35,7 @@ export function LivePanel({
 }: LivePanelProps) {
   return (
     <GlassPanel testId="live-panel" className={className}>
-      <p className="inline-flex items-center gap-2 text-xs font-bold tracking-[0.08em] text-oz-primary uppercase">
+      <p className="inline-flex items-center gap-2 text-xs font-medium tracking-[0.08em] text-oz-primary uppercase">
         <span className="relative grid size-2.5 place-items-center" aria-hidden="true">
           <span
             data-testid="live-dot"
@@ -46,7 +46,7 @@ export function LivePanel({
         </span>
         {status}
       </p>
-      <p className="mt-4 font-display text-2xl leading-tight font-bold text-oz-text">
+      <p className="mt-4 font-display text-2xl leading-tight font-medium text-oz-text">
         {title}
         {highlight ? (
           <>
@@ -62,10 +62,10 @@ export function LivePanel({
         <dl className="mt-5 grid grid-cols-2 gap-3 border-t border-oz-border pt-4 sm:grid-cols-3 lg:grid-cols-2">
           {facts.map((fact) => (
             <div key={fact.label} className="min-w-0">
-              <dt className="text-[11px] font-bold tracking-[0.08em] text-oz-text-label uppercase">
+              <dt className="text-[11px] font-medium tracking-[0.08em] text-oz-text-label uppercase">
                 {fact.label}
               </dt>
-              <dd className="mt-1 truncate text-sm font-semibold text-oz-text">{fact.value}</dd>
+              <dd className="mt-1 truncate text-sm font-medium text-oz-text">{fact.value}</dd>
             </div>
           ))}
         </dl>

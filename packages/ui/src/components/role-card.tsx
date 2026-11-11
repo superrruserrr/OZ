@@ -61,7 +61,7 @@ export function RoleCard({
       <span className="flex min-w-0 flex-1 flex-col">
         <Link
           href={href}
-          className="truncate font-semibold text-oz-text outline-none after:absolute after:inset-0 after:rounded-xl after:content-['']"
+          className="truncate font-medium text-oz-text outline-none after:absolute after:inset-0 after:rounded-xl after:content-['']"
         >
           {title}
         </Link>

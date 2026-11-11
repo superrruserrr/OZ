@@ -54,7 +54,7 @@ export function SiteTopbar({
   };
   const linkClass = (active: boolean) =>
     cn(
-      'inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold transition-colors duration-150',
+      'inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-medium transition-colors duration-150',
       active ? 'text-oz-text' : 'text-oz-text-muted hover:text-oz-text',
     );
   return (
@@ -120,7 +120,7 @@ export function SiteTopbar({
                       <Link
                         href={link.href}
                         {...(link.id === activeId ? { 'aria-current': 'page' as const } : {})}
-                        className="flex min-h-14 items-center justify-between font-display text-xl font-bold text-oz-text"
+                        className="flex min-h-14 items-center justify-between font-display text-xl font-medium text-oz-text"
                       >
                         {link.label}
                         <span aria-hidden="true" className="text-oz-primary">

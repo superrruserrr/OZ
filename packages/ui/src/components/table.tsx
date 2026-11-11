@@ -59,10 +59,7 @@ export function Table<Row>({
       >
         <caption
           id={captionId}
-          className={cn(
-            'px-4 pt-4 pb-2 text-left text-base font-semibold',
-            hideCaption && 'sr-only',
-          )}
+          className={cn('px-4 pt-4 pb-2 text-left text-base font-medium', hideCaption && 'sr-only')}
         >
           {caption}
         </caption>
@@ -73,7 +70,7 @@ export function Table<Row>({
                 key={column.key}
                 scope="col"
                 className={cn(
-                  'px-4 py-3 text-xs font-semibold tracking-[0.08em] text-oz-text-label uppercase',
+                  'px-4 py-3 text-xs font-medium tracking-[0.08em] text-oz-text-label uppercase',
                   align(column),
                 )}
               >

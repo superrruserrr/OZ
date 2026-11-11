@@ -119,7 +119,7 @@ export function Modal({
         >
           <div className="flex items-start justify-between gap-4">
             <div className="flex flex-col gap-2">
-              <Dialog.Title className="font-display text-xl font-semibold">{title}</Dialog.Title>
+              <Dialog.Title className="font-display text-xl font-medium">{title}</Dialog.Title>
               {description ? (
                 <Dialog.Description className="text-sm text-oz-text-muted">
                   {description}

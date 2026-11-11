@@ -32,6 +32,8 @@ export interface AppShellProps {
   breadcrumb?: ReactNode | undefined;
   /** Navigation par rôle ; sans elle, page sans onglets (inscription, pages publiques). */
   nav?: AppShellNav | undefined;
+  /** Haut du rail (logo et nom de l'espace, thème « Workspace ») ; large écran seulement. */
+  railHeader?: ReactNode | undefined;
   /** Bas du rail (profil, état du réseau) ; large écran seulement. */
   railFooter?: ReactNode | undefined;
   children: ReactNode;
@@ -56,9 +58,9 @@ function RailLink({
       data-testid={`rail-${item.id}`}
       {...(active ? { 'aria-current': 'page' as const } : {})}
       className={cn(
-        'relative flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold transition-colors duration-150',
+        'relative flex min-h-11 items-center gap-3 rounded-xl border border-transparent px-3 text-sm font-medium transition-colors duration-150',
         active
-          ? 'bg-oz-primary/10 text-oz-primary before:absolute before:inset-y-2 before:-left-3 before:w-1 before:rounded-r-full before:bg-oz-primary'
+          ? 'border border-oz-primary/35 bg-oz-primary/8 text-oz-primary'
           : 'text-oz-text-muted hover:bg-oz-surface-2 hover:text-oz-text',
       )}
     >
@@ -82,7 +84,7 @@ function RailLink({
 }
 
 /*
- * Coquille applicative (lot 1.5bb, v2 lot 1.5ca, design.md §8.8) d'après la maquette Manus : en-tête
+ * Coquille applicative (lot 1.5bb, v2 lot 1.5ca, v3 lot 1.5cc, design.md §8.8) d'après la maquette Manus : en-tête
  * vitré collant avec fil d'Ariane, rail latéral à sections (≥ 1024 px), barre d'onglets en bas sur
  * téléphone et tablette. Une seule des deux navigations est affichée, donc exposée, à la fois.
  * Commodité seulement : les droits sont appliqués par le serveur (une route interdite renvoie 404).
@@ -92,6 +94,7 @@ export function AppShell({
   header,
   breadcrumb,
   nav,
+  railHeader,
   railFooter,
   children,
   className,
@@ -125,6 +128,14 @@ export function AppShell({
             data-testid="app-shell-rail"
             className="sticky top-16 hidden h-[calc(100dvh-4rem)] w-62 shrink-0 flex-col gap-1 overflow-y-auto border-r border-oz-border bg-oz-surface-1/40 px-3 py-5 lg:flex"
           >
+            {railHeader ? (
+              <div
+                data-testid="app-shell-rail-header"
+                className="mb-5 border-b border-oz-border px-3 pb-5"
+              >
+                {railHeader}
+              </div>
+            ) : null}
             {nav.sectionLabel ? <Kicker className="mb-2 px-3">{nav.sectionLabel}</Kicker> : null}
             {nav.items.map((item) => (
               <RailLink

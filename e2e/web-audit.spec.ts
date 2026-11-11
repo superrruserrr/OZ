@@ -69,7 +69,7 @@ test('barre du navigateur à la couleur du fond sombre, quel que soit le réglag
       ),
     );
   // Un seul thème servi : une seule balise, sans requête média.
-  expect(colors.map((color) => color.trim().toLowerCase())).toEqual(['#1b161b']);
+  expect(colors.map((color) => color.trim().toLowerCase())).toEqual(['#0a0d0e']);
 });
 
 test(`accueil en 3G simulée : p95 de l’affichage du contenu principal (LCP) sous ${String(P95_BUDGET_MS)} ms (EX-T22.3)`, async ({
