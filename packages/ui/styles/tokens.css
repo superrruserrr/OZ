@@ -94,6 +94,11 @@
   --animate-oz-spin-slow: oz-spin-slow 60s linear infinite;
   --animate-oz-float: oz-float 6s ease-in-out infinite;
   --animate-oz-pulse: oz-pulse 2s ease-in-out infinite;
+  /* Chargement « sport » (lot 1.5da) : rebond, ombre, rotation, ligne qui défile. */
+  --animate-oz-ball-bounce: oz-ball-bounce 900ms cubic-bezier(0.5, 0, 0.5, 1) infinite;
+  --animate-oz-ball-shadow: oz-ball-shadow 900ms cubic-bezier(0.5, 0, 0.5, 1) infinite;
+  --animate-oz-ball-spin: oz-ball-spin 1.8s linear infinite;
+  --animate-oz-dash: oz-dash 1.2s linear infinite;
 
   /* E8 : trois allers-retours de 4 px. */
   @keyframes oz-shake {
@@ -208,6 +213,44 @@
     50% {
       opacity: 0.2;
       transform: scale(1.8);
+    }
+  }
+
+  @keyframes oz-ball-bounce {
+    0%,
+    100% {
+      transform: translateY(0) scale(1.12, 0.86);
+    }
+    12%,
+    88% {
+      transform: translateY(-6px) scale(1, 1);
+    }
+    50% {
+      transform: translateY(-44px) scale(0.96, 1.04);
+    }
+  }
+
+  @keyframes oz-ball-shadow {
+    0%,
+    100% {
+      transform: scaleX(1);
+      opacity: 1;
+    }
+    50% {
+      transform: scaleX(0.45);
+      opacity: 0.35;
+    }
+  }
+
+  @keyframes oz-ball-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes oz-dash {
+    to {
+      stroke-dashoffset: -16;
     }
   }
 }

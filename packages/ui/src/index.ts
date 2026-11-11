@@ -94,3 +94,20 @@ export {
   type MediaFrameProps,
   type MediaRatio,
 } from './components/media-frame.js';
+export {
+  SPORTS,
+  SportGlyph,
+  SportIcon,
+  SportTag,
+  type Sport,
+  type SportIconProps,
+  type SportTagProps,
+} from './components/sport-icon.js';
+export {
+  ClubCrest,
+  crestInitials,
+  crestPalette,
+  type ClubCrestProps,
+  type CrestPalette,
+} from './components/club-crest.js';
+export { SportLoader, type SportLoaderProps } from './components/sport-loader.js';
