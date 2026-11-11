@@ -575,5 +575,88 @@
       "tooLong": "80 caractères au plus."
     },
     "refusedTitle": "Inscription impossible"
+  },
+  "players": {
+    "kicker": "Annuaire",
+    "title": "Trouver un joueur",
+    "lead": "Seuls les profils que vos droits vous ouvrent sont affichés. Chaque consultation est journalisée.",
+    "searchLabel": "Prénom ou nom",
+    "searchHint": "Deux lettres au moins.",
+    "position": "Poste",
+    "anyPosition": "Tous les postes",
+    "country": "Pays",
+    "anyCountry": "Tous les pays",
+    "submit": "Rechercher",
+    "reset": "Effacer les filtres",
+    "results": "Résultats",
+    "empty": "Aucun joueur ne correspond à ces critères.",
+    "emptyHint": "Essayez un autre nom ou retirez un filtre.",
+    "next": "Page suivante",
+    "first": "Revenir au début",
+    "open": "Ouvrir la fiche",
+    "sport": "Football",
+    "born": "Né en {year}",
+    "forbiddenTitle": "Annuaire réservé",
+    "forbidden": "Votre compte n’a pas accès à la recherche de joueurs. Il est ouvert aux organisations vérifiées.",
+    "unavailable": "Service momentanément indisponible. Réessayez dans quelques minutes.",
+    "back": "Retour à l’annuaire",
+    "workspace": "Espace",
+    "logout": "Se déconnecter",
+    "levels": {
+      "l0": "Compte déclaré",
+      "l1": "Email et téléphone vérifiés",
+      "l2": "Identité vérifiée"
+    },
+    "profile": {
+      "ozId": "OZ ID",
+      "sectionsTitle": "Sections de la fiche",
+      "sectionsHint": "Cliquez sur une section pour l’ouvrir. Échap ou la croix la referment.",
+      "close": "Fermer le panneau",
+      "openSection": "Ouvrir",
+      "hidden": "Non communiqué",
+      "identity": {
+        "title": "Identité",
+        "summary": "Nationalité, résidence, année de naissance",
+        "nationality": "Nationalité",
+        "residence": "Pays de résidence",
+        "city": "Ville",
+        "birthYear": "Année de naissance",
+        "note": "La date de naissance complète n’est jamais affichée à un tiers."
+      },
+      "sport": {
+        "title": "Profil sportif",
+        "summary": "Sport, postes, pied fort",
+        "sport": "Sport",
+        "primary": "Poste principal",
+        "secondary": "Poste secondaire",
+        "foot": "Pied fort",
+        "pitch": "Postes occupés"
+      },
+      "physical": {
+        "title": "Mesures",
+        "summary": "Taille et poids déclarés",
+        "height": "Taille",
+        "weight": "Poids",
+        "cm": "{value} cm",
+        "kg": "{value} kg",
+        "note": "Mesures déclarées par le joueur, sans appréciation."
+      },
+      "verification": {
+        "title": "Vérification",
+        "summary": "Niveau de confiance du profil",
+        "level": "Niveau atteint",
+        "steps": {
+          "l0": "Email confirmé",
+          "l1": "Téléphone confirmé",
+          "l2": "Pièce d’identité contrôlée par l’équipe OZ"
+        },
+        "note": "Le badge n’apparaît qu’après un contrôle fait par l’équipe OZ."
+      },
+      "card": {
+        "title": "Carte OZ ID",
+        "summary": "Identifiant unique, jamais réattribué",
+        "note": "Le statut en ligne fait foi."
+      }
+    }
   }
 }

@@ -43,3 +43,6 @@ storybook-static/
 
 # Worktrees des sessions Claude Code (jamais versionnés)
 .claude/worktrees/
+
+# Pile de démonstration locale (clés et mot de passe générés, jamais versionnés)
+.demo/

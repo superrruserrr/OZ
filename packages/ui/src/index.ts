@@ -111,3 +111,4 @@ export {
   type CrestPalette,
 } from './components/club-crest.js';
 export { SportLoader, type SportLoaderProps } from './components/sport-loader.js';
+export { DetailPanel, type DetailPanelProps } from './components/detail-panel.js';

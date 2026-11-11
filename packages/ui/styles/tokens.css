@@ -99,6 +99,8 @@
   --animate-oz-ball-shadow: oz-ball-shadow 900ms cubic-bezier(0.5, 0, 0.5, 1) infinite;
   --animate-oz-ball-spin: oz-ball-spin 1.8s linear infinite;
   --animate-oz-dash: oz-dash 1.2s linear infinite;
+  /* Volet de détail (lot 1.5dc) : entrée par la droite. */
+  --animate-oz-slide-in: oz-slide-in 220ms ease-out both;
 
   /* E8 : trois allers-retours de 4 px. */
   @keyframes oz-shake {
@@ -251,6 +253,13 @@
   @keyframes oz-dash {
     to {
       stroke-dashoffset: -16;
+    }
+  }
+
+  @keyframes oz-slide-in {
+    from {
+      opacity: 0;
+      transform: translateX(24px);
     }
   }
 }

@@ -575,5 +575,88 @@
       "tooLong": "80 characters at most."
     },
     "refusedTitle": "Sign-up not possible"
+  },
+  "players": {
+    "kicker": "Directory",
+    "title": "Find a player",
+    "lead": "Only the profiles your rights allow are shown. Every view is logged.",
+    "searchLabel": "First or last name",
+    "searchHint": "At least two letters.",
+    "position": "Position",
+    "anyPosition": "All positions",
+    "country": "Country",
+    "anyCountry": "All countries",
+    "submit": "Search",
+    "reset": "Clear filters",
+    "results": "Results",
+    "empty": "No player matches these criteria.",
+    "emptyHint": "Try another name or remove a filter.",
+    "next": "Next page",
+    "first": "Back to the start",
+    "open": "Open profile",
+    "sport": "Football",
+    "born": "Born in {year}",
+    "forbiddenTitle": "Directory restricted",
+    "forbidden": "Your account cannot search players. The directory is open to verified organisations.",
+    "unavailable": "Service temporarily unavailable. Please try again in a few minutes.",
+    "back": "Back to the directory",
+    "workspace": "Workspace",
+    "logout": "Log out",
+    "levels": {
+      "l0": "Declared account",
+      "l1": "Email and phone verified",
+      "l2": "Identity verified"
+    },
+    "profile": {
+      "ozId": "OZ ID",
+      "sectionsTitle": "Profile sections",
+      "sectionsHint": "Click a section to open it. Escape or the cross closes it.",
+      "close": "Close panel",
+      "openSection": "Open",
+      "hidden": "Not shared",
+      "identity": {
+        "title": "Identity",
+        "summary": "Nationality, residence, year of birth",
+        "nationality": "Nationality",
+        "residence": "Country of residence",
+        "city": "City",
+        "birthYear": "Year of birth",
+        "note": "The full date of birth is never shown to a third party."
+      },
+      "sport": {
+        "title": "Sporting profile",
+        "summary": "Sport, positions, strong foot",
+        "sport": "Sport",
+        "primary": "Main position",
+        "secondary": "Secondary position",
+        "foot": "Strong foot",
+        "pitch": "Positions played"
+      },
+      "physical": {
+        "title": "Measurements",
+        "summary": "Declared height and weight",
+        "height": "Height",
+        "weight": "Weight",
+        "cm": "{value} cm",
+        "kg": "{value} kg",
+        "note": "Measurements declared by the player, without any assessment."
+      },
+      "verification": {
+        "title": "Verification",
+        "summary": "Trust level of the profile",
+        "level": "Level reached",
+        "steps": {
+          "l0": "Email confirmed",
+          "l1": "Phone confirmed",
+          "l2": "Identity document checked by the OZ team"
+        },
+        "note": "The badge only appears after a check by the OZ team."
+      },
+      "card": {
+        "title": "OZ ID card",
+        "summary": "Unique identifier, never reassigned",
+        "note": "The online status is authoritative."
+      }
+    }
   }
 }

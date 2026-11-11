@@ -4,7 +4,7 @@ import { routing } from '../i18n/routing';
  * Écrans réservés à un utilisateur connecté (ADR-010). La garde est appliquée par le serveur du site
  * (`proxy.ts`) avant tout rendu ; l'API refait ses propres contrôles à chaque appel.
  */
-const PROTECTED_PREFIXES = ['/onboarding'] as const;
+const PROTECTED_PREFIXES = ['/onboarding', '/recherche', '/joueur'] as const;
 
 export const LOGIN_PATH = '/auth/login';
 export const DEFAULT_AFTER_LOGIN = '/onboarding';
