@@ -81,6 +81,7 @@ export {
   recordListedPlayers,
   recordPlayerSearch,
   type PlayerSearchAudit,
+  playerProfileOfUser,
   recordPlayerProfileView,
   setPlayerVisibility,
   type PlayerAccessRecord,

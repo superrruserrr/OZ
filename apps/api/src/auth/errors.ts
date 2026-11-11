@@ -7,6 +7,13 @@ export const INVALID_CREDENTIALS = (): AppException =>
 export const UNAUTHENTICATED = (): AppException =>
   new AppException(401, 'AUTH_UNAUTHENTICATED', 'Session expirée : reconnectez-vous.');
 
+/**
+ * Rotation concurrente du même jeton dans la fenêtre de grâce (10 s, D-132, ADR-010) : un autre
+ * onglet vient de renouveler la session. Aucun jeton émis, cookie conservé : le client réessaie.
+ */
+export const REFRESH_RACED = (): AppException =>
+  new AppException(409, 'AUTH_REFRESH_RACED', 'Session déjà renouvelée : réessayez.');
+
 /** Refus d'autorisation : même réponse quelle que soit la règle qui refuse (CP-09). */
 export const AUTHZ_FORBIDDEN = (): AppException =>
   new AppException(403, 'AUTHZ_FORBIDDEN', 'Accès refusé.');

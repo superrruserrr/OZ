@@ -1,6 +1,7 @@
 import { Controller, HttpCode, Inject, Post, Req, Res } from '@nestjs/common';
 import {
   ApiBody,
+  ApiConflictResponse,
   ApiForbiddenResponse,
   ApiNoContentResponse,
   ApiOkResponse,
@@ -114,6 +115,11 @@ export class SessionController {
   })
   @ApiOkResponse({ description: 'Nouveau jeton d’accès', ...tokenResponse })
   @ApiUnauthorizedResponse({ type: ApiErrorDto, description: 'Session expirée ou révoquée' })
+  @ApiConflictResponse({
+    type: ApiErrorDto,
+    description:
+      'Jeton renouvelé il y a moins de 10 s par un autre onglet (`AUTH_REFRESH_RACED`) : aucun jeton émis, cookie conservé, réessayer',
+  })
   @ApiForbiddenResponse({ type: ApiErrorDto, description: 'Origine refusée' })
   async refresh(
     @Req() req: Request,

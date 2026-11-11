@@ -213,6 +213,19 @@ export async function playerProfileByOzId(
   return row === undefined ? null : profileRecordOf(row);
 }
 
+/** Fiche du joueur titulaire du compte `userId` (D-133) ; `null` sans fiche ou si elle est supprimée. */
+export async function playerProfileOfUser(
+  tx: TransactionClient,
+  userId: string,
+): Promise<PlayerProfileRecord | null> {
+  const rows = await tx.$queryRaw<PlayerProfileRow[]>`
+    SELECT ${PROFILE_COLUMNS}
+    FROM players p
+    WHERE p.user_id = ${userId}::uuid AND p.deleted_at IS NULL`;
+  const row = rows[0];
+  return row === undefined ? null : profileRecordOf(row);
+}
+
 /** Téléphone déchiffré d'un joueur visible du lecteur ; `null` s'il n'en a pas ou s'il est caché. */
 export async function playerPhone(
   tx: TransactionClient,

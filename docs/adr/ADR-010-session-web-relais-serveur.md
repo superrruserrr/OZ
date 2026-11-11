@@ -71,9 +71,16 @@ Option 1.
   navigateur.
 - Recette et production : `CORS_ORIGINS` inclut l'origine du site ; `TRUST_PROXY` inchangé (le site
   n'est pas compté) ; vérifiés lors de la mise en ligne de test (lot 0.8c).
-- Deux renouvellements simultanés du même jeton (deux onglets dans la même minute) passent pour un
-  rejeu et révoquent la famille : le site ne renouvelle jamais sur un préchargement, et une fenêtre
-  de grâce côté API reste à décider (D-132).
+- Deux renouvellements simultanés du même jeton (deux onglets dans la même minute) : le site ne
+  renouvelle jamais sur un préchargement, et l'API accorde une fenêtre de grâce de 10 s (décision du
+  2026-11-10, D-132). Pendant 10 s après une rotation, le dernier jeton consommé d'une famille encore
+  vivante reçoit `409 AUTH_REFRESH_RACED` (« déjà renouvelé, réessayez »), sans nouveau jeton, sans
+  révocation ni alerte ; au-delà, ou pour un jeton plus ancien, le rejeu reste un vol (famille
+  révoquée). Le site sert alors une page d'attente sans script (marque `__Host-oz_retry`, 30 s) : relance
+  après 1 s, le temps que la réponse de l'autre onglet pose ses cookies, puis après 11 s ; un
+  navigateur qui garde encore l'ancien jeton est alors traité en rejeu (un voleur passé le premier
+  ne masque pas le vol), et une troisième course renvoie à la connexion. Un POST (action serveur)
+  qui tombe dans la course renvoie à la connexion sans effacer la session (D-132).
 - Les écrans connectés suivants (lots 1.7cb, 1.8, 1.13c…) passent par ce relais ; aucun appel du
   navigateur vers l'API n'est admis (test E2E de non-régression).
 - Révision si l'application mobile ou un domaine commun site et API change la donne (cookie partagé

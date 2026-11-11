@@ -190,6 +190,43 @@ describe('GET /players/:ozId', () => {
   });
 });
 
+describe('GET /players/me (D-133)', () => {
+  const readMe = (token: string | undefined) => {
+    const pending = request(server).get('/players/me').set('Origin', ORIGIN);
+    return token === undefined ? pending : pending.set('Authorization', `Bearer ${token}`);
+  };
+
+  it('titulaire : sa propre fiche, identique à la lecture par OZ ID, sans cache ni audit', async () => {
+    const owner = await account('player');
+    const target = await player({ userId: owner.userId });
+    const response = await readMe(owner.token).expect(200);
+    expect(response.headers['cache-control']).toBe('no-store');
+    expect(response.body).toEqual((await read(owner.token, target.ozId).expect(200)).body);
+    expect(response.body).toMatchObject({ ozId: target.ozId, phone: PHONE });
+    expect(await viewsOf(target.id)).toEqual([]);
+  });
+
+  it('mineur titulaire : sa fiche sans son téléphone (CP-11)', async () => {
+    const minor = await account('player');
+    await player({ userId: minor.userId, birthDate: '2012-06-07' });
+    const body = (await readMe(minor.token).expect(200)).body as Record<string, unknown>;
+    expect(body).toMatchObject({ birthDate: '2012-06-07' });
+    expect(body).not.toHaveProperty('phone');
+  });
+
+  it('rôle joueur sans fiche, ou fiche supprimée : 404 ; sans session : 401 ; sans rôle : 403', async () => {
+    const empty = await account('player');
+    expect(errorCode(await readMe(empty.token).expect(404))).toBe('PLAYER_PROFILE_NOT_FOUND');
+    const gone = await account('player');
+    const removed = await player({ userId: gone.userId });
+    await harness.db.query('UPDATE players SET deleted_at = now() WHERE id = $1', [removed.id]);
+    expect(errorCode(await readMe(gone.token).expect(404))).toBe('PLAYER_PROFILE_NOT_FOUND');
+    await readMe(undefined).expect(401);
+    const nobody = await account();
+    expect(errorCode(await readMe(nobody.token).expect(403))).toBe('AUTHZ_FORBIDDEN');
+  });
+});
+
 describe('PATCH /players/:ozId/visibility', () => {
   it('titulaire majeur : blocs fusionnés, appliqués à la lecture suivante d’un tiers seulement', async () => {
     const owner = await account('player');

@@ -77,7 +77,9 @@ test.describe('écrans de compte (lot 1.7ca)', () => {
     expect(rotated).not.toBe(firstRefresh);
     expect(await sessionCookie(context, ACCESS)).toBeDefined();
 
-    // Rejeu de l'ancien jeton contre l'API : la famille entière est révoquée (E2E n° 8).
+    // Rejeu de l'ancien jeton contre l'API, fenêtre de grâce (10 s, D-132) écoulée : la famille
+    // entière est révoquée (E2E n° 8).
+    await page.waitForTimeout(10_500);
     const replay = await page.request.fetch(`${API_URL}/auth/refresh`, {
       method: 'POST',
       headers: { origin: WEB_ORIGIN, cookie: `${REFRESH}=${firstRefresh}` },

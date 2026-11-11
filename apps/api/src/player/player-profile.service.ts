@@ -19,10 +19,12 @@ import {
   accountEmail,
   playerPhone,
   playerProfileByOzId,
+  playerProfileOfUser,
   recordPlayerDocument,
   recordPlayerProfileView,
   setPlayerVisibility,
   withUserContext,
+  type PlayerProfileRecord,
   type PlayerVisibility,
   type PrismaClient,
   type TransactionClient,
@@ -32,10 +34,17 @@ import { RateLimitedException } from '../common/rate-limit/rate-limited.exceptio
 import { RateLimiter } from '../common/rate-limit/rate-limiter.service.js';
 import { API_CONFIG } from '../config/config.module.js';
 import { DB_CLIENT } from '../database/database.module.js';
-import { PLAYER_NOT_FOUND } from './errors.js';
+import { OWN_PROFILE_NOT_FOUND, PLAYER_NOT_FOUND } from './errors.js';
 import { cardPdf } from './pdf/card.js';
 import { profilePdf } from './pdf/profile.js';
 import { profileViewData } from './view-data.js';
+
+interface PresentedProfile {
+  readonly id: string;
+  readonly ozId: string;
+  readonly view: string;
+  readonly body: PlayerProfileOutput;
+}
 
 const READS = ['profile.read', 'player.read_public', 'player.read_minor'] as const;
 
@@ -69,6 +78,27 @@ export class PlayerProfileService {
     if (profile === null) {
       this.logger.info({ event: 'player.profile.refused' }, 'Fiche refusée');
       throw PLAYER_NOT_FOUND();
+    }
+    this.logger.info(
+      { event: 'player.profile.read', playerId: profile.id, view: profile.view },
+      'Fiche lue',
+    );
+    return profile.body;
+  }
+
+  /**
+   * Sa propre fiche (D-133) : le site relit l'OZ ID du titulaire sans le connaître. Même vue et même
+   * limite que la lecture par OZ ID ; aucune fiche (tuteur, inscription en cours) : 404.
+   */
+  async readOwn(actor: Actor): Promise<PlayerProfileOutput> {
+    await this.limit('player_profile_read_account', actor);
+    const profile = await withUserContext(this.db, actor.userId, async (tx) => {
+      const found = await playerProfileOfUser(tx, actor.userId);
+      return found === null ? null : this.present(tx, actor, found);
+    });
+    if (profile === null) {
+      this.logger.info({ event: 'player.profile.own_missing' }, 'Aucune fiche pour ce compte');
+      throw OWN_PROFILE_NOT_FOUND();
     }
     this.logger.info(
       { event: 'player.profile.read', playerId: profile.id, view: profile.view },
@@ -159,9 +189,18 @@ export class PlayerProfileService {
     actor: Actor,
     ozId: string,
     auditView = true,
-  ): Promise<{ id: string; ozId: string; view: string; body: PlayerProfileOutput } | null> {
+  ): Promise<PresentedProfile | null> {
     const found = await playerProfileByOzId(tx, ozId);
-    if (found === null) return null;
+    return found === null ? null : this.present(tx, actor, found, auditView);
+  }
+
+  /** Vue du lecteur sur une fiche déjà lue sous sa RLS ; `null` sans vue. */
+  private async present(
+    tx: TransactionClient,
+    actor: Actor,
+    found: PlayerProfileRecord,
+    auditView = true,
+  ): Promise<PresentedProfile | null> {
     const { checkedAt, ...access } = found.access;
     const subject = playerSubject(access, checkedAt);
     const ability = abilityFor(actor);

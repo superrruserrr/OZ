@@ -70,6 +70,13 @@ async function open(
 const rotate = (tokenHash: string, newTokenHash = hash(), ip: string | null = '198.51.100.7') =>
   rotateSession(client, { tokenHash, newTokenHash, ip, ttlSeconds: TTL });
 
+/** Rotation vieillie au-delà de la fenêtre de grâce (10 s) : un rejeu redevient un vol. */
+const ageRotation = (tokenHash: string) =>
+  age(
+    "UPDATE sessions SET revoked_at = revoked_at - interval '11 seconds' WHERE refresh_token_hash = $1",
+    [tokenHash],
+  );
+
 const familyRows = (familyId: string) =>
   db.query<{
     refresh_token_hash: string;
@@ -258,6 +265,7 @@ describe('réutilisation (EX-103 n° 5, test de non-régression)', () => {
     const session = await open(user);
     const next = hash();
     await rotate(session.tokenHash, next);
+    await ageRotation(session.tokenHash);
     // Le voleur rejoue l'ancien jeton alors que le titulaire détient le jeton courant, encore valide.
     expect(await rotate(session.tokenHash)).toEqual({
       outcome: 'reuse',
@@ -279,6 +287,7 @@ describe('réutilisation (EX-103 n° 5, test de non-régression)', () => {
     const victim = await open(user);
     const other = await open(user);
     await rotate(victim.tokenHash);
+    await ageRotation(victim.tokenHash);
     await rotate(victim.tokenHash);
     expect(await valid(other.familyId)).toHaveLength(1);
   });
@@ -296,12 +305,13 @@ describe('réutilisation (EX-103 n° 5, test de non-régression)', () => {
     ]);
   });
 
-  it('rejeu concurrent d’une rotation légitime : la famille tombe toujours (verrou de famille)', async () => {
+  it('rejeu concurrent d’une rotation légitime, après la grâce : la famille tombe (verrou de famille)', async () => {
     for (let i = 0; i < 10; i++) {
       const user = await account();
       const session = await open(user);
       const current = hash();
       await rotate(session.tokenHash, current);
+      await ageRotation(session.tokenHash);
       const [legit, replay] = await Promise.all([rotate(current), rotate(session.tokenHash)]);
       expect(replay.outcome).toBe('reuse');
       expect(['rotated', 'invalid']).toContain(legit.outcome);
@@ -332,13 +342,56 @@ describe('réutilisation (EX-103 n° 5, test de non-régression)', () => {
     }
   });
 
-  it('20 rotations concurrentes du même jeton : une seule réussit, la famille est révoquée', async () => {
+  it('20 rotations concurrentes du même jeton : une seule réussit, les autres réessaient (grâce)', async () => {
     const session = await open(await account());
     const results = await Promise.all(Array.from({ length: 20 }, () => rotate(session.tokenHash)));
     const outcomes = results.map((result) => result.outcome);
     expect(outcomes.filter((outcome) => outcome === 'rotated')).toHaveLength(1);
-    expect(outcomes.filter((outcome) => outcome === 'reuse').length).toBeGreaterThanOrEqual(1);
+    expect(outcomes.filter((outcome) => outcome === 'raced')).toHaveLength(19);
+    expect(await valid(session.familyId)).toHaveLength(1);
+  });
+});
+
+describe('fenêtre de grâce de 10 s (D-132, ADR-010)', () => {
+  it('deux onglets : le jeton tout juste consommé reçoit « raced », sans révocation ni jeton', async () => {
+    const user = await account();
+    const session = await open(user);
+    const next = hash();
+    await rotate(session.tokenHash, next);
+    expect(await rotate(session.tokenHash)).toEqual({ outcome: 'raced' });
+    // Rien n'est émis ni révoqué : la famille garde son seul jeton courant, qui tourne encore.
+    expect(await valid(session.familyId)).toHaveLength(1);
+    expect((await rotate(next)).outcome).toBe('rotated');
+    expect((await audit(user)).map((row) => row.action)).toEqual(['user.session.opened']);
+  });
+
+  it('au-delà de 10 s, le même rejeu révoque la famille', async () => {
+    const user = await account();
+    const session = await open(user);
+    await rotate(session.tokenHash);
+    await ageRotation(session.tokenHash);
+    expect((await rotate(session.tokenHash)).outcome).toBe('reuse');
     expect(await valid(session.familyId)).toHaveLength(0);
+  });
+
+  it('un jeton plus ancien que le prédécesseur du jeton courant n’a jamais de grâce', async () => {
+    const user = await account();
+    const session = await open(user);
+    const second = hash();
+    await rotate(session.tokenHash, second);
+    await rotate(second);
+    // Deux rotations en moins de 10 s : seul le dernier jeton consommé bénéficie de la grâce.
+    expect((await rotate(session.tokenHash)).outcome).toBe('reuse');
+    expect(await valid(session.familyId)).toHaveLength(0);
+  });
+
+  it('famille déjà fermée pendant la grâce : invalid', async () => {
+    const user = await account();
+    const session = await open(user);
+    const next = hash();
+    await rotate(session.tokenHash, next);
+    expect(await logoutSession(client, next)).toBe(user);
+    expect(await rotate(session.tokenHash)).toEqual({ outcome: 'invalid' });
   });
 });
 
@@ -491,6 +544,7 @@ describe('sous contexte utilisateur (RLS sessions_self, EX-103 n° 6)', () => {
     const user = await account();
     const session = await open(user, 'Opera · Linux');
     await rotate(session.tokenHash);
+    await ageRotation(session.tokenHash);
     await rotate(session.tokenHash);
     expect((await open(user, 'Opera · Linux')).knownDevice).toBe(false);
   });
@@ -656,6 +710,7 @@ describe('droits (D-059)', () => {
       const session = await open(user);
       const next = hash();
       expect((await rotate(session.tokenHash, next)).outcome).toBe('rotated');
+      await ageRotation(session.tokenHash);
       expect((await rotate(session.tokenHash)).outcome).toBe('reuse');
       const other = await open(user);
       expect(await logoutSession(client, other.tokenHash)).toBe(user);

@@ -91,6 +91,16 @@ describe('SessionService', () => {
     );
   });
 
+  it('rotation concurrente dans la grâce : 409 réessayez, aucune alerte ni jeton', async () => {
+    db.rotateSession.mockResolvedValue({ outcome: 'raced' });
+    await expect(service.refresh('a'.repeat(43), client)).rejects.toMatchObject({
+      status: 409,
+      code: 'AUTH_REFRESH_RACED',
+    });
+    await Promise.all(sent);
+    expect(db.accountEmail).not.toHaveBeenCalled();
+  });
+
   it('réutilisation sur un compte supprimé entre-temps : aucun email', async () => {
     db.rotateSession.mockResolvedValue({ outcome: 'reuse', userId: USER, familyId: FAMILY });
     db.accountEmail.mockResolvedValue(null);

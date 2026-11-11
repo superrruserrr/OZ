@@ -98,6 +98,8 @@ export type RotationResult =
       readonly expiresAt: Date;
     }
   | { readonly outcome: 'reuse'; readonly userId: string; readonly familyId: string }
+  /** Fenêtre de grâce (10 s, D-132) : rotation concurrente du même jeton, rien n'est émis. */
+  | { readonly outcome: 'raced' }
   | { readonly outcome: 'invalid' };
 
 /**
@@ -119,7 +121,7 @@ export async function rotateSession(
   assertTtls(input.ttlSeconds, input.ttlSeconds);
   const rows = await db.$queryRaw<
     {
-      outcome: 'rotated' | 'reuse' | 'invalid';
+      outcome: 'rotated' | 'reuse' | 'raced' | 'invalid';
       user_id: string | null;
       family_id: string | null;
       session_id: string | null;
@@ -148,6 +150,7 @@ export async function rotateSession(
   if (row?.outcome === 'reuse' && row.user_id && row.family_id) {
     return { outcome: 'reuse', userId: row.user_id, familyId: row.family_id };
   }
+  if (row?.outcome === 'raced') return { outcome: 'raced' };
   return { outcome: 'invalid' };
 }
 

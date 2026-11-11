@@ -10,6 +10,12 @@ import type { AccessTokenOutput } from '@oz/contracts';
 export const ACCESS_COOKIE = '__Host-oz_access';
 export const REFRESH_COOKIE = '__Host-oz_refresh';
 export const CHALLENGE_COOKIE = '__Host-oz_2fa';
+/**
+ * Marque des relances après une course entre onglets (D-132) : `1` après la première, `2` après la
+ * seconde, puis renvoi à la connexion ; jamais de boucle.
+ */
+export const RETRY_COOKIE = '__Host-oz_retry';
+export const RETRY_MAX_AGE = 30;
 
 /** Défi du second facteur (300 s côté API). */
 export const CHALLENGE_MAX_AGE = 300;

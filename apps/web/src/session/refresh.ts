@@ -9,6 +9,11 @@ export type RefreshOutcome =
   | { readonly kind: 'renewed'; readonly cookies: CookieSpec[]; readonly accessToken: string }
   /** 401 de l'API : session expirée, révoquée ou jeton rejoué. Cookies à effacer. */
   | { readonly kind: 'refused' }
+  /**
+   * 409 de l'API : un autre onglet vient de renouveler la même session (fenêtre de grâce de 10 s,
+   * D-132). Rien n'est émis ni effacé ; les nouveaux cookies arrivent par la réponse de l'autre onglet.
+   */
+  | { readonly kind: 'raced' }
   /** Panne passagère (5xx, délai, API injoignable) : le jeton n'a pas été consommé, rien à effacer. */
   | { readonly kind: 'unavailable' };
 
@@ -26,7 +31,9 @@ export async function refreshSession(
   });
   if (!result.ok) {
     // 403 : origine refusée, erreur de configuration du site et non de l'utilisateur.
-    return result.status === 401 ? { kind: 'refused' } : { kind: 'unavailable' };
+    if (result.status === 401) return { kind: 'refused' };
+    if (result.status === 409 && result.code === 'AUTH_REFRESH_RACED') return { kind: 'raced' };
+    return { kind: 'unavailable' };
   }
   const parsed = accessTokenOutputSchema.safeParse(result.data);
   const cookies = parsed.success ? sessionCookies(parsed.data, result.setCookies) : null;
