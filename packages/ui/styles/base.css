@@ -40,12 +40,13 @@
 }
 
 /*
- * Familles composées : sous-ensemble latin puis latin-ext (déclarés par next/font dans chaque app).
- * Une app qui ne charge pas JetBrains Mono retombe sur Prompt.
+ * Texte : pile système type Helvetica (ADR-012), sans fichier de police. Chasse fixe : JetBrains Mono,
+ * sous-ensemble latin puis latin-ext (déclarés par next/font) ; une app qui ne la charge pas retombe
+ * sur la police monospace du système.
  */
 :root {
-  --oz-font-prompt: var(--oz-font-prompt-latin), var(--oz-font-prompt-latin-ext);
+  --oz-font-system: 'Helvetica Neue', Helvetica, Arial, sans-serif;
   --oz-font-jetbrains-mono:
-    var(--oz-font-jetbrains-mono-latin, var(--oz-font-prompt-latin)),
-    var(--oz-font-jetbrains-mono-latin-ext, var(--oz-font-prompt-latin-ext));
+    var(--oz-font-jetbrains-mono-latin, ui-monospace),
+    var(--oz-font-jetbrains-mono-latin-ext, ui-monospace);
 }

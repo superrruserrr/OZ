@@ -26,7 +26,7 @@ export function Kicker({ children, tone = 'primary', className }: KickerProps) {
     <p
       data-testid="kicker"
       className={cn(
-        'inline-flex items-center gap-2 text-xs font-bold tracking-[0.08em] text-oz-text-label uppercase',
+        'inline-flex items-center gap-2 text-xs font-medium tracking-[0.08em] text-oz-text-label uppercase',
         className,
       )}
     >
@@ -69,7 +69,7 @@ export function SplitHeading({
   return (
     <Tag
       className={cn(
-        'font-display font-bold tracking-[-0.02em] text-balance text-oz-text',
+        'font-display font-medium tracking-[-0.01em] text-balance text-oz-text',
         HEADING_SIZES[size],
         className,
       )}

@@ -50,7 +50,7 @@ export function ValueCard({
       )}
     >
       {icon ? <IconTile size="sm">{icon}</IconTile> : null}
-      <Title className="font-display text-xl font-bold text-oz-text">
+      <Title className="font-display text-xl font-medium text-oz-text">
         <Link
           href={href}
           className="outline-none after:absolute after:inset-0 after:rounded-2xl after:content-['']"
@@ -61,7 +61,7 @@ export function ValueCard({
       <p className="text-sm leading-relaxed text-oz-text-muted">{children}</p>
       <span
         aria-hidden="true"
-        className="mt-auto inline-flex items-center gap-1.5 text-sm font-semibold text-oz-primary"
+        className="mt-auto inline-flex items-center gap-1.5 text-sm font-medium text-oz-primary"
       >
         {cta}
         <svg

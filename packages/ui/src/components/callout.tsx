@@ -51,7 +51,7 @@ export function Callout({
         </span>
       ) : null}
       <div className="flex min-w-0 flex-col gap-1">
-        {title ? <p className="font-semibold">{title}</p> : null}
+        {title ? <p className="font-medium">{title}</p> : null}
         <div>{children}</div>
       </div>
     </div>

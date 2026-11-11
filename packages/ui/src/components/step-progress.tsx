@@ -64,7 +64,7 @@ export function StepProgress({
         <span
           aria-hidden="true"
           data-testid={`${testId}-counter`}
-          className="text-sm font-semibold text-oz-text-muted tabular-nums"
+          className="text-sm font-medium text-oz-text-muted tabular-nums"
         >
           {now} / {max}
         </span>

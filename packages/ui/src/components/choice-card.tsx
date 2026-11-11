@@ -95,7 +95,7 @@ export function ChoiceCardGroup({
           >
             {option.icon ? <IconTile>{option.icon}</IconTile> : null}
             <span className="flex min-w-0 flex-1 flex-col gap-0.5 pr-8">
-              <span className="font-semibold">{option.title}</span>
+              <span className="font-medium">{option.title}</span>
               {option.description ? (
                 <span className="text-sm text-oz-text-muted">{option.description}</span>
               ) : null}

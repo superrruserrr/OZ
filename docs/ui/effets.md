@@ -75,5 +75,10 @@ La commande est hors CI, car le résultat dépend de la machine.
 Poids CSS généré par `@oz/ui` (Tailwind 4.3, minifié) : 38,7 Ko → 55,3 Ko, soit **7,7 → 9,8 Ko gzip
 (+2,1 Ko)** pour tout le lot 1.5ca, sous le budget de 12 Ko.
 
+Lot 1.5cc (ADR-012, mesure du 2026-11-11) : thème noir et lime, police système (aucun fichier de
+police téléchargé hors JetBrains Mono), statistiques et cadres : 58,9 Ko, soit **10,3 Ko gzip
+(+0,5 Ko)**, toujours sous les 12 Ko. Halos du héros de stade abaissés (lime 8 %, bleu 6 %, 3 %) pour
+garder `text-muted` au-dessus de 4,5:1. Les tests de fluidité (`test:perf`, 9) restent à 60 i/s.
+
 Les effets ponctuels (E2, E6 à E9, E12, E13, E15) durent moins de 1 s, en transform et opacité. La
 mesure sur un vrai téléphone d'entrée de gamme reste à faire en recette (D-129).

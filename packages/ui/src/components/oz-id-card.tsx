@@ -63,12 +63,12 @@ export function OzIdCard({
         <span
           aria-hidden="true"
           data-testid="oz-id-card-avatar"
-          className="grid size-14 shrink-0 place-items-center rounded-full bg-oz-tint-green text-lg font-bold text-oz-primary"
+          className="grid size-14 shrink-0 place-items-center rounded-full bg-oz-tint-green text-lg font-medium text-oz-primary"
         >
           {initials(name)}
         </span>
         <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <h2 className="truncate text-lg font-bold">{name}</h2>
+          <h2 className="truncate text-lg font-medium">{name}</h2>
           {line ? (
             <p data-testid="oz-id-card-details" className="text-sm text-oz-text-muted">
               {line}
@@ -79,12 +79,12 @@ export function OzIdCard({
       <hr className="border-oz-border" />
       <div className="flex items-end justify-between gap-4">
         <div className="flex min-w-0 flex-col gap-2">
-          <span className="text-xs font-semibold tracking-[0.08em] text-oz-text-label uppercase">
+          <span className="text-xs font-medium tracking-[0.08em] text-oz-text-label uppercase">
             {ozIdLabel}
           </span>
           <span
             data-testid="oz-id-card-value"
-            className="font-mono text-base font-semibold whitespace-nowrap text-oz-primary select-all"
+            className="font-mono text-base font-medium whitespace-nowrap text-oz-primary select-all"
           >
             {reveal ? <OzIdReveal ozId={ozId} /> : ozId}
           </span>

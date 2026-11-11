@@ -23,6 +23,6 @@ export const ozTheme = create({
   inputBg: ozColors['surface-input'],
   inputBorder: ozColors.border,
   inputTextColor: ozColors.text,
-  fontBase: "'Prompt', ui-sans-serif, system-ui, sans-serif",
+  fontBase: "'Helvetica Neue', Helvetica, Arial, sans-serif",
   fontCode: "'JetBrains Mono Variable', ui-monospace, monospace",
 });

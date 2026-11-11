@@ -64,7 +64,7 @@ la vérification d'identité, qui attend deux décisions (§ « Ce qui bloque »
 | 1.5ba Composants des écrans            | ✅   | Briques des écrans : étapes, code SMS, choix du compte, encadrés tuteur, filtres, onglets, chargement, carte OZ ID    |
 | 1.5bb Coquille et navigation           | ✅   | Menus par rôle, écrans de chargement et d'erreur, effets du site, audit mobile et 3G                                  |
 | 1.5ca Refonte « sport » : briques      | ✅   | Site tout en sombre, héros de stade, cartes vitrées, panneau « en direct », nouveaux menus ; testé mobile et fluidité |
-| 1.5cc Thème noir et lime, police douce | ⬜   | Nouveau thème choisi le 10/11 (maquettes Claude Design, ADR-012) à passer dans les briques                            |
+| 1.5cc Thème noir et lime, police douce | ✅   | Briques en noir et lime, police douce type Helvetica, tuiles de stats, anneaux, terrain, cadres photo et pub          |
 | 1.5cb Refonte « sport » : pages        | ⬜   | Appliquer le nouveau style à toutes les pages du site                                                                 |
 
 Q6 (un seul système visuel) et Q19 (nom « OZ FOOTBALL ID ») sont tranchées par la charte (ADR-009).
@@ -148,3 +148,4 @@ Q6 (un seul système visuel) et Q19 (nom « OZ FOOTBALL ID ») sont tranchées p
 | 2026-11-10 | 1.7ca Connexion au site et création de compte (1.7 en cours) |
 | 2026-11-10 | 1.7cb Parcours d'inscription joueur à l'écran (1.7 ✅)       |
 | 2026-11-10 | 1.5ca Refonte « sport », briques ; thème noir et lime choisi |
+| 2026-11-11 | 1.5cc Thème noir et lime, police douce (1.5 en cours)        |

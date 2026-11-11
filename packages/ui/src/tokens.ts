@@ -1,6 +1,7 @@
 /**
  * Jetons de couleur OZ (design.md §8.3, ADR-009), source unique des valeurs : un jeu clair et un jeu
- * sombre, mêmes noms sémantiques. Depuis ADR-011, le web n'a qu'un thème, sombre : `styles/tokens.css`
+ * sombre, mêmes noms sémantiques. Depuis ADR-011, le web n'a qu'un thème, sombre (palette noir et
+ * lime de l'ADR-012) : `styles/tokens.css`
  * pose le jeu sombre en variables CSS `--oz-*` ; le jeu clair reste ici pour le mobile et l'impression.
  * Un test vérifie que les valeurs restent identiques.
  */
@@ -41,34 +42,34 @@ const light = Object.freeze({
 } as const);
 
 const dark = Object.freeze({
-  bg: '#1B161B',
-  'bg-page': '#1B161B',
-  'surface-1': '#241E23',
-  'surface-2': '#31282E',
-  'surface-input': '#2A2328',
-  'surface-ozid': '#31282E',
-  'tint-green': '#1F3A26',
-  border: '#3D3339',
-  text: '#F3ECEC',
-  'text-muted': '#BDB3B7',
-  'text-label': '#B3A9AD',
-  'text-disabled': '#6B6266',
-  primary: '#9FFE91',
-  'primary-from': '#9FFE91',
-  'primary-to': '#8BEF7D',
-  'primary-bright': '#9FFE91',
-  'on-primary': '#1D1D1B',
-  accent: '#EC5C9F',
-  highlight: '#47BDE1',
+  bg: '#0A0D0E',
+  'bg-page': '#0A0D0E',
+  'surface-1': '#101517',
+  'surface-2': '#172023',
+  'surface-input': '#0E1315',
+  'surface-ozid': '#172023',
+  'tint-green': '#1C2A0C',
+  border: '#222B2E',
+  text: '#F2F5F3',
+  'text-muted': '#9AA4A6',
+  'text-label': '#8E989A',
+  'text-disabled': '#5A6466',
+  primary: '#C6FF3D',
+  'primary-from': '#C6FF3D',
+  'primary-to': '#A8E62A',
+  'primary-bright': '#C6FF3D',
+  'on-primary': '#0A0D0E',
+  accent: '#C6FF3D',
+  highlight: '#7AA7FF',
   legal: '#6B8EF0',
   'legal-text': '#9DB4F7',
-  'legal-bg': '#1E2233',
-  'legal-border': '#39405A',
-  kyc: '#F2BE45',
-  'kyc-border': '#5A4A22',
-  danger: '#FF7A6E',
+  'legal-bg': '#111A2B',
+  'legal-border': '#2B3756',
+  kyc: '#FFD36B',
+  'kyc-border': '#5A4A1E',
+  danger: '#FF6B5E',
   admin: '#E8B06A',
-  observer: '#BDB3B7',
+  observer: '#9AA4A6',
 } as const satisfies Record<keyof typeof light, string>);
 
 export const OZ_MODES = ['light', 'dark'] as const;

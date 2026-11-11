@@ -25,12 +25,12 @@ export function FieldShell({ id, label, meta, hint, error, children }: FieldShel
       <div className="flex items-baseline justify-between gap-3">
         <Label
           htmlFor={id}
-          className="text-xs font-semibold tracking-[0.08em] text-oz-text-label uppercase"
+          className="text-xs font-medium tracking-[0.08em] text-oz-text-label uppercase"
         >
           {label}
         </Label>
         {meta ? (
-          <span className="text-xs font-semibold tracking-[0.08em] text-oz-primary uppercase transition-opacity duration-150 starting:opacity-0">
+          <span className="text-xs font-medium tracking-[0.08em] text-oz-primary uppercase transition-opacity duration-150 starting:opacity-0">
             {meta}
           </span>
         ) : null}

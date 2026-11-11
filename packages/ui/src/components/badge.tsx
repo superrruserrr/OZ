@@ -7,7 +7,7 @@ import { cn } from '../lib/cn.js';
  * vérifié, ambre = KYC, bleu = légal (texte `legal-text`, M8), rouge = danger uniquement.
  */
 const badgeVariants = cva(
-  'inline-flex h-7 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold whitespace-nowrap',
+  'inline-flex h-7 items-center gap-1.5 rounded-full border px-3 text-xs font-medium whitespace-nowrap',
   {
     variants: {
       tone: {

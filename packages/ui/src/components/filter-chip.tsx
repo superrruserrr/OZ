@@ -37,7 +37,7 @@ export function FilterChip({
         data-testid={testId}
         onClick={() => onPressedChange?.(!pressed)}
         className={cn(
-          'inline-flex h-11 items-center rounded-full border px-4 text-sm font-semibold whitespace-nowrap',
+          'inline-flex h-11 items-center rounded-full border px-4 text-sm font-medium whitespace-nowrap',
           'transition-[background-color,border-color,color] duration-150',
           'disabled:cursor-not-allowed disabled:text-oz-text-disabled',
           pressed

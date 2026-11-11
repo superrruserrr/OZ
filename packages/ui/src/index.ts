@@ -70,3 +70,27 @@ export { LivePanel, type LiveFact, type LivePanelProps } from './components/live
 export { ValueCard, type CardLinkProps, type ValueCardProps } from './components/value-card.js';
 export { RoleCard, type RoleCardProps, type RoleCardTone } from './components/role-card.js';
 export { SiteTopbar, type SiteTopbarLink, type SiteTopbarProps } from './components/site-topbar.js';
+export {
+  PITCH_SPOTS,
+  PitchPositions,
+  RingChart,
+  SERIES_TONES,
+  Sparkline,
+  StatTile,
+  sparklinePoints,
+  type PitchPositionsProps,
+  type PitchSpot,
+  type RingChartProps,
+  type RingSegment,
+  type SeriesTone,
+  type SparklineProps,
+  type StatTileProps,
+} from './components/stats.js';
+export {
+  AdSlot,
+  MediaFrame,
+  type AdFormat,
+  type AdSlotProps,
+  type MediaFrameProps,
+  type MediaRatio,
+} from './components/media-frame.js';

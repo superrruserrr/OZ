@@ -243,9 +243,6 @@ importers:
 
   apps/admin:
     dependencies:
-      '@fontsource/prompt':
-        specifier: ^5.3.0
-        version: 5.3.0
       '@oz/config':
         specifier: workspace:*
         version: link:../../packages/config
@@ -408,9 +405,6 @@ importers:
   apps/web:
     dependencies:
       '@fontsource-variable/jetbrains-mono':
-        specifier: ^5.3.0
-        version: 5.3.0
-      '@fontsource/prompt':
         specifier: ^5.3.0
         version: 5.3.0
       '@hookform/resolvers':
@@ -688,9 +682,6 @@ importers:
         version: 3.7.0
     devDependencies:
       '@fontsource-variable/jetbrains-mono':
-        specifier: ^5.3.0
-        version: 5.3.0
-      '@fontsource/prompt':
         specifier: ^5.3.0
         version: 5.3.0
       '@storybook/addon-a11y':
@@ -1349,9 +1340,6 @@ packages:
 
   '@fontsource-variable/jetbrains-mono@5.3.0':
     resolution: {integrity: sha512-F32xpS2NsGYoQi2ADSkKTgpJj7ozajsGgDJ8woTnqjmIB+dxDIqImjl4pXZVEExu8UFZ2ndhmX18EBS/hdz3Lw==}
-
-  '@fontsource/prompt@5.3.0':
-    resolution: {integrity: sha512-cU4VVn7G0wSI3pu3a7tynpTQ5hk3Lm9nEjTOBLhVYsqbOlvVIj6Tc1f3450BOGSpDiPOxmYGj/D7rE/z/TYPJg==}
 
   '@formatjs/fast-memoize@3.1.7':
     resolution: {integrity: sha512-zXfhLpvA6T7+efdt9JLbBwZ00tT7NsBMDVnDu8rpHeNNv8KfRZAMo2gkG0k9lK/Nzc//3kJ9pImsfuJxk3KhUA==}
@@ -7116,8 +7104,6 @@ snapshots:
   '@floating-ui/utils@0.2.12': {}
 
   '@fontsource-variable/jetbrains-mono@5.3.0': {}
-
-  '@fontsource/prompt@5.3.0': {}
 
   '@formatjs/fast-memoize@3.1.7': {}
 

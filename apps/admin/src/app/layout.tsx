@@ -5,7 +5,6 @@ import { getTranslations } from 'next-intl/server';
 import { connection } from 'next/server';
 import type { ReactNode } from 'react';
 import { ADMIN_LOCALE } from '../i18n/request';
-import { fontVariables } from './fonts';
 import './globals.css';
 
 // Barre du navigateur aux couleurs du fond : thème sombre unique (ADR-011).
@@ -23,7 +22,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   // Rendu à chaque requête : le nonce CSP ne peut pas figurer dans une page pré-rendue.
   await connection();
   return (
-    <html lang={ADMIN_LOCALE} className={fontVariables}>
+    <html lang={ADMIN_LOCALE}>
       <body className="bg-oz-bg text-oz-text">
         <NextIntlClientProvider>{children}</NextIntlClientProvider>
       </body>

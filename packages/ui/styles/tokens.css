@@ -1,39 +1,39 @@
 /*
- * Jetons OZ (design.md §8.3, ADR-009 amendé par ADR-011). Valeurs identiques au jeu sombre de
+ * Jetons OZ (design.md §8.3, ADR-009 amendé par ADR-011 et ADR-012). Valeurs identiques au jeu sombre de
  * src/tokens.ts (vérifié par test) : le web n'a qu'un thème, sombre, quel que soit le réglage de
  * l'appareil. Le jeu clair reste défini en TypeScript (mobile, impression). À importer après
  * `@import 'tailwindcss';` : le bloc @theme expose les classes `bg-oz-*`, `text-oz-*`…
  */
 :root {
   color-scheme: dark;
-  --oz-bg: #1b161b;
-  --oz-bg-page: #1b161b;
-  --oz-surface-1: #241e23;
-  --oz-surface-2: #31282e;
-  --oz-surface-input: #2a2328;
-  --oz-surface-ozid: #31282e;
-  --oz-tint-green: #1f3a26;
-  --oz-border: #3d3339;
-  --oz-text: #f3ecec;
-  --oz-text-muted: #bdb3b7;
-  --oz-text-label: #b3a9ad;
-  --oz-text-disabled: #6b6266;
-  --oz-primary: #9ffe91;
-  --oz-primary-from: #9ffe91;
-  --oz-primary-to: #8bef7d;
-  --oz-primary-bright: #9ffe91;
-  --oz-on-primary: #1d1d1b;
-  --oz-accent: #ec5c9f;
-  --oz-highlight: #47bde1;
+  --oz-bg: #0a0d0e;
+  --oz-bg-page: #0a0d0e;
+  --oz-surface-1: #101517;
+  --oz-surface-2: #172023;
+  --oz-surface-input: #0e1315;
+  --oz-surface-ozid: #172023;
+  --oz-tint-green: #1c2a0c;
+  --oz-border: #222b2e;
+  --oz-text: #f2f5f3;
+  --oz-text-muted: #9aa4a6;
+  --oz-text-label: #8e989a;
+  --oz-text-disabled: #5a6466;
+  --oz-primary: #c6ff3d;
+  --oz-primary-from: #c6ff3d;
+  --oz-primary-to: #a8e62a;
+  --oz-primary-bright: #c6ff3d;
+  --oz-on-primary: #0a0d0e;
+  --oz-accent: #c6ff3d;
+  --oz-highlight: #7aa7ff;
   --oz-legal: #6b8ef0;
   --oz-legal-text: #9db4f7;
-  --oz-legal-bg: #1e2233;
-  --oz-legal-border: #39405a;
-  --oz-kyc: #f2be45;
-  --oz-kyc-border: #5a4a22;
-  --oz-danger: #ff7a6e;
+  --oz-legal-bg: #111a2b;
+  --oz-legal-border: #2b3756;
+  --oz-kyc: #ffd36b;
+  --oz-kyc-border: #5a4a1e;
+  --oz-danger: #ff6b5e;
   --oz-admin: #e8b06a;
-  --oz-observer: #bdb3b7;
+  --oz-observer: #9aa4a6;
 }
 
 @theme inline {
@@ -54,7 +54,7 @@
   --color-oz-primary-to: var(--oz-primary-to);
   --color-oz-primary-bright: var(--oz-primary-bright);
   --color-oz-on-primary: var(--oz-on-primary);
-  /* Rose : grand texte sur le fond nu (`bg`) seulement. Turquoise : pictos et mises en avant, jamais de texte. */
+  /* Lime (ADR-012) : accroche, action et première série des graphiques. Bleu : info et deuxième série. */
   --color-oz-accent: var(--oz-accent);
   --color-oz-highlight: var(--oz-highlight);
   /* M8 : #3B64F1 ne passe pas AA en petit texte. Exposé pour les icônes et bordures seulement ;
@@ -69,8 +69,8 @@
   --color-oz-admin: var(--oz-admin);
   --color-oz-observer: var(--oz-observer);
 
-  --font-sans: var(--oz-font-prompt), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--oz-font-prompt), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--oz-font-system);
+  --font-display: var(--oz-font-system);
   --font-mono: var(--oz-font-jetbrains-mono), ui-monospace, monospace;
 }
 
