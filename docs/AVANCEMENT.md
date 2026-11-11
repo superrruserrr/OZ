@@ -58,14 +58,14 @@ la vérification d'identité, qui attend deux décisions (§ « Ce qui bloque »
 
 ### Étape 1.5 en détail
 
-| Partie                               | État | Ce que ça veut dire pour le produit                                                                                   |
-| ------------------------------------ | ---- | --------------------------------------------------------------------------------------------------------------------- |
-| 1.5a Charte graphique OZ Football ID | ✅   | Logo, couleurs et police de la charte sur le site et le back-office ; mode clair, ou sombre selon le téléphone        |
-| 1.5ba Composants des écrans          | ✅   | Briques des écrans : étapes, code SMS, choix du compte, encadrés tuteur, filtres, onglets, chargement, carte OZ ID    |
-| 1.5bb Coquille et navigation         | ✅   | Menus par rôle, écrans de chargement et d'erreur, effets du site, audit mobile et 3G                                  |
-| 1.5ca Refonte « sport » : briques    | ✅   | Site tout en sombre, héros de stade, cartes vitrées, panneau « en direct », nouveaux menus ; testé mobile et fluidité |
-| 1.5cc Thème noir, lime et Montserrat | ⬜   | Nouveau thème choisi le 10/11 (maquettes Claude Design, ADR-012) à passer dans les briques                            |
-| 1.5cb Refonte « sport » : pages      | ⬜   | Appliquer le nouveau style à toutes les pages du site                                                                 |
+| Partie                                 | État | Ce que ça veut dire pour le produit                                                                                   |
+| -------------------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------- |
+| 1.5a Charte graphique OZ Football ID   | ✅   | Logo, couleurs et police de la charte sur le site et le back-office ; mode clair, ou sombre selon le téléphone        |
+| 1.5ba Composants des écrans            | ✅   | Briques des écrans : étapes, code SMS, choix du compte, encadrés tuteur, filtres, onglets, chargement, carte OZ ID    |
+| 1.5bb Coquille et navigation           | ✅   | Menus par rôle, écrans de chargement et d'erreur, effets du site, audit mobile et 3G                                  |
+| 1.5ca Refonte « sport » : briques      | ✅   | Site tout en sombre, héros de stade, cartes vitrées, panneau « en direct », nouveaux menus ; testé mobile et fluidité |
+| 1.5cc Thème noir et lime, police douce | ⬜   | Nouveau thème choisi le 10/11 (maquettes Claude Design, ADR-012) à passer dans les briques                            |
+| 1.5cb Refonte « sport » : pages        | ⬜   | Appliquer le nouveau style à toutes les pages du site                                                                 |
 
 Q6 (un seul système visuel) et Q19 (nom « OZ FOOTBALL ID ») sont tranchées par la charte (ADR-009).
 

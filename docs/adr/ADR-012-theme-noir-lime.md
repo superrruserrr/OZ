@@ -1,4 +1,4 @@
-# ADR-012 : Thème « Workspace » — noir, lime et Montserrat
+# ADR-012 : Thème « Workspace » — noir, lime et police système type Helvetica
 
 Statut : Accepté
 Date : 2026-11-10 · Décideurs : Gaëtan Wassu
@@ -13,7 +13,8 @@ Le 2026-11-10, Gaëtan Wassu a fourni deux captures d'un espace connecté « OZ 
 de bord d'une académie et le bureau de recherche d'un recruteur. Il a demandé que tout l'univers
 suive ce thème. Il a aussi demandé des cadres pour les photos, les publicités et les statistiques,
 et a donné comme référence de style le projet Behance « Football Stat App » (Alex Kataev, 2016),
-avec la même police. Le fichier de design Claude Design « OZ Football ID — Design » applique déjà
+avec la même police. Après un premier essai en Montserrat, il a précisé le même jour vouloir une
+police « soft et normale comme Helvetica ». Le fichier de design Claude Design « OZ Football ID — Design » applique déjà
 ce thème sur seize planches.
 
 Ce thème contredit l'ADR-009 sur la palette et la police, et l'ADR-011 sur sa première réserve. Les
@@ -67,12 +68,17 @@ valeurs changent :
 
 ### Police
 
-Montserrat (licence SIL OFL), servie par `next/font` sans appel réseau au chargement, remplace Prompt :
+Une pile de polices système remplace Prompt : `"Helvetica Neue", Helvetica, Arial, sans-serif`.
+Helvetica est sous licence et ne s'auto-héberge pas ; la pile n'ajoute aucun fichier ni aucun appel
+réseau, ce qui reste compatible avec la CSP. Ton doux et neutre :
 
-- affiche en capitales : graisse 900 ;
-- titres : graisse 800 ;
-- texte courant : graisses 400 à 600 ;
-- libellés : 11-12 px, graisse 800, espacement 0,14em.
+- titres : graisse 500, sans capitales forcées, interlettrage légèrement serré (-0,01em) ;
+- texte courant : graisse 400 ;
+- chiffres clés : graisse 500, chiffres tabulaires ;
+- libellés : 11-12 px, graisse 500, capitales autorisées pour les seuls libellés de section.
+
+La graisse 700 est réservée aux rares mises en avant. Le rendu varie un peu selon le système
+(Helvetica sur Apple, Arial ailleurs), ce qui est accepté.
 
 ### Composants
 
@@ -113,7 +119,7 @@ S'y ajoute un kit de cadres :
   sa décision est maintenu : sombre partout, mise en page sport, règles du plan.
 - **Lot 1.5cc** (jetons, police et composants de `@oz/ui`) :
   - mettre à jour `tokens.css`, `tokens.ts`, `contrast.test.ts` et `design.md` §8 ;
-  - charger Montserrat ;
+  - remplacer la police Prompt par la pile système ;
   - ajouter les composants de statistiques (mini-courbe, anneau, terrain) et le kit de cadres.
     Il passe avant le lot 1.5cb, qui applique le style aux pages de `apps/web`.
 - **Accessibilité** : chaque paire texte sur fond doit repasser le contrôle de contraste AA du lot.

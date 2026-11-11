@@ -34,8 +34,8 @@ Option 3, choisie par Gaëtan Wassu le 2026-11-10, avec trois réserves qu'il a 
 - **Couleurs et police de la charte**, pas celles de la maquette : le lime devient le vert d'action
   `primary` (`#9FFE91` en sombre), les mots d'accroche passent en rose `accent`, le bleu de la
   maquette en turquoise `highlight`, l'ambre en `kyc`, le rouge en `danger`. Prompt remplace Inter.
-  **Remplacée par [ADR-012](ADR-012-theme-noir-lime-montserrat.md) : noir, lime `#C6FF3D`, bleu,
-  ambre et Montserrat ; le reste de cette décision est maintenu.**
+  **Remplacée par [ADR-012](ADR-012-theme-noir-lime.md) : noir, lime `#C6FF3D`, bleu,
+  ambre et police système type Helvetica ; le reste de cette décision est maintenu.**
 - **On reprend de la maquette** la mise en page (héros plein écran et carte latérale, bandeaux de
   valeur, cartes de rôle, pages d'authentification en deux colonnes, coquille rail latéral + barre du
   haut + onglets bas), les cartes vitrées et les effets.

@@ -43,8 +43,8 @@ Option 1.
   **Amendé par [ADR-011](ADR-011-theme-sombre-unique.md) : le web n'a plus qu'un thème, sombre.**
 - Police : Prompt 400 et 700, auto-hébergée (latin et latin-ext) ; JetBrains Mono conservée pour les
   OZ ID et les codes.
-  **Amendé par [ADR-012](ADR-012-theme-noir-lime-montserrat.md) : l'interface passe en noir, lime
-  `#C6FF3D` et Montserrat ; logo, nom et règles de sens inchangés.**
+  **Amendé par [ADR-012](ADR-012-theme-noir-lime.md) : l'interface passe en noir, lime
+  `#C6FF3D` et police système type Helvetica ; logo, nom et règles de sens inchangés.**
 - Écarts à la charte imposés par l'AA (EX-T22) : vert d'action `#187A34` au lieu de `#1E8E3E` en
   clair, rose réservé aux grands titres, jaune et rouge assombris en clair, bleu légal conservé. Les
   valeurs exactes sont dans `design.md` §8.3, vérifiées par `packages/ui/src/contrast.test.ts`.
