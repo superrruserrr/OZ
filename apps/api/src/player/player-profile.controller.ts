@@ -52,6 +52,30 @@ const retryAfter = {
 export class PlayerProfileController {
   constructor(private readonly players: PlayerProfileService) {}
 
+  // Déclarée avant `:ozId` : « me » n'est jamais lu comme un OZ ID.
+  @Get('me')
+  @Can('profile.read')
+  @Header('Cache-Control', 'no-store')
+  @ApiOperation({
+    summary: 'Lire sa propre fiche joueur',
+    description:
+      'Fiche du titulaire du compte, dans sa vue de titulaire (OZ ID, badge, données saisies). Un mineur ne voit pas son téléphone. Aucune fiche pour ce compte (tuteur, inscription en cours) : 404.',
+  })
+  @ApiOkResponse({
+    description: 'Fiche du titulaire',
+    schema: openApiBodySchema(playerProfileOutputSchema),
+  })
+  @ApiForbiddenResponse({ type: ApiErrorDto, description: 'Compte sans rôle joueur' })
+  @ApiNotFoundResponse({ type: ApiErrorDto, description: 'Aucune fiche joueur pour ce compte' })
+  @ApiTooManyRequestsResponse({
+    type: ApiErrorDto,
+    description: 'Plus de 300 lectures dans l’heure',
+    headers: retryAfter,
+  })
+  readOwn(@CurrentActor() actor: Actor): Promise<PlayerProfileOutput> {
+    return this.players.readOwn(actor);
+  }
+
   @Get(':ozId')
   @Can('player.read_public')
   @Header('Cache-Control', 'no-store')

@@ -87,7 +87,7 @@ Les valeurs sensibles restent vides dans `.env.example` ; elles sont exigées d�
 
 ## Sessions (lot 1.3b)
 
-Décisions validées : D1 rafraîchissement de 30 jours glissants, plafond absolu de 90 jours par famille ; D2 révocation immédiate, la famille est relue à chaque requête ; D3 réutilisation stricte, sans fenêtre de grâce ; D4 parcours E2E par l'API ; D5 email « nouvel appareil » et alerte de réutilisation.
+Décisions validées : D1 rafraîchissement de 30 jours glissants, plafond absolu de 90 jours par famille ; D2 révocation immédiate, la famille est relue à chaque requête ; D3 réutilisation stricte, amendée le 2026-11-10 par une fenêtre de grâce de 10 s (ADR-010, D-132) ; D4 parcours E2E par l'API ; D5 email « nouvel appareil » et alerte de réutilisation.
 
 ### Jetons
 
@@ -116,7 +116,8 @@ Décisions validées : D1 rafraîchissement de 30 jours glissants, plafond absol
 ### Rotation et réutilisation
 
 - Chaque rafraîchissement consomme la ligne (motif `rotated`) et en crée une dans la même famille, d'échéance `min(maintenant + 30 jours, plafond de la famille)`.
-- Un jeton déjà consommé présenté alors que la famille vit encore : toute la famille est révoquée (`reuse_detected`, audit `user.session.reuse_detected`), réponse 401 identique à un jeton inconnu, et alerte email au titulaire. Deux onglets qui rafraîchissent en même temps déclenchent ce cas (D3) : le client web devra sérialiser ses rafraîchissements.
+- Un jeton déjà consommé présenté alors que la famille vit encore : toute la famille est révoquée (`reuse_detected`, audit `user.session.reuse_detected`), réponse 401 identique à un jeton inconnu, et alerte email au titulaire.
+- **Fenêtre de grâce (10 s, ADR-010)** : deux onglets qui rafraîchissent en même temps présentent le même jeton. Pendant 10 s après sa rotation, le dernier jeton consommé d'une famille qui a encore une ligne active reçoit `409 AUTH_REFRESH_RACED`, sans nouveau jeton, sans révocation, sans audit ni alerte, et le cookie n'est pas effacé. Un jeton plus ancien de la même famille, ou le même après 10 s, reste une réutilisation.
 - Concurrence : la rotation lit la ligne sans verrou, prend le verrou consultatif de la famille, puis relit la ligne `FOR UPDATE`. Rejeu contre rotation, déconnexion contre rotation et révocation globale contre rotation sont testés.
 
 ### Notifications (D5)
@@ -129,12 +130,12 @@ Décisions validées : D1 rafraîchissement de 30 jours glissants, plafond absol
 
 Migration `20261030100000_auth_sessions`, détail dans [docs/db/migrations.md](../db/migrations.md#sessions-lot-13b).
 
-| Fonction                 | Appelant (API)                          | Contrôle                                                                                                           | Audit                                                   |
-| ------------------------ | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------- |
-| `oz_auth_open_session`   | `SessionService.login`                  | Compte actif, vérifié, non supprimé ; empreinte, durées (1 à 30 jours, famille ≤ 90 jours) ; IP tronquée en base   | `user.session.opened`                                   |
-| `oz_auth_rotate_session` | `SessionService.refresh`                | Verrou de famille ; ligne active, non expirée, compte pouvant tenir une session ; réutilisation → famille révoquée | `user.session.reuse_detected` (réutilisation seulement) |
-| `oz_auth_logout`         | `SessionService.logout`                 | Verrou de famille ; ligne active ou consommée (`rotated`)                                                          | `user.session.revoked`                                  |
-| `oz_auth_reset_password` | `AuthService.resetPassword` (remplacée) | Celui du lot 1.3a ; familles verrouillées dans l'ordre, motif `password_reset`                                     | `user.password.reset`                                   |
+| Fonction                 | Appelant (API)                          | Contrôle                                                                                                                                         | Audit                                                   |
+| ------------------------ | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------- |
+| `oz_auth_open_session`   | `SessionService.login`                  | Compte actif, vérifié, non supprimé ; empreinte, durées (1 à 30 jours, famille ≤ 90 jours) ; IP tronquée en base                                 | `user.session.opened`                                   |
+| `oz_auth_rotate_session` | `SessionService.refresh`                | Verrou de famille ; ligne active, non expirée, compte pouvant tenir une session ; réutilisation → famille révoquée, sauf grâce de 10 s (`raced`) | `user.session.reuse_detected` (réutilisation seulement) |
+| `oz_auth_logout`         | `SessionService.logout`                 | Verrou de famille ; ligne active ou consommée (`rotated`)                                                                                        | `user.session.revoked`                                  |
+| `oz_auth_reset_password` | `AuthService.resetPassword` (remplacée) | Celui du lot 1.3a ; familles verrouillées dans l'ordre, motif `password_reset`                                                                   | `user.password.reset`                                   |
 
 Sous contexte utilisateur (`withUserContext`, RLS et garde `oz_sessions_guard`) : `listSessions`, `revokeSession` (audit `user.session.revoked`), `revokeAllSessions` (audit `user.session.logout_all`), `sessionAccess`, `accountEmail`.
 

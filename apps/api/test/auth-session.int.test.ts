@@ -185,6 +185,19 @@ describe('POST /auth/login', () => {
   });
 });
 
+/** Rotations vieillies au-delà de la fenêtre de grâce (10 s, D-132) : un rejeu redevient un vol. */
+async function ageRotations(): Promise<void> {
+  // Le déclencheur de garde n'autorise que la révocation : données de test seulement.
+  await harness.db.query('ALTER TABLE sessions DISABLE TRIGGER USER');
+  try {
+    await harness.db.query(
+      "UPDATE sessions SET revoked_at = revoked_at - interval '11 seconds' WHERE revoked_reason = 'rotated'",
+    );
+  } finally {
+    await harness.db.query('ALTER TABLE sessions ENABLE TRIGGER USER');
+  }
+}
+
 describe('POST /auth/refresh (rotation, EX-103 n° 4, n° 5)', () => {
   it('rend un nouveau couple ; l’ancien cookie ne sert plus', async () => {
     const first = refreshCookie(await login(await account()).expect(200));
@@ -198,11 +211,24 @@ describe('POST /auth/refresh (rotation, EX-103 n° 4, n° 5)', () => {
   it('réutilisation : 401, cookie effacé, famille révoquée (test de non-régression)', async () => {
     const first = refreshCookie(await login(await account()).expect(200));
     const second = refreshCookie(await refresh(first).expect(200));
+    await ageRotations();
     const replay = await refresh(first).expect(401);
     expect(errorOf(replay).code).toBe('AUTH_UNAUTHENTICATED');
     expect(String(replay.headers['set-cookie'])).toMatch(new RegExp(`^${COOKIE}=;`));
     // Le titulaire légitime est déconnecté aussi.
     await refresh(second).expect(401);
+  });
+
+  it('deux onglets dans les 10 s : 409 « réessayez », cookie gardé, aucune révocation', async () => {
+    const address = await account();
+    const first = refreshCookie(await login(address).expect(200));
+    const second = refreshCookie(await refresh(first).expect(200));
+    const raced = await refresh(first).expect(409);
+    expect(errorOf(raced).code).toBe('AUTH_REFRESH_RACED');
+    expect(raced.headers['set-cookie']).toBeUndefined();
+    expect(JSON.stringify(raced.body)).not.toMatch(/accessToken/);
+    // Le jeton courant tourne toujours.
+    await refresh(second).expect(200);
   });
 
   it('sans cookie, cookie mal formé ou inconnu : 401 identique', async () => {
@@ -341,12 +367,22 @@ describe('alertes de sécurité (D5)', () => {
     const address = await account();
     const first = refreshCookie(await login(address).expect(200));
     await refresh(first).expect(200);
+    await ageRotations();
     await refresh(first).expect(401);
     await flush();
     const body = await harness.mailTo(address, REUSE);
     expect(body).not.toContain(first);
     expect(body).not.toMatch(/#token=|127\.0\.0\.1/);
     expect(await count(address, REUSE)).toBe(1);
+  });
+
+  it('deux onglets dans la fenêtre de grâce : aucune alerte de vol', async () => {
+    const address = await account();
+    const first = refreshCookie(await login(address).expect(200));
+    await refresh(first).expect(200);
+    await refresh(first).expect(409);
+    await flush();
+    expect(await count(address, REUSE)).toBe(0);
   });
 
   it('jeton simplement invalide : aucune alerte', async () => {

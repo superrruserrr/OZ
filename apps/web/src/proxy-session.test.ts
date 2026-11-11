@@ -167,6 +167,86 @@ describe('proxy : garde des écrans connectés (ADR-010)', () => {
     error.mockRestore();
   });
 
+  it('deux onglets (409 AUTH_REFRESH_RACED) : une seule relance de la page, rien d’effacé', async () => {
+    fetchMock.mockImplementation(() =>
+      Promise.resolve(
+        new Response(JSON.stringify({ code: 'AUTH_REFRESH_RACED', message: 'x', requestId: 'r' }), {
+          status: 409,
+        }),
+      ),
+    );
+    // 1re course : page d'attente sans script, rechargée après 1 s, chemin relatif échappé.
+    const retried = await call('/onboarding/identite?etape=2&x="<b>', {
+      '__Host-oz_refresh': REFRESH,
+    });
+    expect(retried.status).toBe(200);
+    expect(retried.headers.get('cache-control')).toBe('no-store');
+    expect(retried.headers.get('content-security-policy')).toContain("'nonce-");
+    const page = await retried.text();
+    expect(page).toContain('content="1;url=/onboarding/identite?etape=2&amp;x=');
+    expect(page).not.toContain('<b>');
+    expect(page).not.toContain('://');
+    const marks = setCookies(retried);
+    expect(marks).toHaveLength(1);
+    expect(marks[0]).toMatch(/^__Host-oz_retry=1;.*Max-Age=30/);
+
+    // 2e course : relance après la fenêtre de grâce (un rejeu y serait traité en vol).
+    const late = await call('/en/onboarding', {
+      '__Host-oz_refresh': REFRESH,
+      '__Host-oz_retry': '1',
+    });
+    expect(late.status).toBe(200);
+    const latePage = await late.text();
+    expect(latePage).toContain('content="11;url=/en/onboarding"');
+    expect(latePage).toContain('lang="en"');
+    expect(setCookies(late)[0]).toMatch(/^__Host-oz_retry=2;/);
+
+    // 3e course : pas de boucle, renvoi à la connexion sans effacer la session.
+    const stopped = await call('/onboarding/identite', {
+      '__Host-oz_refresh': REFRESH,
+      '__Host-oz_retry': '2',
+    });
+    expect(stopped.status).toBe(303);
+    expect(stopped.headers.get('location')).toContain('/auth/login');
+    expect(setCookies(stopped).filter((c) => c.startsWith('__Host-oz_refresh='))).toEqual([]);
+  });
+
+  it('relance réussie : la marque de relance est effacée', async () => {
+    const reply = new Response(
+      JSON.stringify({ accessToken: jwt(inSeconds(900)), expiresIn: 900 }),
+      {
+        status: 200,
+      },
+    );
+    reply.headers.append(
+      'set-cookie',
+      `__Host-oz_refresh=${ROTATED}; Max-Age=2592000; Path=/; HttpOnly; Secure; SameSite=Strict`,
+    );
+    fetchMock.mockResolvedValue(reply);
+    const response = await call('/onboarding', {
+      '__Host-oz_refresh': REFRESH,
+      '__Host-oz_retry': '1',
+    });
+    expect(response.status).toBe(200);
+    expect(setCookies(response).find((c) => c.startsWith('__Host-oz_retry=;'))).toMatch(
+      /Max-Age=0/,
+    );
+  });
+
+  it('course avec un jeton d’accès encore valable : la page est rendue', async () => {
+    fetchMock.mockResolvedValue(
+      new Response(JSON.stringify({ code: 'AUTH_REFRESH_RACED', message: 'x', requestId: 'r' }), {
+        status: 409,
+      }),
+    );
+    const response = await call('/onboarding', {
+      '__Host-oz_access': jwt(inSeconds(30)),
+      '__Host-oz_refresh': REFRESH,
+    });
+    expect(response.status).toBe(200);
+    expect(setCookies(response)).toEqual([]);
+  });
+
   it('préchargement : jamais de rotation', async () => {
     const request = new NextRequest('http://localhost/onboarding', {
       headers: { cookie: `__Host-oz_refresh=${REFRESH}`, 'next-router-prefetch': '1' },

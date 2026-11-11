@@ -33,6 +33,7 @@ import { MailDispatcher } from './mail/mail-dispatcher.js';
 import {
   EMAIL_UNVERIFIED,
   INVALID_CREDENTIALS,
+  REFRESH_RACED,
   RetryLaterException,
   TWO_FACTOR_INVALID,
   UNAUTHENTICATED,
@@ -191,7 +192,10 @@ export class SessionService {
     };
   }
 
-  /** Rotation : un jeton déjà consommé révoque toute la famille (EX-103 n° 5) et répond 401. */
+  /**
+   * Rotation : un jeton déjà consommé révoque toute la famille (EX-103 n° 5) et répond 401, sauf le
+   * dernier jeton consommé présenté dans les 10 s (deux onglets, D-132) : 409, sans jeton.
+   */
   async refresh(token: string | null, client: ClientContext): Promise<IssuedSession> {
     if (token === null) throw UNAUTHENTICATED();
     const now = new Date();
@@ -203,6 +207,7 @@ export class SessionService {
       ttlSeconds: this.config.tokens.refreshTtlSeconds,
     });
     if (result.outcome === 'reuse') this.alertReuse(result.userId, now);
+    if (result.outcome === 'raced') throw REFRESH_RACED();
     if (result.outcome !== 'rotated') throw UNAUTHENTICATED();
     const access = await this.accessTokens.issue(
       { userId: result.userId, familyId: result.familyId },

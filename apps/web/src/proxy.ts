@@ -10,7 +10,10 @@ import { routing } from './i18n/routing';
 import {
   ACCESS_COOKIE,
   REFRESH_COOKIE,
+  RETRY_COOKIE,
+  RETRY_MAX_AGE,
   clearedSessionCookies,
+  cookie,
   isRefreshValue,
   readAccessToken,
   writeCookies,
@@ -95,7 +98,22 @@ async function guarded(
       requestHeaders.set('cookie', withCookies(request, outcome.cookies));
       const response = render(request, requestHeaders);
       writeCookies(response.cookies, outcome.cookies);
+      if (request.cookies.has(RETRY_COOKIE))
+        writeCookies(response.cookies, [cookie(RETRY_COOKIE, '', 0)]);
       return secured(response, headers);
+    }
+    case 'raced': {
+      // Un autre onglet vient de renouveler la session : ses cookies arrivent par sa propre réponse.
+      if (valid) return secured(render(request, requestHeaders), headers);
+      const attempt = request.cookies.get(RETRY_COOKIE)?.value;
+      if (request.method !== 'GET' && request.method !== 'HEAD')
+        return toLogin(request, headers, []);
+      // 1re course : relance après 1 s, le temps que la réponse de l'autre onglet pose ses cookies.
+      // 2e course : relance après la fenêtre de grâce ; si le navigateur garde l'ancien jeton, l'API
+      // le traite alors en rejeu (vol présumé, famille révoquée) au lieu de le laisser filer.
+      if (attempt === undefined) return retry(request, headers, '1', 1);
+      if (attempt === '1') return retry(request, headers, '2', 11);
+      return toLogin(request, headers, []);
     }
     case 'refused':
       return toLogin(request, headers, clearedSessionCookies());
@@ -123,6 +141,41 @@ function withCookies(request: NextRequest, specs: readonly CookieSpec[]): string
     .filter((entry) => !replaced.has(entry.name))
     .map((entry) => `${entry.name}=${entry.value}`);
   return [...kept, ...specs.map((spec) => `${spec.name}=${spec.value}`)].join('; ');
+}
+
+const RETRY_TEXT = {
+  fr: { title: 'Renouvellement de la session', body: 'Session en cours de renouvellement…' },
+  en: { title: 'Renewing your session', body: 'Renewing your session…' },
+} as const;
+
+/**
+ * Page d'attente sans script : la même adresse est rechargée après `seconds` (balise `refresh`,
+ * chemin relatif seulement, jamais d'hôte repris de la requête).
+ */
+function retry(
+  request: NextRequest,
+  headers: Record<string, string>,
+  mark: '1' | '2',
+  seconds: number,
+): NextResponse {
+  const { locale } = splitLocale(request.nextUrl.pathname);
+  const text = locale === 'en' ? RETRY_TEXT.en : RETRY_TEXT.fr;
+  const target = escapeHtml(`${request.nextUrl.pathname}${request.nextUrl.search}`);
+  const html = `<!doctype html><html lang="${locale === 'en' ? 'en' : 'fr'}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta http-equiv="refresh" content="${String(seconds)};url=${target}"><title>${text.title}</title></head><body><p role="status">${text.body}</p></body></html>`;
+  const response = new NextResponse(html, {
+    status: 200,
+    headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' },
+  });
+  writeCookies(response.cookies, [cookie(RETRY_COOKIE, mark, RETRY_MAX_AGE)]);
+  return secured(response, headers);
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('"', '&quot;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;');
 }
 
 function toLogin(
