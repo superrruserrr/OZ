@@ -53,7 +53,73 @@
       }
     },
     "pillarsKicker": "Our commitments",
-    "profilesKicker": "Profiles"
+    "profilesKicker": "Profiles",
+    "missionKicker": "Our mission",
+    "missionTitle": "Why OZ exists",
+    "missionLead": "Give every player a verified sporting identity, unique and for life, so that talent is seen and minors are protected.",
+    "missionMore": "More about OZ",
+    "stepsKicker": "The journey",
+    "stepsTitle": "How it works",
+    "steps": {
+      "create": {
+        "title": "Create your account",
+        "body": "It takes a few minutes. For players it is free, for life."
+      },
+      "verify": {
+        "title": "Have your identity verified",
+        "body": "The OZ team checks identity and age. For a minor, the legal guardian gives consent."
+      },
+      "seen": {
+        "title": "Be seen, with confidence",
+        "body": "Only verified organisations view your profile. You decide what is visible."
+      }
+    },
+    "preview": {
+      "kicker": "Preview",
+      "title": "A clear profile,",
+      "highlight": "readable at a glance.",
+      "body": "Sport, position, club and verification level are visible without searching. Each section opens with one click.",
+      "example": "Example",
+      "exampleNote": "Fictional profile, shown for illustration.",
+      "name": "First name Last name",
+      "sport": "Football",
+      "position": "Centre back",
+      "secondary": "Right back",
+      "positions": "Positions played",
+      "club": "Example Academy",
+      "country": "Country of residence",
+      "verified": "Identity verified",
+      "activity": "Profile activity",
+      "foot": "Strong foot",
+      "footValue": "Left",
+      "label": "Preview of a player profile"
+    },
+    "faqKicker": "Questions",
+    "faqTitle": "Frequently asked questions",
+    "faq": {
+      "free": {
+        "q": "Do players pay to sign up?",
+        "a": "No. A player never has to pay to create an OZ ID, exist on the platform and be discovered."
+      },
+      "minor": {
+        "q": "How is a minor protected?",
+        "a": "The legal guardian decides on the profile’s visibility. No minor’s contact details are shared, and any contact goes through the guardian or the club."
+      },
+      "who": {
+        "q": "Who can view a player profile?",
+        "a": "Only organisations verified by the OZ team, with rights defined role by role. Profiles are not indexed by search engines."
+      },
+      "verify": {
+        "q": "How is identity verified?",
+        "a": "The OZ team checks the documents provided, in progressive levels. The “Verified” badge only appears after that check."
+      },
+      "data": {
+        "q": "What happens to my data?",
+        "a": "It is neither sold nor used for targeted advertising. You can export it or delete your account at any time."
+      }
+    },
+    "ctaTitle": "Ready to create your identity?",
+    "ctaBody": "Join OZ in a few minutes. It is free for players."
   },
   "localeSwitcher": {
     "label": "Language",

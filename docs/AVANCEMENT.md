@@ -67,6 +67,7 @@ la vérification d'identité, qui attend deux décisions (§ « Ce qui bloque »
 | 1.5cc Thème noir et lime, police douce | ✅   | Briques en noir et lime, police douce type Helvetica, tuiles de stats, anneaux, terrain, cadres photo et pub          |
 | 1.5cba Refonte : pages publiques       | ✅   | Accueil, profils, tarifs, à propos, contact et textes légaux au nouveau style, menu mobile                            |
 | 1.5da Kit sport                        | ✅   | Icônes de 7 sports, écussons de club génériques, animation de chargement avec un ballon qui rebondit                  |
+| 1.5db Accueil en landing page          | ✅   | Mission expliquée, aperçu d'une fiche d'exemple, parcours en 3 étapes, questions fréquentes, données pour Google      |
 | 1.5cbb Refonte : compte et inscription | ⬜   | Connexion, choix du compte, inscription et premiers pas au nouveau style ; audit final                                |
 
 Q6 (un seul système visuel) et Q19 (nom « OZ FOOTBALL ID ») sont tranchées par la charte (ADR-009).
@@ -153,3 +154,4 @@ Q6 (un seul système visuel) et Q19 (nom « OZ FOOTBALL ID ») sont tranchées p
 | 2026-11-11 | 1.5cc Thème noir et lime, police douce (1.5 en cours)        |
 | 2026-11-11 | 1.5cba Refonte, pages publiques (1.5 en cours)               |
 | 2026-11-11 | 1.5da Kit sport : icônes, écussons, chargement animé         |
+| 2026-11-11 | 1.5db Accueil en landing page (mission, aperçu, FAQ, SEO)    |

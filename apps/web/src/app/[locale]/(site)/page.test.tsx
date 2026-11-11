@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from 'vitest';
 import en from '../../../../messages/en.json';
 import fr from '../../../../messages/fr.json';
 import SiteLayout from './layout';
+import { homeJsonLdData, serializeJsonLd } from '../../../site/json-ld';
 import HomePage from './page';
 
 // Hors routeur Next : le lien localisé devient un lien simple.
@@ -22,6 +23,11 @@ vi.mock('../../../i18n/navigation', () => ({
   usePathname: () => '/',
 }));
 vi.mock('next/root-params', () => ({ locale: () => Promise.resolve('fr') }));
+// Composant serveur asynchrone (nonce lu dans les en-têtes) : remplacé ici, ses fonctions sont testées à part.
+vi.mock('../../../site/json-ld', async (original) => ({
+  ...(await original<typeof import('../../../site/json-ld')>()),
+  HomeJsonLd: () => <span data-testid="home-json-ld" />,
+}));
 
 function renderHome(locale: 'fr' | 'en'): ReturnType<typeof render> {
   const wrapper = ({ children }: { children: ReactNode }) => (
@@ -128,6 +134,37 @@ describe('accueil et gabarit du site public (lot 1.6, EX-106)', () => {
     const allowed =
       /^(#contenu|\/|\/en|\/tarifs|\/a-propos|\/contact|\/profils\/[a-z]+|\/legal\/(cgu|confidentialite|mentions)|\/auth\/(login|role))$/;
     for (const href of hrefs) expect(href, String(href)).toMatch(allowed);
+  });
+
+  it('landing : mission, parcours en trois étapes, questions fréquentes (lot 1.5db)', () => {
+    renderHome('fr');
+    const mission = screen.getByRole('region', { name: 'Pourquoi OZ existe' });
+    expect(mission.textContent).toContain('Le problème');
+    expect(mission.textContent).toContain('Notre réponse');
+    const steps = screen.getByRole('region', { name: 'Comment ça marche' });
+    expect(within(steps).getAllByRole('listitem')).toHaveLength(3);
+    const faq = screen.getByRole('region', { name: 'Questions fréquentes' });
+    expect(faq.querySelectorAll('details').length).toBeGreaterThanOrEqual(4);
+  });
+
+  it('aperçu de fiche : exemple annoncé comme tel, sport et écusson visibles, sans chiffre', () => {
+    renderHome('fr');
+    const preview = screen.getByTestId('home-preview');
+    expect(preview.textContent).toContain('Exemple');
+    expect(within(preview).getByTestId('sport-tag-football').textContent).toBe('Football');
+    expect(within(preview).getByTestId('club-crest')).toBeTruthy();
+    expect(preview.textContent).not.toMatch(/\d/);
+    expect(preview.textContent).not.toMatch(/score|index|note/i);
+  });
+
+  it('données structurées : organisation et site, sans balise ouvrante dans le JSON', () => {
+    const data = homeJsonLdData('OZ Football ID', 'Une <description>', undefined);
+    expect(data['@graph'].map((node) => node['@type'])).toEqual(['Organization', 'WebSite']);
+    const json = serializeJsonLd(data);
+    expect(json).not.toContain('<');
+    expect(JSON.parse(json)).toEqual(data);
+    renderHome('fr');
+    expect(screen.getByTestId('home-json-ld')).toBeTruthy();
   });
 
   it('langues : même page, langue courante signalée', () => {
