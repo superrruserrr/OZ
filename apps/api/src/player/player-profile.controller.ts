@@ -66,7 +66,10 @@ export class PlayerProfileController {
     schema: openApiBodySchema(playerProfileOutputSchema),
   })
   @ApiForbiddenResponse({ type: ApiErrorDto, description: 'Compte sans rôle joueur' })
-  @ApiNotFoundResponse({ type: ApiErrorDto, description: 'Aucune fiche joueur pour ce compte' })
+  @ApiNotFoundResponse({
+    type: ApiErrorDto,
+    description: 'Aucune fiche joueur pour ce compte (`PLAYER_PROFILE_NOT_FOUND`)',
+  })
   @ApiTooManyRequestsResponse({
     type: ApiErrorDto,
     description: 'Plus de 300 lectures dans l’heure',

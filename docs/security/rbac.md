@@ -222,6 +222,7 @@ Les pages `/docs`, `/docs-json` et `/docs-yaml` (Swagger) sont servies hors cont
 | POST    | /players/saved-searches        | `player.search`          |
 | DELETE  | /players/saved-searches/:id    | `player.search`          |
 | GET     | /players/export.csv            | `player.search`          |
+| GET     | /players/me                    | `profile.read`           |
 | GET     | /players/:ozId                 | `player.read_public`     |
 | GET     | /players/:ozId/qr.svg          | `player.read_public`     |
 | GET     | /players/:ozId/card.pdf        | `profile.card`           |

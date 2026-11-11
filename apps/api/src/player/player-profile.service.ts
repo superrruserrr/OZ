@@ -34,7 +34,7 @@ import { RateLimitedException } from '../common/rate-limit/rate-limited.exceptio
 import { RateLimiter } from '../common/rate-limit/rate-limiter.service.js';
 import { API_CONFIG } from '../config/config.module.js';
 import { DB_CLIENT } from '../database/database.module.js';
-import { PLAYER_NOT_FOUND } from './errors.js';
+import { OWN_PROFILE_NOT_FOUND, PLAYER_NOT_FOUND } from './errors.js';
 import { cardPdf } from './pdf/card.js';
 import { profilePdf } from './pdf/profile.js';
 import { profileViewData } from './view-data.js';
@@ -98,7 +98,7 @@ export class PlayerProfileService {
     });
     if (profile === null) {
       this.logger.info({ event: 'player.profile.own_missing' }, 'Aucune fiche pour ce compte');
-      throw PLAYER_NOT_FOUND();
+      throw OWN_PROFILE_NOT_FOUND();
     }
     this.logger.info(
       { event: 'player.profile.read', playerId: profile.id, view: profile.view },

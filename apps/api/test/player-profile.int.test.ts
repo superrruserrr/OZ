@@ -216,11 +216,11 @@ describe('GET /players/me (D-133)', () => {
 
   it('rôle joueur sans fiche, ou fiche supprimée : 404 ; sans session : 401 ; sans rôle : 403', async () => {
     const empty = await account('player');
-    expect(errorCode(await readMe(empty.token).expect(404))).toBe('NOT_FOUND');
+    expect(errorCode(await readMe(empty.token).expect(404))).toBe('PLAYER_PROFILE_NOT_FOUND');
     const gone = await account('player');
     const removed = await player({ userId: gone.userId });
     await harness.db.query('UPDATE players SET deleted_at = now() WHERE id = $1', [removed.id]);
-    expect(errorCode(await readMe(gone.token).expect(404))).toBe('NOT_FOUND');
+    expect(errorCode(await readMe(gone.token).expect(404))).toBe('PLAYER_PROFILE_NOT_FOUND');
     await readMe(undefined).expect(401);
     const nobody = await account();
     expect(errorCode(await readMe(nobody.token).expect(403))).toBe('AUTHZ_FORBIDDEN');
