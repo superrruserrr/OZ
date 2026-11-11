@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from 'vitest';
 import en from '../../../../messages/en.json';
 import fr from '../../../../messages/fr.json';
 import SiteLayout from './layout';
+import { homeJsonLdData, serializeJsonLd } from '../../../site/json-ld';
 import HomePage from './page';
 
 // Hors routeur Next : le lien localisé devient un lien simple.
@@ -22,6 +23,11 @@ vi.mock('../../../i18n/navigation', () => ({
   usePathname: () => '/',
 }));
 vi.mock('next/root-params', () => ({ locale: () => Promise.resolve('fr') }));
+// Composant serveur asynchrone (nonce lu dans les en-têtes) : remplacé ici, ses fonctions sont testées à part.
+vi.mock('../../../site/json-ld', async (original) => ({
+  ...(await original<typeof import('../../../site/json-ld')>()),
+  HomeJsonLd: () => <span data-testid="home-json-ld" />,
+}));
 
 function renderHome(locale: 'fr' | 'en'): ReturnType<typeof render> {
   const wrapper = ({ children }: { children: ReactNode }) => (
@@ -152,11 +158,13 @@ describe('accueil et gabarit du site public (lot 1.6, EX-106)', () => {
   });
 
   it('données structurées : organisation et site, sans balise ouvrante dans le JSON', () => {
-    const { container } = renderHome('fr');
-    const script = container.querySelector('script[type="application/ld+json"]');
-    expect(script?.textContent).not.toContain('<');
-    const data = JSON.parse(script?.textContent ?? '{}') as { '@graph': { '@type': string }[] };
+    const data = homeJsonLdData('OZ Football ID', 'Une <description>', undefined);
     expect(data['@graph'].map((node) => node['@type'])).toEqual(['Organization', 'WebSite']);
+    const json = serializeJsonLd(data);
+    expect(json).not.toContain('<');
+    expect(JSON.parse(json)).toEqual(data);
+    renderHome('fr');
+    expect(screen.getByTestId('home-json-ld')).toBeTruthy();
   });
 
   it('langues : même page, langue courante signalée', () => {
