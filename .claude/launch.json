@@ -69,6 +69,23 @@
         "storybook"
       ],
       "port": 6006
+    },
+    {
+      "name": "api-demo",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "--env-file=.demo/demo.env",
+        "apps/api/dist/main.js"
+      ],
+      "port": 3001
+    },
+    {
+      "name": "web-demo",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "scripts/demo-web.mjs"
+      ],
+      "port": 3010
     }
   ]
 }

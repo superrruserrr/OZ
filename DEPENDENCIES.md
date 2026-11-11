@@ -73,6 +73,7 @@ Audit : `pnpm audit --audit-level high` — aucune vulnérabilité connue au 202
 |---|---|---|---|---|---|---|
 | `next` | ^16.4.3 | MIT | ≈ 192 Mo (dont binaire SWC ; serveur autonome livré bien plus léger) | Framework web App Router, rendu serveur, proxy CSP (TD-003) ; 16 plutôt que 15 (plancher du plan, D1 du lot 0.4) | Remix / SPA Vite : écartés en TD-003 (3G, SEO) | 0.4 |
 | `next-intl` | ^4.14.9 | MIT | ≈ 410 Ko | i18n : routage `/` français, `/en` anglais, messages ICU (EX-T21.3, D2) | Dictionnaires maison : pluriels et formats ICU à réécrire | 0.4 |
+| `country-flag-icons` | 1.6.20 (exact) | MIT | ≈ 1,3 Mo (265 SVG, importés côté serveur) | Drapeaux de pays en SVG servis par le site, codes ISO alpha-2, sans attribut `style` (CSP) ni requête tierce | `flag-icons` : classes CSS et `background-image`, 3 SVG avec `style` ; `react-world-flags` : 10,8 Mo et dépendances | 1.5dc |
 | `tailwindcss` | ^4.3.3 | MIT | ≈ 770 Ko | Styles utilitaires branchés sur les jetons OZ (TD-008) | CSS modules : jetons à recâbler composant par composant | 0.4 |
 | `@tailwindcss/postcss` | ^4.3.3 | MIT | ≈ 100 Ko | Intégration de Tailwind 4 au pipeline CSS de Next | Aucune : intégration officielle | 0.4 |
 | `@fontsource-variable/jetbrains-mono` | ^5.3.0 | OFL-1.1 | ≈ 200 Ko (latin et latin-ext servis) | Chasse fixe des OZ ID et codes (design.md §8.5) | Police monospace système : rendu variable selon l'appareil | 0.4 |
