@@ -53,7 +53,73 @@
       }
     },
     "pillarsKicker": "Nos engagements",
-    "profilesKicker": "Profils"
+    "profilesKicker": "Profils",
+    "missionKicker": "Notre mission",
+    "missionTitle": "Pourquoi OZ existe",
+    "missionLead": "Donner à chaque joueur une identité sportive vérifiée, unique et à vie, pour que le talent soit vu et que les mineurs soient protégés.",
+    "missionMore": "En savoir plus sur OZ",
+    "stepsKicker": "Le parcours",
+    "stepsTitle": "Comment ça marche",
+    "steps": {
+      "create": {
+        "title": "Créez votre compte",
+        "body": "Quelques minutes suffisent. Pour le joueur, c’est gratuit, à vie."
+      },
+      "verify": {
+        "title": "Faites vérifier votre identité",
+        "body": "L’équipe OZ contrôle l’identité et l’âge. Pour un mineur, le tuteur légal donne son accord."
+      },
+      "seen": {
+        "title": "Soyez vu, en confiance",
+        "body": "Seules des organisations vérifiées consultent votre fiche. Vous décidez de ce qui est visible."
+      }
+    },
+    "preview": {
+      "kicker": "Aperçu",
+      "title": "Une fiche claire,",
+      "highlight": "lisible d’un coup d’œil.",
+      "body": "Le sport, le poste, le club et le niveau de vérification se lisent sans chercher. Chaque section s’ouvre d’un clic.",
+      "example": "Exemple",
+      "exampleNote": "Profil fictif, présenté à titre d’illustration.",
+      "name": "Prénom Nom",
+      "sport": "Football",
+      "position": "Défenseur central",
+      "secondary": "Latéral droit",
+      "positions": "Postes occupés",
+      "club": "Académie Exemple",
+      "country": "Pays de résidence",
+      "verified": "Identité vérifiée",
+      "activity": "Activité de la fiche",
+      "foot": "Pied fort",
+      "footValue": "Gauche",
+      "label": "Aperçu d’une fiche de joueur"
+    },
+    "faqKicker": "Questions",
+    "faqTitle": "Questions fréquentes",
+    "faq": {
+      "free": {
+        "q": "L’inscription est-elle payante pour un joueur ?",
+        "a": "Non. Un joueur n’a jamais à payer pour créer son OZ ID, exister sur la plateforme et être découvert."
+      },
+      "minor": {
+        "q": "Comment un joueur mineur est-il protégé ?",
+        "a": "Le tuteur légal décide de la visibilité du profil. Aucune coordonnée de mineur n’est communiquée, et tout contact passe par le tuteur ou par le club."
+      },
+      "who": {
+        "q": "Qui peut consulter une fiche de joueur ?",
+        "a": "Seules des organisations vérifiées par l’équipe OZ, avec des droits définis rôle par rôle. Les fiches ne sont pas indexées par les moteurs de recherche."
+      },
+      "verify": {
+        "q": "Comment l’identité est-elle vérifiée ?",
+        "a": "L’équipe OZ contrôle les justificatifs transmis, par niveaux progressifs. Le badge « Vérifié » n’apparaît qu’après ce contrôle."
+      },
+      "data": {
+        "q": "Que deviennent mes données ?",
+        "a": "Elles ne sont ni vendues ni utilisées pour de la publicité ciblée. Vous pouvez les exporter ou supprimer votre compte à tout moment."
+      }
+    },
+    "ctaTitle": "Prêt à créer votre identité ?",
+    "ctaBody": "Rejoignez OZ en quelques minutes. C’est gratuit pour le joueur."
   },
   "localeSwitcher": {
     "label": "Langue",

@@ -130,6 +130,35 @@ describe('accueil et gabarit du site public (lot 1.6, EX-106)', () => {
     for (const href of hrefs) expect(href, String(href)).toMatch(allowed);
   });
 
+  it('landing : mission, parcours en trois étapes, questions fréquentes (lot 1.5db)', () => {
+    renderHome('fr');
+    const mission = screen.getByRole('region', { name: 'Pourquoi OZ existe' });
+    expect(mission.textContent).toContain('Le problème');
+    expect(mission.textContent).toContain('Notre réponse');
+    const steps = screen.getByRole('region', { name: 'Comment ça marche' });
+    expect(within(steps).getAllByRole('listitem')).toHaveLength(3);
+    const faq = screen.getByRole('region', { name: 'Questions fréquentes' });
+    expect(faq.querySelectorAll('details').length).toBeGreaterThanOrEqual(4);
+  });
+
+  it('aperçu de fiche : exemple annoncé comme tel, sport et écusson visibles, sans chiffre', () => {
+    renderHome('fr');
+    const preview = screen.getByTestId('home-preview');
+    expect(preview.textContent).toContain('Exemple');
+    expect(within(preview).getByTestId('sport-tag-football').textContent).toBe('Football');
+    expect(within(preview).getByTestId('club-crest')).toBeTruthy();
+    expect(preview.textContent).not.toMatch(/\d/);
+    expect(preview.textContent).not.toMatch(/score|index|note/i);
+  });
+
+  it('données structurées : organisation et site, sans balise ouvrante dans le JSON', () => {
+    const { container } = renderHome('fr');
+    const script = container.querySelector('script[type="application/ld+json"]');
+    expect(script?.textContent).not.toContain('<');
+    const data = JSON.parse(script?.textContent ?? '{}') as { '@graph': { '@type': string }[] };
+    expect(data['@graph'].map((node) => node['@type'])).toEqual(['Organization', 'WebSite']);
+  });
+
   it('langues : même page, langue courante signalée', () => {
     renderHome('fr');
     const nav = screen.getByRole('navigation', { name: 'Langue' });
