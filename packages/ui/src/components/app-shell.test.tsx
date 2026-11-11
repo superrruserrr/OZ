@@ -58,6 +58,53 @@ describe('AppShell', () => {
         <p>x</p>
       </AppShell>,
     );
-    expect(screen.getByRole('main').className).toContain('pb-20');
+    expect(screen.getByRole('main').className).toContain(
+      'pb-[calc(5rem+env(safe-area-inset-bottom))]',
+    );
+  });
+
+  it('v2 : en-tête vitré collant, fil d’Ariane optionnel', () => {
+    render(
+      <AppShell skipLabel="s" header={<span>OZ</span>} breadcrumb={<span>Espace › Accueil</span>}>
+        <p>x</p>
+      </AppShell>,
+    );
+    const banner = screen.getByRole('banner');
+    expect(banner.className).toContain('sticky');
+    expect(banner.className).toContain('backdrop-blur');
+    expect(screen.getByTestId('app-shell-breadcrumb').textContent).toBe('Espace › Accueil');
+  });
+
+  it('v2 : rail à sections libellées, item actif marqué, pied de rail', () => {
+    render(
+      <AppShell
+        skipLabel="s"
+        header={null}
+        railFooter={<p>Profil</p>}
+        nav={{
+          label: 'Navigation',
+          sectionLabel: 'Pilotage',
+          items: ITEMS,
+          activeId: 'home',
+          secondary: {
+            label: 'Réseau',
+            items: [{ id: 'help', label: 'Aide', href: '/aide' }],
+          },
+        }}
+      >
+        <p>x</p>
+      </AppShell>,
+    );
+    const rail = screen.getByTestId('app-shell-rail');
+    expect(rail.className).toContain('w-62');
+    expect(within(rail).getByText('Pilotage')).toBeTruthy();
+    expect(within(rail).getByText('Réseau')).toBeTruthy();
+    expect(within(rail).getByTestId('rail-help')).toBeTruthy();
+    expect(within(rail).getByText('Profil')).toBeTruthy();
+    const active = within(rail).getByTestId('rail-home');
+    expect(active.className).toContain('bg-oz-primary/10');
+    expect(active.className).toContain('before:bg-oz-primary');
+    // Les entrées secondaires restent hors de la barre du bas (cinq onglets au plus).
+    expect(within(screen.getByTestId('app-shell-tabs')).queryByTestId('tab-help')).toBeNull();
   });
 });

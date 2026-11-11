@@ -4,6 +4,13 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { userEvent } from 'vitest/browser';
 import '../../.storybook/storybook.css';
 import { AppShell } from './app-shell.js';
+import { Button } from './button.js';
+import { LivePanel } from './live-panel.js';
+import { RoleCard } from './role-card.js';
+import { SiteTopbar } from './site-topbar.js';
+import { Kicker, SplitHeading } from './sport.js';
+import { StadiumHero } from './stadium-hero.js';
+import { ValueCard } from './value-card.js';
 import { Badge } from './badge.js';
 import { FloatingChip, GlassPanel, Halo, OzIdReveal, PitchCircles } from './emotion.js';
 import { Callout } from './callout.js';
@@ -195,6 +202,78 @@ const SAMPLES: [string, ReactNode][] = [
       <p>Contenu</p>
     </AppShell>,
   ],
+  [
+    'héros de stade (1.5ca)',
+    <StadiumHero
+      key="hero"
+      copy={
+        <>
+          <Kicker>Identité football vérifiée</Kicker>
+          <SplitHeading as="h1" size="hero" lead="Ton talent," highlight="notre mission." />
+          <Button glow>Créer mon compte</Button>
+        </>
+      }
+      aside={
+        <LivePanel
+          status="Inscriptions bientôt ouvertes"
+          title="Chaque profil,"
+          highlight="plus de preuves."
+          facts={[
+            { label: 'Identité', value: 'Vérifiée' },
+            { label: 'Mineurs', value: 'Protégés' },
+          ]}
+        />
+      }
+    />,
+  ],
+  [
+    'cartes valeur et rôle (1.5ca)',
+    <div key="cards" className="grid gap-3">
+      <ValueCard href="#" title="Identité vérifiée" cta="Découvrir">
+        Un OZ ID unique par joueur.
+      </ValueCard>
+      <RoleCard href="#" title="Je suis joueur" subtitle="Créer mon OZ ID vérifié" />
+    </div>,
+  ],
+  [
+    'barres au défilement (1.5ca)',
+    <MeasureBar key="mv" label="Identité" value={3} max={3} valueText="3 niveaux" animateOnView />,
+  ],
+  [
+    'coquille v2 (1.5ca)',
+    <AppShell
+      key="as2"
+      skipLabel="Aller au contenu"
+      header={<span>OZ</span>}
+      breadcrumb={<span>Espace › Accueil</span>}
+      railFooter={<p>Profil</p>}
+      nav={{
+        label: 'Navigation',
+        sectionLabel: 'Pilotage',
+        activeId: 'a',
+        items: ['a', 'b', 'c', 'd', 'e'].map((id) => ({
+          id,
+          label: `Onglet ${id}`,
+          href: `#${id}`,
+        })),
+        secondary: { label: 'Réseau', items: [{ id: 'f', label: 'Aide', href: '#f' }] },
+      }}
+    >
+      <p>Contenu</p>
+    </AppShell>,
+  ],
+  [
+    'en-tête du site (1.5ca)',
+    <SiteTopbar
+      key="top"
+      brand={<a href="#">OZ Football ID</a>}
+      navLabel="Navigation du site"
+      links={[{ id: 'pricing', href: '#', label: 'Tarifs' }]}
+      actions={<a href="#">Créer un compte</a>}
+      menuLabel="Menu"
+      closeLabel="Fermer"
+    />,
+  ],
 ];
 
 afterEach(() => {
@@ -236,6 +315,26 @@ describe('émotion avec mouvement réduit (lot 1.5bb)', () => {
     );
     expect(screen.getByTestId('oz-id-reveal-typed').textContent).toBe('OZ-CM-26-7K4M9Q-3');
     expect(getComputedStyle(screen.getByTestId('glass')).backdropFilter).toBe('none');
+  });
+});
+
+describe('direction sport avec mouvement réduit (lot 1.5ca)', () => {
+  it('barre au défilement : pleine sans attendre ; bouton à halo sans ombre', () => {
+    render(
+      <>
+        <MeasureBar label="Identité" value={1} max={1} animateOnView />
+        <Button glow>Créer</Button>
+      </>,
+    );
+    const fill = screen.getByTestId('measure-bar-fill');
+    expect(getComputedStyle(fill).animationPlayState).toBe('running');
+    expect(getComputedStyle(screen.getByRole('button')).boxShadow).toBe('none');
+  });
+
+  it('pastille en direct immobile, panneau sans flou', () => {
+    render(<LivePanel status="En direct" title="Titre" />);
+    expect(getComputedStyle(screen.getByTestId('live-dot')).animationName).toBe('none');
+    expect(getComputedStyle(screen.getByTestId('live-panel')).backdropFilter).toBe('none');
   });
 });
 

@@ -32,6 +32,17 @@ describe('Badge', () => {
     expect(screen.getByTestId(`badge-${tone}`).className).toContain(textClass);
   });
 
+  it('rempli : fond teinté du ton, pour les pilules de la direction sport', () => {
+    render(
+      <Badge tone="verified" filled>
+        Vérifié
+      </Badge>,
+    );
+    const badge = screen.getByTestId('badge-verified');
+    expect(badge.dataset.filled).toBe('true');
+    expect(badge.className).toContain('bg-oz-primary/10');
+  });
+
   it.each([
     ['primary', 'surface-2'],
     ['kyc', 'surface-2'],

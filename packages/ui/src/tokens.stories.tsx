@@ -42,7 +42,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'Jetons de design.md §8.3, source unique `tokens.ts`, posés en variables `--oz-*` par `styles/tokens.css`. Deux jeux (clair, sombre), contraste calculé sur le fond `bg` du mode.',
+          'Jetons de design.md §8.3, source unique `tokens.ts`, posés en variables `--oz-*` par `styles/tokens.css`. Deux jeux (clair, sombre), contraste calculé sur le fond `bg` du mode. Depuis ADR-011, le web ne sert que le jeu sombre ; le clair reste pour le mobile et l’impression.',
       },
     },
   },
@@ -50,6 +50,53 @@ const meta = {
 
 export default meta;
 
-export const Clair: StoryObj<typeof meta> = { args: { mode: 'light' } };
+export const Clair: StoryObj<typeof meta> = {
+  name: 'Clair (mobile, impression)',
+  args: { mode: 'light' },
+};
 
-export const Sombre: StoryObj<typeof meta> = { args: { mode: 'dark' } };
+export const Sombre: StoryObj<typeof meta> = {
+  name: 'Sombre (web, ADR-011)',
+  args: { mode: 'dark' },
+};
+
+/** Correspondance des couleurs de la maquette Manus vers la charte (lot 1.5ca, ADR-011). */
+const MOCKUP_MAP: readonly [string, string, OzColor][] = [
+  ['Lime (actions, vérifié)', 'Vert d’action', 'primary'],
+  ['Lime des mots d’accroche', 'Rose, grand texte seulement', 'accent'],
+  ['Bleu', 'Turquoise, pictos et mises en avant', 'highlight'],
+  ['Ambre', 'Niveau KYC', 'kyc'],
+  ['Rouge', 'Bloquant, danger', 'danger'],
+  ['Fond', 'Fond', 'bg'],
+  ['Cartes', 'Surface', 'surface-1'],
+];
+
+export const CorrespondanceMaquette: StoryObj<typeof meta> = {
+  name: 'Maquette → charte',
+  args: { mode: 'dark' },
+  render: () => (
+    <table className="text-sm">
+      <caption className="mb-3 text-left font-semibold">
+        Maquette Manus → jetons de la charte
+      </caption>
+      <thead>
+        <tr className="text-left text-oz-text-label">
+          <th className="pr-6 pb-2">Maquette</th>
+          <th className="pr-6 pb-2">Rôle dans la charte</th>
+          <th className="pb-2">Jeton</th>
+        </tr>
+      </thead>
+      <tbody>
+        {MOCKUP_MAP.map(([mockup, role, token]) => (
+          <tr key={token + mockup} className="border-t border-oz-border">
+            <td className="py-2 pr-6">{mockup}</td>
+            <td className="py-2 pr-6">{role}</td>
+            <td className="py-2 font-mono">
+              {token} · {ozThemes.dark[token]}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  ),
+};

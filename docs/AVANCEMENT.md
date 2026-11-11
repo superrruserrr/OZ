@@ -1,7 +1,7 @@
 # OZ — Où en est le projet ?
 
 > Check-list tenue à jour à la fin de chaque étape, à transmettre telle quelle à Fabrice Olinga.
-> **Dernière mise à jour : 10 novembre 2026** — étape : 1.7cb Parcours d'inscription joueur à l'écran.
+> **Dernière mise à jour : 10 novembre 2026** — étape : 1.5ca Refonte visuelle « sport », briques.
 
 Légende : ✅ fait et vérifié · 🟡 en cours · ⬜ à faire · ⏸️ bloqué en attente d'une décision
 
@@ -31,38 +31,41 @@ la vérification d'identité, qui attend deux décisions (§ « Ce qui bloque »
 
 ## Phase 1 — Première version ouverte au public (20 étapes)
 
-| Étape                                                    | État | Ce que ça veut dire pour le produit                                                            |
-| -------------------------------------------------------- | ---- | ---------------------------------------------------------------------------------------------- |
-| 1.1 Modèle des données (joueurs, tuteurs, organisations) | ✅   | Toutes les fiches sont prévues, les données d'identité chiffrées                               |
-| 1.2 Identifiant OZ ID                                    | ✅   | Chaque joueur reçoit un identifiant unique, à vie, infalsifiable                               |
-| 1.3 Connexion et sécurité des comptes                    | ✅   | Mot de passe, double authentification, sessions sécurisées                                     |
-| 1.4 Rôles et droits                                      | ✅   | Chacun ne voit que ce qu'il a le droit de voir (règles de l'Annexe B)                          |
-| 1.5 Charte graphique complète et écrans de base          | ✅   | Charte, composants, menus par rôle, écrans d'erreur et de chargement ; testé mobile et 3G      |
-| 1.6 Site public et pages légales                         | ✅   | Accueil, 7 pages profils, tarifs, à propos, contact, textes légaux provisoires ; testé 320 px  |
-| 1.7 Inscription joueur                                   | ✅   | Compte, identité, sport, tuteur d'un mineur et OZ ID à l'écran ; testé en 3G (photo plus tard) |
-| 1.7b Tuteur légal (mineurs)                              | ⬜   | Après 1.7                                                                                      |
-| 1.8 Inscription organisation (académie, club…)           | ⬜   | Après 1.5                                                                                      |
-| 1.9 Coffre des documents d'identité                      | ✅   | Dépôt sécurisé, antivirus, lecture 5 minutes, effacement automatique                           |
-| 1.10 Vérification d'identité (badge « Profil vérifié »)  | ⏸️   | Attend l'analyse d'impact validée et le choix du prestataire                                   |
-| 1.10b Vérification des recruteurs et organisations       | ⏸️   | Attend l'étape 1.10 (Q2 tranchée : incluse)                                                    |
-| 1.11 Back-office d'administration                        | ⬜   | Après 1.10                                                                                     |
-| 1.12 Import de joueurs en masse                          | ⬜   | Après 1.7                                                                                      |
-| 1.13 Profil joueur public                                | 🟡   | 1.13a et 1.13b faits (fiche, QR, carte, PDF) ; restent les écrans                              |
-| 1.14 Recherche                                           | 🟡   | 1.14a et 1.14b faites côté serveur (recherche, sauvegarde, CSV) ; restent les écrans (1.13c)   |
-| 1.15 Notifications et emails                             | ⬜   | Après 1.7                                                                                      |
-| 1.16 Journal et conformité données (RGPD)                | ✅   | Journal, export, suppression (aussi par le tuteur), registre RGPD                              |
-| 1.17 Tests de charge et recette                          | ⬜   | Fin de phase                                                                                   |
-| 1.18 Mise en production                                  | ⬜   | Fin de phase                                                                                   |
+| Étape                                                    | État | Ce que ça veut dire pour le produit                                                              |
+| -------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------ |
+| 1.1 Modèle des données (joueurs, tuteurs, organisations) | ✅   | Toutes les fiches sont prévues, les données d'identité chiffrées                                 |
+| 1.2 Identifiant OZ ID                                    | ✅   | Chaque joueur reçoit un identifiant unique, à vie, infalsifiable                                 |
+| 1.3 Connexion et sécurité des comptes                    | ✅   | Mot de passe, double authentification, sessions sécurisées                                       |
+| 1.4 Rôles et droits                                      | ✅   | Chacun ne voit que ce qu'il a le droit de voir (règles de l'Annexe B)                            |
+| 1.5 Charte graphique complète et écrans de base          | 🟡   | Bases faites ; refonte « sport » sombre en cours (briques faites, thème lime puis pages à venir) |
+| 1.6 Site public et pages légales                         | ✅   | Accueil, 7 pages profils, tarifs, à propos, contact, textes légaux provisoires ; testé 320 px    |
+| 1.7 Inscription joueur                                   | ✅   | Compte, identité, sport, tuteur d'un mineur et OZ ID à l'écran ; testé en 3G (photo plus tard)   |
+| 1.7b Tuteur légal (mineurs)                              | ⬜   | Après 1.7                                                                                        |
+| 1.8 Inscription organisation (académie, club…)           | ⬜   | Après 1.5                                                                                        |
+| 1.9 Coffre des documents d'identité                      | ✅   | Dépôt sécurisé, antivirus, lecture 5 minutes, effacement automatique                             |
+| 1.10 Vérification d'identité (badge « Profil vérifié »)  | ⏸️   | Attend l'analyse d'impact validée et le choix du prestataire                                     |
+| 1.10b Vérification des recruteurs et organisations       | ⏸️   | Attend l'étape 1.10 (Q2 tranchée : incluse)                                                      |
+| 1.11 Back-office d'administration                        | ⬜   | Après 1.10                                                                                       |
+| 1.12 Import de joueurs en masse                          | ⬜   | Après 1.7                                                                                        |
+| 1.13 Profil joueur public                                | 🟡   | 1.13a et 1.13b faits (fiche, QR, carte, PDF) ; restent les écrans                                |
+| 1.14 Recherche                                           | 🟡   | 1.14a et 1.14b faites côté serveur (recherche, sauvegarde, CSV) ; restent les écrans (1.13c)     |
+| 1.15 Notifications et emails                             | ⬜   | Après 1.7                                                                                        |
+| 1.16 Journal et conformité données (RGPD)                | ✅   | Journal, export, suppression (aussi par le tuteur), registre RGPD                                |
+| 1.17 Tests de charge et recette                          | ⬜   | Fin de phase                                                                                     |
+| 1.18 Mise en production                                  | ⬜   | Fin de phase                                                                                     |
 
 **Bilan Phase 1 : 9 étapes sur 20 terminées, 2 en cours (1.13 : 2 parties sur 3 ; 1.14 : serveur fait, écrans en 1.13c).**
 
 ### Étape 1.5 en détail
 
-| Partie                               | État | Ce que ça veut dire pour le produit                                                                                |
-| ------------------------------------ | ---- | ------------------------------------------------------------------------------------------------------------------ |
-| 1.5a Charte graphique OZ Football ID | ✅   | Logo, couleurs et police de la charte sur le site et le back-office ; mode clair, ou sombre selon le téléphone     |
-| 1.5ba Composants des écrans          | ✅   | Briques des écrans : étapes, code SMS, choix du compte, encadrés tuteur, filtres, onglets, chargement, carte OZ ID |
-| 1.5bb Coquille et navigation         | ✅   | Menus par rôle, écrans de chargement et d'erreur, effets du site, audit mobile et 3G                               |
+| Partie                               | État | Ce que ça veut dire pour le produit                                                                                   |
+| ------------------------------------ | ---- | --------------------------------------------------------------------------------------------------------------------- |
+| 1.5a Charte graphique OZ Football ID | ✅   | Logo, couleurs et police de la charte sur le site et le back-office ; mode clair, ou sombre selon le téléphone        |
+| 1.5ba Composants des écrans          | ✅   | Briques des écrans : étapes, code SMS, choix du compte, encadrés tuteur, filtres, onglets, chargement, carte OZ ID    |
+| 1.5bb Coquille et navigation         | ✅   | Menus par rôle, écrans de chargement et d'erreur, effets du site, audit mobile et 3G                                  |
+| 1.5ca Refonte « sport » : briques    | ✅   | Site tout en sombre, héros de stade, cartes vitrées, panneau « en direct », nouveaux menus ; testé mobile et fluidité |
+| 1.5cc Thème noir, lime et Montserrat | ⬜   | Nouveau thème choisi le 10/11 (maquettes Claude Design, ADR-012) à passer dans les briques                            |
+| 1.5cb Refonte « sport » : pages      | ⬜   | Appliquer le nouveau style à toutes les pages du site                                                                 |
 
 Q6 (un seul système visuel) et Q19 (nom « OZ FOOTBALL ID ») sont tranchées par la charte (ADR-009).
 
@@ -144,3 +147,4 @@ Q6 (un seul système visuel) et Q19 (nom « OZ FOOTBALL ID ») sont tranchées p
 | 2026-11-11 | 1.7a Inscription joueur, côté serveur (1.7 en cours)         |
 | 2026-11-10 | 1.7ca Connexion au site et création de compte (1.7 en cours) |
 | 2026-11-10 | 1.7cb Parcours d'inscription joueur à l'écran (1.7 ✅)       |
+| 2026-11-10 | 1.5ca Refonte « sport », briques ; thème noir et lime choisi |

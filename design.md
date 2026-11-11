@@ -483,6 +483,8 @@ Les **planches annotées** (31 août, numérotées 01-06) sont la référence de
 ### 8.2 Concept : un système, deux registres
 
 > Mise à jour 1.5a (ADR-009) : la charte OZ Football ID remplace le doré, le lime et le néon des maquettes. Les deux registres restent ; leurs couleurs viennent de la charte.
+>
+> Mise à jour 1.5ca (ADR-011) : thème sombre unique et direction « sport » d'après la maquette Manus (héros de stade, cartes vitrées, coquille rail + onglets bas), toujours aux couleurs de la charte.
 
 Le DP §12.2 décrit deux univers — **doré et sombre** (émotion, joueur, « Ton talent, notre mission ») et **vert et sombre** (institutionnel, donnée, « Le système d'exploitation du football ») — et recommande de converger vers **un système unique capable d'exprimer les deux registres selon la surface**. Les maquettes réalisent déjà cette convergence ; la direction proposée la formalise :
 
@@ -499,7 +501,7 @@ Le DP §12.2 décrit deux univers — **doré et sombre** (émotion, joueur, « 
 
 ### 8.3 Palette — jetons de la charte (clair et sombre)
 
-Source : charte graphique OZ Football ID v1.0 (novembre 2026, PDF hors dépôt, sous NDA) ; décision en [ADR-009](docs/adr/ADR-009-identite-visuelle.md). Le mode clair est le défaut ; le mode sombre suit le réglage de l'appareil (`prefers-color-scheme`), sans bascule manuelle en 1.5a. Couleurs du logo : rose `#EC5C9F`, turquoise `#06BAF0`, vert clair `#9FFE91`, noir `#1D1D1B`, blanc `#F9F9F9` ; répartition recommandée : 60 % fond, 15 % fond secondaire, 10 % texte, le reste en couleurs.
+Source : charte graphique OZ Football ID v1.0 (novembre 2026, PDF hors dépôt, sous NDA) ; décision en [ADR-009](docs/adr/ADR-009-identite-visuelle.md). Le mode clair est le défaut ; le mode sombre suit le réglage de l'appareil (`prefers-color-scheme`), sans bascule manuelle en 1.5a. **Mise à jour 1.5ca ([ADR-011](docs/adr/ADR-011-theme-sombre-unique.md)) : le web ne sert plus que le jeu sombre, quel que soit le réglage de l'appareil ; le jeu clair reste défini pour le mobile et l'impression.** Couleurs du logo : rose `#EC5C9F`, turquoise `#06BAF0`, vert clair `#9FFE91`, noir `#1D1D1B`, blanc `#F9F9F9` ; répartition recommandée : 60 % fond, 15 % fond secondaire, 10 % texte, le reste en couleurs.
 
 | Jeton | Clair | Sombre | Usage |
 |---|---|---|---|

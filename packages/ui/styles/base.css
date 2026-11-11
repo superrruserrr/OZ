@@ -1,8 +1,7 @@
-/* Base commune web et admin : clair par défaut, sombre selon l'appareil (ADR-009), focus visible,
-   mouvements réduits. */
+/* Base commune web et admin : thème sombre unique (ADR-011), focus visible, mouvements réduits. */
 @layer base {
   html {
-    color-scheme: light dark;
+    color-scheme: dark;
     background-color: var(--oz-bg);
     color: var(--oz-text);
     -webkit-text-size-adjust: 100%;
@@ -12,6 +11,15 @@
     min-height: 100dvh;
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background-color: color-mix(in srgb, var(--oz-primary) 30%, transparent);
+    color: var(--oz-text);
+  }
+
+  * {
+    scrollbar-color: var(--oz-border) transparent;
   }
 
   :focus-visible {

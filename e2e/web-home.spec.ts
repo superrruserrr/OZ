@@ -30,7 +30,7 @@ for (const [path, colorScheme] of [
   });
 }
 
-test('logo de la charte : version fond sombre en mode sombre, empilée sur mobile (ADR-009)', async ({
+test('logo de la charte : toujours la version fond sombre, empilée sur mobile (ADR-011)', async ({
   page,
 }) => {
   const logo = page.getByTestId('oz-logo').locator('img');
@@ -40,11 +40,12 @@ test('logo de la charte : version fond sombre en mode sombre, empilée sur mobil
   expect(await logo.evaluate((img: HTMLImageElement) => img.currentSrc)).toContain(
     'oz-logo-horizontal-fond-sombre.png',
   );
+  // Un appareil réglé en clair reçoit aussi la version fond sombre.
   await page.setViewportSize({ width: 320, height: 640 });
   await page.emulateMedia({ colorScheme: 'light' });
   await page.goto('/');
   expect(await logo.evaluate((img: HTMLImageElement) => img.currentSrc)).toContain(
-    'oz-logo-empile-fond-clair.png',
+    'oz-logo-empile-fond-sombre.png',
   );
   expect(await logo.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
 });

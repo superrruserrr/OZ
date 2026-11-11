@@ -13,6 +13,11 @@ export interface MeasureBarProps {
   valueText?: string | undefined;
   /** Rang dans une liste : décalage de 60 ms par barre (E12). */
   index?: number | undefined;
+  /**
+   * Remplissage déclenché à l'entrée de la barre à l'écran (bandeaux de la direction sport) plutôt
+   * qu'au montage ; joué d'emblée si le navigateur n'a pas `IntersectionObserver`.
+   */
+  animateOnView?: boolean | undefined;
   testId?: string | undefined;
   className?: string | undefined;
 }
@@ -29,12 +34,38 @@ export function MeasureBar({
   unit,
   valueText,
   index = 0,
+  animateOnView = false,
   testId = 'measure-bar',
   className,
 }: MeasureBarProps) {
   const safeMax = Number.isFinite(max) && max > 0 ? max : 1;
   const ratio = Number.isFinite(value) ? Math.min(1, Math.max(0, value / safeMax)) : 0;
   const text = valueText ?? (unit ? `${String(value)} ${unit}` : String(value));
+  const applyStyle = cssomStyle({
+    transform: `scaleX(${String(Math.round(ratio * 1000) / 1000)})`,
+    animationDelay: `${String(Math.max(0, Math.floor(index)) * 60)}ms`,
+  });
+  const fillRef = (element: HTMLDivElement | null) => {
+    applyStyle(element);
+    if (!element || !animateOnView) return undefined;
+    const play = () => {
+      element.dataset.inview = 'true';
+    };
+    if (typeof IntersectionObserver !== 'function') {
+      play();
+      return undefined;
+    }
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) {
+        play();
+        observer.disconnect();
+      }
+    });
+    observer.observe(element);
+    return () => {
+      observer.disconnect();
+    };
+  };
   return (
     <div
       role="meter"
@@ -57,11 +88,12 @@ export function MeasureBar({
       <div className="h-2 w-full overflow-hidden rounded-full bg-oz-surface-input">
         <div
           data-testid={`${testId}-fill`}
-          className="h-full w-full origin-left animate-oz-grow rounded-full bg-oz-primary"
-          ref={cssomStyle({
-            transform: `scaleX(${String(Math.round(ratio * 1000) / 1000)})`,
-            animationDelay: `${String(Math.max(0, Math.floor(index)) * 60)}ms`,
-          })}
+          className={cn(
+            'h-full w-full origin-left animate-oz-grow rounded-full bg-oz-primary',
+            animateOnView &&
+              'motion-safe:[animation-play-state:paused] data-[inview=true]:[animation-play-state:running]',
+          )}
+          ref={fillRef}
         />
       </div>
     </div>

@@ -2,7 +2,7 @@
 export const PACKAGE_NAME = '@oz/ui' as const;
 
 export { contrastRatio } from './contrast.js';
-export { OZ_MODES, ozThemes, type OzColor, type OzMode } from './tokens.js';
+export { OZ_DEFAULT_MODE, OZ_MODES, ozThemes, type OzColor, type OzMode } from './tokens.js';
 export { cn } from './lib/cn.js';
 export { Button, type ButtonProps } from './components/button.js';
 export { Field, type FieldProps } from './components/field.js';
@@ -40,7 +40,12 @@ export {
 } from './components/skeleton.js';
 export { MeasureBar, type MeasureBarProps } from './components/measure-bar.js';
 export { OzIdCard, type OzIdCardProps } from './components/oz-id-card.js';
-export { AppShell, type AppShellNav, type AppShellProps } from './components/app-shell.js';
+export {
+  AppShell,
+  type AppShellNav,
+  type AppShellNavSection,
+  type AppShellProps,
+} from './components/app-shell.js';
 export { type NavLinkProps } from './components/tab-bar.js';
 export {
   FloatingChip,
@@ -53,3 +58,15 @@ export {
   type HaloProps,
   type OzIdRevealProps,
 } from './components/emotion.js';
+export {
+  Kicker,
+  SPLIT_HEADING_MIN_PX,
+  SplitHeading,
+  type KickerProps,
+  type SplitHeadingProps,
+} from './components/sport.js';
+export { STADIUM_GLOWS, StadiumHero, type StadiumHeroProps } from './components/stadium-hero.js';
+export { LivePanel, type LiveFact, type LivePanelProps } from './components/live-panel.js';
+export { ValueCard, type CardLinkProps, type ValueCardProps } from './components/value-card.js';
+export { RoleCard, type RoleCardProps, type RoleCardTone } from './components/role-card.js';
+export { SiteTopbar, type SiteTopbarLink, type SiteTopbarProps } from './components/site-topbar.js';

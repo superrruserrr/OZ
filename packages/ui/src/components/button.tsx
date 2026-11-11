@@ -18,6 +18,9 @@ const buttonVariants = cva(
     'relative isolate inline-flex items-center justify-center gap-2 overflow-hidden font-semibold',
     'select-none transition-[transform,box-shadow,filter,color,border-color] duration-200',
     'disabled:cursor-not-allowed data-[state=inactive]:pointer-events-none',
+    // Flèche finale (icône marquée `data-arrow`) qui glisse au survol, comme la maquette sport.
+    '[&_[data-arrow]]:transition-transform [&_[data-arrow]]:duration-200',
+    'data-[state=active]:hover:motion-safe:[&_[data-arrow]]:translate-x-0.5',
   ],
   {
     variants: {
@@ -37,13 +40,26 @@ const buttonVariants = cva(
           'data-[state=active]:hover:border-oz-text-muted data-[state=active]:active:motion-safe:scale-[0.98]',
           'data-[state=inactive]:border-oz-border data-[state=inactive]:text-oz-text-disabled',
         ],
+        // Contour clair sur fond sombre (direction sport, ADR-011) : action secondaire d'un héros.
+        outline: [
+          'border border-oz-text/20 bg-oz-surface-1/60 text-oz-text',
+          'data-[state=active]:hover:border-oz-primary/60 data-[state=active]:hover:text-oz-primary',
+          'data-[state=active]:active:motion-safe:scale-[0.98]',
+          'data-[state=inactive]:border-oz-border data-[state=inactive]:text-oz-text-disabled',
+        ],
+      },
+      // Halo permanent du bouton principal (direction sport) : vert de la charte, jamais le lime
+      // (E17 retiré) ; inactif, plat et sans halo (§8.4 n° 1).
+      glow: {
+        true: 'data-[state=active]:motion-safe:shadow-[0_0_24px_color-mix(in_srgb,var(--oz-primary)_25%,transparent)]',
+        false: '',
       },
       size: {
         md: 'h-14 rounded-[14px] px-6 text-base',
         sm: 'h-10 rounded-xl px-4 text-sm',
       },
     },
-    defaultVariants: { variant: 'primary', size: 'md' },
+    defaultVariants: { variant: 'primary', size: 'md', glow: false },
   },
 );
 
@@ -53,6 +69,8 @@ export interface ButtonProps
   asChild?: boolean;
   /** Action en cours : bouton inactif, `aria-busy`, libellé conservé. */
   loading?: boolean;
+  /** Halo vert permanent (appel principal d'un héros) ; ignoré quand le bouton est inactif. */
+  glow?: boolean;
 }
 
 export function Button({
@@ -61,6 +79,7 @@ export function Button({
   disabled = false,
   variant,
   size,
+  glow = false,
   className,
   type,
   children,
@@ -72,7 +91,8 @@ export function Button({
     ...props,
     'data-variant': variantName,
     'data-state': inactive ? 'inactive' : 'active',
-    className: cn(buttonVariants({ variant: variantName, size }), className),
+    ...(glow ? { 'data-glow': 'true' } : {}),
+    className: cn(buttonVariants({ variant: variantName, size, glow }), className),
   };
   if (asChild) return <Slot {...shared}>{children}</Slot>;
   return (

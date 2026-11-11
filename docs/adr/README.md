@@ -18,6 +18,8 @@ d'un ADR.
 | [ADR-008](ADR-008-conservation-pieces-identite.md)  | Conservation et purge des documents d'identité                    | Proposé | 2026-10-27 |
 | [ADR-009](ADR-009-identite-visuelle.md)             | Identité visuelle : charte OZ Football ID, clair et sombre        | Accepté | 2026-11-10 |
 | [ADR-010](ADR-010-session-web-relais-serveur.md)    | Session du site web par relais serveur                            | Accepté | 2026-11-10 |
+| [ADR-011](ADR-011-theme-sombre-unique.md)           | Thème sombre unique pour le web, direction « sport »              | Accepté | 2026-11-10 |
+| [ADR-012](ADR-012-theme-noir-lime-montserrat.md)    | Thème « Workspace » : noir, lime et Montserrat                    | Accepté | 2026-11-10 |
 
 ## Écrire un ADR
 

@@ -2,8 +2,9 @@ import { cn } from '../lib/cn.js';
 
 /*
  * Logo OZ Football ID (charte v1.0, ADR-009, design.md §8.5) : jamais recomposé en texte. Version
- * horizontale sur grand écran, empilée sous 640 px ; version fond sombre selon le réglage de
- * l'appareil. Choix fait par le navigateur (`<picture>`), sans JavaScript ni flash au chargement.
+ * horizontale sur grand écran, empilée sous 640 px ; toujours la version fond sombre, le web n'ayant
+ * qu'un thème (ADR-011). Choix fait par le navigateur (`<picture>`), sans JavaScript ni flash au
+ * chargement. Les fichiers fond clair restent listés pour l'impression et le mobile.
  */
 export const LOGO_FILES = {
   horizontal: {
@@ -21,7 +22,6 @@ export const LOGO_FILES = {
 } as const;
 
 const NARROW = '(max-width: 639px)';
-const DARK = '(prefers-color-scheme: dark)';
 
 export interface LogoProps {
   /** Texte alternatif traduit ; vide si un texte voisin nomme déjà la marque. */
@@ -37,25 +37,13 @@ export function Logo({ alt, basePath = '/brand', className }: LogoProps) {
   return (
     <picture data-testid="oz-logo">
       <source
-        media={`${NARROW} and ${DARK}`}
+        media={NARROW}
         srcSet={url(stacked.dark)}
         width={stacked.width}
         height={stacked.height}
       />
-      <source
-        media={NARROW}
-        srcSet={url(stacked.light)}
-        width={stacked.width}
-        height={stacked.height}
-      />
-      <source
-        media={DARK}
-        srcSet={url(horizontal.dark)}
-        width={horizontal.width}
-        height={horizontal.height}
-      />
       <img
-        src={url(horizontal.light)}
+        src={url(horizontal.dark)}
         alt={alt}
         width={horizontal.width}
         height={horizontal.height}

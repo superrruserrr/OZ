@@ -3,7 +3,11 @@ import type { ReactNode } from 'react';
 import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { commands } from 'vitest/browser';
 import '../../.storybook/storybook.css';
+import { Button } from './button.js';
 import { FloatingChip, GlassPanel, Halo, PitchCircles } from './emotion.js';
+import { LivePanel } from './live-panel.js';
+import { MeasureBar } from './measure-bar.js';
+import { StadiumHero } from './stadium-hero.js';
 import { OzIdCard } from './oz-id-card.js';
 import { Skeleton, SkeletonGroup } from './skeleton.js';
 
@@ -60,6 +64,39 @@ const EFFECTS: [string, ReactNode][] = [
         <FloatingChip key={c} index={i}>
           {c}
         </FloatingChip>
+      ))}
+    </div>,
+  ],
+  [
+    'héros de stade (1.5ca)',
+    <StadiumHero
+      key="hero"
+      copy={<p>Ton talent, notre mission.</p>}
+      aside={<LivePanel status="En direct" title="Chaque profil" />}
+    />,
+  ],
+  [
+    'pastille en direct (1.5ca)',
+    <LivePanel key="live" status="En direct" title="Chaque profil" highlight="plus de preuves." />,
+  ],
+  [
+    'bouton à halo (1.5ca)',
+    <Button key="glow" glow>
+      Créer mon compte
+    </Button>,
+  ],
+  [
+    'barres au défilement (1.5ca)',
+    <div key="bars" className="grid gap-3">
+      {[0, 1, 2].map((i) => (
+        <MeasureBar
+          key={i}
+          label={`Critère ${String(i)}`}
+          value={i + 1}
+          max={3}
+          index={i}
+          animateOnView
+        />
       ))}
     </div>,
   ],
