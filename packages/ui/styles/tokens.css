@@ -1,70 +1,39 @@
 /*
- * Jetons OZ (design.md §8.3, ADR-009). Valeurs identiques à src/tokens.ts (vérifié par test) : clair
- * par défaut, sombre selon le réglage de l'appareil. À importer après `@import 'tailwindcss';` : le bloc
- * @theme expose les classes `bg-oz-*`, `text-oz-*`…
+ * Jetons OZ (design.md §8.3, ADR-009 amendé par ADR-011). Valeurs identiques au jeu sombre de
+ * src/tokens.ts (vérifié par test) : le web n'a qu'un thème, sombre, quel que soit le réglage de
+ * l'appareil. Le jeu clair reste défini en TypeScript (mobile, impression). À importer après
+ * `@import 'tailwindcss';` : le bloc @theme expose les classes `bg-oz-*`, `text-oz-*`…
  */
 :root {
-  --oz-bg: #f9f9f9;
-  --oz-bg-page: #f9f9f9;
-  --oz-surface-1: #f3f3f1;
-  --oz-surface-2: #f3f3f1;
-  --oz-surface-input: #ffffff;
-  --oz-surface-ozid: #f3f3f1;
-  --oz-tint-green: #e4f3e8;
-  --oz-border: #e2e2df;
-  --oz-text: #1d1d1b;
-  --oz-text-muted: #5c5c59;
-  --oz-text-label: #5f625e;
-  --oz-text-disabled: #a3a3a0;
-  --oz-primary: #187a34;
-  --oz-primary-from: #187a34;
-  --oz-primary-to: #166f33;
-  --oz-primary-bright: #1e8e3e;
-  --oz-on-primary: #ffffff;
+  color-scheme: dark;
+  --oz-bg: #1b161b;
+  --oz-bg-page: #1b161b;
+  --oz-surface-1: #241e23;
+  --oz-surface-2: #31282e;
+  --oz-surface-input: #2a2328;
+  --oz-surface-ozid: #31282e;
+  --oz-tint-green: #1f3a26;
+  --oz-border: #3d3339;
+  --oz-text: #f3ecec;
+  --oz-text-muted: #bdb3b7;
+  --oz-text-label: #b3a9ad;
+  --oz-text-disabled: #6b6266;
+  --oz-primary: #9ffe91;
+  --oz-primary-from: #9ffe91;
+  --oz-primary-to: #8bef7d;
+  --oz-primary-bright: #9ffe91;
+  --oz-on-primary: #1d1d1b;
   --oz-accent: #ec5c9f;
-  --oz-highlight: #06baf0;
-  --oz-legal: #2b57d9;
-  --oz-legal-text: #2449b8;
-  --oz-legal-bg: #eef2fd;
-  --oz-legal-border: #c9d5f5;
-  --oz-kyc: #8a5a00;
-  --oz-kyc-border: #e8c877;
-  --oz-danger: #c5221f;
-  --oz-admin: #93560f;
-  --oz-observer: #5c5c59;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --oz-bg: #1b161b;
-    --oz-bg-page: #1b161b;
-    --oz-surface-1: #241e23;
-    --oz-surface-2: #31282e;
-    --oz-surface-input: #2a2328;
-    --oz-surface-ozid: #31282e;
-    --oz-tint-green: #1f3a26;
-    --oz-border: #3d3339;
-    --oz-text: #f3ecec;
-    --oz-text-muted: #bdb3b7;
-    --oz-text-label: #b3a9ad;
-    --oz-text-disabled: #6b6266;
-    --oz-primary: #9ffe91;
-    --oz-primary-from: #9ffe91;
-    --oz-primary-to: #8bef7d;
-    --oz-primary-bright: #9ffe91;
-    --oz-on-primary: #1d1d1b;
-    --oz-accent: #ec5c9f;
-    --oz-highlight: #47bde1;
-    --oz-legal: #6b8ef0;
-    --oz-legal-text: #9db4f7;
-    --oz-legal-bg: #1e2233;
-    --oz-legal-border: #39405a;
-    --oz-kyc: #f2be45;
-    --oz-kyc-border: #5a4a22;
-    --oz-danger: #ff7a6e;
-    --oz-admin: #e8b06a;
-    --oz-observer: #bdb3b7;
-  }
+  --oz-highlight: #47bde1;
+  --oz-legal: #6b8ef0;
+  --oz-legal-text: #9db4f7;
+  --oz-legal-bg: #1e2233;
+  --oz-legal-border: #39405a;
+  --oz-kyc: #f2be45;
+  --oz-kyc-border: #5a4a22;
+  --oz-danger: #ff7a6e;
+  --oz-admin: #e8b06a;
+  --oz-observer: #bdb3b7;
 }
 
 @theme inline {
@@ -122,6 +91,7 @@
   --animate-oz-fade-in: oz-fade-in 400ms ease-out both;
   --animate-oz-spin-slow: oz-spin-slow 60s linear infinite;
   --animate-oz-float: oz-float 6s ease-in-out infinite;
+  --animate-oz-pulse: oz-pulse 2s ease-in-out infinite;
 
   /* E8 : trois allers-retours de 4 px. */
   @keyframes oz-shake {
@@ -217,6 +187,19 @@
     }
     50% {
       transform: translateY(4px);
+    }
+  }
+
+  /* Pastille « en direct » (lot 1.5ca) : opacité et échelle (GPU). */
+  @keyframes oz-pulse {
+    0%,
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.2;
+      transform: scale(1.8);
     }
   }
 }

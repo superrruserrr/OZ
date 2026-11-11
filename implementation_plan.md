@@ -201,6 +201,14 @@ Terminées — voir `technology_decisions.md` (TD-001 à TD-017).
 5. Audit Lighthouse ≥ 90, axe-core, 320 px, 3G simulée
 **Deliverable :** Storybook complet. **Exigences :** EX-105, EX-T22, `design.md` §8.11.
 
+### Phase 1.5c — Refonte visuelle « sport » d'après la maquette Manus · B
+**Goal :** le site prend la direction « sport » de la maquette Manus (nuit de stade, cartes vitrées, effets), aux couleurs de la charte, en thème sombre unique.
+**Décisions (2026-11-10, Gaëtan Wassu) :** charte ADR-009 conservée (pas le lime ni Inter de la maquette) ; sombre partout ([ADR-011](docs/adr/ADR-011-theme-sombre-unique.md)) ; pages déjà livrées seulement ; pas de score, pas de mineur mis en avant, pas de chiffre fictif.
+**Tasks :**
+1. 1.5ca — ADR-011 et jetons sombres par défaut ; primitives (libellé, titre scindé, pilule, bouton à halo) ; héros de stade et panneau « en direct » ; cartes de valeur et de rôle, barres au défilement ; coquille v2 (en-tête vitré, rail à sections, onglets bas, menu mobile) ; coût, contrastes, Storybook (`phase1.5ca_plan.md`)
+2. 1.5cb — pages de `apps/web` refaites avec ces composants : accueil, profils, tarifs, à propos, contact, légal, connexion, choix du rôle, inscription, vérification de l'email, onboarding ; audit responsive (1280, 768, 375, 320 px), axe, Lighthouse
+**Deliverable :** Storybook « Direction sport » ; site refait. **Exigences :** EX-105, EX-106, EX-T22.
+
 ### Phase 1.6 — Site public et pages légales · B
 **Goal :** OZ existe publiquement, avec ses documents légaux.
 **Tasks :**

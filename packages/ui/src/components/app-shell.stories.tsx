@@ -54,3 +54,40 @@ export const SansNavigation: Story = {
   name: 'Sans navigation (inscription)',
   args: { nav: undefined },
 };
+
+/** Coquille v2 (lot 1.5ca) : rail à sections, fil d'Ariane, pied de rail. */
+export const JoueurV2: Story = {
+  name: 'Joueur, coquille v2',
+  args: {
+    breadcrumb: (
+      <span>
+        Espace joueur › <b className="text-oz-text">Accueil</b>
+      </span>
+    ),
+    nav: {
+      label: 'Navigation principale',
+      sectionLabel: 'Pilotage',
+      items: PLAYER,
+      activeId: 'home',
+      countLabel: (n: number) => `${String(n)} non lus`,
+      secondary: {
+        label: 'Réseau',
+        items: [
+          { id: 'settings', label: 'Réglages', href: '#reglages', icon },
+          { id: 'help', label: 'Aide', href: '#aide', icon },
+        ],
+      },
+    },
+    railFooter: (
+      <div className="flex items-center gap-3 px-3 text-sm">
+        <span className="grid size-9 place-items-center rounded-full bg-oz-tint-green font-bold text-oz-primary">
+          JM
+        </span>
+        <span className="min-w-0">
+          <b className="block truncate">Joueur</b>
+          <small className="text-oz-text-muted">Profil en cours</small>
+        </span>
+      </div>
+    ),
+  },
+};

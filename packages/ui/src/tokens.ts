@@ -1,7 +1,8 @@
 /**
- * Jetons de couleur OZ (design.md §8.3, ADR-009), source unique des valeurs : un jeu clair (défaut)
- * et un jeu sombre (`prefers-color-scheme: dark`), mêmes noms sémantiques. `styles/tokens.css` les
- * pose en variables CSS `--oz-*` ; un test vérifie que les trois restent identiques.
+ * Jetons de couleur OZ (design.md §8.3, ADR-009), source unique des valeurs : un jeu clair et un jeu
+ * sombre, mêmes noms sémantiques. Depuis ADR-011, le web n'a qu'un thème, sombre : `styles/tokens.css`
+ * pose le jeu sombre en variables CSS `--oz-*` ; le jeu clair reste ici pour le mobile et l'impression.
+ * Un test vérifie que les valeurs restent identiques.
  */
 const light = Object.freeze({
   bg: '#F9F9F9',
@@ -72,6 +73,9 @@ const dark = Object.freeze({
 
 export const OZ_MODES = ['light', 'dark'] as const;
 export type OzMode = (typeof OZ_MODES)[number];
+
+/** Thème servi par le web (ADR-011). */
+export const OZ_DEFAULT_MODE: OzMode = 'dark';
 
 export const ozThemes = Object.freeze({ light, dark });
 

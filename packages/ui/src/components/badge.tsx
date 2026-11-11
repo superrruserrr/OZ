@@ -17,7 +17,15 @@ const badgeVariants = cva(
         danger: 'border-oz-danger/40 text-oz-danger',
         neutral: 'border-oz-border text-oz-text-muted',
       },
+      // Pilule remplie (direction sport, ADR-011) : fond teinté à 10 % du ton, texte inchangé.
+      filled: { true: '', false: '' },
     },
+    compoundVariants: [
+      { tone: 'verified', filled: true, class: 'bg-oz-primary/10' },
+      { tone: 'kyc', filled: true, class: 'bg-oz-kyc/10' },
+      { tone: 'danger', filled: true, class: 'bg-oz-danger/10' },
+      { tone: 'neutral', filled: true, class: 'bg-oz-surface-2' },
+    ],
   },
 );
 
@@ -34,6 +42,8 @@ export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
    * le statut, jamais à l'affichage d'un statut déjà connu ; sans effet sans `confirmed`.
    */
   animate?: boolean;
+  /** Fond teinté du ton (pilules de héros et de cartes) ; le bleu légal a déjà son fond. */
+  filled?: boolean;
 }
 
 export function Badge({
@@ -41,6 +51,7 @@ export function Badge({
   status,
   confirmed = false,
   animate = false,
+  filled = false,
   className,
   ...props
 }: BadgeProps) {
@@ -49,8 +60,9 @@ export function Badge({
       {...props}
       data-testid={`badge-${status ?? tone}`}
       data-tone={tone}
+      {...(filled ? { 'data-filled': 'true' } : {})}
       className={cn(
-        badgeVariants({ tone }),
+        badgeVariants({ tone, filled }),
         confirmed && animate && 'motion-safe:animate-oz-stamp',
         className,
       )}

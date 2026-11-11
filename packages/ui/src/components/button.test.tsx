@@ -55,6 +55,36 @@ describe('Button', () => {
     expect(screen.getByRole('button', { name: 'Retour' }).dataset.variant).toBe('secondary');
   });
 
+  it('halo (glow) : marqué, et seulement sur un bouton actif', () => {
+    const { rerender } = render(<Button glow>Créer un compte</Button>);
+    const button = screen.getByRole('button', { name: 'Créer un compte' });
+    expect(button.dataset.glow).toBe('true');
+    expect(button.className).toContain('data-[state=active]:motion-safe:shadow-');
+    rerender(
+      <Button glow disabled>
+        Créer un compte
+      </Button>,
+    );
+    expect(button.dataset.state).toBe('inactive');
+  });
+
+  it('contour sombre : variante outline, sans dégradé', () => {
+    render(<Button variant="outline">Voir les tarifs</Button>);
+    const button = screen.getByRole('button', { name: 'Voir les tarifs' });
+    expect(button.dataset.variant).toBe('outline');
+    expect(button.className).toContain('border-oz-text/20');
+    expect(button.className).not.toContain('before:from-oz-primary-from');
+  });
+
+  it('la flèche finale glisse au survol (icône marquée data-arrow)', () => {
+    render(
+      <Button>
+        Continuer <svg data-arrow="" />
+      </Button>,
+    );
+    expect(screen.getByRole('button').className).toContain('[&_[data-arrow]]:transition-transform');
+  });
+
   it('asChild : rend l’élément enfant (lien) avec le style du bouton', () => {
     render(
       <Button asChild>

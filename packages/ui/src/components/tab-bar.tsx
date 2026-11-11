@@ -54,7 +54,11 @@ export function TabBar({
   return (
     <nav
       aria-label={label}
-      className={cn('w-full border-t border-oz-border bg-oz-surface-1', className)}
+      className={cn(
+        'w-full border-t border-oz-border bg-oz-surface-1 pb-[env(safe-area-inset-bottom)]',
+        'supports-backdrop-filter:bg-oz-surface-1/85 supports-backdrop-filter:backdrop-blur-md',
+        className,
+      )}
     >
       <ul className="flex">
         {items.map((item) => {
@@ -71,6 +75,13 @@ export function TabBar({
                   active ? 'text-oz-primary' : 'text-oz-text-muted',
                 )}
               >
+                {active ? (
+                  <span
+                    data-indicator=""
+                    aria-hidden="true"
+                    className="absolute inset-x-1/4 top-0 h-0.5 rounded-b-full bg-oz-primary"
+                  />
+                ) : null}
                 {item.icon ? (
                   <span aria-hidden="true" className="[&>svg]:size-6">
                     {item.icon}

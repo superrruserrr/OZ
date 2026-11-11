@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { OZ_MODES, ozThemes } from './tokens.js';
+import { OZ_DEFAULT_MODE, OZ_MODES, ozThemes } from './tokens.js';
 
 const read = (path: string): string => readFileSync(new URL(path, import.meta.url), 'utf8');
 
@@ -34,8 +34,11 @@ describe('jetons OZ (design.md §8.3, ADR-009)', () => {
     expect(fromTs(mode)).toEqual(expected);
   });
 
-  it.each(OZ_MODES)('%s : posés à l’identique dans styles/tokens.css', (mode) => {
-    expect(byMode(stylesheet)[mode]).toEqual(fromTs(mode));
+  it('styles/tokens.css pose le seul jeu sombre, sans bascule selon l’appareil (ADR-011)', () => {
+    expect(OZ_DEFAULT_MODE).toBe('dark');
+    expect(stylesheet).not.toContain('prefers-color-scheme');
+    expect(cssTokens(stylesheet)).toEqual(fromTs(OZ_DEFAULT_MODE));
+    expect(stylesheet).toMatch(/:root\s*{[^}]*color-scheme:\s*dark;/);
   });
 
   it('les deux modes ont les mêmes noms', () => {

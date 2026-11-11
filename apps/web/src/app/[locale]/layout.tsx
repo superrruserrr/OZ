@@ -1,4 +1,4 @@
-import { ozThemes } from '@oz/ui/tokens';
+import { OZ_DEFAULT_MODE, ozThemes } from '@oz/ui/tokens';
 import type { Metadata, Viewport } from 'next';
 import { hasLocale, NextIntlClientProvider } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
@@ -10,13 +10,10 @@ import { routing } from '../../i18n/routing';
 import { fontVariables } from '../fonts';
 import '../globals.css';
 
-// Barre du navigateur aux couleurs du fond, clair ou sombre selon l'appareil (ADR-009).
+// Barre du navigateur aux couleurs du fond : thème sombre unique (ADR-011).
 export const viewport: Viewport = {
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: ozThemes.light.bg },
-    { media: '(prefers-color-scheme: dark)', color: ozThemes.dark.bg },
-  ],
-  colorScheme: 'light dark',
+  themeColor: ozThemes[OZ_DEFAULT_MODE].bg,
+  colorScheme: 'dark',
 };
 
 export async function generateMetadata(): Promise<Metadata> {

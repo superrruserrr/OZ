@@ -57,7 +57,9 @@ for (const path of PAGES) {
   });
 }
 
-test('barre du navigateur aux couleurs du fond, clair et sombre (ADR-009)', async ({ page }) => {
+test('barre du navigateur à la couleur du fond sombre, quel que soit le réglage (ADR-011)', async ({
+  page,
+}) => {
   await page.goto('/');
   const colors = await page
     .locator('meta[name="theme-color"]')
@@ -66,10 +68,8 @@ test('barre du navigateur aux couleurs du fond, clair et sombre (ADR-009)', asyn
         (meta) => `${meta.getAttribute('media') ?? ''} ${meta.getAttribute('content') ?? ''}`,
       ),
     );
-  expect(colors.map((color) => color.toLowerCase())).toEqual([
-    '(prefers-color-scheme: light) #f9f9f9',
-    '(prefers-color-scheme: dark) #1b161b',
-  ]);
+  // Un seul thème servi : une seule balise, sans requête média.
+  expect(colors.map((color) => color.trim().toLowerCase())).toEqual(['#1b161b']);
 });
 
 test(`accueil en 3G simulée : p95 de l’affichage du contenu principal (LCP) sous ${String(P95_BUDGET_MS)} ms (EX-T22.3)`, async ({
