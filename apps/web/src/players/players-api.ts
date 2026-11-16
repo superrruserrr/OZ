@@ -95,6 +95,17 @@ export async function searchPlayers(
   return parsed.success ? { kind: 'ok', data: parsed.data } : { kind: 'unavailable' };
 }
 
+/**
+ * Fiche du joueur connecté (`GET /players/me`, D-133) : l'OZ ID n'est pas connu du site, l'API le
+ * rend au titulaire. `not_found` : ce compte n'a pas de fiche joueur.
+ */
+export async function readOwnPlayer(): Promise<Read<PlayerProfileOutput>> {
+  const result = await read('/players/me');
+  if (result.kind !== 'ok') return result;
+  const parsed = playerProfileOutputSchema.safeParse(result.data);
+  return parsed.success ? { kind: 'ok', data: parsed.data } : { kind: 'unavailable' };
+}
+
 const OZ_ID = /^OZ-[A-Z]{2}-\d{2}-[A-Z0-9]{6}-[A-Z0-9]$/;
 
 export async function readPlayer(ozId: string): Promise<Read<PlayerProfileOutput>> {

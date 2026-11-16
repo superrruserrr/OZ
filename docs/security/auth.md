@@ -55,14 +55,15 @@ Les routes sont montées seulement avec `FEATURE_AUTH=true`. Le refus inconditio
 
 Migration `20261029100000_auth_comptes`, détail dans [docs/db/migrations.md](../db/migrations.md#authentification-lot-13a). Ces opérations se font sans utilisateur connecté : elles passent par des fonctions `SECURITY DEFINER` (D-059), dont `EXECUTE` est retiré à `PUBLIC` et accordé au seul rôle applicatif `oz_app`.
 
-| Fonction                         | Appelant (API)                       | Contrôle                                                                                                 | Audit                           |
-| -------------------------------- | ------------------------------------ | -------------------------------------------------------------------------------------------------------- | ------------------------------- |
-| `oz_auth_register`               | `AuthService.register`               | Hash au format Argon2id, empreinte de jeton, durée bornée ; adresse prise → `NULL`, rien écrit           | `user.account.registered`       |
-| `oz_auth_credentials`            | `CredentialsService.verify`          | Lecture seule ; compte non supprimé                                                                      | —                               |
-| `oz_auth_verify_email`           | `AuthService.verifyEmail`            | Jeton de confirmation valide ; compte en attente ou actif                                                | `user.email.verified`           |
-| `oz_auth_request_password_reset` | `AuthService.requestPasswordReset`   | Compte non supprimé, en attente ou actif ; demandes précédentes invalidées                               | `user.password.reset_requested` |
-| `oz_auth_reset_password`         | `AuthService.resetPassword`          | Jeton de réinitialisation valide ; compte en attente ou actif ; sessions révoquées                       | `user.password.reset`           |
-| `oz_auth_rehash_password`        | `CredentialsService.verify` (rehash) | `oz_current_user_id()` = titulaire (`withUserContext` après mot de passe vérifié) ; ancien hash inchangé | `user.password.rehashed`        |
+| Fonction                         | Appelant (API)                       | Contrôle                                                                                                 | Audit                            |
+| -------------------------------- | ------------------------------------ | -------------------------------------------------------------------------------------------------------- | -------------------------------- |
+| `oz_auth_register`               | `AuthService.register`               | Hash au format Argon2id, empreinte de jeton, durée bornée ; adresse prise → `NULL`, rien écrit           | `user.account.registered`        |
+| `oz_auth_credentials`            | `CredentialsService.verify`          | Lecture seule ; compte non supprimé                                                                      | —                                |
+| `oz_auth_verify_email`           | `AuthService.verifyEmail`            | Jeton de confirmation valide ; compte en attente ou actif                                                | `user.email.verified`            |
+| `oz_auth_resend_verification`    | `AuthService.resendVerification`     | Compte en attente, non vérifié, non supprimé ; liens de confirmation précédents invalidés (lot 1.7cc)    | `user.email.verification_resent` |
+| `oz_auth_request_password_reset` | `AuthService.requestPasswordReset`   | Compte non supprimé, en attente ou actif ; demandes précédentes invalidées                               | `user.password.reset_requested`  |
+| `oz_auth_reset_password`         | `AuthService.resetPassword`          | Jeton de réinitialisation valide ; compte en attente ou actif ; sessions révoquées                       | `user.password.reset`            |
+| `oz_auth_rehash_password`        | `CredentialsService.verify` (rehash) | `oz_current_user_id()` = titulaire (`withUserContext` après mot de passe vérifié) ; ancien hash inchangé | `user.password.rehashed`         |
 
 `oz_auth_consume_token` et `oz_auth_mark_email_verified` sont internes (non `SECURITY DEFINER`, `EXECUTE` retiré à `PUBLIC`). L'audit ne contient jamais l'email, le hash ni le jeton (testé).
 
@@ -84,6 +85,12 @@ Migration `20261029100000_auth_comptes`, détail dans [docs/db/migrations.md](..
 | `AUTH_HMAC_KEY`              | Clé des empreintes d'email dans Redis, 32 caractères au moins (`openssl rand -base64 32`)    |
 
 Les valeurs sensibles restent vides dans `.env.example` ; elles sont exigées dès que `FEATURE_AUTH=true`.
+
+## Écrans de compte du site (lot 1.7cc)
+
+- **Renvoi de l'email de confirmation** : `POST /auth/verify-email/resend`, réponse 202 identique pour un compte en attente, vérifié ou inconnu, durée plancher comprise. Seul un compte en attente reçoit un email ; ses liens précédents sont consommés. Un tiers qui connaît l'adresse peut donc faire remplacer le lien en cours, au plus une fois par quart d'heure et par adresse (`resend_verification_email`) : le titulaire reçoit alors un nouvel email valable, sans autre effet sur le compte.
+- **Mot de passe oublié** : `/auth/forgot` relaie `POST /auth/password/forgot` ; `/auth/reset` lit le jeton dans le fragment `#token=`, le retire de l'adresse et de l'historique, puis relaie `POST /auth/password/reset`. Le jeton ne passe jamais dans une URL de requête ni un journal ; après le changement, les cookies de session du navigateur sont effacés (l'API a déjà révoqué toutes les sessions).
+- Les deux écrans sont des actions serveur (ADR-010) : aucun appel du navigateur vers l'API, messages traduits, jamais le texte de l'API.
 
 ## Sessions (lot 1.3b)
 
@@ -162,6 +169,8 @@ Décisions validées : D1 limiteur maison dans Redis ; D2 limites réglables san
 | `forgot_ip`                 | `POST /auth/password/forgot`                     | IP                                | 3 / 1 h    |
 | `forgot_email`              | `POST /auth/password/forgot`                     | adresse saisie                    | 1 / 15 min |
 | `verify_email_ip`           | `POST /auth/verify-email`                        | IP                                | 10 / 1 h   |
+| `resend_verification_ip`    | `POST /auth/verify-email/resend`                 | IP                                | 3 / 1 h    |
+| `resend_verification_email` | `POST /auth/verify-email/resend`                 | adresse saisie                    | 1 / 15 min |
 | `reset_ip`                  | `POST /auth/password/reset`                      | IP                                | 10 / 1 h   |
 | `refresh_ip`                | `POST /auth/refresh`                             | IP                                | 60 / 1 min |
 | `new_device_email`          | email « nouvelle connexion » (D5)                | compte                            | 3 / 24 h   |

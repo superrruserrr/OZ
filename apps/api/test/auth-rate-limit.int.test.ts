@@ -185,6 +185,7 @@ describe('autres routes limitées', () => {
   it.each([
     ['/auth/password/forgot', 'forgot_ip', () => ({ email: email() })],
     ['/auth/verify-email', 'verify_email_ip', () => ({ token: 'x'.repeat(43) })],
+    ['/auth/verify-email/resend', 'resend_verification_ip', () => ({ email: email() })],
     ['/auth/password/reset', 'reset_ip', () => ({ token: 'x'.repeat(43), password: PASSWORD })],
     ['/auth/refresh', 'refresh_ip', () => ({})],
   ])('%s : limite par IP (%s)', async (path, rule, body) => {
@@ -200,6 +201,13 @@ describe('autres routes limitées', () => {
     const address = email();
     await post('/auth/password/forgot', ip(), { email: address }).expect(202);
     expectRateLimited(await post('/auth/password/forgot', ip(), { email: address }));
+  });
+
+  it('renvoi de l’email de confirmation : 1 par 15 min et par adresse', async () => {
+    await limits({ resend_verification_email: { limit: 1, windowSeconds: 900 } });
+    const address = email();
+    await post('/auth/verify-email/resend', ip(), { email: address }).expect(202);
+    expectRateLimited(await post('/auth/verify-email/resend', ip(), { email: address }));
   });
 });
 
@@ -235,6 +243,7 @@ describe('OpenAPI', () => {
     for (const path of [
       '/auth/register',
       '/auth/verify-email',
+      '/auth/verify-email/resend',
       '/auth/password/forgot',
       '/auth/password/reset',
       '/auth/login',

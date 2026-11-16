@@ -28,6 +28,10 @@ export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;
 export const requestPasswordResetSchema = z.strictObject({ email });
 export type RequestPasswordResetInput = z.infer<typeof requestPasswordResetSchema>;
 
+/** Renvoi de l'email de confirmation (lot 1.7cc) : l'adresse seule, réponse toujours identique. */
+export const resendVerificationSchema = z.strictObject({ email });
+export type ResendVerificationInput = z.infer<typeof resendVerificationSchema>;
+
 export const resetPasswordSchema = z.strictObject({ token: oneTimeToken, password: newPassword });
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 

@@ -8,6 +8,7 @@ export {
   registerUser,
   rehashPassword,
   requestPasswordReset,
+  resendVerification,
   resetPassword,
   verifyEmail,
   type AccountCredentials,

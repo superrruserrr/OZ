@@ -364,7 +364,9 @@
       "signup": "Create a player account",
       "login": "Log in",
       "verify": "Confirm your email address",
-      "onboarding": "Player sign-up"
+      "onboarding": "Player sign-up",
+      "forgot": "Forgot password",
+      "reset": "New password"
     },
     "layout": {
       "skip": "Skip to content",
@@ -430,7 +432,8 @@
       "done": "Your address is confirmed. Log in to complete your sign-up.",
       "invalid": "This link is no longer valid. It may have been used already or expired.",
       "missing": "Open the link you received by email to confirm your address.",
-      "login": "Log in"
+      "login": "Log in",
+      "retry": "Too many attempts. Open the link from your email again in a few minutes."
     },
     "login": {
       "title": "Log in",
@@ -444,7 +447,8 @@
       "codeLabel": "Login code",
       "digit": "Digit {position} of {total}",
       "codeSubmit": "Confirm",
-      "back": "Back to login"
+      "back": "Back to login",
+      "forgot": "Forgot your password?"
     },
     "onboarding": {
       "logout": "Log out"
@@ -459,6 +463,33 @@
       "codeInvalid": "Incorrect or expired code.",
       "invalid": "Check the highlighted fields.",
       "unavailable": "Service temporarily unavailable. Try again in a few minutes."
+    },
+    "resend": {
+      "lead": "Nothing received? Check your spam folder, or ask for a new email.",
+      "leadInvalid": "Enter your address to receive a new confirmation link.",
+      "email": "Email",
+      "submit": "Resend the email",
+      "done": "If this address is awaiting confirmation, a new email has just been sent. The previous link no longer works."
+    },
+    "forgot": {
+      "title": "Forgot password",
+      "lead": "Enter your account address: you will receive a link to choose a new password.",
+      "email": "Email",
+      "submit": "Send me the link",
+      "sentTitle": "Check your inbox",
+      "sent": "If an account exists for this address, an email has just been sent. The link it contains is valid for a short time.",
+      "back": "Back to sign in"
+    },
+    "reset": {
+      "title": "New password",
+      "lead": "Choose a new password. You will be signed out of all your devices.",
+      "reading": "Reading the link…",
+      "password": "New password",
+      "submit": "Save password",
+      "done": "Your password has been changed. Sign in with the new one.",
+      "invalid": "This link is no longer valid. It may have been used already or expired.",
+      "login": "Sign in",
+      "again": "Request a new link"
     }
   },
   "onboarding": {
@@ -550,11 +581,14 @@
       "declared": "Declared",
       "declaredHint": "Declared profile: it will be verified by a club, an academy or OZ.",
       "completeness": "Profile {value}% complete",
-      "finish": "Finish"
+      "finish": "Finish",
+      "qrAlt": "QR code of your OZ profile",
+      "seeProfile": "View my profile"
     },
     "done": {
       "title": "Your player profile is created",
-      "lead": "Your player area is coming soon."
+      "cardUnavailable": "Your OZ ID card cannot be displayed right now. Reload the page in a few minutes.",
+      "cardMissing": "No OZ ID card is available for this account."
     },
     "unavailable": {
       "title": "Service temporarily unavailable",

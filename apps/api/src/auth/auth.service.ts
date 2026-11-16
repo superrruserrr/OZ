@@ -11,12 +11,14 @@ import type { ApiConfig, AuthConfig } from '@oz/config';
 import type {
   RegisterInput,
   RequestPasswordResetInput,
+  ResendVerificationInput,
   ResetPasswordInput,
   VerifyEmailInput,
 } from '@oz/contracts';
 import {
   registerUser,
   requestPasswordReset,
+  resendVerification,
   resetPassword,
   verifyEmail,
   type PrismaClient,
@@ -111,6 +113,24 @@ export class AuthService implements OnModuleInit {
 
   async verifyEmail(input: VerifyEmailInput): Promise<void> {
     if (!(await verifyEmail(this.db, hashOneTimeToken(input.token)))) throw INVALID_TOKEN();
+  }
+
+  /**
+   * Nouveau lien de confirmation pour un compte en attente (lot 1.7cc). Même réponse et même durée
+   * pour un compte inconnu ou déjà vérifié : rien n'est écrit ni envoyé (EX-103 n° 10, CP-28).
+   */
+  async resendVerification(input: ResendVerificationInput): Promise<void> {
+    await this.withFloor(async () => {
+      const token = generateOneTimeToken();
+      const owner = await resendVerification(this.db, {
+        email: input.email,
+        tokenHash: hashOneTimeToken(token),
+        ttlSeconds: VERIFICATION_TTL_SECONDS,
+      });
+      if (owner !== null) {
+        this.mail.sendLater('verification', () => this.mailer.sendVerification(input.email, token));
+      }
+    });
   }
 
   async requestPasswordReset(input: RequestPasswordResetInput): Promise<void> {

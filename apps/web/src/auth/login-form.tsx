@@ -112,6 +112,15 @@ export function LoginForm({ next }: LoginFormProps) {
         error={message('password')}
         {...register('password')}
       />
+      <p className="-mt-2 text-sm">
+        <Link
+          href="/auth/forgot"
+          className="inline-flex min-h-11 items-center font-semibold text-oz-text underline"
+          data-testid="login-forgot"
+        >
+          {t('auth.login.forgot')}
+        </Link>
+      </p>
       <Button type="submit" loading={isSubmitting} data-testid="login-submit">
         {t('auth.login.submit')}
       </Button>

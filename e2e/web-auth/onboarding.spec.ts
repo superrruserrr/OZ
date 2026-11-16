@@ -84,6 +84,17 @@ test.describe('parcours d’inscription joueur (lot 1.7cb)', () => {
     // Inscription finalisée : le parcours n'est plus proposé.
     await page.goto('/onboarding/identite');
     await expect(page.getByTestId('onboarding-done')).toBeVisible();
+
+    // D-133 : la carte et son QR sont relus sur l'API, donc présents après un rechargement.
+    const OZ_ID = /OZ-CM-\d{2}-[0-9A-HJKMNP-TV-Z]{6}-[0-9A-HJKMNP-TV-Z]/;
+    await expect(page.getByTestId('onboarding-own-card')).toContainText(OZ_ID);
+    await page.reload();
+    await expect(page.getByTestId('onboarding-own-card')).toContainText(OZ_ID);
+    await expect(page.getByTestId('oz-id-qr')).toBeVisible();
+    await expect(page.getByTestId('badge-declared')).toHaveText('Déclaré');
+    await settle(page);
+    const own = await new AxeBuilder({ page }).withTags(WCAG_AA).analyze();
+    expect(own.violations.map((violation) => violation.id)).toEqual([]);
     expect(apiCalls).toEqual([]);
   });
 
