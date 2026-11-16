@@ -7,7 +7,7 @@ import { PlayerAvatar } from './player-avatar';
 vi.mock('server-only', () => ({}));
 vi.mock('next/headers', () => ({ cookies: () => Promise.resolve({ get: () => undefined }) }));
 
-const { criteriaQuery, parseCriteria, readPlayer, searchPlayers, SEARCH_POSITIONS } =
+const { criteriaQuery, parseCriteria, readOwnPlayer, readPlayer, searchPlayers, SEARCH_POSITIONS } =
   await import('./players-api');
 
 describe('critères de l’annuaire (lot 1.5dc)', () => {
@@ -34,6 +34,7 @@ describe('critères de l’annuaire (lot 1.5dc)', () => {
 
   it('sans session : aucun appel, lecture « non connecté »', async () => {
     expect((await searchPlayers({})).kind).toBe('unauthenticated');
+    expect((await readOwnPlayer()).kind).toBe('unauthenticated');
   });
 
   it('OZ ID hors format : jamais transmis à l’API', async () => {

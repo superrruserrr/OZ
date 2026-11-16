@@ -6,6 +6,9 @@ import {
   loginSchema,
   loginTwoFactorSchema,
   registerSchema,
+  requestPasswordResetSchema,
+  resendVerificationSchema,
+  resetPasswordSchema,
   twoFactorChallengeOutputSchema,
   verifyEmailSchema,
 } from '@oz/contracts';
@@ -132,6 +135,58 @@ export async function verifyEmail(token: unknown): Promise<AuthResult> {
   if (result.ok) return { ok: true };
   const mapped = fromApi(result, 'linkInvalid');
   return mapped.error === 'invalid' ? failure('linkInvalid') : mapped;
+}
+
+/** Nouveau lien de confirmation (lot 1.7cc) : même réponse que le compte existe ou non (CP-28). */
+export async function resendVerification(email: unknown): Promise<AuthResult> {
+  const parsed = resendVerificationSchema.safeParse({ email });
+  if (!parsed.success) return failure('invalid', zodFields(parsed.error.issues));
+  const result = await apiFetch('/auth/verify-email/resend', {
+    method: 'POST',
+    body: parsed.data,
+    client: await clientContext(),
+  });
+  return result.ok ? { ok: true } : fromApi(result, 'invalid');
+}
+
+/** Demande d'un lien de réinitialisation : même réponse que le compte existe ou non (CP-28). */
+export async function requestPasswordReset(email: unknown): Promise<AuthResult> {
+  const parsed = requestPasswordResetSchema.safeParse({ email });
+  if (!parsed.success) return failure('invalid', zodFields(parsed.error.issues));
+  const result = await apiFetch('/auth/password/forgot', {
+    method: 'POST',
+    body: parsed.data,
+    client: await clientContext(),
+  });
+  return result.ok ? { ok: true } : fromApi(result, 'invalid');
+}
+
+/**
+ * Nouveau mot de passe avec le jeton reçu par email. L'API ferme toutes les sessions du compte : les
+ * cookies de ce navigateur sont effacés aussi, l'utilisateur se reconnecte.
+ */
+export async function resetPassword(token: unknown, password: unknown): Promise<AuthResult> {
+  const parsed = resetPasswordSchema.safeParse({ token, password });
+  if (!parsed.success) {
+    const fields = zodFields(parsed.error.issues);
+    return 'token' in fields ? failure('linkInvalid') : failure('invalid', fields);
+  }
+  const result = await apiFetch('/auth/password/reset', {
+    method: 'POST',
+    body: parsed.data,
+    client: await clientContext(),
+  });
+  if (!result.ok) {
+    // Seul un refus du jeton lui-même dit « lien invalide » : une limite, une panne ou un autre
+    // refus ne doivent pas faire abandonner un lien encore valable.
+    const tokenRefused =
+      result.code === 'AUTH_TOKEN_INVALID' ||
+      (result.code === 'VALIDATION_FAILED' &&
+        result.details.some((detail) => detail.field === 'token'));
+    return tokenRefused ? failure('linkInvalid') : fromApi(result, 'unavailable');
+  }
+  writeCookies(await cookies(), clearedSessionCookies());
+  return { ok: true };
 }
 
 type LoginSuccess = { readonly next: string } | { readonly twoFactor: true };

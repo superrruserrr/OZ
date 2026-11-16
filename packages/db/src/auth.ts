@@ -97,6 +97,22 @@ export async function requestPasswordReset(
   return rows[0]?.id ?? null;
 }
 
+/**
+ * Remplace le jeton de confirmation d'un compte en attente (lot 1.7cc) ; renvoie le compte concerné,
+ * ou NULL (inconnu, déjà vérifié, suspendu : rien n'est révélé).
+ */
+export async function resendVerification(
+  db: AuthSqlClient,
+  input: { readonly email: string; readonly tokenHash: string; readonly ttlSeconds: number },
+): Promise<string | null> {
+  assertTokenHash(input.tokenHash);
+  assertTtl(input.ttlSeconds);
+  const rows = await db.$queryRaw<{ id: string | null }[]>`
+    SELECT oz_auth_resend_verification(${input.email}, ${input.tokenHash},
+      make_interval(secs => ${input.ttlSeconds}))::text AS id`;
+  return rows[0]?.id ?? null;
+}
+
 /** Consomme le jeton et remplace le mot de passe ; renvoie l'email du compte, ou NULL. */
 export async function resetPassword(
   db: AuthSqlClient,

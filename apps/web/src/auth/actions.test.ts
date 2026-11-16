@@ -14,8 +14,17 @@ vi.mock('next/headers', () => ({
     Promise.resolve(new Headers({ 'x-forwarded-for': '198.51.100.4', 'user-agent': 'Test' })),
 }));
 
-const { login, loginTwoFactor, logout, openSignupForm, registerAccount, verifyEmail } =
-  await import('./actions');
+const {
+  login,
+  loginTwoFactor,
+  logout,
+  openSignupForm,
+  registerAccount,
+  requestPasswordReset,
+  resendVerification,
+  resetPassword,
+  verifyEmail,
+} = await import('./actions');
 
 const fetchMock = vi.fn<typeof fetch>();
 const REFRESH = 'Q'.repeat(43);
@@ -114,6 +123,87 @@ describe('confirmation d’email', () => {
     fetchMock.mockResolvedValueOnce(reply(200, { status: 'verified' }));
     await expect(verifyEmail(CHALLENGE)).resolves.toEqual({ ok: true });
     expect(sentBody(1)).toEqual({ token: CHALLENGE });
+  });
+});
+
+describe('renvoi de l’email de confirmation (lot 1.7cc)', () => {
+  it('adresse invalide : refus sans appel', async () => {
+    const result = await resendVerification('pas-un-email');
+    expect(!result.ok && result.fields.email).toMatch(/^validation\./);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('relaie l’adresse seule et rend un succès neutre', async () => {
+    fetchMock.mockResolvedValue(reply(202, { status: 'accepted' }));
+    await expect(resendVerification('awa@example.test')).resolves.toEqual({ ok: true });
+    expect((fetchMock.mock.calls[0]?.[0] as URL).href).toBe(
+      'http://api.test/auth/verify-email/resend',
+    );
+    expect(sentBody()).toEqual({ email: 'awa@example.test' });
+    expect(sentHeaders().get('x-forwarded-for')).toBe('198.51.100.4');
+  });
+
+  it('limite de débit : délai rendu ; panne : indisponible', async () => {
+    const limited = reply(429, apiError('RATE_LIMITED'));
+    limited.headers.set('retry-after', '120');
+    fetchMock.mockResolvedValueOnce(limited);
+    const slow = await resendVerification('awa@example.test');
+    expect(slow).toMatchObject({ ok: false, error: 'retryLater', retryAfterSeconds: 120 });
+    fetchMock.mockRejectedValueOnce(new Error('ECONNREFUSED'));
+    expect(await resendVerification('awa@example.test')).toMatchObject({ error: 'unavailable' });
+  });
+});
+
+describe('mot de passe oublié (lot 1.7cc)', () => {
+  it('demande : adresse validée, succès neutre, jamais le message de l’API', async () => {
+    const invalid = await requestPasswordReset('x');
+    expect(!invalid.ok && invalid.fields.email).toMatch(/^validation\./);
+    expect(fetchMock).not.toHaveBeenCalled();
+    fetchMock.mockResolvedValue(reply(202, { status: 'accepted' }));
+    await expect(requestPasswordReset('awa@example.test')).resolves.toEqual({ ok: true });
+    expect((fetchMock.mock.calls[0]?.[0] as URL).href).toBe('http://api.test/auth/password/forgot');
+    expect(sentBody()).toEqual({ email: 'awa@example.test' });
+  });
+
+  it('nouveau mot de passe : jeton malformé ou mot de passe court refusés sans appel', async () => {
+    expect(await resetPassword('abc', PASSWORD)).toMatchObject({ ok: false, error: 'linkInvalid' });
+    const short = await resetPassword('T'.repeat(43), 'court');
+    expect(short).toMatchObject({ ok: false, error: 'invalid' });
+    expect(!short.ok && short.fields.password).toMatch(/^validation\.password\./);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('succès : cookies de session effacés ; lien refusé ou mot de passe compromis : clé dédiée', async () => {
+    jar.set('__Host-oz_refresh', { value: REFRESH });
+    fetchMock.mockResolvedValueOnce(reply(200, { status: 'reset' }));
+    await expect(resetPassword('T'.repeat(43), PASSWORD)).resolves.toEqual({ ok: true });
+    expect(sentBody()).toEqual({ token: 'T'.repeat(43), password: PASSWORD });
+    for (const name of ['__Host-oz_access', '__Host-oz_refresh', '__Host-oz_2fa']) {
+      expect(jar.get(name)).toMatchObject({ value: '', options: { maxAge: 0 } });
+    }
+    fetchMock.mockResolvedValueOnce(reply(400, apiError('AUTH_TOKEN_INVALID')));
+    expect(await resetPassword('T'.repeat(43), PASSWORD)).toMatchObject({ error: 'linkInvalid' });
+    fetchMock.mockResolvedValueOnce(
+      reply(
+        422,
+        apiError('AUTH_PASSWORD_BREACHED', [{ field: 'password', code: 'AUTH_PASSWORD_BREACHED' }]),
+      ),
+    );
+    const breached = await resetPassword('T'.repeat(43), PASSWORD);
+    expect(breached).toMatchObject({ ok: false, error: 'passwordBreached' });
+    expect(JSON.stringify(breached)).not.toContain('interne');
+    // Limite, panne ou refus imprévu : jamais « lien invalide », le lien reste utilisable.
+    fetchMock.mockResolvedValueOnce(reply(429, apiError('RATE_LIMITED')));
+    expect(await resetPassword('T'.repeat(43), PASSWORD)).toMatchObject({ error: 'retryLater' });
+    fetchMock.mockResolvedValueOnce(reply(403, apiError('ORIGIN_REFUSED')));
+    expect(await resetPassword('T'.repeat(43), PASSWORD)).toMatchObject({ error: 'unavailable' });
+    fetchMock.mockResolvedValueOnce(
+      reply(
+        422,
+        apiError('VALIDATION_FAILED', [{ field: 'token', code: 'validation.token.invalid' }]),
+      ),
+    );
+    expect(await resetPassword('T'.repeat(43), PASSWORD)).toMatchObject({ error: 'linkInvalid' });
   });
 });
 

@@ -10,6 +10,7 @@ import { Link } from '../i18n/navigation';
 import { registerAccount, type AuthFailure } from './actions';
 import { fieldMessageKey } from './field-message';
 import { FormError } from './form-error';
+import { ResendVerification } from './resend-verification';
 
 export interface SignupFormProps {
   /** Jeton du formulaire, obtenu par le serveur du site au rendu (D6 du lot 1.3ca). */
@@ -23,7 +24,7 @@ export interface SignupFormProps {
  */
 export function SignupForm({ formToken }: SignupFormProps) {
   const t = useTranslations();
-  const [sent, setSent] = useState(false);
+  const [sent, setSent] = useState<string | null>(null);
   const [failure, setFailure] = useState<AuthFailure | null>(null);
   const {
     register,
@@ -34,12 +35,16 @@ export function SignupForm({ formToken }: SignupFormProps) {
     defaultValues: { formToken, website: '' },
   });
 
-  if (sent) {
+  if (sent !== null) {
     return (
-      <div aria-live="polite">
-        <Callout title={t('auth.signup.sentTitle')} testId="signup-sent">
-          {t('auth.signup.sent')}
-        </Callout>
+      <div className="flex flex-col gap-6">
+        <div aria-live="polite">
+          <Callout title={t('auth.signup.sentTitle')} testId="signup-sent">
+            {t('auth.signup.sent')}
+          </Callout>
+        </div>
+        <p className="text-sm text-oz-text-muted">{t('auth.resend.lead')}</p>
+        <ResendVerification scope="signup" email={sent} />
       </div>
     );
   }
@@ -57,7 +62,7 @@ export function SignupForm({ formToken }: SignupFormProps) {
       onSubmit={(event) =>
         void handleSubmit(async (values) => {
           const result = await registerAccount(values);
-          if (result.ok) setSent(true);
+          if (result.ok) setSent(values.email);
           else setFailure(result);
         })(event)
       }

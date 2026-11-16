@@ -144,6 +144,51 @@ describe('POST /auth/verify-email', () => {
   });
 });
 
+describe('POST /auth/verify-email/resend (lot 1.7cc, D-132)', () => {
+  const SUBJECT = 'Confirmez votre adresse email';
+  const resend = (address: string) =>
+    request(server).post('/auth/verify-email/resend').send({ email: address });
+  const confirmations = async (address: string): Promise<number> =>
+    (await harness.subjectsTo(address)).filter((subject) => subject === SUBJECT).length;
+
+  it('compte en attente : nouveau lien envoyé, l’ancien ne marche plus', async () => {
+    const { address, token: first } = await registerAndToken();
+    const response = await resend(` ${address.toUpperCase()} `).expect(202);
+    expect(response.body).toEqual({ status: 'accepted' });
+    await expect.poll(() => confirmations(address), { timeout: 20_000 }).toBe(2);
+    const second = tokenIn(await harness.mailTo(address, SUBJECT));
+    expect(second).not.toBe(first);
+    const stale = await request(server).post('/auth/verify-email').send({ token: first });
+    expect(stale.status).toBe(400);
+    await request(server).post('/auth/verify-email').send({ token: second }).expect(200);
+    expect((await userOf(address))?.status).toBe('active');
+  });
+
+  it('compte déjà vérifié ou inconnu : même réponse, aucun email (EX-103 n° 10)', async () => {
+    const { address, token } = await registerAndToken();
+    await request(server).post('/auth/verify-email').send({ token }).expect(200);
+    const unknown = email();
+    for (const target of [address, unknown]) {
+      expect((await resend(target).expect(202)).body).toEqual({ status: 'accepted' });
+    }
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    expect(await confirmations(address)).toBe(1);
+    expect(await harness.subjectsTo(unknown)).toEqual([]);
+  });
+
+  it('corps invalide : 422 ; journal sans adresse ni jeton', async () => {
+    await request(server).post('/auth/verify-email/resend').send({}).expect(422);
+    await resend('pas-une-adresse').expect(422);
+    const { address } = await registerAndToken();
+    await resend(address).expect(202);
+    await expect.poll(() => confirmations(address), { timeout: 20_000 }).toBe(2);
+    const token = tokenIn(await harness.mailTo(address, SUBJECT));
+    const logged = harness.logs.raw();
+    expect(logged).not.toContain(address);
+    expect(logged).not.toContain(token);
+  });
+});
+
 describe('réinitialisation du mot de passe', () => {
   it('même réponse pour un compte inconnu, sans email envoyé', async () => {
     const address = email();
@@ -255,6 +300,7 @@ describe('drapeau FEATURE_AUTH (R13)', () => {
       for (const path of [
         '/auth/register',
         '/auth/verify-email',
+        '/auth/verify-email/resend',
         '/auth/password/forgot',
         '/auth/password/reset',
         '/auth/login',

@@ -21,6 +21,8 @@ export const RATE_LIMIT_RULES = [
   'forgot_ip',
   'forgot_email',
   'verify_email_ip',
+  'resend_verification_ip',
+  'resend_verification_email',
   'reset_ip',
   'refresh_ip',
   'new_device_email',
@@ -72,6 +74,9 @@ export const RATE_LIMIT_DEFAULTS: RateLimits = Object.freeze({
   forgot_ip: { limit: 3, windowSeconds: HOUR },
   forgot_email: { limit: 1, windowSeconds: 15 * 60 },
   verify_email_ip: { limit: 10, windowSeconds: HOUR },
+  // Renvoi de l'email de confirmation (lot 1.7cc) : mêmes seuils que le mot de passe oublié.
+  resend_verification_ip: { limit: 3, windowSeconds: HOUR },
+  resend_verification_email: { limit: 1, windowSeconds: 15 * 60 },
   reset_ip: { limit: 10, windowSeconds: HOUR },
   refresh_ip: { limit: 60, windowSeconds: 60 },
   new_device_email: { limit: 3, windowSeconds: 24 * HOUR },

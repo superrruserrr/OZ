@@ -364,7 +364,9 @@
       "signup": "Créer un compte joueur",
       "login": "Se connecter",
       "verify": "Confirmer l’adresse email",
-      "onboarding": "Inscription joueur"
+      "onboarding": "Inscription joueur",
+      "forgot": "Mot de passe oublié",
+      "reset": "Nouveau mot de passe"
     },
     "layout": {
       "skip": "Aller au contenu",
@@ -430,7 +432,8 @@
       "done": "Votre adresse est confirmée. Connectez-vous pour compléter votre inscription.",
       "invalid": "Ce lien n’est plus valable. Il a peut-être déjà servi ou expiré.",
       "missing": "Ouvrez le lien reçu par email pour confirmer votre adresse.",
-      "login": "Se connecter"
+      "login": "Se connecter",
+      "retry": "Trop de tentatives. Rouvrez le lien reçu par email dans quelques minutes."
     },
     "login": {
       "title": "Se connecter",
@@ -444,7 +447,8 @@
       "codeLabel": "Code de connexion",
       "digit": "Chiffre {position} sur {total}",
       "codeSubmit": "Valider",
-      "back": "Revenir à la connexion"
+      "back": "Revenir à la connexion",
+      "forgot": "Mot de passe oublié ?"
     },
     "onboarding": {
       "logout": "Se déconnecter"
@@ -459,6 +463,33 @@
       "codeInvalid": "Code incorrect ou expiré.",
       "invalid": "Vérifiez les champs signalés.",
       "unavailable": "Service momentanément indisponible. Réessayez dans quelques minutes."
+    },
+    "resend": {
+      "lead": "Rien reçu ? Vérifiez vos courriers indésirables, ou demandez un nouvel email.",
+      "leadInvalid": "Saisissez votre adresse pour recevoir un nouveau lien de confirmation.",
+      "email": "Email",
+      "submit": "Renvoyer l’email",
+      "done": "Si cette adresse attend une confirmation, un nouvel email vient d’y être envoyé. Le lien précédent ne fonctionne plus."
+    },
+    "forgot": {
+      "title": "Mot de passe oublié",
+      "lead": "Saisissez l’adresse de votre compte : vous recevrez un lien pour choisir un nouveau mot de passe.",
+      "email": "Email",
+      "submit": "Recevoir le lien",
+      "sentTitle": "Vérifiez votre boîte mail",
+      "sent": "Si un compte existe pour cette adresse, un email vient d’y être envoyé. Le lien qu’il contient reste valable peu de temps.",
+      "back": "Revenir à la connexion"
+    },
+    "reset": {
+      "title": "Nouveau mot de passe",
+      "lead": "Choisissez un nouveau mot de passe. Vous serez déconnecté de tous vos appareils.",
+      "reading": "Lecture du lien…",
+      "password": "Nouveau mot de passe",
+      "submit": "Enregistrer le mot de passe",
+      "done": "Votre mot de passe est modifié. Connectez-vous avec le nouveau.",
+      "invalid": "Ce lien n’est plus valable. Il a peut-être déjà servi ou expiré.",
+      "login": "Se connecter",
+      "again": "Demander un nouveau lien"
     }
   },
   "onboarding": {
@@ -550,11 +581,14 @@
       "declared": "Déclaré",
       "declaredHint": "Profil déclaré : il sera vérifié par un club, une académie ou OZ.",
       "completeness": "Profil complété à {value} %",
-      "finish": "Terminer"
+      "finish": "Terminer",
+      "qrAlt": "QR code de votre profil OZ",
+      "seeProfile": "Voir ma fiche"
     },
     "done": {
       "title": "Votre profil joueur est créé",
-      "lead": "Votre espace joueur arrive bientôt."
+      "cardUnavailable": "Votre carte OZ ID ne peut pas être affichée pour le moment. Rechargez la page dans quelques minutes.",
+      "cardMissing": "Aucune carte OZ ID n’est disponible pour ce compte."
     },
     "unavailable": {
       "title": "Service momentanément indisponible",

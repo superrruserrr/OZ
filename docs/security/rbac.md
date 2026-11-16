@@ -196,6 +196,7 @@ Les pages `/docs`, `/docs-json` et `/docs-yaml` (Swagger) sont servies hors cont
 | GET     | /auth/register/form            | public                   |
 | POST    | /auth/register                 | public                   |
 | POST    | /auth/verify-email             | public                   |
+| POST    | /auth/verify-email/resend      | public                   |
 | POST    | /auth/password/forgot          | public                   |
 | POST    | /auth/password/reset           | public                   |
 | POST    | /auth/login                    | public                   |

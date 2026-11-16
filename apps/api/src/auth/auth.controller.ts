@@ -14,11 +14,13 @@ import {
   formTokenOutputSchema,
   registerSchema,
   requestPasswordResetSchema,
+  resendVerificationSchema,
   resetPasswordSchema,
   verifyEmailSchema,
   type FormTokenOutput,
   type RegisterInput,
   type RequestPasswordResetInput,
+  type ResendVerificationInput,
   type ResetPasswordInput,
   type VerifyEmailInput,
 } from '@oz/contracts';
@@ -95,6 +97,26 @@ export class AuthController {
   ): Promise<{ status: 'verified' }> {
     await this.auth.verifyEmail(input);
     return { status: 'verified' };
+  }
+
+  @Post('verify-email/resend')
+  @HttpCode(202)
+  @RateLimit([
+    { rule: 'resend_verification_ip', by: 'ip' },
+    { rule: 'resend_verification_email', by: 'email' },
+  ])
+  @ApiOperation({
+    summary: 'Renvoyer l’email de confirmation',
+    description:
+      'Un compte en attente reçoit un nouveau lien, le précédent cesse de fonctionner. Même réponse pour un compte inconnu ou déjà vérifié : rien n’est envoyé.',
+  })
+  @ApiBody({ schema: openApiBodySchema(resendVerificationSchema) })
+  @ApiAcceptedResponse({ description: 'Demande prise en compte', ...status('accepted') })
+  async resendVerification(
+    @ValidatedBody(resendVerificationSchema) input: ResendVerificationInput,
+  ): Promise<{ status: 'accepted' }> {
+    await this.auth.resendVerification(input);
+    return { status: 'accepted' };
   }
 
   @Post('password/forgot')
