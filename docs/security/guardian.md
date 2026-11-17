@@ -87,7 +87,8 @@ dépôt en cours ; une fiche sans compte revient à `declared`.
 
 - **Textes (R6).** `consent_texts` garde chaque version, immuable, avec son empreinte SHA-256
   calculée par la base. Version 1 **provisoire** (`v1-provisoire`), rédigée par l'équipe technique,
-  à faire valider par le porteur du projet puis par un juriste (Q7, dette D-135). Deux textes :
+  validée pour la recette par le porteur du projet le 2026-11-17 (C1), à relire par un juriste avant
+  la production (Q7, dette D-135). Deux textes :
   traitement des données (`guardian_data_processing`) et publication de la fiche
   (`guardian_profile_publication`). Lecture : `GET /consent-texts/:type/current`.
 - **Consentir.** `POST /guardians/me/children/:ozId/consents`, tuteur au lien approuvé, ré-authentifié.
