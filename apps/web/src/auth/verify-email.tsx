@@ -14,7 +14,7 @@ type State = 'pending' | 'done' | 'invalid' | 'missing' | 'unavailable' | 'retry
  * fragment : jamais envoyé au serveur avec l'URL, ni dans un `Referer`. Il est lu puis retiré de
  * l'historique avant l'appel ; un rechargement ne le rejoue donc pas.
  */
-export function VerifyEmail() {
+export function VerifyEmail({ next = '/onboarding' }: { readonly next?: string }) {
   const t = useTranslations('auth');
   const [state, setState] = useState<State>('pending');
   const started = useRef(false);
@@ -64,10 +64,7 @@ export function VerifyEmail() {
       <Callout testId={`verify-${state}`}>{text}</Callout>
       {state === 'done' || state === 'missing' ? (
         <Button asChild>
-          <Link
-            href={{ pathname: '/auth/login', query: { next: '/onboarding' } }}
-            data-testid="verify-login"
-          >
+          <Link href={{ pathname: '/auth/login', query: { next } }} data-testid="verify-login">
             {t('verify.login')}
           </Link>
         </Button>

@@ -230,6 +230,7 @@ Les pages `/docs`, `/docs-json` et `/docs-yaml` (Swagger) sont servies hors cont
 | DELETE  | /guardians/me/children/:ozId/consents/:type | authenticated            |
 | GET     | /admin/guardian-links                       | `kyc.decide`             |
 | POST    | /admin/guardian-links/:id/decision          | `kyc.decide`             |
+| POST    | /admin/guardian-links/:id/revocation        | `kyc.decide`             |
 | GET     | /players/signup                             | authenticated            |
 | PUT     | /players/signup/:step                       | authenticated            |
 | POST    | /players/signup/complete                    | authenticated            |

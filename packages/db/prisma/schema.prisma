@@ -152,6 +152,7 @@ model User {
   guardianInvitationsAccepted  GuardianInvitation[]     @relation("GuardianInvitationAcceptedBy")
   guardianLinkReviewsSubmitted GuardianLinkReview[]     @relation("GuardianLinkReviewSubmittedBy")
   guardianLinkReviewsDecided   GuardianLinkReview[]     @relation("GuardianLinkReviewDecidedBy")
+  guardianLinkReviewsRevoked   GuardianLinkReview[]     @relation("GuardianLinkReviewRevokedBy")
 
   rolesCreated         UserRole[]     @relation("UserRoleCreatedBy")
   rolesUpdated         UserRole[]     @relation("UserRoleUpdatedBy")
@@ -946,8 +947,19 @@ enum GuardianLinkReviewStatus {
   approved
   rejected
   withdrawn
+  revoked
 
   @@map("guardian_link_review_status")
+}
+
+/// Motif du retrait d'un lien approuvé par erreur (lot 1.7bc, décision C6) : liste fermée.
+enum GuardianLinkRevocationReason {
+  approved_in_error
+  suspected_fraud
+  child_request
+  other
+
+  @@map("guardian_link_revocation_reason")
 }
 
 enum GuardianLinkRejectionReason {
@@ -963,22 +975,26 @@ enum GuardianLinkRejectionReason {
 /// Dépôt du justificatif de lien (lot 1.7bb) par le compte d'un rattachement en attente, puis
 /// décision d'un administrateur. Écrit par les fonctions oz_guardian_link_* seulement (RLS forcée).
 model GuardianLinkReview {
-  id              String                       @id @default(dbgenerated("oz_uuid_v7()")) @db.Uuid
-  invitationId    String                       @map("invitation_id") @db.Uuid
-  guardianId      String                       @map("guardian_id") @db.Uuid
-  playerId        String                       @map("player_id") @db.Uuid
-  submittedBy     String                       @map("submitted_by") @db.Uuid
-  status          GuardianLinkReviewStatus     @default(submitted)
-  rejectionReason GuardianLinkRejectionReason? @map("rejection_reason")
-  decidedBy       String?                      @map("decided_by") @db.Uuid
-  decidedAt       DateTime?                    @map("decided_at") @db.Timestamptz(6)
-  createdAt       DateTime                     @default(now()) @map("created_at") @db.Timestamptz(6)
+  id               String                        @id @default(dbgenerated("oz_uuid_v7()")) @db.Uuid
+  invitationId     String                        @map("invitation_id") @db.Uuid
+  guardianId       String                        @map("guardian_id") @db.Uuid
+  playerId         String                        @map("player_id") @db.Uuid
+  submittedBy      String                        @map("submitted_by") @db.Uuid
+  status           GuardianLinkReviewStatus      @default(submitted)
+  rejectionReason  GuardianLinkRejectionReason?  @map("rejection_reason")
+  decidedBy        String?                       @map("decided_by") @db.Uuid
+  decidedAt        DateTime?                     @map("decided_at") @db.Timestamptz(6)
+  createdAt        DateTime                      @default(now()) @map("created_at") @db.Timestamptz(6)
+  revocationReason GuardianLinkRevocationReason? @map("revocation_reason")
+  revokedBy        String?                       @map("revoked_by") @db.Uuid
+  revokedAt        DateTime?                     @map("revoked_at") @db.Timestamptz(6)
 
   invitation      GuardianInvitation           @relation(fields: [invitationId], references: [id], onDelete: Cascade)
   guardian        Guardian                     @relation(fields: [guardianId], references: [id], onDelete: Cascade)
   player          Player                       @relation(fields: [playerId], references: [id], onDelete: Cascade)
   submittedByUser User                         @relation("GuardianLinkReviewSubmittedBy", fields: [submittedBy], references: [id], onDelete: Cascade)
   decidedByUser   User?                        @relation("GuardianLinkReviewDecidedBy", fields: [decidedBy], references: [id], onDelete: SetNull)
+  revokedByUser   User?                        @relation("GuardianLinkReviewRevokedBy", fields: [revokedBy], references: [id], onDelete: SetNull)
   documents       GuardianLinkReviewDocument[]
 
   @@index([invitationId])

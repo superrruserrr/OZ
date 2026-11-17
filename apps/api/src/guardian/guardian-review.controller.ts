@@ -19,11 +19,15 @@ import {
   guardianLinkQueueOutputSchema,
   guardianLinkQueueQuerySchema,
   guardianLinkReviewParamsSchema,
+  guardianLinkRevocationOutputSchema,
+  guardianLinkRevocationSchema,
   type GuardianLinkDecisionInput,
   type GuardianLinkDecisionOutput,
   type GuardianLinkQueueOutput,
   type GuardianLinkQueueQueryOutput,
   type GuardianLinkReviewParamsInput,
+  type GuardianLinkRevocationInput,
+  type GuardianLinkRevocationOutput,
 } from '@oz/contracts';
 import { CurrentActor } from '../authorization/actor.decorator.js';
 import { Can } from '../authorization/decorators.js';
@@ -90,5 +94,30 @@ export class GuardianReviewController {
     @ValidatedBody(guardianLinkDecisionSchema) input: GuardianLinkDecisionInput,
   ): Promise<GuardianLinkDecisionOutput> {
     return this.guardians.decideLink(actor, params.id, input);
+  }
+
+  @Post(':id/revocation')
+  @HttpCode(200)
+  @Header('Cache-Control', 'no-store')
+  @ApiOperation({
+    summary: 'Retirer un lien de tuteur approuvé par erreur (C6)',
+    description:
+      'Ré-authentification par mot de passe et code ; motif d’une liste fermée, journalisé. Le compte est retiré de la fiche tuteur (`declared`), les accords donnés pour l’enfant sont révoqués (dépublication immédiate), l’invitation est annulée (l’enfant peut réinviter) et le rôle tuteur retiré s’il ne sert plus. Avis par email au tuteur, sans motif.',
+  })
+  @ApiBody({ schema: openApiBodySchema(guardianLinkRevocationSchema) })
+  @ApiOkResponse({ schema: openApiBodySchema(guardianLinkRevocationOutputSchema) })
+  @ApiNotFoundResponse({ type: ApiErrorDto, description: 'Dépôt inconnu' })
+  @ApiConflictResponse({
+    type: ApiErrorDto,
+    description: 'Dépôt non approuvé, ou lien déjà retiré ou tombé',
+  })
+  @ApiUnprocessableEntityResponse({ type: ApiErrorDto, description: 'Corps invalide' })
+  revoke(
+    @CurrentActor() actor: Actor,
+    @Param(new ZodValidationPipe(guardianLinkReviewParamsSchema))
+    params: GuardianLinkReviewParamsInput,
+    @ValidatedBody(guardianLinkRevocationSchema) input: GuardianLinkRevocationInput,
+  ): Promise<GuardianLinkRevocationOutput> {
+    return this.guardians.revokeLink(actor, params.id, input);
   }
 }

@@ -1,7 +1,7 @@
 # OZ — Où en est le projet ?
 
 > Check-list tenue à jour à la fin de chaque étape, à transmettre telle quelle à Fabrice Olinga.
-> **Dernière mise à jour : 17 novembre 2026** — étape : 1.7bb Tuteur légal, justificatif et accord.
+> **Dernière mise à jour : 17 novembre 2026** — étape : 1.7bc Tuteur légal, écrans et retrait du lien.
 
 Légende : ✅ fait et vérifié · 🟡 en cours · ⬜ à faire · ⏸️ bloqué en attente d'une décision
 
@@ -31,30 +31,30 @@ la vérification d'identité, qui attend deux décisions (§ « Ce qui bloque »
 
 ## Phase 1 — Première version ouverte au public (20 étapes)
 
-| Étape                                                    | État | Ce que ça veut dire pour le produit                                                                    |
-| -------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------ |
-| 1.1 Modèle des données (joueurs, tuteurs, organisations) | ✅   | Toutes les fiches sont prévues, les données d'identité chiffrées                                       |
-| 1.2 Identifiant OZ ID                                    | ✅   | Chaque joueur reçoit un identifiant unique, à vie, infalsifiable                                       |
-| 1.3 Connexion et sécurité des comptes                    | ✅   | Mot de passe, double authentification, sessions sécurisées                                             |
-| 1.4 Rôles et droits                                      | ✅   | Chacun ne voit que ce qu'il a le droit de voir (règles de l'Annexe B)                                  |
-| 1.5 Charte graphique complète et écrans de base          | 🟡   | Bases faites ; refonte « sport » sombre en cours (briques faites, thème lime puis pages à venir)       |
-| 1.6 Site public et pages légales                         | ✅   | Accueil, 7 pages profils, tarifs, à propos, contact, textes légaux provisoires ; testé 320 px          |
-| 1.7 Inscription joueur                                   | ✅   | Compte, identité, sport, tuteur et OZ ID à l'écran ; email renvoyé, mot de passe oublié, carte avec QR |
-| 1.7b Tuteur légal (mineurs)                              | 🟡   | Invitation, justificatif revu par OZ, accord révocable (serveur) ; restent les écrans                  |
-| 1.8 Inscription organisation (académie, club…)           | ⬜   | Après 1.5                                                                                              |
-| 1.9 Coffre des documents d'identité                      | ✅   | Dépôt sécurisé, antivirus, lecture 5 minutes, effacement automatique                                   |
-| 1.10 Vérification d'identité (badge « Profil vérifié »)  | ⏸️   | Attend l'analyse d'impact validée et le choix du prestataire                                           |
-| 1.10b Vérification des recruteurs et organisations       | ⏸️   | Attend l'étape 1.10 (Q2 tranchée : incluse)                                                            |
-| 1.11 Back-office d'administration                        | ⬜   | Après 1.10                                                                                             |
-| 1.12 Import de joueurs en masse                          | ⬜   | Après 1.7                                                                                              |
-| 1.13 Profil joueur public                                | 🟡   | 1.13a et 1.13b faits (fiche, QR, carte, PDF) ; restent les écrans                                      |
-| 1.14 Recherche                                           | 🟡   | 1.14a et 1.14b faites côté serveur (recherche, sauvegarde, CSV) ; restent les écrans (1.13c)           |
-| 1.15 Notifications et emails                             | ⬜   | Après 1.7                                                                                              |
-| 1.16 Journal et conformité données (RGPD)                | ✅   | Journal, export, suppression (aussi par le tuteur), registre RGPD                                      |
-| 1.17 Tests de charge et recette                          | ⬜   | Fin de phase                                                                                           |
-| 1.18 Mise en production                                  | ⬜   | Fin de phase                                                                                           |
+| Étape                                                    | État | Ce que ça veut dire pour le produit                                                                         |
+| -------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------- |
+| 1.1 Modèle des données (joueurs, tuteurs, organisations) | ✅   | Toutes les fiches sont prévues, les données d'identité chiffrées                                            |
+| 1.2 Identifiant OZ ID                                    | ✅   | Chaque joueur reçoit un identifiant unique, à vie, infalsifiable                                            |
+| 1.3 Connexion et sécurité des comptes                    | ✅   | Mot de passe, double authentification, sessions sécurisées                                                  |
+| 1.4 Rôles et droits                                      | ✅   | Chacun ne voit que ce qu'il a le droit de voir (règles de l'Annexe B)                                       |
+| 1.5 Charte graphique complète et écrans de base          | 🟡   | Bases faites ; refonte « sport » sombre en cours (briques faites, thème lime puis pages à venir)            |
+| 1.6 Site public et pages légales                         | ✅   | Accueil, 7 pages profils, tarifs, à propos, contact, textes légaux provisoires ; testé 320 px               |
+| 1.7 Inscription joueur                                   | ✅   | Compte, identité, sport, tuteur et OZ ID à l'écran ; email renvoyé, mot de passe oublié, carte avec QR      |
+| 1.7b Tuteur légal (mineurs)                              | ✅   | Invitation, justificatif, accord et retrait, à l'écran ; fiche non publiée avant la vérification d'identité |
+| 1.8 Inscription organisation (académie, club…)           | ⬜   | Après 1.5                                                                                                   |
+| 1.9 Coffre des documents d'identité                      | ✅   | Dépôt sécurisé, antivirus, lecture 5 minutes, effacement automatique                                        |
+| 1.10 Vérification d'identité (badge « Profil vérifié »)  | ⏸️   | Attend l'analyse d'impact validée et le choix du prestataire                                                |
+| 1.10b Vérification des recruteurs et organisations       | ⏸️   | Attend l'étape 1.10 (Q2 tranchée : incluse)                                                                 |
+| 1.11 Back-office d'administration                        | ⬜   | Après 1.10                                                                                                  |
+| 1.12 Import de joueurs en masse                          | ⬜   | Après 1.7                                                                                                   |
+| 1.13 Profil joueur public                                | 🟡   | 1.13a et 1.13b faits (fiche, QR, carte, PDF) ; restent les écrans                                           |
+| 1.14 Recherche                                           | 🟡   | 1.14a et 1.14b faites côté serveur (recherche, sauvegarde, CSV) ; restent les écrans (1.13c)                |
+| 1.15 Notifications et emails                             | ⬜   | Après 1.7                                                                                                   |
+| 1.16 Journal et conformité données (RGPD)                | ✅   | Journal, export, suppression (aussi par le tuteur), registre RGPD                                           |
+| 1.17 Tests de charge et recette                          | ⬜   | Fin de phase                                                                                                |
+| 1.18 Mise en production                                  | ⬜   | Fin de phase                                                                                                |
 
-**Bilan Phase 1 : 9 étapes sur 20 terminées, 3 en cours (1.7b : 2 parties sur 3 ; 1.13 : 2 parties sur 3 ; 1.14 : serveur fait, écrans en 1.13c).**
+**Bilan Phase 1 : 10 étapes sur 20 terminées, 2 en cours (1.13 : 2 parties sur 3 ; 1.14 : serveur fait, écrans en 1.13c).**
 
 ### Étape 1.5 en détail
 
@@ -165,3 +165,4 @@ Conformité (données, mineurs, identité) : check-list et décisions C1 à C9 (
 | 2026-11-11 | 1.7cc Email renvoyé, mot de passe oublié, carte OZ ID avec QR |
 | 2026-11-16 | 1.7ba Tuteur légal : invitation et compte (1.7b en cours)     |
 | 2026-11-17 | 1.7bb Tuteur légal : justificatif et accord (1.7b en cours)   |
+| 2026-11-17 | 1.7bc Tuteur légal : écrans et retrait du lien (1.7b ✅)      |

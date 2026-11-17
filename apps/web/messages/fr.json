@@ -366,7 +366,8 @@
       "verify": "Confirmer l’adresse email",
       "onboarding": "Inscription joueur",
       "forgot": "Mot de passe oublié",
-      "reset": "Nouveau mot de passe"
+      "reset": "Nouveau mot de passe",
+      "guardian": "Espace tuteur"
     },
     "layout": {
       "skip": "Aller au contenu",
@@ -691,6 +692,132 @@
         "summary": "Identifiant unique, jamais réattribué",
         "note": "Le statut en ligne fait foi."
       }
+    }
+  },
+  "guardian": {
+    "invite": {
+      "title": "Inviter mon tuteur légal",
+      "lead": "Ta fiche ne sera visible d’aucune organisation tant que ton parent ou tuteur légal n’aura pas donné son accord et fait vérifier son identité.",
+      "send": "Envoyer l’invitation",
+      "resend": "Envoyer une nouvelle invitation",
+      "resendHint": "Une nouvelle invitation annule la précédente, même si elle a déjà été acceptée.",
+      "emailSent": "Un lien a été envoyé à l’adresse email de ton tuteur. Il est valable 7 jours.",
+      "linkTitle": "Transmets ce lien à ton tuteur",
+      "linkLead": "Ton tuteur n’a pas donné d’adresse email : envoie-lui ce lien toi-même (SMS, WhatsApp). Il est valable 7 jours et ne sera plus affiché ensuite.",
+      "linkLabel": "Lien d’invitation",
+      "copy": "Copier le lien",
+      "copied": "Lien copié",
+      "back": "Retour à ma carte OZ ID",
+      "entry": "Inviter mon tuteur légal"
+    },
+    "invitation": {
+      "title": "Invitation de tuteur légal",
+      "loading": "Lecture de l’invitation…",
+      "lead": "{firstName} vous a désigné comme {relationship} sur OZ, la plateforme d’identité des joueurs de football.",
+      "explain": "Accepter ne publie rien : la fiche d’un joueur mineur reste invisible tant que vous n’avez pas justifié votre lien, donné votre accord et fait vérifier votre identité.",
+      "accept": "Accepter l’invitation",
+      "signedOutLead": "Pour accepter, connectez-vous ou créez votre compte de tuteur. L’invitation reste en attente 30 minutes sur cet appareil.",
+      "login": "J’ai déjà un compte",
+      "signup": "Créer mon compte de tuteur",
+      "invalid": "Cette invitation n’est plus valable : elle a peut-être déjà servi, expiré ou été remplacée. Demandez à l’enfant de vous en envoyer une nouvelle.",
+      "missing": "Ouvrez le lien reçu pour afficher l’invitation.",
+      "accepted": "Invitation acceptée. Ouverture de votre espace tuteur…",
+      "relationships": {
+        "mother": "sa mère",
+        "father": "son père",
+        "legalGuardian": "son tuteur légal",
+        "other": "son responsable légal"
+      }
+    },
+    "signup": {
+      "title": "Créer mon compte de tuteur",
+      "lead": "Un compte pour accompagner un ou plusieurs joueurs mineurs. Le lien avec chaque enfant passe toujours par une invitation envoyée depuis son compte."
+    },
+    "space": {
+      "title": "Mon espace tuteur",
+      "lead": "Les joueurs mineurs qui vous ont invité, et l’étape suivante pour chacun.",
+      "empty": "Aucun enfant rattaché pour l’instant. Le rattachement se fait toujours par une invitation envoyée depuis le compte du joueur mineur.",
+      "unavailable": "Votre espace ne peut pas être affiché pour le moment. Rechargez la page dans quelques minutes.",
+      "kycNotice": "La fiche ne sera publiée qu’après la vérification de votre identité par OZ.",
+      "published": "Fiche visible des organisations vérifiées",
+      "unpublished": "Fiche non publiée",
+      "ozId": "OZ ID : {ozId}",
+      "consents": "Accords actifs : {count, plural, =0 {aucun} one {#} other {#}}",
+      "status": {
+        "awaitingDocuments": "Justificatif à déposer",
+        "submitted": "Justificatif en revue par OZ",
+        "rejected": "Justificatif refusé : déposez-en un nouveau",
+        "approved": "Lien validé par OZ"
+      },
+      "deposit": "Déposer le justificatif",
+      "consent": "Gérer mes accords"
+    },
+    "link": {
+      "title": "Justificatif de lien",
+      "lead": "Déposez 1 à 3 pièces qui prouvent votre lien avec {firstName}. Un membre d’OZ les vérifie ; elles sont conservées 6 mois après la décision.",
+      "orderHint": "Si vous n’êtes ni la mère ni le père, joignez le jugement de tutelle.",
+      "type": "Type de pièce",
+      "types": {
+        "birthCertificate": "Acte de naissance ou livret de famille",
+        "guardianshipOrder": "Jugement de tutelle"
+      },
+      "file": "Fichier (PDF, JPEG, PNG ou WebP, 10 Mo au plus)",
+      "add": "Ajouter la pièce",
+      "pieces": "Pièces ajoutées",
+      "none": "Aucune pièce ajoutée.",
+      "submit": "Envoyer pour vérification",
+      "scanning": "Les pièces sont analysées avant la revue ; si l’envoi est refusé, réessayez dans une minute.",
+      "sent": "Justificatif envoyé. OZ vous écrira dès qu’il aura été vérifié.",
+      "notReady": "Cette étape n’est pas disponible pour cet enfant.",
+      "back": "Retour à mon espace",
+      "piece": "{type} : {name}"
+    },
+    "consent": {
+      "title": "Mes accords pour {firstName}",
+      "lead": "Lisez chaque texte. Vous pouvez retirer un accord à tout moment : l’effet est immédiat.",
+      "kycNotice": "Votre accord est enregistré, mais la fiche reste non publiée tant qu’OZ n’a pas vérifié votre identité.",
+      "version": "Version {version}",
+      "provisional": "Texte provisoire, en cours de relecture juridique.",
+      "active": "Accord donné",
+      "inactive": "Pas d’accord",
+      "agree": "J’ai lu ce texte et je donne mon accord",
+      "password": "Mot de passe",
+      "code": "Code de validation en deux étapes (si activée)",
+      "give": "Donner mon accord",
+      "revoke": "Retirer cet accord",
+      "revokeConfirm": "Retirer cet accord ? La fiche cessera aussitôt d’être visible des organisations.",
+      "revokeDataHint": "Retirer l’accord au traitement retire aussi l’autorisation de publication.",
+      "confirm": "Oui, retirer",
+      "cancel": "Annuler",
+      "requiresData": "Donnez d’abord votre accord au traitement des données.",
+      "granted": "Accord enregistré.",
+      "revoked": "Accord retiré.",
+      "unavailable": "Le texte ne peut pas être affiché pour le moment.",
+      "notReady": "Les accords s’ouvrent quand OZ a validé votre lien avec cet enfant.",
+      "types": {
+        "guardianDataProcessing": "Traitement des données",
+        "guardianProfilePublication": "Publication de la fiche"
+      }
+    },
+    "errors": {
+      "invalid": "Vérifiez les informations saisies.",
+      "retryLater": "Trop de tentatives. Réessayez dans quelques minutes.",
+      "unavailable": "Le service est momentanément indisponible. Réessayez dans quelques minutes.",
+      "session": "Votre session a expiré. Reconnectez-vous.",
+      "notApplicable": "L’invitation n’est pas possible pour ce compte : réservée à un joueur mineur dont le tuteur n’est pas encore rattaché.",
+      "invitationInvalid": "Cette invitation n’est plus valable. Demandez-en une nouvelle à l’enfant.",
+      "self": "Le compte du joueur ne peut pas être son propre tuteur.",
+      "refused": "Ce compte ne peut pas devenir tuteur.",
+      "alreadySubmitted": "Un justificatif est déjà en revue pour cet enfant.",
+      "invalidDocuments": "Les pièces ne peuvent pas encore être envoyées : elles sont peut-être en cours d’analyse. Réessayez dans une minute.",
+      "orderRequired": "Pour ce lien, le jugement de tutelle est obligatoire.",
+      "linkNotFound": "Ce rattachement n’existe plus.",
+      "reauth": "Mot de passe ou code incorrect.",
+      "textStale": "Le texte a changé : relisez la nouvelle version avant de donner votre accord.",
+      "requiresDataProcessing": "Donnez d’abord votre accord au traitement des données.",
+      "fileSize": "Le fichier dépasse 10 Mo ou est vide.",
+      "fileType": "Seuls les fichiers PDF, JPEG, PNG et WebP sont acceptés.",
+      "uploadFailed": "L’envoi du fichier a échoué. Réessayez."
     }
   }
 }

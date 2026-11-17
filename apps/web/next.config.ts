@@ -13,7 +13,13 @@ const config: NextConfig = {
   reactStrictMode: true,
   transpilePackages: ['@oz/ui', '@oz/contracts', '@oz/config'],
   // 404 rendue côté serveur malgré un layout racine dynamique ([locale]) : app/global-not-found.tsx.
-  experimental: { globalNotFound: true },
+  // Pièces du justificatif du tuteur relayées par une action serveur (lot 1.7bc, B1 et B2) :
+  // 10 Mo par pièce, plus l'enveloppe du formulaire.
+  experimental: {
+    globalNotFound: true,
+    serverActions: { bodySizeLimit: '11mb' },
+    proxyClientMaxBodySize: '11mb',
+  },
   // Fichiers statiques compris : la CSP avec nonce est posée par src/proxy.ts sur les pages.
   headers: () =>
     Promise.resolve([

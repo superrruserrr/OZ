@@ -17,6 +17,13 @@ export const CHALLENGE_COOKIE = '__Host-oz_2fa';
 export const RETRY_COOKIE = '__Host-oz_retry';
 export const RETRY_MAX_AGE = 30;
 
+/**
+ * Jeton d'invitation du tuteur (lot 1.7bc, B4), gardé le temps de se connecter ou de créer son
+ * compte : jamais lisible par le JavaScript de la page, effacé à l'acceptation.
+ */
+export const GUARDIAN_INVITE_COOKIE = '__Host-oz_guardian_invite';
+export const GUARDIAN_INVITE_MAX_AGE = 30 * 60;
+
 /** Défi du second facteur (300 s côté API). */
 export const CHALLENGE_MAX_AGE = 300;
 

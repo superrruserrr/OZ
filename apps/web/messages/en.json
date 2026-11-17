@@ -366,7 +366,8 @@
       "verify": "Confirm your email address",
       "onboarding": "Player sign-up",
       "forgot": "Forgot password",
-      "reset": "New password"
+      "reset": "New password",
+      "guardian": "Guardian space"
     },
     "layout": {
       "skip": "Skip to content",
@@ -691,6 +692,132 @@
         "summary": "Unique identifier, never reassigned",
         "note": "The online status is authoritative."
       }
+    }
+  },
+  "guardian": {
+    "invite": {
+      "title": "Invite my legal guardian",
+      "lead": "Your profile stays hidden from every organisation until your parent or legal guardian has given consent and had their identity verified.",
+      "send": "Send the invitation",
+      "resend": "Send a new invitation",
+      "resendHint": "A new invitation cancels the previous one, even if it was already accepted.",
+      "emailSent": "A link was sent to your guardian’s email address. It is valid for 7 days.",
+      "linkTitle": "Send this link to your guardian",
+      "linkLead": "Your guardian gave no email address: send them this link yourself (SMS, WhatsApp). It is valid for 7 days and will not be shown again.",
+      "linkLabel": "Invitation link",
+      "copy": "Copy the link",
+      "copied": "Link copied",
+      "back": "Back to my OZ ID card",
+      "entry": "Invite my legal guardian"
+    },
+    "invitation": {
+      "title": "Legal guardian invitation",
+      "loading": "Reading the invitation…",
+      "lead": "{firstName} named you as {relationship} on OZ, the identity platform for football players.",
+      "explain": "Accepting publishes nothing: a minor’s profile stays hidden until you have proven your link, given consent and had your identity verified.",
+      "accept": "Accept the invitation",
+      "signedOutLead": "To accept, log in or create your guardian account. The invitation is kept for 30 minutes on this device.",
+      "login": "I already have an account",
+      "signup": "Create my guardian account",
+      "invalid": "This invitation is no longer valid: it may have been used, expired or replaced. Ask the child to send you a new one.",
+      "missing": "Open the link you received to see the invitation.",
+      "accepted": "Invitation accepted. Opening your guardian space…",
+      "relationships": {
+        "mother": "their mother",
+        "father": "their father",
+        "legalGuardian": "their legal guardian",
+        "other": "their legal representative"
+      }
+    },
+    "signup": {
+      "title": "Create my guardian account",
+      "lead": "An account to support one or more minor players. The link with each child always goes through an invitation sent from their account."
+    },
+    "space": {
+      "title": "My guardian space",
+      "lead": "The minor players who invited you, and the next step for each.",
+      "empty": "No child linked yet. A link always starts with an invitation sent from the minor player’s account.",
+      "unavailable": "Your space cannot be shown right now. Reload the page in a few minutes.",
+      "kycNotice": "The profile will only be published once OZ has verified your identity.",
+      "published": "Visible to verified organisations",
+      "unpublished": "Profile not published",
+      "ozId": "OZ ID: {ozId}",
+      "consents": "Active consents: {count, plural, =0 {none} one {#} other {#}}",
+      "status": {
+        "awaitingDocuments": "Proof of relationship to upload",
+        "submitted": "Proof under review by OZ",
+        "rejected": "Proof refused: upload a new one",
+        "approved": "Link approved by OZ"
+      },
+      "deposit": "Upload the proof",
+      "consent": "Manage my consents"
+    },
+    "link": {
+      "title": "Proof of relationship",
+      "lead": "Upload 1 to 3 documents proving your link with {firstName}. An OZ team member checks them; they are kept for 6 months after the decision.",
+      "orderHint": "If you are neither the mother nor the father, attach the guardianship order.",
+      "type": "Document type",
+      "types": {
+        "birthCertificate": "Birth certificate or family record book",
+        "guardianshipOrder": "Guardianship order"
+      },
+      "file": "File (PDF, JPEG, PNG or WebP, 10 MB maximum)",
+      "add": "Add the document",
+      "pieces": "Documents added",
+      "none": "No document added.",
+      "submit": "Send for review",
+      "scanning": "Documents are scanned before review; if sending is refused, try again in a minute.",
+      "sent": "Proof sent. OZ will email you once it has been reviewed.",
+      "notReady": "This step is not available for this child.",
+      "back": "Back to my space",
+      "piece": "{type}: {name}"
+    },
+    "consent": {
+      "title": "My consents for {firstName}",
+      "lead": "Read each text. You can withdraw a consent at any time: it takes effect immediately.",
+      "kycNotice": "Your consent is recorded, but the profile stays unpublished until OZ has verified your identity.",
+      "version": "Version {version}",
+      "provisional": "Provisional text, under legal review.",
+      "active": "Consent given",
+      "inactive": "No consent",
+      "agree": "I have read this text and I give my consent",
+      "password": "Password",
+      "code": "Two-step verification code (if enabled)",
+      "give": "Give my consent",
+      "revoke": "Withdraw this consent",
+      "revokeConfirm": "Withdraw this consent? The profile will immediately stop being visible to organisations.",
+      "revokeDataHint": "Withdrawing consent to processing also withdraws the publication consent.",
+      "confirm": "Yes, withdraw",
+      "cancel": "Cancel",
+      "requiresData": "First give your consent to data processing.",
+      "granted": "Consent recorded.",
+      "revoked": "Consent withdrawn.",
+      "unavailable": "The text cannot be shown right now.",
+      "notReady": "Consents open once OZ has approved your link with this child.",
+      "types": {
+        "guardianDataProcessing": "Data processing",
+        "guardianProfilePublication": "Profile publication"
+      }
+    },
+    "errors": {
+      "invalid": "Check the information you entered.",
+      "retryLater": "Too many attempts. Try again in a few minutes.",
+      "unavailable": "The service is temporarily unavailable. Try again in a few minutes.",
+      "session": "Your session has expired. Log in again.",
+      "notApplicable": "Invitation is not possible for this account: it is for a minor player whose guardian is not yet linked.",
+      "invitationInvalid": "This invitation is no longer valid. Ask the child for a new one.",
+      "self": "The player’s account cannot be their own guardian.",
+      "refused": "This account cannot become a guardian.",
+      "alreadySubmitted": "A proof is already under review for this child.",
+      "invalidDocuments": "The documents cannot be sent yet: they may still be scanned. Try again in a minute.",
+      "orderRequired": "For this relationship, the guardianship order is required.",
+      "linkNotFound": "This link no longer exists.",
+      "reauth": "Wrong password or code.",
+      "textStale": "The text has changed: read the new version before giving consent.",
+      "requiresDataProcessing": "First give your consent to data processing.",
+      "fileSize": "The file is over 10 MB or empty.",
+      "fileType": "Only PDF, JPEG, PNG and WebP files are accepted.",
+      "uploadFailed": "The upload failed. Try again."
     }
   }
 }

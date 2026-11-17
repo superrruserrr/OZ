@@ -120,6 +120,8 @@ export {
 export {
   currentConsentText,
   decideGuardianLink,
+  revokeGuardianLink,
+  GUARDIAN_LINK_REVOCATION_REASONS,
   GUARDIAN_CONSENT_TYPES,
   GUARDIAN_LINK_REJECTION_REASONS,
   grantGuardianConsent,
@@ -131,6 +133,8 @@ export {
   type GuardianConsentRevokeOutcome,
   type GuardianConsentType,
   type GuardianLinkDecideOutcome,
+  type GuardianLinkRevokeOutcome,
+  type GuardianLinkRevocationReason,
   type GuardianLinkDecision,
   type GuardianLinkQueueEntry,
   type GuardianLinkRejectionReason,

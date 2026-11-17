@@ -13,6 +13,7 @@ import {
   resetLink,
   twoFactorDisabledEmail,
   dataExportRequestedEmail,
+  guardianLinkDecisionEmail,
   twoFactorEnabledEmail,
   verificationEmail,
   verificationLink,
@@ -100,5 +101,15 @@ describe('alertes de la 2FA (lot 1.3cb)', () => {
 
   it('suppression programmée : annonce l’échéance et la reconnexion pour annuler', () => {
     expect(accountDeletionScheduledEmail(WHEN, RESET).text).toContain('reconnecter pour annuler');
+  });
+});
+
+describe('retrait du lien de tuteur (lot 1.7bc, C6)', () => {
+  it('prénom de l’enfant seul, aucun motif, l’enfant peut réinviter', () => {
+    const mail = guardianLinkDecisionEmail('Awa', { outcome: 'revoked' }, APP);
+    expect(mail.subject).toBe('Votre lien avec votre enfant a été retiré');
+    expect(mail.text).toContain('Awa');
+    expect(mail.text).toContain('nouvelle invitation');
+    expect(mail.text).not.toMatch(/fraude|erreur|approved_in_error|suspected/i);
   });
 });

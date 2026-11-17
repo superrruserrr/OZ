@@ -67,6 +67,11 @@ export async function startApiStack(
   options: {
     readonly documents?: boolean;
     readonly gdpr?: boolean;
+    /**
+     * Coffre ouvert sans ClamAV ni worker (lot 1.7bc) : les parcours posent eux-mêmes l'issue de
+     * l'analyse, déjà prouvée de bout en bout par le parcours n° 10.
+     */
+    readonly vault?: boolean;
     /** Mandataires de confiance devant l'API : 1 quand le site relaie l'API (ADR-010). */
     readonly trustProxy?: number;
   } = {},
@@ -142,7 +147,7 @@ export async function startApiStack(
       DATABASE_BLIND_INDEX_KEY: secret(48),
       JWT_ACCESS_SECRET: secret(64),
       JWT_REFRESH_SECRET: secret(64),
-      ...(documents ? { FEATURE_DOCUMENTS: 'true' } : {}),
+      ...(documents || options.vault === true ? { FEATURE_DOCUMENTS: 'true' } : {}),
       ...(options.trustProxy === undefined ? {} : { TRUST_PROXY: String(options.trustProxy) }),
     },
   });

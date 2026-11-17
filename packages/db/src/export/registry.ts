@@ -423,6 +423,9 @@ export const EXPORT_REGISTRY: ExportRegistry = {
     rejection_reason: INTERNAL,
     decided_by: AUTHOR,
     decided_at: INTERNAL,
+    revocation_reason: INTERNAL,
+    revoked_by: AUTHOR,
+    revoked_at: INTERNAL,
     created_at: INTERNAL,
   },
   guardian_link_review_documents: {

@@ -3,6 +3,8 @@ import { generateOneTimeToken, hashOneTimeToken } from '@oz/auth';
 import type { ApiConfig } from '@oz/config';
 import type { Actor } from '@oz/auth';
 import type {
+  GuardianLinkRevocationInput,
+  GuardianLinkRevocationOutput,
   ConsentTextOutput,
   GuardianChildrenOutput,
   GuardianConsentGrantInput,
@@ -21,6 +23,7 @@ import {
   acceptGuardianInvitation,
   currentConsentText,
   decideGuardianLink,
+  revokeGuardianLink,
   grantGuardianConsent,
   guardianChildren,
   guardianLinkQueue,
@@ -53,6 +56,7 @@ import {
   GUARDIAN_REVIEW_CONFLICT,
   GUARDIAN_REVIEW_NOT_FOUND,
   GUARDIAN_REVIEW_STALE,
+  GUARDIAN_REVOCATION_CONFLICT,
   GUARDIAN_SELF,
   INVITATION_INVALID,
   INVITATION_NOT_APPLICABLE,
@@ -272,6 +276,44 @@ export class GuardianService {
           'Décision sur un justificatif de lien',
         );
         return { status: outcome.outcome, closed };
+      }
+    }
+  }
+
+  /**
+   * Retrait d'un lien approuvé par erreur (C6) : administrateur ré-authentifié, motif fermé. La base
+   * retire le compte de la fiche, révoque les accords, annule l'invitation et le rôle s'il ne sert plus.
+   */
+  async revokeLink(
+    actor: Actor,
+    reviewId: string,
+    input: GuardianLinkRevocationInput,
+  ): Promise<GuardianLinkRevocationOutput> {
+    await this.reauthentication.verify(actor.userId, input, GUARDIAN_REAUTH_REJECTED);
+    const outcome = await withUserContext(this.db, actor.userId, (tx) =>
+      revokeGuardianLink(tx, reviewId, input.reason, GUARDIAN_LINK_RETENTION_DAYS),
+    );
+    switch (outcome.outcome) {
+      case 'refused':
+        throw GUARDIAN_REFUSED();
+      case 'not_found':
+        throw GUARDIAN_REVIEW_NOT_FOUND();
+      case 'concerned':
+        throw GUARDIAN_REVIEW_CONFLICT();
+      case 'conflict':
+        throw GUARDIAN_REVOCATION_CONFLICT();
+      case 'revoked': {
+        const { email, childFirstName } = outcome;
+        if (email !== null) {
+          this.mail.sendLater('guardian_link_revoked', () =>
+            this.mailer.sendGuardianLinkDecision(email, childFirstName, { outcome: 'revoked' }),
+          );
+        }
+        this.logger.info(
+          { event: 'guardian.link.revoked', reason: input.reason },
+          'Lien du tuteur légal retiré',
+        );
+        return { status: 'revoked' };
       }
     }
   }

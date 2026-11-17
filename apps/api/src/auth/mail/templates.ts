@@ -116,9 +116,10 @@ export function guardianInvitationEmail(link: string, childFirstName: string): M
   };
 }
 
-/** Avis de décision sur le justificatif du lien (lot 1.7bb). */
+/** Avis de décision sur le justificatif du lien (lot 1.7bb) ; retrait du lien (lot 1.7bc, C6). */
 export type GuardianLinkNotice =
   | { readonly outcome: 'approved' }
+  | { readonly outcome: 'revoked' }
   | {
       readonly outcome: 'rejected';
       readonly reason: GuardianLinkRefusal;
@@ -154,6 +155,17 @@ export function guardianLinkDecisionEmail(
         ],
         space,
       ),
+    };
+  }
+  if (decision.outcome === 'revoked') {
+    // Motif jamais détaillé : il peut viser le destinataire (fraude suspectée).
+    return {
+      subject: 'Votre lien avec votre enfant a été retiré',
+      ...layout([
+        `OZ a retiré votre lien de parent ou tuteur légal avec ${childFirstName}, après un nouvel examen de votre dossier.`,
+        "Vos accords pour cet enfant sont retirés et sa fiche n'est plus visible d'aucune organisation.",
+        `Si vous êtes bien son parent ou tuteur légal, ${childFirstName} peut vous envoyer une nouvelle invitation.`,
+      ]),
     };
   }
   const next = decision.closed
