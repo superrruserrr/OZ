@@ -1,7 +1,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, type Page, test } from '@playwright/test';
 
-// Audit du lot 1.5bb (EX-T22, EX-105 n° 3 et 4) : axe-core, 320 px et chargement en 3G simulée.
+// Audit des lots 1.5bb et 1.5cbb (EX-T22, EX-105 n° 3 et 4) : axe-core, 320 px et chargement en 3G simulée.
 // Lighthouse lui-même est passé en recette (D-129) ; ces mesures en tiennent lieu en CI.
 
 const WCAG_AA = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'];
@@ -19,6 +19,15 @@ const PAGES = [
   '/legal/mentions',
   '/profils/joueur',
   '/profils/federation',
+  // Écrans de compte (refonte 1.5cbb) ; sans API, l'inscription affiche son encadré d'indisponibilité.
+  '/auth/login',
+  '/en/auth/login',
+  '/auth/role',
+  '/auth/signup/player',
+  '/auth/signup/guardian',
+  '/auth/forgot',
+  '/auth/reset',
+  '/auth/verify-email',
 ] as const;
 
 /** Profil « Fast 3G » des outils de Chromium : 562,5 ms de latence, 1,44 Mbit/s descendant. */
@@ -72,47 +81,49 @@ test('barre du navigateur à la couleur du fond sombre, quel que soit le réglag
   expect(colors.map((color) => color.trim().toLowerCase())).toEqual(['#0a0d0e']);
 });
 
-test(`accueil en 3G simulée : p95 de l’affichage du contenu principal (LCP) sous ${String(P95_BUDGET_MS)} ms (EX-T22.3)`, async ({
-  page,
-  context,
-}) => {
-  test.slow();
-  const cdp = await context.newCDPSession(page);
-  await cdp.send('Network.enable');
-  await cdp.send('Network.setCacheDisabled', { cacheDisabled: true });
-  await cdp.send('Network.emulateNetworkConditions', FAST_3G);
-  // Mesure : le plus grand affichage de contenu (LCP), seuil « bon » des Core Web Vitals ; le
-  // chargement complet (JavaScript compris) est consigné à titre indicatif (D-129).
-  const lcps: number[] = [];
-  const loads: number[] = [];
-  for (let run = 0; run < RUNS; run += 1) {
-    await page.goto('/', { waitUntil: 'load' });
-    const { lcp, load } = await page.evaluate(
-      () =>
-        new Promise<{ lcp: number; load: number }>((resolve) => {
-          new PerformanceObserver((list) => {
-            const [nav] = performance.getEntriesByType(
-              'navigation',
-            ) as PerformanceNavigationTiming[];
-            resolve({
-              lcp: list.getEntries().at(-1)?.startTime ?? Number.POSITIVE_INFINITY,
-              load: nav ? nav.loadEventEnd : Number.POSITIVE_INFINITY,
-            });
-          }).observe({ type: 'largest-contentful-paint', buffered: true });
-        }),
+for (const path of ['/', '/auth/login'] as const) {
+  test(`${path} en 3G simulée : p95 de l’affichage du contenu principal (LCP) sous ${String(P95_BUDGET_MS)} ms (EX-T22.3)`, async ({
+    page,
+    context,
+  }) => {
+    test.slow();
+    const cdp = await context.newCDPSession(page);
+    await cdp.send('Network.enable');
+    await cdp.send('Network.setCacheDisabled', { cacheDisabled: true });
+    await cdp.send('Network.emulateNetworkConditions', FAST_3G);
+    // Mesure : le plus grand affichage de contenu (LCP), seuil « bon » des Core Web Vitals ; le
+    // chargement complet (JavaScript compris) est consigné à titre indicatif (D-129).
+    const lcps: number[] = [];
+    const loads: number[] = [];
+    for (let run = 0; run < RUNS; run += 1) {
+      await page.goto(path, { waitUntil: 'load' });
+      const { lcp, load } = await page.evaluate(
+        () =>
+          new Promise<{ lcp: number; load: number }>((resolve) => {
+            new PerformanceObserver((list) => {
+              const [nav] = performance.getEntriesByType(
+                'navigation',
+              ) as PerformanceNavigationTiming[];
+              resolve({
+                lcp: list.getEntries().at(-1)?.startTime ?? Number.POSITIVE_INFINITY,
+                load: nav ? nav.loadEventEnd : Number.POSITIVE_INFINITY,
+              });
+            }).observe({ type: 'largest-contentful-paint', buffered: true });
+          }),
+      );
+      lcps.push(lcp);
+      loads.push(load);
+    }
+    lcps.sort((a, b) => a - b);
+    // Sur 5 essais, le 95e centile est le plus lent.
+    const p95 = lcps.at(-1) ?? Number.POSITIVE_INFINITY;
+    test.info().annotations.push(
+      { type: 'LCP 3G (ms)', description: lcps.map((d) => d.toFixed(0)).join(', ') },
+      {
+        type: 'chargement complet 3G (ms)',
+        description: loads.map((d) => d.toFixed(0)).join(', '),
+      },
     );
-    lcps.push(lcp);
-    loads.push(load);
-  }
-  lcps.sort((a, b) => a - b);
-  // Sur 5 essais, le 95e centile est le plus lent.
-  const p95 = lcps.at(-1) ?? Number.POSITIVE_INFINITY;
-  test.info().annotations.push(
-    { type: 'LCP 3G (ms)', description: lcps.map((d) => d.toFixed(0)).join(', ') },
-    {
-      type: 'chargement complet 3G (ms)',
-      description: loads.map((d) => d.toFixed(0)).join(', '),
-    },
-  );
-  expect(p95).toBeLessThan(P95_BUDGET_MS);
-});
+    expect(p95).toBeLessThan(P95_BUDGET_MS);
+  });
+}

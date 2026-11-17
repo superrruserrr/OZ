@@ -40,7 +40,7 @@ export async function useClientAddress(page: Page, host: number): Promise<void> 
 
 export async function signUpAndConfirm(page: Page, email: string, password: string): Promise<void> {
   await page.goto('/auth/role');
-  await page.getByTestId('role-continue').click();
+  await page.getByTestId('role-card-player').getByRole('link').click();
   await expect(page).toHaveURL(/\/auth\/signup\/player$/);
   await page.getByTestId('signup-email').fill(email);
   await page.getByTestId('signup-password').fill(password);

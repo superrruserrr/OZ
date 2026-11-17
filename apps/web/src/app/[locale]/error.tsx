@@ -21,7 +21,7 @@ export default function ErrorPage({
       tabIndex={-1}
       className="mx-auto flex min-h-dvh w-full max-w-md flex-col items-start justify-center gap-4 px-5"
     >
-      <h1 className="font-display text-2xl font-bold tracking-tight">{t('title')}</h1>
+      <h1 className="font-display text-2xl font-medium tracking-tight">{t('title')}</h1>
       <p className="text-oz-text-muted">{t('body')}</p>
       <div className="flex flex-wrap items-center gap-4">
         <Button data-testid="error-retry" onClick={reset}>

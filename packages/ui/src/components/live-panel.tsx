@@ -12,7 +12,7 @@ export interface LivePanelProps {
   /** Statut affiché à côté de la pastille (« Inscriptions bientôt ouvertes »…). */
   status: string;
   title: ReactNode;
-  /** Fin du titre en rose (grand texte). */
+  /** Fin du titre en `accent` (grand texte). */
   highlight?: ReactNode | undefined;
   /** Texte d'appui. */
   children?: ReactNode | undefined;

@@ -26,7 +26,7 @@ export default async function GlobalNotFound() {
         {/* Hors du layout [locale] : le lien localisé (composant client) a besoin du fournisseur. */}
         <NextIntlClientProvider>
           <main className="mx-auto flex min-h-dvh max-w-md flex-col items-start justify-center gap-4 px-5">
-            <h1 className="font-display text-2xl font-bold tracking-tight">{t('title')}</h1>
+            <h1 className="font-display text-2xl font-medium tracking-tight">{t('title')}</h1>
             <p className="text-oz-text-muted">{t('body')}</p>
             <Link
               href="/"

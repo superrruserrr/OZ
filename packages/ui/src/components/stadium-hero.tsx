@@ -47,7 +47,7 @@ export function StadiumHero({ copy, aside, media, className }: StadiumHeroProps)
             faisceaux passent au-dessus, bornés par STADIUM_GLOWS. */}
         <div className="absolute inset-0 bg-linear-to-r from-oz-bg via-oz-bg/70 to-oz-bg/10" />
         <div className="absolute inset-x-0 bottom-0 h-1/3 bg-linear-to-t from-oz-bg to-transparent" />
-        {/* Projecteurs : un vert à gauche, un turquoise à droite, un rose diffus au centre. */}
+        {/* Projecteurs : `primary` à gauche, `highlight` à droite, `accent` diffus au centre (ADR-012). */}
         <div className="absolute -top-1/3 -left-1/4 h-[90%] w-[70%] origin-top-left -rotate-12 bg-[radial-gradient(ellipse_at_top,color-mix(in_srgb,var(--oz-primary)_8%,transparent),transparent_68%)] motion-safe:animate-oz-breathe" />
         <div className="absolute -top-1/3 -right-1/4 h-[90%] w-[70%] origin-top-right rotate-12 bg-[radial-gradient(ellipse_at_top,color-mix(in_srgb,var(--oz-highlight)_6%,transparent),transparent_68%)] motion-safe:animate-oz-breathe motion-safe:[animation-delay:-2s]" />
         <div className="absolute top-1/4 left-1/3 h-1/2 w-1/2 bg-[radial-gradient(circle,color-mix(in_srgb,var(--oz-accent)_3%,transparent),transparent_70%)]" />

@@ -100,7 +100,7 @@ export function LinkUploadForm({ guardianId }: { readonly guardianId: string }) 
         }))}
       />
       <div className="flex flex-col gap-2">
-        <label htmlFor="guardian-link-file" className="font-semibold">
+        <label htmlFor="guardian-link-file" className="font-medium">
           {t('file')}
         </label>
         <input
@@ -124,7 +124,7 @@ export function LinkUploadForm({ guardianId }: { readonly guardianId: string }) 
         {t('add')}
       </Button>
       <div>
-        <h2 className="font-semibold">{t('pieces')}</h2>
+        <h2 className="font-medium">{t('pieces')}</h2>
         {pieces.length === 0 ? (
           <p className="text-sm text-oz-text-muted">{t('none')}</p>
         ) : (

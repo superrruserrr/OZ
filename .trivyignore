@@ -1,0 +1,7 @@
+# Exceptions Trivy (job security), validées une à une par le porteur du projet. Chaque ligne renvoie
+# à une dette de DEBT.md et se retire dès qu'une version corrigée est publiée.
+
+# D-136 (accord du 2026-11-17) : picomatch <= 4.0.7, déni de service par un motif piégé
+# (GHSA-fc5q-39xc-vjpf), aucune version corrigée. Non exploitable dans OZ : seuls nos fichiers de
+# configuration fournissent des motifs ; garde `scripts/glob-matcher-guard.test.mjs`.
+CVE-2026-112366

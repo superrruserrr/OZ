@@ -94,7 +94,7 @@ export function SignupForm({ formToken }: SignupFormProps) {
         <input id="signup-website" tabIndex={-1} autoComplete="off" {...register('website')} />
       </div>
       <input type="hidden" {...register('formToken')} />
-      <div className="text-sm text-oz-text-muted">
+      <div className="rounded-xl border border-oz-border bg-oz-surface-2 px-4 pt-3 pb-1 text-sm text-oz-text-muted">
         <p>{t('auth.signup.terms')}</p>
         <p className="flex flex-wrap gap-x-4">
           <Link href="/legal/cgu" className="inline-flex min-h-11 items-center underline">
