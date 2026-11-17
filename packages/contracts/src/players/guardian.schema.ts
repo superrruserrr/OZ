@@ -152,6 +152,27 @@ export const guardianLinkDecisionOutputSchema = z.strictObject({
 });
 export type GuardianLinkDecisionOutput = z.infer<typeof guardianLinkDecisionOutputSchema>;
 
+/** Motifs du retrait d'un lien approuvé par erreur (lot 1.7bc, décision C6) : liste fermée. */
+export const GUARDIAN_LINK_REVOCATION_REASONS = [
+  'approved_in_error',
+  'suspected_fraud',
+  'child_request',
+  'other',
+] as const;
+
+/** Retrait ré-authentifié : motif obligatoire, jamais de texte libre (aucune donnée de personne). */
+export const guardianLinkRevocationSchema = z.strictObject({
+  reason: z.enum(GUARDIAN_LINK_REVOCATION_REASONS, { error: 'validation.guardian.reason' }),
+  password: currentPassword,
+  code: secondFactorCodeSchema.optional(),
+});
+export type GuardianLinkRevocationInput = z.infer<typeof guardianLinkRevocationSchema>;
+
+export const guardianLinkRevocationOutputSchema = z.strictObject({
+  status: z.literal('revoked'),
+});
+export type GuardianLinkRevocationOutput = z.infer<typeof guardianLinkRevocationOutputSchema>;
+
 export const consentTextParamsSchema = z.strictObject({ type: guardianConsentType });
 export type ConsentTextParamsInput = z.infer<typeof consentTextParamsSchema>;
 

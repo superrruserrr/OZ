@@ -171,6 +171,9 @@ erDiagram
     uuid decided_by FK
     timestamptz decided_at
     timestamptz created_at
+    guardian_link_revocation_reason revocation_reason
+    uuid revoked_by FK
+    timestamptz revoked_at
   }
   guardians {
     uuid id PK
@@ -441,6 +444,7 @@ erDiagram
   guardian_link_reviews }o--|| guardians : "guardian_id"
   guardian_link_reviews }o--|| players : "player_id"
   guardian_link_reviews }o--o| users : "decided_by"
+  guardian_link_reviews }o--o| users : "revoked_by"
   guardian_link_reviews }o--|| users : "submitted_by"
   guardians }o--o| users : "created_by"
   guardians }o--o| users : "updated_by"

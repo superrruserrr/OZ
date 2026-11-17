@@ -54,6 +54,14 @@ export const GUARDIAN_REVIEW_CONFLICT = (): AppException =>
     'Vous ne pouvez pas décider d’un dépôt qui vous concerne.',
   );
 
+/** Retrait (C6) : le dépôt n'est pas un lien approuvé en vigueur (non approuvé, déjà retiré). */
+export const GUARDIAN_REVOCATION_CONFLICT = (): AppException =>
+  new AppException(
+    409,
+    'GUARDIAN_REVOCATION_CONFLICT',
+    'Ce dépôt n’est pas un lien approuvé en vigueur.',
+  );
+
 /** Le rattachement est tombé entre le dépôt et la décision : le dépôt est retiré. */
 export const GUARDIAN_REVIEW_STALE = (): AppException =>
   new AppException(409, 'GUARDIAN_REVIEW_STALE', 'Ce rattachement n’existe plus : dépôt retiré.');

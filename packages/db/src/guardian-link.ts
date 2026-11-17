@@ -182,6 +182,56 @@ export async function decideGuardianLink(
   throw new Error('Décision du lien : réponse inattendue de la base.');
 }
 
+/** Motifs du retrait d'un lien approuvé par erreur (lot 1.7bc, décision C6). */
+export const GUARDIAN_LINK_REVOCATION_REASONS = [
+  'approved_in_error',
+  'suspected_fraud',
+  'child_request',
+  'other',
+] as const;
+export type GuardianLinkRevocationReason = (typeof GUARDIAN_LINK_REVOCATION_REASONS)[number];
+
+export type GuardianLinkRevokeOutcome =
+  | { readonly outcome: 'revoked'; readonly email: string | null; readonly childFirstName: string }
+  | { readonly outcome: 'refused' | 'not_found' | 'conflict' | 'concerned' };
+
+/**
+ * Retire un lien approuvé (C6) : compte retiré de la fiche, consentements révoqués, invitation
+ * annulée, rôle retiré s'il ne sert plus. Administrateur vérifié du contexte, jugé par la base.
+ */
+export async function revokeGuardianLink(
+  tx: TransactionClient,
+  reviewId: string,
+  reason: GuardianLinkRevocationReason,
+  retentionDays: number,
+): Promise<GuardianLinkRevokeOutcome> {
+  if (!UUID.test(reviewId)) return { outcome: 'not_found' };
+  if (!Number.isInteger(retentionDays) || retentionDays < 1 || retentionDays > 3650) {
+    throw new Error('Retrait du lien : durée de conservation de 1 à 3650 jours attendue.');
+  }
+  const rows = await tx.$queryRaw<
+    { r: { outcome: string; email?: string | null; childFirstName?: string } }[]
+  >`SELECT oz_guardian_link_revoke(${reviewId}::uuid, ${reason}::text,
+      make_interval(days => ${retentionDays}::integer)) AS r`;
+  const r = rows[0]?.r;
+  if (r?.outcome === 'revoked' && typeof r.childFirstName === 'string') {
+    return {
+      outcome: 'revoked',
+      email: typeof r.email === 'string' ? r.email : null,
+      childFirstName: r.childFirstName,
+    };
+  }
+  if (
+    r?.outcome === 'refused' ||
+    r?.outcome === 'not_found' ||
+    r?.outcome === 'conflict' ||
+    r?.outcome === 'concerned'
+  ) {
+    return { outcome: r.outcome };
+  }
+  throw new Error('Retrait du lien : réponse inattendue de la base.');
+}
+
 /** Texte en vigueur d'un type de consentement de tuteur ; `null` s'il n'y en a aucun. */
 export async function currentConsentText(
   db: Pick<TransactionClient, '$queryRaw'>,

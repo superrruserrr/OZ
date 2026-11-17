@@ -670,3 +670,156 @@ describe('consentement versionné et révocation (EX-108 n° 3 à 5, CP-13)', ()
     expect(await published(link.child.playerId)).toBe(false);
   });
 });
+
+// Décision C6 (lot 1.7bc) : un administrateur retire un lien approuvé par erreur.
+const REVOKED = 'Votre lien avec votre enfant a été retiré';
+
+async function approvedReviewOf(guardianId: string): Promise<string> {
+  const { rows } = await harness.db.query<{ id: string }>(
+    `SELECT id FROM guardian_link_reviews WHERE guardian_id = $1 AND status = 'approved'`,
+    [guardianId],
+  );
+  return rows[0]?.id ?? '';
+}
+
+const revoke = (
+  reviewer: Account & { readonly secret: string },
+  reviewId: string,
+  body: Record<string, unknown> = { reason: 'approved_in_error' },
+) =>
+  call('post', `/admin/guardian-links/${reviewId}/revocation`, reviewer.token).send({
+    password: PASSWORD,
+    code: generateTotpCode(reviewer.secret, Date.now()),
+    ...body,
+  });
+
+const guardianRoles = async (userId: string): Promise<number> =>
+  (
+    await harness.db.query<{ n: number }>(
+      `SELECT count(*)::int AS n FROM user_roles
+       WHERE user_id = $1 AND role = 'guardian' AND deleted_at IS NULL`,
+      [userId],
+    )
+  ).rows[0]?.n ?? -1;
+
+describe('retrait d’un lien approuvé par erreur (décision C6)', () => {
+  it('lien retiré : fiche `declared` sans compte, accords révoqués, rôle retiré, l’enfant réinvite', async () => {
+    const link = await approvedLink();
+    await consent(link, 'guardian_data_processing', 201);
+    await consent(link, 'guardian_profile_publication', 201);
+    await verifyAll(link);
+    expect(await published(link.child.playerId)).toBe(true);
+    const reviewId = await approvedReviewOf(link.guardianId);
+    const reviewer = await admin();
+    const revoked = await revoke(reviewer, reviewId).expect(200);
+    expect(revoked.body).toEqual({ status: 'revoked' });
+    expect(await guardianRow(link.guardianId)).toEqual({
+      user_id: null,
+      verification_status: 'declared',
+    });
+    expect(await published(link.child.playerId)).toBe(false);
+    const { rows: active } = await harness.db.query<{ n: number }>(
+      'SELECT count(*)::int AS n FROM consents WHERE player_id = $1 AND revoked_at IS NULL',
+      [link.child.playerId],
+    );
+    expect(active[0]?.n).toBe(0);
+    expect(await guardianRoles(link.tutor.userId)).toBe(0);
+    const { rows: review } = await harness.db.query<{
+      status: string;
+      revocation_reason: string;
+      revoked_by: string;
+      kept: boolean;
+    }>(
+      `SELECT r.status, r.revocation_reason, r.revoked_by::text,
+         bool_and(d.retention_until > now() + interval '170 days') AS kept
+       FROM guardian_link_reviews r
+       JOIN guardian_link_review_documents l ON l.review_id = r.id
+       JOIN documents d ON d.id = l.document_id
+       WHERE r.id = $1 GROUP BY r.id`,
+      [reviewId],
+    );
+    expect(review[0]).toEqual({
+      status: 'revoked',
+      revocation_reason: 'approved_in_error',
+      revoked_by: reviewer.userId,
+      kept: true,
+    });
+    const listed = await call('get', '/guardians/me/children', link.tutor.token).expect(200);
+    expect((listed.body as { children: unknown[] }).children).toEqual([]);
+    await call('post', '/players/me/guardian/invitation', link.child.token).expect(202);
+    const mail = await harness.mailTo(link.tutor.address, REVOKED);
+    expect(mail).toContain(link.child.firstName);
+    expect(mail).not.toContain('Famillelien');
+    const [audit] = await auditOf('guardian.link.revoked', reviewer.userId);
+    expect(audit?.metadata).toMatchObject({ review_id: reviewId, reason: 'approved_in_error' });
+    expect(JSON.stringify(audit?.metadata)).not.toContain(link.child.playerId);
+  });
+
+  it('le rôle tuteur reste s’il sert encore à un autre lien approuvé', async () => {
+    const first = await approvedLink();
+    const second = await minor();
+    const invited = await call('post', '/players/me/guardian/invitation', second.token).expect(202);
+    await call('post', '/guardians/invitations/accept', first.tutor.token)
+      .send({ token: tokenIn((invited.body as { link: string }).link) })
+      .expect(200);
+    const listed = await call('get', '/guardians/me/children', first.tutor.token).expect(200);
+    const pending = (
+      listed.body as { children: { linkStatus: string; guardianId: string }[] }
+    ).children.find((child) => child.linkStatus === 'awaiting_documents');
+    const otherGuardian = pending?.guardianId ?? '';
+    await submit(first.tutor.token, otherGuardian, [
+      await cleanPiece(otherGuardian, first.tutor.userId),
+    ]).expect(202);
+    await decide(await admin(), await reviewIdOf(otherGuardian), { decision: 'approve' }).expect(
+      200,
+    );
+    await revoke(await admin(), await approvedReviewOf(first.guardianId)).expect(200);
+    expect(await guardianRoles(first.tutor.userId)).toBe(1);
+    expect(await guardianRow(otherGuardian)).toMatchObject({ user_id: first.tutor.userId });
+  });
+
+  it('ré-authentification fausse, ou motif absent ou hors liste : rien n’est retiré', async () => {
+    const link = await approvedLink();
+    const reviewId = await approvedReviewOf(link.guardianId);
+    const reviewer = await admin();
+    const wrong = await revoke(reviewer, reviewId, {
+      reason: 'approved_in_error',
+      password: 'mauvais mot de passe',
+    }).expect(403);
+    expect(code(wrong)).toBe('GUARDIAN_REAUTH_REJECTED');
+    await revoke(reviewer, reviewId, { reason: undefined }).expect(422);
+    await revoke(reviewer, reviewId, { reason: 'texte libre' }).expect(422);
+    expect(await guardianRow(link.guardianId)).toMatchObject({ user_id: link.tutor.userId });
+  });
+
+  it('dépôt non approuvé, déjà retiré ou inconnu ; non-administrateur ; administrateur concerné', async () => {
+    const pending = await pendingLink();
+    await submit(pending.tutor.token, pending.guardianId, [
+      await cleanPiece(pending.guardianId, pending.tutor.userId),
+    ]).expect(202);
+    const notApproved = await revoke(await admin(), await reviewIdOf(pending.guardianId)).expect(
+      409,
+    );
+    expect(code(notApproved)).toBe('GUARDIAN_REVOCATION_CONFLICT');
+    await revoke(await admin(), '01900000-0000-7000-8000-000000000000').expect(404);
+    const link = await approvedLink();
+    const reviewId = await approvedReviewOf(link.guardianId);
+    await call('post', `/admin/guardian-links/${reviewId}/revocation`, link.tutor.token)
+      .send({ reason: 'approved_in_error', password: PASSWORD })
+      .expect(403);
+    // Le tuteur concerné, devenu administrateur, ne retire pas son propre lien.
+    const setup = await call('post', '/auth/2fa/setup', link.tutor.token).expect(200);
+    const { secret } = setup.body as { secret: string };
+    await call('post', '/auth/2fa/enable', link.tutor.token)
+      .send({ code: generateTotpCode(secret, Date.now() - STEP_MS) })
+      .expect(200);
+    await harness.db.query(`INSERT INTO user_roles (user_id, role) VALUES ($1, 'admin')`, [
+      link.tutor.userId,
+    ]);
+    const self = await revoke({ ...link.tutor, secret }, reviewId).expect(403);
+    expect(code(self)).toBe('GUARDIAN_REVIEW_CONFLICT');
+    await revoke(await admin(), reviewId).expect(200);
+    const again = await revoke(await admin(), reviewId).expect(409);
+    expect(code(again)).toBe('GUARDIAN_REVOCATION_CONFLICT');
+  });
+});
