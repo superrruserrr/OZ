@@ -3,7 +3,7 @@
 > Check-list de conformité (données personnelles, mineurs, vérification d'identité), tenue à jour
 > avec `docs/AVANCEMENT.md`. Rédigée par l'équipe technique : **ce n'est pas un avis juridique**.
 > Chaque point « juriste » doit être confirmé par un professionnel avant la production.
-> **Dernière mise à jour : 17 novembre 2026** (lot 1.7bb).
+> **Dernière mise à jour : 17 novembre 2026** (lot 1.7bc).
 
 Légende : ✅ fait et vérifié · 🟡 en cours · ⬜ à faire · ⏸️ en attente d'une décision
 
@@ -43,7 +43,7 @@ Comme pour les phases du plan, un palier ne s'ouvre que lorsque le précédent e
 | Relecture juridique groupée (C4)                     | 🟡   | Principe validé ; juriste et date à fixer                     |
 | Personnes habilitées à revoir les justificatifs (C5) | 🟡   | Principe validé ; noms des deux administrateurs à fournir     |
 | Procédure de revue écrite (ci-dessous)               | ✅   | Validée le 2026-11-17                                         |
-| Retrait d'une approbation donnée par erreur (C6)     | ⬜   | Lot 1.7bc                                                     |
+| Retrait d'une approbation donnée par erreur (C6)     | ✅   | Lot 1.7bc : API administrateur, motif fermé, journalisé       |
 | Analyse d'impact (AIPD) relue                        | 🟡   | `docs/security/aipd.md`, 8 questions au juriste               |
 | Dettes de conformité soldées ou acceptées par écrit  | 🟡   | D-134, D-135                                                  |
 
