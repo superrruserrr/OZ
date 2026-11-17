@@ -62,7 +62,7 @@ export function InvitePanel() {
         {sent?.channel === 'link' ? (
           <Callout tone="legal" title={t('linkTitle')} testId="guardian-invite-link">
             <p>{t('linkLead')}</p>
-            <label htmlFor="guardian-invite-url" className="mt-3 block font-semibold">
+            <label htmlFor="guardian-invite-url" className="mt-3 block font-medium">
               {t('linkLabel')}
             </label>
             <input

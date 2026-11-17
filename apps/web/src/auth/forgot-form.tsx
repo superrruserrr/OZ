@@ -71,7 +71,7 @@ function BackToLogin({ label }: { label: string }) {
     <p className="text-sm text-oz-text-muted">
       <Link
         href="/auth/login"
-        className="inline-flex min-h-11 items-center font-semibold text-oz-text underline"
+        className="inline-flex min-h-11 items-center font-medium text-oz-text underline"
         data-testid="forgot-login"
       >
         {label}

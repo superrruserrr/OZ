@@ -5,7 +5,8 @@ import { Meta } from '@storybook/addon-docs/blocks';
 # OZ · Design system
 
 Composants et jetons partagés par le site public, le back-office et l'application (lot 0.10). Charte
-OZ Football ID (ADR-009) : clair par défaut, sombre selon le réglage de l'appareil, police Prompt. Tous les textes arrivent déjà traduits par les props : aucun
+OZ Football ID (ADR-009), thème sombre unique pour le web (ADR-011), noir `#0A0D0E` et lime `#C6FF3D`,
+police système type Helvetica en graisses 400 et 500 (ADR-012). Tous les textes arrivent déjà traduits par les props : aucun
 composant ne contient de libellé.
 
 ## Deux registres (design.md §8.2)
@@ -13,7 +14,7 @@ composant ne contient de libellé.
 |        | Émotion                                      | Pilotage                                                   |
 | ------ | -------------------------------------------- | ---------------------------------------------------------- |
 | Où     | Site public, landing, carte OZ ID, marketing | Formulaires, KYC, recherche, tableaux de bord, back-office |
-| Appel  | Rose `accent`, grand texte seulement         | Vert `primary` : actions, états validés                    |
+| Appel  | `accent` (lime), grand texte seulement       | Lime `primary` : actions, états validés                    |
 | Effets | Aplats de la charte, sans néon               | Aucun dégradé décoratif                                    |
 
 **Règle d'or :** le registre Émotion ne descend jamais dans un écran où l'on saisit une donnée ou

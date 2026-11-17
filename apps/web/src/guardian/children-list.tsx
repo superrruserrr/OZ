@@ -36,7 +36,7 @@ export async function ChildrenList({
         return (
           <li key={child.guardianId}>
             <Card className="flex flex-col gap-3 p-4" data-testid="guardian-child">
-              <h2 className="text-xl font-semibold break-words">{name}</h2>
+              <h2 className="text-xl font-medium break-words">{name}</h2>
               {child.ozId === null ? null : (
                 <p className="font-mono text-sm" data-testid="guardian-child-ozid">
                   {t('ozId', { ozId: child.ozId })}
@@ -62,7 +62,7 @@ export async function ChildrenList({
                 <Link
                   href={`/tuteur/justificatif/${child.guardianId}`}
                   data-testid="guardian-child-deposit"
-                  className="inline-flex min-h-11 items-center font-semibold underline"
+                  className="inline-flex min-h-11 items-center font-medium underline"
                 >
                   {t('deposit')}
                 </Link>
@@ -71,7 +71,7 @@ export async function ChildrenList({
                 <Link
                   href={`/tuteur/accords/${child.ozId}`}
                   data-testid="guardian-child-consent"
-                  className="inline-flex min-h-11 items-center font-semibold underline"
+                  className="inline-flex min-h-11 items-center font-medium underline"
                 >
                   {t('consent')}
                 </Link>

@@ -29,6 +29,30 @@ Toute action `git push` ou merge est confirmée par Gaëtan Wassu au moment de l
 
 Le §9 sépare deux chaînes : **A** (données, sécurité, KYC, back-office) et **B** (design system, parcours, import, recherche). Elles peuvent avancer dans deux sessions distinctes, chacune sur sa branche. Seul `packages/contracts` est partagé : toute modification y est annoncée avant d'être poussée.
 
+### 1.4 Première mise en ligne sans KYC — écart au plan validé le 2026-11-17 ([ADR-013](docs/adr/ADR-013-premiere-mise-en-ligne-sans-kyc.md))
+
+**Écart explicite à `docs/PLAN.md` §9** (chemin critique `1.10 → 1.11`), validé par Gaëtan Wassu le 2026-11-17. La première mise en ligne se fait **sans KYC ni badge « Profil vérifié »** ; le lot 1.10 (et 1.10b) est reporté après l'ouverture. Un **back-office réduit (1.11 réduit)** passe avant 1.10.
+
+**Périmètre :** inscription joueur et tuteur ; tableaux de bord du joueur, du tuteur et de l'administrateur ; emails essentiels ; hébergement de test et de production (0.8c/d) et surveillance (0.9) ; recette, puis mise en production.
+
+**Règle maintenue :** la fiche d'un mineur reste cachée tant que son tuteur n'est pas validé par justificatif (1.7b). **Décision du 2026-11-17 (D-137) :** elle est publiée dès que le justificatif est validé et l'accord du tuteur donné, sans attendre le KYC 2.
+
+**Ordre des lots jusqu'à l'ouverture :**
+
+1. **1.5cbb** — refonte : connexion, choix du compte, inscription, premiers pas ; audit final de la refonte
+2. **1.19 Ouverture** — regroupement décidé le 2026-11-17 : un seul lot planifié et exécuté d'un bloc, livré en PR successives de 800 lignes au plus (R1) :
+   - **1.13c étendu** — tableau de bord du joueur : fiche, visibilité, export et suppression
+   - **1.7d** — tableau de bord du tuteur (enfants rattachés, état du justificatif, accord, retrait, suppression)
+   - **1.11 réduit** — comptes, examen des justificatifs de tuteur, journal d'audit, suspension
+   - **1.15 minimal** — emails essentiels
+   - publication d'un mineur après justificatif validé et accord du tuteur (D-137)
+3. **0.8c, 0.8d, 0.9** — hébergement de test et de production, surveillance
+4. **1.17**, puis **1.18**
+
+**Après l'ouverture :** 1.10, 1.10b, 1.11 complet (file KYC, quatre yeux, tableau de bord opérationnel), 1.8, 1.12, écrans de 1.14, 1.15 complet.
+
+**Prérequis hors code avant l'ouverture :** relecture par le juriste de l'AIPD (`docs/security/aipd.md`) et des CGU / politique de confidentialité (`docs/legal/`, Q7) ; **test d'intrusion externe recommandé** en plus du test interne de 1.17.
+
 ---
 
 ## 2. Prérequis : décisions technologiques
@@ -209,6 +233,7 @@ Terminées — voir `technology_decisions.md` (TD-001 à TD-017).
 2. 1.5cc — thème « Workspace » noir et lime ([ADR-012](docs/adr/ADR-012-theme-noir-lime.md)) : jetons `#0A0D0E` et `#C6FF3D`, séries bleue et ambre ; police système type Helvetica (Prompt retirée, graisses 400 et 500) ; `StatTile`, `Sparkline`, `RingChart`, `PitchPositions` ; `MediaFrame` (4:5, 16:9, 1:1, 9:16) et `AdSlot` (IAB, « Sponsorisé », sans script tiers) ; coquille avec en-tête de rail et entrée active encadrée ; stories, contrastes, perf, E2E (`phase1.5cc_plan.md`)
 3. 1.5cb — découpé (2026-11-11) en **1.5cba** (pages publiques du groupe `(site)` : `SiteTopbar`, héros de stade, cartes de valeur et de rôle, profils, tarifs, à propos, contact, légal ; `phase1.5cba_plan.md`) et **1.5cbb** (connexion, choix du rôle, inscription, email, onboarding, audit final). Périmètre d'origine : pages de `apps/web` refaites avec ces composants : accueil, profils, tarifs, à propos, contact, légal, connexion, choix du rôle, inscription, vérification de l'email, onboarding ; audit responsive (1280, 768, 375, 320 px), axe, Lighthouse
 **Deliverable :** Storybook « Direction sport » ; site refait. **Exigences :** EX-105, EX-106, EX-T22.
+**État (2026-11-17) :** terminé — 1.5cbb livré (coquille et écrans de compte, audit final `docs/ui/audit-1.5c.md`).
 
 ### Phase 1.6 — Site public et pages légales · B
 **Goal :** OZ existe publiquement, avec ses documents légaux.
@@ -237,6 +262,7 @@ Terminées — voir `technology_decisions.md` (TD-001 à TD-017).
 3. Consentement versionné, horodaté serveur, révocable (dépublication immédiate)
 4. Rattachement à plusieurs enfants
 **Deliverable :** E2E n° 2 jusqu'au blocage de publication. **Exigences :** EX-108, CP-13.
+**1.7d — tableau de bord du tuteur (ADR-013) :** enfants rattachés, état du justificatif et de l'accord, retrait de l'accord, export et suppression de la fiche de l'enfant.
 
 ### Phase 1.8 — Inscription organisation · B
 **Goal :** les 6 types d'organisation s'inscrivent.
@@ -282,6 +308,7 @@ Terminées — voir `technology_decisions.md` (TD-001 à TD-017).
 3. Comptes, rôles, suspension ; journal d'audit consultable ; tableau de bord opérationnel
 4. 2FA obligatoire ; guide `docs/guides/admin.md`
 **Deliverable :** E2E n° 6 ; chronométrage < 90 s. **Exigences :** EX-113.
+**Découpage (ADR-013, 2026-11-17) :** **1.11 réduit** avant l'ouverture — comptes, examen des justificatifs de tuteur, journal d'audit consultable, suspension, 2FA obligatoire ; **1.11 complet** après 1.10 — file KYC, écran de décision, quatre yeux KYC, tableau de bord opérationnel, chronométrage.
 
 ### Phase 1.12 — Import de masse · B
 **Goal :** une académie charge 10 000 joueurs en moins de 5 minutes, annulable 72 h.
@@ -301,6 +328,7 @@ Terminées — voir `technology_decisions.md` (TD-001 à TD-017).
 3. Carte OZ ID PDF (P1), export PDF filigrané
 4. Test d'inspection de payload pour les 7 rôles
 **Deliverable :** CP-10, CP-11 verts. **Exigences :** EX-115, EX-119.
+**1.13c étendu (ADR-013) :** tableau de bord du joueur — sa fiche, ses réglages de visibilité, l'export et la suppression de ses données (API 1.16) ; sans badge « Profil vérifié » avant 1.10.
 
 ### Phase 1.14 — Recherche v1 · B
 **Goal :** trouver un profil en quelques secondes, sans jamais exposer un mineur à tort.
@@ -318,6 +346,7 @@ Terminées — voir `technology_decisions.md` (TD-001 à TD-017).
 2. Événements de EX-117 ; préférences et désinscription
 3. Tests sur Gmail, Outlook, Yahoo ; mesure de délivrabilité
 **Deliverable :** délivrabilité mesurée et consignée. **Exigences :** EX-117, TD-011.
+**1.15 minimal (ADR-013) :** emails essentiels seulement — vérification de l'adresse, mot de passe oublié, invitation et décision sur le justificatif du tuteur, export prêt, suppression programmée ; préférences et mesure de délivrabilité ; le reste d'EX-117 après l'ouverture.
 
 ### Phase 1.16 — Journal d'audit et RGPD · A
 **Goal :** traçabilité inaltérable et droits des personnes exercés.
@@ -435,6 +464,13 @@ Phase 2 : 2.1 ◄ 1.4, 1.10 · 2.2/2.3/2.4 ◄ 2.1 · 2.5 ◄ 1.8 · 2.6 ◄ 2.5
 
 **Chemin critique de Phase 1 :** 1.1 → 1.3 → 1.4 → 1.9 → 1.10 → 1.10b → 1.11 → 1.17 → 1.18.
 
+**Écart validé le 2026-11-17 ([ADR-013](docs/adr/ADR-013-premiere-mise-en-ligne-sans-kyc.md)) — première mise en ligne sans KYC :**
+
+```
+1.5cbb ─► 1.19 (1.13c étendu + 1.7d + 1.11 réduit + 1.15 minimal) ─► 0.8c/d + 0.9 ─► 1.17 ─► 1.18 ─► [ouverture]
+[ouverture] ─► 1.10 ─► 1.10b ─► 1.11 complet ─► [J2]
+```
+
 ---
 
 ## 10. Risques et atténuations
@@ -447,6 +483,7 @@ Phase 2 : 2.1 ◄ 1.4, 1.10 · 2.2/2.3/2.4 ◄ 2.1 · 2.5 ◄ 1.8 · 2.6 ◄ 2.5
 | Charge de revue KYC humaine (TD-016) | Haute | Moyenne | Écran < 90 s ; priorisation ; activation progressive du drapeau sur preuve |
 | Délivrabilité SMS / WhatsApp au Cameroun | Moyenne | Haute | Double canal, double fournisseur, mesure au lot 1.3 |
 | Périmètre Phase 1 contesté (DP vs plan, Q15) | Moyenne | Haute | Validé par Fabrice Olinga le 2026-11-10 (Q15) |
+| Ouverture sans KYC (ADR-013) : confiance purement déclarative | Haute | Moyenne | Aucun badge « Profil vérifié » ; fiche du mineur cachée tant que le tuteur n'est pas validé ; 1.10 juste après l'ouverture ; test d'intrusion externe recommandé |
 | Textes légaux non prêts (Q7) | Moyenne | Bloquant | Textes provisoires rédigés (2026-11-10) ; relecture juriste avant la production |
 | Environnement macOS ≠ production Linux | Faible | Moyenne | Tout en conteneur ; CI sur Linux ; Testcontainers |
 | Versions d'outils plus récentes que le plan | Haute | Faible | Versions stables du moment au lot 0.1, consignées (`technology_decisions.md`) |

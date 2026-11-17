@@ -81,7 +81,7 @@ export function ConsentPanel({ ozId, text, active, blockedBy }: ConsentPanelProp
       data-testid={prefix}
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-xl font-semibold">{t(`types.${messageKey(text.type)}`)}</h2>
+        <h2 className="text-xl font-medium">{t(`types.${messageKey(text.type)}`)}</h2>
         <Badge
           tone={active ? 'legal' : 'neutral'}
           status={active ? 'consent-active' : 'consent-inactive'}

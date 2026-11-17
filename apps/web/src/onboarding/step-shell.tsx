@@ -1,6 +1,6 @@
 'use client';
 
-import { Callout, StepProgress } from '@oz/ui';
+import { Callout, SplitHeading, StepProgress } from '@oz/ui';
 import { useTranslations } from 'next-intl';
 import { useState, type ReactNode } from 'react';
 import { LogoutButton } from '../auth/logout-button';
@@ -51,7 +51,7 @@ export function StepShell({
             })}
       />
       <div className="flex flex-col gap-2">
-        <h1 className="font-display text-3xl font-bold">{title}</h1>
+        <SplitHeading as="h1" lead={title} />
         <p className="text-oz-text-muted">{lead}</p>
         {resumeUntil ? (
           <p className="text-sm text-oz-text-muted" data-testid="onboarding-resume">

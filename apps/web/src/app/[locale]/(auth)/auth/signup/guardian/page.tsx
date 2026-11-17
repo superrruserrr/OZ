@@ -2,6 +2,7 @@ import { Callout } from '@oz/ui';
 import { getTranslations } from 'next-intl/server';
 import { locale as rootLocale } from 'next/root-params';
 import { openSignupForm } from '../../../../../../auth/actions';
+import { AuthHeading } from '../../../../../../auth/auth-heading';
 import { authMetadata } from '../../../../../../auth/auth-metadata';
 import { SignupForm } from '../../../../../../auth/signup-form';
 
@@ -15,13 +16,11 @@ export default async function GuardianSignupPage() {
   const locale = await rootLocale();
   const t = await getTranslations({ locale, namespace: 'guardian.signup' });
   const tSignup = await getTranslations({ locale, namespace: 'auth.signup' });
+  const k = await getTranslations({ locale, namespace: 'auth.kickers' });
   const formToken = await openSignupForm();
   return (
     <section className="flex flex-col gap-6" data-testid="guardian-signup-page">
-      <div>
-        <h1 className="font-display text-3xl font-bold">{t('title')}</h1>
-        <p className="mt-3 text-oz-text-muted">{t('lead')}</p>
-      </div>
+      <AuthHeading kicker={k('guardian')} title={t('title')} lead={t('lead')} tone="highlight" />
       {formToken ? (
         <SignupForm formToken={formToken} />
       ) : (

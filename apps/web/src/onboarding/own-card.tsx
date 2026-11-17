@@ -87,7 +87,7 @@ export async function OwnCard({ profile, ozId, locale }: OwnCardProps) {
       <Link
         href={`/joueur/${ozId}`}
         data-testid="onboarding-own-profile"
-        className="inline-flex min-h-11 items-center font-semibold underline"
+        className="inline-flex min-h-11 items-center font-medium underline"
       >
         {t('seeProfile')}
       </Link>

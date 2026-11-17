@@ -4,7 +4,7 @@ import { cn } from '../lib/cn.js';
 /*
  * Primitives typographiques de la direction « sport » (lot 1.5ca, ADR-011) reprises de la maquette
  * Manus aux couleurs de la charte : petit libellé à puce au-dessus des titres, et titre scindé dont
- * la fin de phrase passe en rose `accent`. Composants serveur, sans JavaScript.
+ * la fin de phrase passe en `accent` (lime depuis l'ADR-012). Composants serveur, sans JavaScript.
  */
 
 const DOT_TONES = {
@@ -36,7 +36,7 @@ export function Kicker({ children, tone = 'primary', className }: KickerProps) {
   );
 }
 
-/** Taille minimale de chaque titre, en px : le rose n'est admis qu'en grand texte (≥ 24 px). */
+/** Taille minimale de chaque titre, en px : `accent` n'est admis qu'en grand texte (≥ 24 px). */
 export const SPLIT_HEADING_MIN_PX = { hero: 31, section: 28 } as const;
 
 const HEADING_SIZES = {
@@ -49,7 +49,7 @@ export interface SplitHeadingProps {
   as?: 'h1' | 'h2' | 'h3' | undefined;
   /** Début du titre, en couleur de texte. */
   lead: ReactNode;
-  /** Fin du titre, en rose : appel émotionnel, grand texte seulement. */
+  /** Fin du titre, en `accent` : appel émotionnel, grand texte seulement. */
   highlight?: ReactNode | undefined;
   size?: keyof typeof SPLIT_HEADING_MIN_PX | undefined;
   /** Passe la fin du titre à la ligne (héros). */
@@ -57,7 +57,7 @@ export interface SplitHeadingProps {
   className?: string | undefined;
 }
 
-/** Titre fort à deux temps (« Ton talent, *notre mission.* »), Prompt 700, tailles fluides. */
+/** Titre fort à deux temps (« Ton talent, *notre mission.* »), graisse 500 (ADR-012), tailles fluides. */
 export function SplitHeading({
   as: Tag = 'h2',
   lead,

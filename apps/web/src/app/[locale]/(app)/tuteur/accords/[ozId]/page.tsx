@@ -1,4 +1,4 @@
-import { Callout } from '@oz/ui';
+import { Callout, SplitHeading } from '@oz/ui';
 import { getTranslations } from 'next-intl/server';
 import { locale as rootLocale } from 'next/root-params';
 import { authMetadata } from '../../../../../../auth/auth-metadata';
@@ -47,9 +47,7 @@ export default async function GuardianConsentPage({
   return (
     <section className="flex flex-col gap-6" data-testid="guardian-consent-page">
       <div>
-        <h1 className="font-display text-3xl font-bold">
-          {t('title', { firstName: child.firstName })}
-        </h1>
+        <SplitHeading as="h1" lead={t('title', { firstName: child.firstName })} />
         <p className="mt-3 text-oz-text-muted">{t('lead')}</p>
       </div>
       {child.guardianVerified ? null : (

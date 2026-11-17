@@ -1,3 +1,4 @@
+import { SplitHeading } from '@oz/ui';
 import 'server-only';
 import type { SignupStatusOutput } from '@oz/contracts';
 import { getTranslations } from 'next-intl/server';
@@ -16,7 +17,7 @@ async function Unavailable({ path }: { readonly path: string }) {
   });
   return (
     <section className="flex flex-col gap-6" data-testid="onboarding-unavailable">
-      <h1 className="font-display text-3xl font-bold">{t('title')}</h1>
+      <SplitHeading as="h1" lead={t('title')} />
       <p className="text-oz-text-muted">{t('lead')}</p>
       <Link href={path} className="inline-flex min-h-11 items-center underline">
         {t('retry')}
@@ -30,7 +31,7 @@ async function Refused() {
   const t = await getTranslations({ locale: await rootLocale(), namespace: 'onboarding' });
   return (
     <section className="flex flex-col gap-6" data-testid="onboarding-refused">
-      <h1 className="font-display text-3xl font-bold">{t('refusedTitle')}</h1>
+      <SplitHeading as="h1" lead={t('refusedTitle')} />
       <p className="text-oz-text-muted">{t('errors.refused')}</p>
     </section>
   );

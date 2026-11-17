@@ -371,46 +371,33 @@
     },
     "layout": {
       "skip": "Aller au contenu",
-      "home": "Retour à l’accueil"
+      "home": "Retour à l’accueil",
+      "kicker": "OZ Football ID",
+      "asideLabel": "Pourquoi OZ",
+      "titleLead": "Ton parcours,",
+      "titleHighlight": "commence ici.",
+      "promises": {
+        "id": "Un identifiant OZ ID unique, gardé à vie, gratuit pour le joueur.",
+        "control": "Tu choisis ce que ta fiche montre, et à qui.",
+        "minors": "Un joueur mineur n’apparaît qu’avec l’accord de son tuteur légal."
+      }
     },
     "role": {
       "title": "Quel compte voulez-vous créer ?",
       "lead": "Choisissez le profil qui vous correspond.",
-      "group": "Type de compte",
-      "soon": "Bientôt disponible",
-      "continue": "Continuer",
       "haveAccount": "Déjà un compte ?",
       "login": "Se connecter",
       "options": {
         "player": {
           "title": "Joueur",
-          "description": "Obtenir mon OZ ID et mon profil vérifié"
+          "description": "Obtenir mon OZ ID et créer ma fiche"
         },
         "guardian": {
           "title": "Tuteur légal",
           "description": "Accompagner un joueur mineur"
-        },
-        "academy": {
-          "title": "Académie",
-          "description": "Inscrire et suivre mes joueurs"
-        },
-        "club": {
-          "title": "Club",
-          "description": "Rechercher et suivre des joueurs"
-        },
-        "federation": {
-          "title": "Fédération",
-          "description": "Observer les joueurs de mon pays"
-        },
-        "center": {
-          "title": "Centre OZ Performance",
-          "description": "Certifier des mesures"
-        },
-        "recruiter": {
-          "title": "Recruteur",
-          "description": "Rechercher des joueurs vérifiés"
         }
-      }
+      },
+      "organizations": "Académies, clubs, fédérations, centres et recruteurs : bientôt disponible."
     },
     "signup": {
       "title": "Créer mon compte joueur",
@@ -449,7 +436,8 @@
       "digit": "Chiffre {position} sur {total}",
       "codeSubmit": "Valider",
       "back": "Revenir à la connexion",
-      "forgot": "Mot de passe oublié ?"
+      "forgot": "Mot de passe oublié ?",
+      "lead": "Retrouvez votre espace et votre OZ ID."
     },
     "onboarding": {
       "logout": "Se déconnecter"
@@ -491,6 +479,13 @@
       "invalid": "Ce lien n’est plus valable. Il a peut-être déjà servi ou expiré.",
       "login": "Se connecter",
       "again": "Demander un nouveau lien"
+    },
+    "kickers": {
+      "account": "Espace membre",
+      "security": "Sécurité du compte",
+      "signup": "Inscription",
+      "player": "Inscription · Joueur",
+      "guardian": "Espace tuteur"
     }
   },
   "onboarding": {
@@ -580,7 +575,7 @@
       "revealTitle": "Votre OZ ID est prêt",
       "ozIdLabel": "OZ ID",
       "declared": "Déclaré",
-      "declaredHint": "Profil déclaré : il sera vérifié par un club, une académie ou OZ.",
+      "declaredHint": "Profil déclaré : il reprend les informations que vous avez saisies.",
       "completeness": "Profil complété à {value} %",
       "finish": "Terminer",
       "qrAlt": "QR code de votre profil OZ",

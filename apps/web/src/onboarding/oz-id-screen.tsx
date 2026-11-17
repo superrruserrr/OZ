@@ -1,7 +1,7 @@
 'use client';
 
 import type { SignupCompleteOutput } from '@oz/contracts';
-import { Badge, Button, Halo, OzIdCard } from '@oz/ui';
+import { Badge, Button, Halo, OzIdCard, SplitHeading } from '@oz/ui';
 import { useTranslations } from 'next-intl';
 import { useRef, useState } from 'react';
 import { Link, useRouter } from '../i18n/navigation';
@@ -53,9 +53,9 @@ export function OzIdScreen({ name, summary, details }: OzIdScreenProps) {
   if (card !== null) {
     return (
       <div className="flex flex-col items-center gap-6" data-testid="onboarding-oz-id-ready">
-        <h2 className="font-display text-2xl font-bold" aria-live="polite">
-          {t('revealTitle')}
-        </h2>
+        <div aria-live="polite">
+          <SplitHeading as="h2" lead={t('revealTitle')} />
+        </div>
         <Halo className="w-full">
           <OzIdCard
             name={name}
@@ -71,7 +71,7 @@ export function OzIdScreen({ name, summary, details }: OzIdScreenProps) {
           />
         </Halo>
         <p className="text-sm text-oz-text-muted">{t('declaredHint')}</p>
-        <p className="font-semibold" data-testid="onboarding-completeness">
+        <p className="font-medium" data-testid="onboarding-completeness">
           {t('completeness', { value: card.completeness })}
         </p>
         <Link
@@ -92,7 +92,7 @@ export function OzIdScreen({ name, summary, details }: OzIdScreenProps) {
         {summary.map((item) => (
           <div key={item.label} className="flex flex-col">
             <dt className="text-sm text-oz-text-muted">{item.label}</dt>
-            <dd className="font-semibold">{item.value}</dd>
+            <dd className="font-medium">{item.value}</dd>
           </div>
         ))}
       </dl>

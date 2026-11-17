@@ -6,20 +6,21 @@ dans [technology_decisions.md](../../technology_decisions.md) (TD-001 à TD-020)
 fige celles que le plan désigne au §4.3, et toute modification substantielle du plan fait l'objet
 d'un ADR.
 
-| ADR                                                 | Décision                                                          | Statut  | Date       |
-| --------------------------------------------------- | ----------------------------------------------------------------- | ------- | ---------- |
-| [ADR-001](ADR-001-nestjs.md)                        | NestJS plutôt que Fastify ou Express nu                           | Accepté | 2026-10-27 |
-| [ADR-002](ADR-002-authentification-proprietaire.md) | Authentification propriétaire plutôt que fournisseur externe      | Accepté | 2026-10-27 |
-| [ADR-003](ADR-003-postgresql-manage-residence.md)   | PostgreSQL managé, résidence des données à Paris                  | Accepté | 2026-10-27 |
-| [ADR-004](ADR-004-zod-contrat-unique.md)            | Zod comme contrat unique de validation                            | Accepté | 2026-10-27 |
-| [ADR-005](ADR-005-recherche-progressive.md)         | Recherche progressive : plein texte PostgreSQL, puis moteur dédié | Proposé | 2026-10-27 |
-| [ADR-006](ADR-006-abstraction-paiements.md)         | Abstraction des fournisseurs de paiement                          | Accepté | 2026-10-27 |
-| [ADR-007](ADR-007-uuidv7-oz-id.md)                  | UUIDv7 technique, OZ ID métier                                    | Accepté | 2026-10-27 |
-| [ADR-008](ADR-008-conservation-pieces-identite.md)  | Conservation et purge des documents d'identité                    | Proposé | 2026-10-27 |
-| [ADR-009](ADR-009-identite-visuelle.md)             | Identité visuelle : charte OZ Football ID, clair et sombre        | Accepté | 2026-11-10 |
-| [ADR-010](ADR-010-session-web-relais-serveur.md)    | Session du site web par relais serveur                            | Accepté | 2026-11-10 |
-| [ADR-011](ADR-011-theme-sombre-unique.md)           | Thème sombre unique pour le web, direction « sport »              | Accepté | 2026-11-10 |
-| [ADR-012](ADR-012-theme-noir-lime.md)               | Thème « Workspace » : noir, lime, police type Helvetica           | Accepté | 2026-11-10 |
+| ADR                                                   | Décision                                                          | Statut  | Date       |
+| ----------------------------------------------------- | ----------------------------------------------------------------- | ------- | ---------- |
+| [ADR-001](ADR-001-nestjs.md)                          | NestJS plutôt que Fastify ou Express nu                           | Accepté | 2026-10-27 |
+| [ADR-002](ADR-002-authentification-proprietaire.md)   | Authentification propriétaire plutôt que fournisseur externe      | Accepté | 2026-10-27 |
+| [ADR-003](ADR-003-postgresql-manage-residence.md)     | PostgreSQL managé, résidence des données à Paris                  | Accepté | 2026-10-27 |
+| [ADR-004](ADR-004-zod-contrat-unique.md)              | Zod comme contrat unique de validation                            | Accepté | 2026-10-27 |
+| [ADR-005](ADR-005-recherche-progressive.md)           | Recherche progressive : plein texte PostgreSQL, puis moteur dédié | Proposé | 2026-10-27 |
+| [ADR-006](ADR-006-abstraction-paiements.md)           | Abstraction des fournisseurs de paiement                          | Accepté | 2026-10-27 |
+| [ADR-007](ADR-007-uuidv7-oz-id.md)                    | UUIDv7 technique, OZ ID métier                                    | Accepté | 2026-10-27 |
+| [ADR-008](ADR-008-conservation-pieces-identite.md)    | Conservation et purge des documents d'identité                    | Proposé | 2026-10-27 |
+| [ADR-009](ADR-009-identite-visuelle.md)               | Identité visuelle : charte OZ Football ID, clair et sombre        | Accepté | 2026-11-10 |
+| [ADR-010](ADR-010-session-web-relais-serveur.md)      | Session du site web par relais serveur                            | Accepté | 2026-11-10 |
+| [ADR-011](ADR-011-theme-sombre-unique.md)             | Thème sombre unique pour le web, direction « sport »              | Accepté | 2026-11-10 |
+| [ADR-012](ADR-012-theme-noir-lime.md)                 | Thème « Workspace » : noir, lime, police type Helvetica           | Accepté | 2026-11-10 |
+| [ADR-013](ADR-013-premiere-mise-en-ligne-sans-kyc.md) | Première mise en ligne sans KYC, back-office réduit avant 1.10    | Accepté | 2026-11-17 |
 
 ## Écrire un ADR
 

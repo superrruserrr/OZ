@@ -43,7 +43,7 @@ export function LoginForm({ next }: LoginFormProps) {
   if (step === 'code') {
     return (
       <div className="flex flex-col gap-5" data-testid="login-code-step">
-        <h2 className="font-display text-xl font-semibold">{t('auth.login.codeTitle')}</h2>
+        <h2 className="font-display text-xl font-medium">{t('auth.login.codeTitle')}</h2>
         <p className="text-oz-text-muted">{t('auth.login.codeLead')}</p>
         <FormError failure={failure} testId="login-error" />
         <OtpInput
@@ -115,7 +115,7 @@ export function LoginForm({ next }: LoginFormProps) {
       <p className="-mt-2 text-sm">
         <Link
           href="/auth/forgot"
-          className="inline-flex min-h-11 items-center font-semibold text-oz-text underline"
+          className="inline-flex min-h-11 items-center font-medium text-oz-text underline"
           data-testid="login-forgot"
         >
           {t('auth.login.forgot')}
@@ -124,11 +124,11 @@ export function LoginForm({ next }: LoginFormProps) {
       <Button type="submit" loading={isSubmitting} data-testid="login-submit">
         {t('auth.login.submit')}
       </Button>
-      <p className="text-sm text-oz-text-muted">
+      <p className="border-t border-oz-border pt-5 text-sm text-oz-text-muted">
         {t('auth.login.noAccount')}{' '}
         <Link
           href="/auth/role"
-          className="inline-flex min-h-11 items-center font-semibold text-oz-text underline"
+          className="inline-flex min-h-11 items-center font-medium text-oz-text underline"
           data-testid="login-signup"
         >
           {t('auth.login.signup')}
