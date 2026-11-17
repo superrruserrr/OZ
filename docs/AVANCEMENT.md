@@ -101,6 +101,9 @@ Q6 (un seul système visuel) et Q19 (nom « OZ FOOTBALL ID ») sont tranchées p
 
 ## Ce qui bloque — décisions attendues
 
+Conformité (données, mineurs, identité) : check-list et propositions C1 à C9 dans
+`docs/CONFORMITE.md`.
+
 ### De Fabrice
 
 | N°  | Question                                                                                                             | Pour débloquer   |
@@ -115,6 +118,8 @@ Q6 (un seul système visuel) et Q19 (nom « OZ FOOTBALL ID ») sont tranchées p
 | Sujet                                  | État                                                                        |
 | -------------------------------------- | --------------------------------------------------------------------------- |
 | Analyse d'impact (AIPD)                | 🟡 Brouillon écrit (`docs/security/aipd.md`) : 8 questions au juriste       |
+| Textes d'accord du tuteur (C1)         | ⏸️ Version 1 provisoire, à valider (`docs/CONFORMITE.md`)                   |
+| Relecture des justificatifs (C5)       | ⏸️ Deux administrateurs et procédure proposée, à valider                    |
 | Registre des traitements (RGPD)        | 🟡 Brouillon (`docs/security/gdpr-register.md`) : bases légales à confirmer |
 | Choix du prestataire d'identité        | ⬜ Essai Veriff / Smile ID sans données réelles, au début de 1.10           |
 | Q17 Format de l'identifiant OZ ID      | ⬜ Le plan prévaut, maquettes à corriger                                    |
