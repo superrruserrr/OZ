@@ -2,7 +2,8 @@
 
 Référence : EX-108, lot 1.7b (sous-lots 1.7ba, 1.7bb, 1.7bc). Décisions D1 à D5 validées le
 2026-11-16 ; D2 et le sens de l'acceptation révisés pour raison de sécurité et confirmés le
-2026-11-17. Décisions R1 à R6 du lot 1.7bb validées le 2026-11-17.
+2026-11-17. Décisions R1 à R6 du lot 1.7bb validées le 2026-11-17. Décisions B1 à B6 du lot 1.7bc
+et C6 (retrait du lien) validées le 2026-11-17.
 
 ## Invitation et acceptation (lot 1.7ba)
 
@@ -104,6 +105,48 @@ dépôt en cours ; une fiche sans compte revient à `declared`.
 - **Compte du tuteur clos.** Ses consentements sont révoqués (dépublication) et ses dépôts en cours
   retirés (déclencheur sur `users.deleted_at`).
 
+## Retrait d'un lien approuvé par erreur (lot 1.7bc, décision C6)
+
+`POST /admin/guardian-links/:id/revocation` (`:id` : le dépôt approuvé), administrateur vérifié
+(`kyc.decide`), ré-authentifié par mot de passe et code. Motif d'une liste fermée (B3), jamais de
+texte libre : `approved_in_error`, `suspected_fraud`, `child_request`, `other`. Jamais le tuteur ni
+l'enfant concerné (403). Dans une transaction (`oz_guardian_link_revoke`) :
+
+- le dépôt passe `revoked` (auteur, motif, heure de la base) ;
+- `guardians.user_id` est vidé et la fiche revient à `declared` ;
+- les consentements donnés pour cette fiche sont révoqués : la fiche est dépubliée aussitôt ;
+- l'invitation est annulée : l'enfant peut réinviter ;
+- le rôle `guardian` est retiré s'il ne sert plus à aucune autre fiche tuteur du compte ;
+- les pièces restent 6 mois après le retrait (`retention_until`, R3).
+
+Dépôt non approuvé ou déjà retiré : 409 `GUARDIAN_REVOCATION_CONFLICT`. Audit
+`guardian.link.revoked` (dépôt, motif, nombre d'accords retirés ; aucun identifiant d'enfant). Email
+au tuteur : prénom de l'enfant, sans motif (il peut viser le destinataire). Pas d'écran : la file de
+revue et le retrait se font par l'API jusqu'au back-office (B6, D-135).
+
+## Écrans (lot 1.7bc)
+
+Le navigateur n'appelle jamais l'API (ADR-010) : actions serveur du site, CSP `connect-src 'self'`.
+
+- **Joueur mineur** : `/onboarding/invitation-tuteur` (lien depuis l'écran « profil créé »). Canal
+  email : seul le fait de l'envoi est affiché. Canal lien : le lien est montré une seule fois, avec
+  un bouton copier ; rien ne le garde après la navigation.
+- **Invitation** : `/tuteur/invitation#token=…`, ouverte sans compte. Le jeton est lu dans le
+  fragment puis effacé de l'adresse ; le serveur du site le garde dans un cookie httpOnly
+  `__Host-oz_guardian_invite` (SameSite=Strict, 30 minutes, B4) le temps de se connecter ou de créer
+  son compte (`/auth/signup/guardian`, D4), puis l'efface à l'acceptation. La confirmation d'email
+  ramène à l'invitation quand ce cookie est présent.
+- **Espace** : `/tuteur`, enfants rattachés et étape suivante ; ni photo ni mise en avant. Un compte
+  tuteur sans fiche joueur qui arrive sur `/onboarding` est renvoyé ici.
+- **Justificatif** : `/tuteur/justificatif/:guardianId`. Chaque pièce passe par une action serveur
+  du site (B1) : type réel lu dans les premiers octets (PDF, JPEG, PNG, WebP), 10 Mo au plus (B2),
+  SHA-256, puis URL signée de l'API, envoi au stockage et réception. Le dépôt n'est accepté qu'une
+  fois les pièces analysées saines.
+- **Accords** : `/tuteur/accords/:ozId`. Texte présenté tel quel avec sa version ; accord
+  ré-authentifié (mot de passe, code si la 2FA est active) avec la version et l'empreinte lues ;
+  publication fermée tant que le traitement n'est pas consenti ; retrait confirmé, sans
+  ré-authentification. Mention R5 : accord enregistré, fiche non publiée avant le KYC.
+
 ## Inscription directe (D4)
 
 Un tuteur peut créer son compte seul. Le rattachement à un enfant passe toujours par une invitation
@@ -114,7 +157,8 @@ Un tuteur peut créer son compte seul. Le rattachement à un enfant passe toujou
 - Audit : `guardian.invitation.created` (canal, sans contact ni jeton) et
   `guardian.invitation.accepted` (identifiant de l'invitation seulement) ; lot 1.7bb :
   `guardian.link.submitted`, `guardian.link.approved`, `guardian.link.rejected` (motif),
-  `guardian.consent.granted` (type, version), `guardian.consent.revoked`.
+  `guardian.consent.granted` (type, version), `guardian.consent.revoked` ; lot 1.7bc :
+  `guardian.link.revoked` (motif).
 - Journal applicatif : ni email, ni téléphone, ni jeton, ni prénom, ni identifiant d'enfant.
 - Compte clos : ses rattachements en attente tombent (déclencheur sur `users.deleted_at`).
 - Limites : 3 invitations par heure et par compte ; 10 aperçus ou acceptations par heure et par IP ;

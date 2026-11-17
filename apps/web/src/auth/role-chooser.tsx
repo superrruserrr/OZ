@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { Link } from '../i18n/navigation';
 
-/** Écran 02 : seul le compte joueur est ouvert (lot 1.7) ; tuteur au lot 1.7b, organisations au 1.8. */
+/** Écran 02 : joueur (lot 1.7) et tuteur (lot 1.7bc) ouverts ; organisations au lot 1.8. */
 const ROLES = [
   'player',
   'guardian',
@@ -15,7 +15,11 @@ const ROLES = [
   'center',
   'recruiter',
 ] as const;
-const OPEN: ReadonlySet<string> = new Set(['player']);
+const OPEN: ReadonlySet<string> = new Set(['player', 'guardian']);
+const SIGNUP_PATH: Readonly<Record<string, string>> = {
+  player: '/auth/signup/player',
+  guardian: '/auth/signup/guardian',
+};
 
 export function RoleChooser() {
   const t = useTranslations('auth.role');
@@ -37,7 +41,7 @@ export function RoleChooser() {
         }))}
       />
       <Button asChild>
-        <Link href="/auth/signup/player" data-testid="role-continue">
+        <Link href={SIGNUP_PATH[role] ?? '/auth/signup/player'} data-testid="role-continue">
           {t('continue')}
         </Link>
       </Button>

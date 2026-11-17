@@ -2,12 +2,15 @@ import { getTranslations } from 'next-intl/server';
 import { locale as rootLocale } from 'next/root-params';
 import { authMetadata } from '../../../../auth/auth-metadata';
 import { LogoutButton } from '../../../../auth/logout-button';
-import { redirect } from '../../../../i18n/navigation';
+import { readChildren } from '../../../../guardian/guardian-api';
+import { isMinor } from '../../../../guardian/minor';
+import { Link, redirect } from '../../../../i18n/navigation';
 import { Refused, toLogin, Unavailable } from '../../../../onboarding/load-draft';
 import { OwnCard } from '../../../../onboarding/own-card';
 import { readSignup } from '../../../../onboarding/signup-api';
 import { nextPath, ONBOARDING_PATH } from '../../../../onboarding/steps';
 import { readOwnPlayer } from '../../../../players/players-api';
+import { GUARDIAN_SPACE_PATH } from '../../../../session/protected-routes';
 
 export const generateMetadata = () => authMetadata('onboarding');
 
@@ -19,10 +22,28 @@ export default async function OnboardingPage() {
   const locale = await rootLocale();
   const read = await readSignup();
   if (read.kind === 'unauthenticated') toLogin(ONBOARDING_PATH, locale);
-  if (read.kind === 'refused') return <Refused />;
+  if (read.kind === 'refused') {
+    // Compte refusé comme joueur mais tuteur d'un enfant : son espace.
+    const children = await readChildren();
+    if (children.kind === 'ok' && children.children.length > 0) {
+      redirect({ href: GUARDIAN_SPACE_PATH, locale });
+    }
+    return <Refused />;
+  }
   if (read.kind === 'unavailable') return <Unavailable path={ONBOARDING_PATH} />;
-  if (read.kind === 'draft') redirect({ href: nextPath(read.status), locale });
+  if (read.kind === 'draft') {
+    // Compte de tuteur sans fiche joueur entamée (lot 1.7bc) : son espace, pas le parcours joueur.
+    const untouched = Object.values(read.status.steps).every((step) => step === null);
+    if (untouched) {
+      const children = await readChildren();
+      if (children.kind === 'ok' && children.children.length > 0) {
+        redirect({ href: GUARDIAN_SPACE_PATH, locale });
+      }
+    }
+    redirect({ href: nextPath(read.status), locale });
+  }
   const t = await getTranslations({ locale, namespace: 'onboarding.done' });
+  const tGuardian = await getTranslations({ locale, namespace: 'guardian.invite' });
   const own = await readOwnPlayer();
   if (own.kind === 'unauthenticated') toLogin(ONBOARDING_PATH, locale);
   return (
@@ -41,6 +62,15 @@ export default async function OnboardingPage() {
           {t('cardUnavailable')}
         </p>
       )}
+      {own.kind === 'ok' && isMinor(own.data.birthDate) ? (
+        <Link
+          href="/onboarding/invitation-tuteur"
+          data-testid="guardian-invite-entry"
+          className="inline-flex min-h-11 items-center font-semibold underline"
+        >
+          {tGuardian('entry')}
+        </Link>
+      ) : null}
       <LogoutButton />
     </section>
   );

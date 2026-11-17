@@ -55,6 +55,19 @@ describe('proxy : garde des écrans connectés (ADR-010)', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it('espace tuteur gardé ; page d’invitation ouverte sans compte (lot 1.7bc)', async () => {
+    const space = await call('/tuteur');
+    expect(space.status).toBe(303);
+    expect(new URL(space.headers.get('location') ?? '').searchParams.get('next')).toBe('/tuteur');
+    const child = await call('/tuteur/enfants/abc/accords');
+    expect(child.status).toBe(303);
+    const invitation = await call('/tuteur/invitation');
+    expect(invitation.status).not.toBe(303);
+    const english = await call('/en/tuteur/invitation');
+    expect(english.status).not.toBe(303);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it('sans session : 303 vers la connexion avec le chemin d’origine, en-têtes conservés', async () => {
     const response = await call('/onboarding/identite?etape=2');
     expect(response.status).toBe(303);
