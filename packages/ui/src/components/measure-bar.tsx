@@ -18,6 +18,8 @@ export interface MeasureBarProps {
    * qu'au montage ; joué d'emblée si le navigateur n'a pas `IntersectionObserver`.
    */
   animateOnView?: boolean | undefined;
+  /** Crans tous les 10 % sur la piste, façon jauge de jeu (lot 1.5eb) ; décoratifs. */
+  segmented?: boolean | undefined;
   testId?: string | undefined;
   className?: string | undefined;
 }
@@ -27,6 +29,8 @@ export interface MeasureBarProps {
  * agrégé (OZ Score retiré, Q18). Remplissage de 0 à la valeur en 500 ms par `transform: scaleX`,
  * décalé de 60 ms par rang ; pleine d'emblée avec mouvement réduit.
  */
+const NOTCHES = [1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
+
 export function MeasureBar({
   label,
   value,
@@ -35,6 +39,7 @@ export function MeasureBar({
   valueText,
   index = 0,
   animateOnView = false,
+  segmented = false,
   testId = 'measure-bar',
   className,
 }: MeasureBarProps) {
@@ -85,7 +90,12 @@ export function MeasureBar({
           {text}
         </span>
       </div>
-      <div className="h-2 w-full overflow-hidden rounded-full bg-oz-surface-input">
+      <div
+        className={cn(
+          'relative w-full overflow-hidden bg-oz-surface-input',
+          segmented ? 'h-2.5 rounded-sm' : 'h-2 rounded-full',
+        )}
+      >
         <div
           data-testid={`${testId}-fill`}
           className={cn(
@@ -95,6 +105,13 @@ export function MeasureBar({
           )}
           ref={fillRef}
         />
+        {segmented ? (
+          <div aria-hidden="true" className="absolute inset-0 flex justify-evenly">
+            {NOTCHES.map((notch) => (
+              <span key={notch} data-part="notch" className="h-full w-0.5 bg-oz-bg" />
+            ))}
+          </div>
+        ) : null}
       </div>
     </div>
   );
