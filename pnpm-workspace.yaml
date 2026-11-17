@@ -38,6 +38,14 @@ overrides:
   mysql2: ^3.24.4
   deepmerge-ts: ^8.0.2
 
+# Avis ignorés par `pnpm audit`, nommément et temporairement (DEBT D-136, autorisé par Gaëtan Wassu le
+# 2026-11-17) : GHSA-fc5q-39xc-vjpf (picomatch <= 4.0.7, déni de service par expression, high), sans
+# version corrigée ; tiré par ESLint et Vitest seulement, jamais par le code livré. À retirer dès
+# qu'un correctif paraît.
+auditConfig:
+  ignoreGhsas:
+    - GHSA-fc5q-39xc-vjpf
+
 catalog:
   typescript: 6.0.3
 

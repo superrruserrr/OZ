@@ -165,6 +165,8 @@ Composants adaptés de shadcn/ui (code possédé, pas de paquet shadcn) sur les 
 | `mysql2` | ^3.24.4 (override, résolu 3.24.6, attesté) | MIT | ≈ 630 Ko | Correctif GHSA-3f6p-5ww8-9rcr (haute) sur la dépendance de `prisma@7.9.1` (DEBT D-028) ; version qu'embarque Prisma 7.10.x | Prisma 7.10.x : CLI sans attestation de provenance | 0.7 |
 | `deepmerge-ts` | ^8.0.2 (override, attesté) | BSD-3-Clause | ≈ 265 Ko | Correctif GHSA-ggr8-5vv4-36mx (haute) sur la dépendance de `@prisma/config@7.9.1` ; version qu'embarque Prisma 7.10.x | idem | 0.7 |
 
+**Avis ignoré (temporaire, DEBT D-136)** : GHSA-fc5q-39xc-vjpf sur `picomatch` (outillage de développement seulement, aucune version corrigée), ignoré par `auditConfig.ignoreGhsas` de `pnpm-workspace.yaml` jusqu'à la sortie d'un correctif.
+
 **Scripts d'installation :** aucun n'est exécuté. Refus explicites dans `pnpm-workspace.yaml` (`allowBuilds`) : `@scarf/scarf` (télémétrie de swagger-ui-dist), `@swc/core`, `cpu-features`, `protobufjs`, `ssh2`, `msgpackr-extract` (accélérateur natif optionnel de msgpackr, tiré par bullmq : repli JavaScript), `@parcel/watcher` (tiré par next-intl, binaire précompilé fourni par un paquet optionnel), `prisma` (simple contrôle de version de Node). **Seule exception autorisée : `@prisma/engines`** (`true`), qui télécharge le moteur de migration publié par Prisma depuis `binaries.prisma.sh`, empreinte vérifiée par Prisma (D5 du lot 0.6).
 
 ## Images Docker (développement local) — lot 0.2
