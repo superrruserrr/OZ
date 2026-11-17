@@ -124,6 +124,18 @@ export {
   type PlayerSearchExportQueryOutput,
 } from './players/search-export.schema.js';
 export {
+  guardianChildrenOutputSchema,
+  guardianInvitationAcceptOutputSchema,
+  guardianInvitationOutputSchema,
+  guardianInvitationPreviewOutputSchema,
+  guardianInvitationTokenSchema,
+  type GuardianChildrenOutput,
+  type GuardianInvitationAcceptOutput,
+  type GuardianInvitationOutput,
+  type GuardianInvitationPreviewOutput,
+  type GuardianInvitationTokenInput,
+} from './players/guardian.schema.js';
+export {
   SIGNUP_STEPS,
   signupAffiliationSchema,
   signupCompleteOutputSchema,

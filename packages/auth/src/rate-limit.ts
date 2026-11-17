@@ -37,6 +37,8 @@ export const RATE_LIMIT_RULES = [
   'player_saved_search_account',
   'player_search_export_account',
   'player_signup_account',
+  'guardian_invite_account',
+  'guardian_invitation_ip',
   'data_export_request_account',
   'data_export_download_account',
   'account_deletion_account',
@@ -102,6 +104,9 @@ export const RATE_LIMIT_DEFAULTS: RateLimits = Object.freeze({
   player_search_export_account: { limit: 10, windowSeconds: HOUR },
   // Inscription joueur (lot 1.7a) : une sauvegarde par étape, quelques retours en arrière.
   player_signup_account: { limit: 120, windowSeconds: HOUR },
+  // Tuteur légal (lot 1.7ba) : invitations émises par compte, aperçu et acceptation par IP.
+  guardian_invite_account: { limit: 3, windowSeconds: HOUR },
+  guardian_invitation_ip: { limit: 10, windowSeconds: HOUR },
   // Demande d'export (lot 1.16ba) : ré-authentification par mot de passe, quelques essais seulement.
   data_export_request_account: { limit: 10, windowSeconds: HOUR },
   // Délivrance de l'URL de l'archive (lot 1.16bb) : URL de 5 minutes, auditée à chaque fois.

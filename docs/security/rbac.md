@@ -73,6 +73,8 @@ Aucune action ne permet de modifier son rôle, son niveau KYC ou son statut (CP-
 
 Export des données personnelles (lot 1.16ba, EX-118 n° 2) : toute personne exporte ses propres données, qu'elle tienne un rôle ou non ; les routes `/account/data-export` sont donc `authenticated` et non une action de la matrice, le titulaire venant de la session. La demande exige le mot de passe, plus le code TOTP ou de secours si la 2FA est active ; la base l'enregistre par `oz_data_export_request` (une à la fois, une par 24 heures) et l'audite (`data.export.requested`). L'assemblage (`oz_personal_data_export`) n'est exécutable que par `oz_worker`. Lot 1.16bb : l'archive prête est servie par `GET /account/data-export/download` (URL signée de 5 minutes de sa seule archive, auditée `data.export.downloaded` par `oz_data_export_download`). Détail : `docs/security/data-export.md`.
 
+Tuteur légal (lot 1.7ba, EX-108) : le joueur mineur invite son tuteur déclaré (`POST /players/me/guardian/invitation`, `authenticated` : le titulaire vient de la session, la base refuse un majeur ou un tuteur déjà lié). L'aperçu d'une invitation est `public` (le tuteur n'a pas encore de compte) et ne rend que le prénom de l'enfant et le lien déclaré. L'acceptation (`authenticated`) n'est qu'un rattachement en attente : ni `guardians.user_id`, ni rôle `guardian` ; aucune action de la matrice ne s'ouvre avant la vérification du lien (lots 1.7bb et 1.10). Un joueur ne peut pas accepter sa propre invitation, ni un compte de joueur mineur. `GET /guardians/me/children` est `authenticated` : liste vide sans enfant ; nom et OZ ID pour un tuteur vérifié seulement.
+
 Inscription joueur (lot 1.7a, EX-107) : le compte n'a encore aucun rôle, les routes `/players/signup` sont donc `authenticated`, le titulaire venant de la session. Chaque étape est chiffrée en base (`oz_player_signup_save`) ; la finalisation (`oz_player_signup_complete`) crée la fiche `declared`, le tuteur déclaré d'un mineur (sans compte, lot 1.7b) et le rôle `player`, seule attribution de rôle hors back-office, puis l'OZ ID est émis par `oz_issue_oz_id` ; audit `player.signup.completed`.
 
 Suppression du compte (lot 1.16ca, EX-118 n° 3) : toute personne supprime son propre compte ; les routes `/account/deletion` sont `authenticated`, le titulaire venant de la session. La demande exige la même ré-authentification que l'export ; la base l'enregistre par `oz_account_deletion_request` (une en attente au plus), révoque toutes les sessions et l'audite (`account.deletion.requested`). Le titulaire peut se reconnecter pour suivre ou annuler jusqu'à l'exécution (`oz_account_deletion_cancel`, `account.deletion.cancelled`). L'anonymisation (`oz_account_anonymize`) n'est exécutable que par `oz_worker`. Lot 1.16cba : pendant le délai, la fiche joueur du titulaire est masquée aux tiers (RLS et CASL, attribut `deletionPending`) ; `/account/deletion` et `/account/data-export` restent ouvertes à une session restreinte (2FA obligatoire non activée). Détail : `docs/security/account-deletion.md`.
@@ -188,55 +190,59 @@ Les pages `/docs`, `/docs-json` et `/docs-yaml` (Swagger) sont servies hors cont
 
 <!-- rbac:routes -->
 
-| Méthode | Route                          | Accès                    |
-| ------- | ------------------------------ | ------------------------ |
-| GET     | /health                        | public                   |
-| GET     | /health/live                   | public                   |
-| POST    | /contact                       | public                   |
-| GET     | /auth/register/form            | public                   |
-| POST    | /auth/register                 | public                   |
-| POST    | /auth/verify-email             | public                   |
-| POST    | /auth/verify-email/resend      | public                   |
-| POST    | /auth/password/forgot          | public                   |
-| POST    | /auth/password/reset           | public                   |
-| POST    | /auth/login                    | public                   |
-| POST    | /auth/login/2fa                | public                   |
-| POST    | /auth/refresh                  | public                   |
-| POST    | /auth/logout                   | public                   |
-| GET     | /auth/sessions                 | authenticated            |
-| DELETE  | /auth/sessions/:id             | authenticated            |
-| POST    | /auth/logout-all               | authenticated            |
-| POST    | /auth/2fa/setup                | authenticated            |
-| POST    | /auth/2fa/enable               | authenticated            |
-| POST    | /auth/2fa/disable              | authenticated            |
-| POST    | /auth/2fa/recovery-codes       | authenticated            |
-| POST    | /auth/phone/start              | authenticated            |
-| POST    | /auth/phone/verify             | authenticated            |
-| POST    | /documents/upload              | `document.upload`        |
-| POST    | /documents/upload/:id/complete | `document.upload`        |
-| GET     | /documents/:id/url             | `document.read`          |
-| GET     | /players                       | `player.search`          |
-| GET     | /players/signup                | authenticated            |
-| PUT     | /players/signup/:step          | authenticated            |
-| POST    | /players/signup/complete       | authenticated            |
-| GET     | /players/saved-searches        | `player.search`          |
-| POST    | /players/saved-searches        | `player.search`          |
-| DELETE  | /players/saved-searches/:id    | `player.search`          |
-| GET     | /players/export.csv            | `player.search`          |
-| GET     | /players/me                    | `profile.read`           |
-| GET     | /players/:ozId                 | `player.read_public`     |
-| GET     | /players/:ozId/qr.svg          | `player.read_public`     |
-| GET     | /players/:ozId/card.pdf        | `profile.card`           |
-| GET     | /players/:ozId/profile.pdf     | `player.read_public`     |
-| PATCH   | /players/:ozId/visibility      | `profile.set_visibility` |
-| POST    | /players/:ozId/deletion        | `profile.delete`         |
-| GET     | /players/:ozId/deletion        | `profile.delete`         |
-| DELETE  | /players/:ozId/deletion        | `profile.delete`         |
-| GET     | /admin/audit-log               | `audit.read_log`         |
-| GET     | /admin/audit-log/integrity     | `audit.read_log`         |
-| POST    | /account/data-export           | authenticated            |
-| GET     | /account/data-export           | authenticated            |
-| GET     | /account/data-export/download  | authenticated            |
-| POST    | /account/deletion              | authenticated            |
-| GET     | /account/deletion              | authenticated            |
-| DELETE  | /account/deletion              | authenticated            |
+| Méthode | Route                           | Accès                    |
+| ------- | ------------------------------- | ------------------------ |
+| GET     | /health                         | public                   |
+| GET     | /health/live                    | public                   |
+| POST    | /contact                        | public                   |
+| GET     | /auth/register/form             | public                   |
+| POST    | /auth/register                  | public                   |
+| POST    | /auth/verify-email              | public                   |
+| POST    | /auth/verify-email/resend       | public                   |
+| POST    | /auth/password/forgot           | public                   |
+| POST    | /auth/password/reset            | public                   |
+| POST    | /auth/login                     | public                   |
+| POST    | /auth/login/2fa                 | public                   |
+| POST    | /auth/refresh                   | public                   |
+| POST    | /auth/logout                    | public                   |
+| GET     | /auth/sessions                  | authenticated            |
+| DELETE  | /auth/sessions/:id              | authenticated            |
+| POST    | /auth/logout-all                | authenticated            |
+| POST    | /auth/2fa/setup                 | authenticated            |
+| POST    | /auth/2fa/enable                | authenticated            |
+| POST    | /auth/2fa/disable               | authenticated            |
+| POST    | /auth/2fa/recovery-codes        | authenticated            |
+| POST    | /auth/phone/start               | authenticated            |
+| POST    | /auth/phone/verify              | authenticated            |
+| POST    | /documents/upload               | `document.upload`        |
+| POST    | /documents/upload/:id/complete  | `document.upload`        |
+| GET     | /documents/:id/url              | `document.read`          |
+| GET     | /players                        | `player.search`          |
+| POST    | /players/me/guardian/invitation | authenticated            |
+| POST    | /guardians/invitations/read     | public                   |
+| POST    | /guardians/invitations/accept   | authenticated            |
+| GET     | /guardians/me/children          | authenticated            |
+| GET     | /players/signup                 | authenticated            |
+| PUT     | /players/signup/:step           | authenticated            |
+| POST    | /players/signup/complete        | authenticated            |
+| GET     | /players/saved-searches         | `player.search`          |
+| POST    | /players/saved-searches         | `player.search`          |
+| DELETE  | /players/saved-searches/:id     | `player.search`          |
+| GET     | /players/export.csv             | `player.search`          |
+| GET     | /players/me                     | `profile.read`           |
+| GET     | /players/:ozId                  | `player.read_public`     |
+| GET     | /players/:ozId/qr.svg           | `player.read_public`     |
+| GET     | /players/:ozId/card.pdf         | `profile.card`           |
+| GET     | /players/:ozId/profile.pdf      | `player.read_public`     |
+| PATCH   | /players/:ozId/visibility       | `profile.set_visibility` |
+| POST    | /players/:ozId/deletion         | `profile.delete`         |
+| GET     | /players/:ozId/deletion         | `profile.delete`         |
+| DELETE  | /players/:ozId/deletion         | `profile.delete`         |
+| GET     | /admin/audit-log                | `audit.read_log`         |
+| GET     | /admin/audit-log/integrity      | `audit.read_log`         |
+| POST    | /account/data-export            | authenticated            |
+| GET     | /account/data-export            | authenticated            |
+| GET     | /account/data-export/download   | authenticated            |
+| POST    | /account/deletion               | authenticated            |
+| GET     | /account/deletion               | authenticated            |
+| DELETE  | /account/deletion               | authenticated            |

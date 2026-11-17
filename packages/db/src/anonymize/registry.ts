@@ -355,6 +355,19 @@ export const ANONYMIZATION_REGISTRY: Registry = {
     updated_at: 'technical',
     expires_at: 'technical',
   },
+  // Lot 1.7ba : identifiants, empreinte du lien et dates ; aucune donnée de personne.
+  guardian_invitations: {
+    id: 'technical',
+    guardian_id: 'technical',
+    player_id: 'technical',
+    token_hash: 'technical',
+    expires_at: 'technical',
+    consumed_at: 'technical',
+    accepted_by: 'technical',
+    cancelled_at: 'technical',
+    created_at: 'technical',
+    created_by: 'technical',
+  },
   saved_searches: {
     id: 'technical',
     user_id: 'technical',

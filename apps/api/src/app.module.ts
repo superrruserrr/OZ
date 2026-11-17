@@ -12,6 +12,7 @@ import { ConfigModule } from './config/config.module.js';
 import { ContactModule } from './contact/contact.module.js';
 import { DocumentModule } from './document/document.module.js';
 import { HealthModule } from './health/health.module.js';
+import { GuardianModule } from './guardian/guardian.module.js';
 import { PlayerModule } from './player/player.module.js';
 import { PrivacyModule } from './privacy/privacy.module.js';
 
@@ -32,7 +33,12 @@ export class AppModule {
         // Drapeau R13 : le module n'existe pas du tout quand il est désactivé (404).
         ...(config.features.contactForm ? [ContactModule] : []),
         ...(config.auth
-          ? [AuthModule.forRoot(config.auth), PlayerModule.forRoot(config.auth.hmacKey)]
+          ? [
+              AuthModule.forRoot(config.auth),
+              // Avant PlayerModule : `players/me/guardian/…` ne doit pas être lu comme `players/:ozId/…`.
+              GuardianModule.forRoot(config.auth.hmacKey),
+              PlayerModule.forRoot(config.auth.hmacKey),
+            ]
           : []),
         // Journal d'audit (lot 1.16a) : réservé à l'administrateur, repose sur la session.
         ...(config.auth ? [AuditModule.forRoot(config.auth.hmacKey)] : []),

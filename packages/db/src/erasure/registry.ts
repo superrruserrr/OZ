@@ -403,6 +403,22 @@ export const ERASURE_REGISTRY: ErasureRegistry = {
       expires_at: 'technical',
     },
   },
+  guardian_invitations: {
+    scope:
+      'Les invitations de tuteur (lot 1.7ba) : identifiants internes, empreinte du lien et dates seulement, aucune donnée de la personne ; un rattachement en attente tombe dès que le compte qui l’a accepté est clos (déclencheur sur `users.deleted_at`).',
+    columns: {
+      id: 'technical',
+      guardian_id: 'technical',
+      player_id: 'technical',
+      token_hash: 'technical',
+      expires_at: 'technical',
+      consumed_at: 'technical',
+      accepted_by: 'technical',
+      cancelled_at: 'technical',
+      created_at: 'technical',
+      created_by: 'technical',
+    },
+  },
   saved_searches: {
     scope:
       'Les recherches sauvegardées du compte : supprimées dès que le compte est clos (déclencheur sur `users.deleted_at`) ; un nom ou un texte libre peut nommer quelqu’un.',

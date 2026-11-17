@@ -173,6 +173,8 @@ Décisions validées : D1 limiteur maison dans Redis ; D2 limites réglables san
 | `resend_verification_email` | `POST /auth/verify-email/resend`                 | adresse saisie                    | 1 / 15 min |
 | `reset_ip`                  | `POST /auth/password/reset`                      | IP                                | 10 / 1 h   |
 | `refresh_ip`                | `POST /auth/refresh`                             | IP                                | 60 / 1 min |
+| `guardian_invite_account`   | `POST /players/me/guardian/invitation`           | compte                            | 3 / 1 h    |
+| `guardian_invitation_ip`    | `POST /guardians/invitations/read` et `/accept`  | IP                                | 10 / 1 h   |
 | `new_device_email`          | email « nouvelle connexion » (D5)                | compte                            | 3 / 24 h   |
 | `document_upload_account`   | `POST /documents/upload` (lot 1.9a)              | compte                            | 20 / 1 h   |
 | `document_complete_account` | `POST /documents/upload/:id/complete` (lot 1.9a) | compte                            | 60 / 1 h   |
