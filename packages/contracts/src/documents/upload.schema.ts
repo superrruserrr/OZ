@@ -19,6 +19,8 @@ export const UPLOAD_CONTENT_TYPES = {
   birth_certificate: IMAGES_AND_PDF,
   license: IMAGES_AND_PDF,
   organization_registration: IMAGES_AND_PDF,
+  // Jugement de tutelle (lot 1.7bb) : justificatif du lien, sur la fiche tuteur seulement.
+  guardianship_order: IMAGES_AND_PDF,
 } as const;
 
 type UploadableDocumentType = keyof typeof UPLOAD_CONTENT_TYPES;
@@ -49,7 +51,12 @@ export const documentUploadSchema = z
       (id) => id !== undefined,
     );
     const forOrganization = input.documentType === 'organization_registration';
-    if (targets.length !== 1 || (input.organizationId !== undefined) !== forOrganization) {
+    const forGuardianOnly = input.documentType === 'guardianship_order';
+    if (
+      targets.length !== 1 ||
+      (input.organizationId !== undefined) !== forOrganization ||
+      (forGuardianOnly && input.guardianId === undefined)
+    ) {
       ctx.addIssue({ code: 'custom', path: ['playerId'], message: 'validation.document.target' });
     }
     const allowed: readonly string[] = UPLOAD_CONTENT_TYPES[input.documentType];

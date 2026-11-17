@@ -411,6 +411,32 @@ export const EXPORT_REGISTRY: ExportRegistry = {
     created_at: INTERNAL,
     created_by: AUTHOR,
   },
+  // Lot 1.7bb : dépôt du justificatif et décision ; les pièces sont exportées (`documents`), le
+  // dépôt lui-même ne porte que des identifiants, un statut et un motif de refus (D-135).
+  guardian_link_reviews: {
+    id: INTERNAL,
+    invitation_id: LINK,
+    guardian_id: LINK,
+    player_id: LINK,
+    submitted_by: LINK,
+    status: INTERNAL,
+    rejection_reason: INTERNAL,
+    decided_by: AUTHOR,
+    decided_at: INTERNAL,
+    created_at: INTERNAL,
+  },
+  guardian_link_review_documents: {
+    review_id: LINK,
+    document_id: LINK,
+  },
+  // Lot 1.7bb : textes de consentement publiés, communs à tous.
+  consent_texts: {
+    type: NOT_PERSONAL('texte public'),
+    version: NOT_PERSONAL('texte public'),
+    body: NOT_PERSONAL('texte public'),
+    sha256: NOT_PERSONAL('texte public'),
+    published_at: NOT_PERSONAL('texte public'),
+  },
   // Lot 1.14b : lues par `GET /players/saved-searches` ; critères et tri seuls, sans résultat.
   saved_searches: {
     id: INTERNAL,

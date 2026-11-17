@@ -134,22 +134,24 @@ model User {
   updatedAt                  DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
   deletedAt                  DateTime?  @map("deleted_at") @db.Timestamptz(6)
 
-  roles                       UserRole[]               @relation("UserRoleUser")
-  sessions                    Session[]
-  authTokens                  AuthToken[]
-  authRecoveryCodes           AuthRecoveryCode[]
-  player                      Player?                  @relation("PlayerUser")
-  guardians                   Guardian[]               @relation("GuardianUser")
-  consents                    Consent[]                @relation("ConsentGrantedByUser")
-  auditTrail                  AuditLog[]
-  dataExports                 DataExportRequest[]
-  deletions                   AccountDeletionRequest[] @relation("AccountDeletionUser")
-  childDeletions              AccountDeletionRequest[] @relation("AccountDeletionRequestedBy")
-  savedSearches               SavedSearch[]
-  searchExports               SearchExport[]
-  playerSignup                PlayerSignup?
-  guardianInvitationsCreated  GuardianInvitation[]     @relation("GuardianInvitationCreatedBy")
-  guardianInvitationsAccepted GuardianInvitation[]     @relation("GuardianInvitationAcceptedBy")
+  roles                        UserRole[]               @relation("UserRoleUser")
+  sessions                     Session[]
+  authTokens                   AuthToken[]
+  authRecoveryCodes            AuthRecoveryCode[]
+  player                       Player?                  @relation("PlayerUser")
+  guardians                    Guardian[]               @relation("GuardianUser")
+  consents                     Consent[]                @relation("ConsentGrantedByUser")
+  auditTrail                   AuditLog[]
+  dataExports                  DataExportRequest[]
+  deletions                    AccountDeletionRequest[] @relation("AccountDeletionUser")
+  childDeletions               AccountDeletionRequest[] @relation("AccountDeletionRequestedBy")
+  savedSearches                SavedSearch[]
+  searchExports                SearchExport[]
+  playerSignup                 PlayerSignup?
+  guardianInvitationsCreated   GuardianInvitation[]     @relation("GuardianInvitationCreatedBy")
+  guardianInvitationsAccepted  GuardianInvitation[]     @relation("GuardianInvitationAcceptedBy")
+  guardianLinkReviewsSubmitted GuardianLinkReview[]     @relation("GuardianLinkReviewSubmittedBy")
+  guardianLinkReviewsDecided   GuardianLinkReview[]     @relation("GuardianLinkReviewDecidedBy")
 
   rolesCreated         UserRole[]     @relation("UserRoleCreatedBy")
   rolesUpdated         UserRole[]     @relation("UserRoleUpdatedBy")
@@ -300,6 +302,7 @@ model Player {
   guardian            Guardian?                @relation(fields: [guardianId], references: [id], onDelete: Restrict)
   organization        Organization?            @relation(fields: [organizationId], references: [id], onDelete: Restrict)
   guardianInvitations GuardianInvitation[]
+  guardianLinkReviews GuardianLinkReview[]
   consents            Consent[]
   documents           Document[]
   documentUploads     DocumentUpload[]
@@ -344,6 +347,7 @@ model Guardian {
   user            User?                @relation("GuardianUser", fields: [userId], references: [id], onDelete: Restrict)
   players         Player[]
   invitations     GuardianInvitation[]
+  linkReviews     GuardianLinkReview[]
   consents        Consent[]
   documents       Document[]
   documentUploads DocumentUpload[]
@@ -443,6 +447,7 @@ enum DocumentType {
   license
   video
   organization_registration
+  guardianship_order
 
   @@map("document_type")
 }
@@ -562,16 +567,17 @@ model Document {
   createdBy               String?      @map("created_by") @db.Uuid
   updatedBy               String?      @map("updated_by") @db.Uuid
 
-  player        Player?             @relation(fields: [playerId], references: [id], onDelete: Restrict)
-  guardian      Guardian?           @relation(fields: [guardianId], references: [id], onDelete: Restrict)
-  organization  Organization?       @relation(fields: [organizationId], references: [id], onDelete: Restrict)
-  uploader      User                @relation("DocumentUploadedBy", fields: [uploadedBy], references: [id], onDelete: Restrict)
-  createdByUser User?               @relation("DocumentCreatedBy", fields: [createdBy], references: [id], onDelete: Restrict)
-  updatedByUser User?               @relation("DocumentUpdatedBy", fields: [updatedBy], references: [id], onDelete: Restrict)
+  player        Player?                      @relation(fields: [playerId], references: [id], onDelete: Restrict)
+  guardian      Guardian?                    @relation(fields: [guardianId], references: [id], onDelete: Restrict)
+  organization  Organization?                @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  uploader      User                         @relation("DocumentUploadedBy", fields: [uploadedBy], references: [id], onDelete: Restrict)
+  createdByUser User?                        @relation("DocumentCreatedBy", fields: [createdBy], references: [id], onDelete: Restrict)
+  updatedByUser User?                        @relation("DocumentUpdatedBy", fields: [updatedBy], references: [id], onDelete: Restrict)
   kycCases      KycCaseDocument[]
+  linkReviews   GuardianLinkReviewDocument[]
   upload        DocumentUpload?
-  duplicateOf   DocumentDuplicate?  @relation("DocumentDuplicateSubject")
-  duplicatedBy  DocumentDuplicate[] @relation("DocumentDuplicateOriginal")
+  duplicateOf   DocumentDuplicate?           @relation("DocumentDuplicateSubject")
+  duplicatedBy  DocumentDuplicate[]          @relation("DocumentDuplicateOriginal")
 
   @@index([documentNumberHmac])
   @@index([guardianId])
@@ -661,10 +667,11 @@ model GuardianInvitation {
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   createdBy   String?   @map("created_by") @db.Uuid
 
-  guardian       Guardian @relation(fields: [guardianId], references: [id], onDelete: Cascade)
-  player         Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
-  createdByUser  User?    @relation("GuardianInvitationCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
-  acceptedByUser User?    @relation("GuardianInvitationAcceptedBy", fields: [acceptedBy], references: [id], onDelete: Cascade)
+  guardian       Guardian             @relation(fields: [guardianId], references: [id], onDelete: Cascade)
+  player         Player               @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  createdByUser  User?                @relation("GuardianInvitationCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
+  acceptedByUser User?                @relation("GuardianInvitationAcceptedBy", fields: [acceptedBy], references: [id], onDelete: Cascade)
+  linkReviews    GuardianLinkReview[]
 
   @@index([playerId])
   @@index([guardianId])
@@ -932,4 +939,75 @@ model AuthRecoveryCode {
 
   @@unique([userId, codeHash])
   @@map("auth_recovery_codes")
+}
+
+enum GuardianLinkReviewStatus {
+  submitted
+  approved
+  rejected
+  withdrawn
+
+  @@map("guardian_link_review_status")
+}
+
+enum GuardianLinkRejectionReason {
+  illegible
+  name_mismatch
+  child_mismatch
+  wrong_document
+  suspected_forgery
+
+  @@map("guardian_link_rejection_reason")
+}
+
+/// Dépôt du justificatif de lien (lot 1.7bb) par le compte d'un rattachement en attente, puis
+/// décision d'un administrateur. Écrit par les fonctions oz_guardian_link_* seulement (RLS forcée).
+model GuardianLinkReview {
+  id              String                       @id @default(dbgenerated("oz_uuid_v7()")) @db.Uuid
+  invitationId    String                       @map("invitation_id") @db.Uuid
+  guardianId      String                       @map("guardian_id") @db.Uuid
+  playerId        String                       @map("player_id") @db.Uuid
+  submittedBy     String                       @map("submitted_by") @db.Uuid
+  status          GuardianLinkReviewStatus     @default(submitted)
+  rejectionReason GuardianLinkRejectionReason? @map("rejection_reason")
+  decidedBy       String?                      @map("decided_by") @db.Uuid
+  decidedAt       DateTime?                    @map("decided_at") @db.Timestamptz(6)
+  createdAt       DateTime                     @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  invitation      GuardianInvitation           @relation(fields: [invitationId], references: [id], onDelete: Cascade)
+  guardian        Guardian                     @relation(fields: [guardianId], references: [id], onDelete: Cascade)
+  player          Player                       @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  submittedByUser User                         @relation("GuardianLinkReviewSubmittedBy", fields: [submittedBy], references: [id], onDelete: Cascade)
+  decidedByUser   User?                        @relation("GuardianLinkReviewDecidedBy", fields: [decidedBy], references: [id], onDelete: SetNull)
+  documents       GuardianLinkReviewDocument[]
+
+  @@index([invitationId])
+  @@index([playerId])
+  @@index([submittedBy])
+  @@index([status, createdAt])
+  @@map("guardian_link_reviews")
+}
+
+/// Pièces d'un dépôt du justificatif ; une pièce ne sert qu'à un dépôt.
+model GuardianLinkReviewDocument {
+  reviewId   String @map("review_id") @db.Uuid
+  documentId String @unique @map("document_id") @db.Uuid
+
+  review   GuardianLinkReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  document Document           @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@id([reviewId, documentId])
+  @@map("guardian_link_review_documents")
+}
+
+/// Texte consenti (lot 1.7bb, EX-108 n° 4) : immuable, empreinte SHA-256 calculée par la base.
+model ConsentText {
+  type        ConsentType
+  version     String
+  body        String
+  sha256      String      @default("")
+  publishedAt DateTime    @default(now()) @map("published_at") @db.Timestamptz(6)
+
+  @@id([type, version])
+  @@map("consent_texts")
 }

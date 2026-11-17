@@ -1,6 +1,8 @@
 import { Module, type DynamicModule } from '@nestjs/common';
 import { RateLimitModule } from '../common/rate-limit/rate-limit.module.js';
 import { DatabaseModule } from '../database/database.module.js';
+import { Reauthentication } from '../privacy/reauthentication.js';
+import { GuardianReviewController } from './guardian-review.controller.js';
 import { GuardianController } from './guardian.controller.js';
 import { GuardianService } from './guardian.service.js';
 
@@ -15,8 +17,8 @@ export class GuardianModule {
     return {
       module: GuardianModule,
       imports: [DatabaseModule, RateLimitModule.forRoot(hmacKey)],
-      controllers: [GuardianController],
-      providers: [GuardianService],
+      controllers: [GuardianController, GuardianReviewController],
+      providers: [GuardianService, Reauthentication],
     };
   }
 }

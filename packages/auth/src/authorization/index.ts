@@ -15,6 +15,7 @@ export {
   abilityFor,
   authorizationReason,
   documentSubject,
+  GUARDIAN_LINK_DOCUMENT_TYPES,
   ORGANIZATION_DOCUMENT_TYPES,
   organizationSubject,
   PERSON_DOCUMENT_TYPES,

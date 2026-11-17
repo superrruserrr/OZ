@@ -39,6 +39,7 @@ export const RATE_LIMIT_RULES = [
   'player_signup_account',
   'guardian_invite_account',
   'guardian_invitation_ip',
+  'guardian_link_submit_account',
   'data_export_request_account',
   'data_export_download_account',
   'account_deletion_account',
@@ -107,6 +108,8 @@ export const RATE_LIMIT_DEFAULTS: RateLimits = Object.freeze({
   // Tuteur légal (lot 1.7ba) : invitations émises par compte, aperçu et acceptation par IP.
   guardian_invite_account: { limit: 3, windowSeconds: HOUR },
   guardian_invitation_ip: { limit: 10, windowSeconds: HOUR },
+  // Justificatif du lien (lot 1.7bb) : quelques dépôts par jour et par compte.
+  guardian_link_submit_account: { limit: 5, windowSeconds: 24 * HOUR },
   // Demande d'export (lot 1.16ba) : ré-authentification par mot de passe, quelques essais seulement.
   data_export_request_account: { limit: 10, windowSeconds: HOUR },
   // Délivrance de l'URL de l'archive (lot 1.16bb) : URL de 5 minutes, auditée à chaque fois.

@@ -48,6 +48,7 @@ describe('documentUploadSchema (D4)', () => {
       birth_certificate: ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'],
       license: ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'],
       organization_registration: ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'],
+      guardianship_order: ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'],
     });
   });
 

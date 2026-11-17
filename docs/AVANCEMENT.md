@@ -1,7 +1,7 @@
 # OZ — Où en est le projet ?
 
 > Check-list tenue à jour à la fin de chaque étape, à transmettre telle quelle à Fabrice Olinga.
-> **Dernière mise à jour : 10 novembre 2026** — étape : 1.5ca Refonte visuelle « sport », briques.
+> **Dernière mise à jour : 17 novembre 2026** — étape : 1.7bb Tuteur légal, justificatif et accord.
 
 Légende : ✅ fait et vérifié · 🟡 en cours · ⬜ à faire · ⏸️ bloqué en attente d'une décision
 
@@ -40,7 +40,7 @@ la vérification d'identité, qui attend deux décisions (§ « Ce qui bloque »
 | 1.5 Charte graphique complète et écrans de base          | 🟡   | Bases faites ; refonte « sport » sombre en cours (briques faites, thème lime puis pages à venir)       |
 | 1.6 Site public et pages légales                         | ✅   | Accueil, 7 pages profils, tarifs, à propos, contact, textes légaux provisoires ; testé 320 px          |
 | 1.7 Inscription joueur                                   | ✅   | Compte, identité, sport, tuteur et OZ ID à l'écran ; email renvoyé, mot de passe oublié, carte avec QR |
-| 1.7b Tuteur légal (mineurs)                              | 🟡   | Le joueur mineur invite son tuteur, qui accepte (serveur) ; restent justificatif, accord et écrans     |
+| 1.7b Tuteur légal (mineurs)                              | 🟡   | Invitation, justificatif revu par OZ, accord révocable (serveur) ; restent les écrans                  |
 | 1.8 Inscription organisation (académie, club…)           | ⬜   | Après 1.5                                                                                              |
 | 1.9 Coffre des documents d'identité                      | ✅   | Dépôt sécurisé, antivirus, lecture 5 minutes, effacement automatique                                   |
 | 1.10 Vérification d'identité (badge « Profil vérifié »)  | ⏸️   | Attend l'analyse d'impact validée et le choix du prestataire                                           |
@@ -54,7 +54,7 @@ la vérification d'identité, qui attend deux décisions (§ « Ce qui bloque »
 | 1.17 Tests de charge et recette                          | ⬜   | Fin de phase                                                                                           |
 | 1.18 Mise en production                                  | ⬜   | Fin de phase                                                                                           |
 
-**Bilan Phase 1 : 9 étapes sur 20 terminées, 3 en cours (1.7b : 1 partie sur 3 ; 1.13 : 2 parties sur 3 ; 1.14 : serveur fait, écrans en 1.13c).**
+**Bilan Phase 1 : 9 étapes sur 20 terminées, 3 en cours (1.7b : 2 parties sur 3 ; 1.13 : 2 parties sur 3 ; 1.14 : serveur fait, écrans en 1.13c).**
 
 ### Étape 1.5 en détail
 
@@ -159,3 +159,4 @@ Q6 (un seul système visuel) et Q19 (nom « OZ FOOTBALL ID ») sont tranchées p
 | 2026-11-11 | 1.5dc Annuaire et fiche joueur, démonstration locale          |
 | 2026-11-11 | 1.7cc Email renvoyé, mot de passe oublié, carte OZ ID avec QR |
 | 2026-11-16 | 1.7ba Tuteur légal : invitation et compte (1.7b en cours)     |
+| 2026-11-17 | 1.7bb Tuteur légal : justificatif et accord (1.7b en cours)   |

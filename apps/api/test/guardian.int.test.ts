@@ -210,8 +210,12 @@ async function verifyLink(guardian: Account, child: Child): Promise<void> {
   );
 }
 
+// Lot 1.7bb : fiche tuteur, état du lien et consentements actifs en plus.
 const pendingOf = (child: Child) => ({
+  guardianId: expect.any(String) as unknown,
   guardianVerified: false,
+  linkStatus: 'awaiting_documents',
+  consents: [],
   ozId: null,
   firstName: child.firstName,
   lastName: null,
@@ -266,6 +270,7 @@ describe('aperçu et acceptation', () => {
         {
           ...pendingOf(child),
           guardianVerified: true,
+          linkStatus: 'approved',
           ozId: child.ozId,
           lastName: 'Famillemarqueur',
         },
@@ -308,6 +313,7 @@ describe('aperçu et acceptation', () => {
         {
           ...pendingOf(first),
           guardianVerified: true,
+          linkStatus: 'approved',
           ozId: first.ozId,
           lastName: 'Famillemarqueur',
         },

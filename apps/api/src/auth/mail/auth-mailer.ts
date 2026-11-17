@@ -1,4 +1,4 @@
-import type { ChildDeletionRecipient } from './templates.js';
+import type { ChildDeletionRecipient, GuardianLinkNotice } from './templates.js';
 
 /** Envoi des emails d'authentification ; jetons en clair, transmis seulement au destinataire. */
 export interface AuthMailer {
@@ -8,6 +8,15 @@ export interface AuthMailer {
   sendPasswordChanged(to: string): Promise<void>;
   /** Invitation du tuteur légal par un joueur mineur (lot 1.7ba) : prénom de l'enfant seulement. */
   sendGuardianInvitation(to: string, token: string, childFirstName: string): Promise<void>;
+  /**
+   * Décision sur le justificatif du lien (lot 1.7bb) : prénom de l'enfant et, en cas de refus, motif
+   * de la liste fermée ; `closed` : rattachement clos, l'enfant doit réinviter.
+   */
+  sendGuardianLinkDecision(
+    to: string,
+    childFirstName: string,
+    decision: GuardianLinkNotice,
+  ): Promise<void>;
   /** Connexion depuis un appareil inconnu depuis 90 jours (D5 du lot 1.3b). */
   sendNewDeviceLogin(to: string, device: string, when: Date): Promise<void>;
   /** Jeton de rafraîchissement rejoué : famille révoquée (EX-103 n° 5). */

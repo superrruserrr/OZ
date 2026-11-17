@@ -35,18 +35,33 @@ export type GuardianAcceptOutcome =
   /** Compte inutilisable, ou compte d'un joueur mineur. */
   | { readonly outcome: 'refused' };
 
+/** État du lien vu du compte : pièces attendues, en revue, refusé, ou approuvé (lot 1.7bb). */
+export type GuardianLinkStatus = 'awaiting_documents' | 'submitted' | 'rejected' | 'approved';
+
 export interface GuardianChild {
-  /** Tuteur vérifié : condition des droits du tuteur sur la fiche (lots 1.4 et 1.13). */
+  /** Fiche tuteur de ce rattachement : cible des pièces du justificatif (lot 1.7bb). */
+  readonly guardianId: string;
+  /** Tuteur vérifié (KYC 2) : condition des droits du tuteur sur la fiche (lots 1.4 et 1.13). */
   readonly guardianVerified: boolean;
-  /** `null` tant que le tuteur n'est pas vérifié. */
+  readonly linkStatus: GuardianLinkStatus;
+  /** `null` tant que le lien n'est pas approuvé. */
   readonly ozId: string | null;
   readonly firstName: string;
-  /** `null` tant que le tuteur n'est pas vérifié. */
+  /** `null` tant que le lien n'est pas approuvé. */
   readonly lastName: string | null;
   readonly verificationStatus: string;
   /** Fiche visible des tiers : consentement du tuteur vérifié et fiche vérifiée (EX-T16 n° 3). */
   readonly published: boolean;
+  /** Consentements actifs du tuteur pour cet enfant (types), vide avant le lien approuvé. */
+  readonly consents: readonly string[];
 }
+
+const LINK_STATUSES: readonly string[] = [
+  'awaiting_documents',
+  'submitted',
+  'rejected',
+  'approved',
+];
 
 const TOKEN_HASH = /^[0-9a-f]{64}$/;
 
@@ -125,26 +140,38 @@ export async function acceptGuardianInvitation(
 
 /**
  * Enfants mineurs du compte du contexte (EX-108 n° 6) : rattachements en attente (invitation
- * acceptée) et fiches tuteur liées. Un enfant devenu majeur n'y figure plus. Tant que le tuteur n'est
- * pas vérifié, seuls le prénom et le statut sortent : ni nom, ni OZ ID (D3).
+ * acceptée) et fiches tuteur liées. Un enfant devenu majeur n'y figure plus. Avant l'approbation du
+ * lien, seuls le prénom et le statut sortent : ni nom, ni OZ ID (D3).
  */
 export async function guardianChildren(tx: TransactionClient): Promise<GuardianChild[]> {
   const rows = await tx.$queryRaw<
     {
+      guardian_id: string;
       guardian_verified: boolean;
+      link_status: string;
       oz_id: string | null;
       first_name: string;
       last_name: string | null;
       verification_status: string;
       published: boolean;
+      consents: string[];
     }[]
-  >`SELECT * FROM oz_guardian_children()`;
-  return rows.map((row) => ({
-    guardianVerified: row.guardian_verified,
-    ozId: row.oz_id,
-    firstName: row.first_name,
-    lastName: row.last_name,
-    verificationStatus: row.verification_status,
-    published: row.published,
-  }));
+  >`SELECT guardian_id::text AS guardian_id, guardian_verified, link_status, oz_id, first_name,
+      last_name, verification_status, published, consents FROM oz_guardian_children()`;
+  return rows.map((row) => {
+    if (!LINK_STATUSES.includes(row.link_status)) {
+      throw new Error('Enfants du tuteur : état du lien inattendu.');
+    }
+    return {
+      guardianId: row.guardian_id,
+      guardianVerified: row.guardian_verified,
+      linkStatus: row.link_status as GuardianLinkStatus,
+      ozId: row.oz_id,
+      firstName: row.first_name,
+      lastName: row.last_name,
+      verificationStatus: row.verification_status,
+      published: row.published,
+      consents: row.consents,
+    };
+  });
 }

@@ -544,7 +544,7 @@ Le marché de lancement est le **Cameroun**, avec une expansion prévue vers l'A
 8. LES tests E2E DOIVENT couvrir le cas majeur, le cas mineur et la reprise après interruption.
 
 ### EX-108 — Inscription et vérification du tuteur légal
-**Source :** §6.7, §7.3, D-K03 · **Priorité :** P0 · **Statut :** [À CONFIRMER] — le plan exige un tuteur vérifié KYC 2 sans décrire son parcours
+**Source :** §6.7, §7.3, D-K03 · **Priorité :** P0 · **Statut :** Codé en partie, côté serveur — lot 1.7ba : n° 1 (email ou lien, SMS en dette D-134), n° 6, n° 7 ; lot 1.7bb : n° 2 (justificatif et revue humaine, `apps/api/test/guardian-link.int.test.ts`), n° 4, n° 5 ; n° 3 partiel : le consentement s'enregistre mais ne publie rien avant le KYC 2 du tuteur (lot 1.10, en pause). Écrans au lot 1.7bc ; textes de consentement provisoires (D-135)
 
 **Récit :** En tant que parent, je veux créer mon propre compte et me faire vérifier, afin d'autoriser la publication du profil de mon enfant et de garder la main sur qui le consulte.
 

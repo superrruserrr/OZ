@@ -1,11 +1,13 @@
-import { Controller, Get, Header, HttpCode, Post } from '@nestjs/common';
+import { Controller, Delete, Get, Header, HttpCode, Param, Post } from '@nestjs/common';
 import {
   ApiAcceptedResponse,
   ApiBadRequestResponse,
   ApiBearerAuth,
   ApiBody,
   ApiConflictResponse,
+  ApiCreatedResponse,
   ApiForbiddenResponse,
+  ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
@@ -15,6 +17,24 @@ import {
 } from '@nestjs/swagger';
 import type { AccessTokenSubject } from '@oz/auth';
 import {
+  consentTextOutputSchema,
+  consentTextParamsSchema,
+  guardianConsentGrantSchema,
+  guardianConsentOutputSchema,
+  guardianConsentParamsSchema,
+  guardianConsentRevokeOutputSchema,
+  guardianConsentRevokeParamsSchema,
+  guardianLinkSubmitOutputSchema,
+  guardianLinkSubmitSchema,
+  type ConsentTextOutput,
+  type ConsentTextParamsInput,
+  type GuardianConsentGrantInput,
+  type GuardianConsentOutput,
+  type GuardianConsentParamsInput,
+  type GuardianConsentRevokeOutput,
+  type GuardianConsentRevokeParamsInput,
+  type GuardianLinkSubmitInput,
+  type GuardianLinkSubmitOutput,
   guardianChildrenOutputSchema,
   guardianInvitationAcceptOutputSchema,
   guardianInvitationOutputSchema,
@@ -31,6 +51,7 @@ import { Authenticated, Public } from '../authorization/decorators.js';
 import { ApiErrorDto } from '../common/errors/api-error.dto.js';
 import { RateLimit } from '../common/rate-limit/rate-limit.decorator.js';
 import { ValidatedBody } from '../common/validation/validated-body.decorator.js';
+import { ZodValidationPipe } from '../common/validation/zod-validation.pipe.js';
 import { openApiBodySchema } from '../docs/contract-schema.js';
 import { GuardianService } from './guardian.service.js';
 
@@ -146,5 +167,103 @@ export class GuardianController {
   @ApiUnauthorizedResponse(unauthorized)
   children(@CurrentUser() user: AccessTokenSubject): Promise<GuardianChildrenOutput> {
     return this.guardians.children(user.userId);
+  }
+
+  @Post('guardians/link/submit')
+  @HttpCode(202)
+  @Authenticated()
+  @Header('Cache-Control', 'no-store')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Soumettre le justificatif du lien avec l’enfant',
+    description:
+      'Compte d’un rattachement en attente (invitation acceptée) : 1 à 3 pièces déjà déposées sur la fiche tuteur (`guardianId` de `GET /guardians/me/children`) par `POST /documents/upload`, et saines. Acte de naissance ou livret de famille (`birth_certificate`) ; jugement de tutelle (`guardianship_order`) exigé si le lien déclaré n’est ni la mère ni le père. Revue par OZ.',
+  })
+  @ApiBody({ schema: openApiBodySchema(guardianLinkSubmitSchema) })
+  @ApiAcceptedResponse({ schema: openApiBodySchema(guardianLinkSubmitOutputSchema) })
+  @ApiBadRequestResponse({
+    type: ApiErrorDto,
+    description: 'Pièces invalides, ou jugement de tutelle manquant',
+  })
+  @ApiUnauthorizedResponse(unauthorized)
+  @ApiNotFoundResponse({ type: ApiErrorDto, description: 'Aucun rattachement en attente ici' })
+  @ApiConflictResponse({ type: ApiErrorDto, description: 'Un justificatif est déjà en revue' })
+  @ApiUnprocessableEntityResponse({ type: ApiErrorDto, description: 'Corps invalide' })
+  @ApiTooManyRequestsResponse({
+    type: ApiErrorDto,
+    description: 'Plus de 5 dépôts dans la journée',
+    headers: retryAfter,
+  })
+  submitLink(
+    @CurrentUser() user: AccessTokenSubject,
+    @ValidatedBody(guardianLinkSubmitSchema) input: GuardianLinkSubmitInput,
+  ): Promise<GuardianLinkSubmitOutput> {
+    return this.guardians.submitLink(user.userId, input);
+  }
+
+  @Get('consent-texts/:type/current')
+  @Public()
+  @Header('Cache-Control', 'no-store')
+  @ApiOperation({
+    summary: 'Lire le texte de consentement en vigueur',
+    description:
+      'Texte à présenter tel quel au tuteur ; sa version et son empreinte sont renvoyées avec le consentement.',
+  })
+  @ApiOkResponse({ schema: openApiBodySchema(consentTextOutputSchema) })
+  @ApiUnprocessableEntityResponse({ type: ApiErrorDto, description: 'Type inconnu' })
+  consentText(
+    @Param(new ZodValidationPipe(consentTextParamsSchema)) params: ConsentTextParamsInput,
+  ): Promise<ConsentTextOutput> {
+    return this.guardians.consentText(params.type);
+  }
+
+  @Post('guardians/me/children/:ozId/consents')
+  @HttpCode(201)
+  @Authenticated()
+  @Header('Cache-Control', 'no-store')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Consentir pour son enfant',
+    description:
+      'Tuteur au lien approuvé. Ré-authentification par mot de passe, plus le code si la 2FA est active. Version et empreinte du texte lu ; heure de la base. La publication exige d’abord le consentement au traitement, et n’a lieu qu’une fois le tuteur vérifié (KYC 2). Un second consentement identique rend le premier.',
+  })
+  @ApiBody({ schema: openApiBodySchema(guardianConsentGrantSchema) })
+  @ApiCreatedResponse({ schema: openApiBodySchema(guardianConsentOutputSchema) })
+  @ApiUnauthorizedResponse(unauthorized)
+  @ApiForbiddenResponse({ type: ApiErrorDto, description: 'Mot de passe ou code incorrect' })
+  @ApiNotFoundResponse({ type: ApiErrorDto, description: 'Pas d’enfant lié sous cet OZ ID' })
+  @ApiConflictResponse({
+    type: ApiErrorDto,
+    description: 'Texte changé depuis sa lecture, ou traitement des données non consenti',
+  })
+  @ApiUnprocessableEntityResponse({ type: ApiErrorDto, description: 'Corps invalide' })
+  grantConsent(
+    @CurrentUser() user: AccessTokenSubject,
+    @Param(new ZodValidationPipe(guardianConsentParamsSchema)) params: GuardianConsentParamsInput,
+    @ValidatedBody(guardianConsentGrantSchema) input: GuardianConsentGrantInput,
+  ): Promise<GuardianConsentOutput> {
+    return this.guardians.grantConsent(user.userId, params.ozId, input);
+  }
+
+  @Delete('guardians/me/children/:ozId/consents/:type')
+  @HttpCode(200)
+  @Authenticated()
+  @Header('Cache-Control', 'no-store')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Retirer un consentement',
+    description:
+      'Effet immédiat : la fiche cesse d’être visible des organisations dans la même transaction. Retirer le traitement des données retire aussi la publication. Sans consentement actif : `revoked: 0`.',
+  })
+  @ApiOkResponse({ schema: openApiBodySchema(guardianConsentRevokeOutputSchema) })
+  @ApiUnauthorizedResponse(unauthorized)
+  @ApiNotFoundResponse({ type: ApiErrorDto, description: 'Pas d’enfant lié sous cet OZ ID' })
+  @ApiUnprocessableEntityResponse({ type: ApiErrorDto, description: 'Type inconnu' })
+  revokeConsent(
+    @CurrentUser() user: AccessTokenSubject,
+    @Param(new ZodValidationPipe(guardianConsentRevokeParamsSchema))
+    params: GuardianConsentRevokeParamsInput,
+  ): Promise<GuardianConsentRevokeOutput> {
+    return this.guardians.revokeConsent(user.userId, params.ozId, params.type);
   }
 }

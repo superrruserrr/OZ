@@ -58,7 +58,11 @@ manuelle.
   chiffrés, données sportives ; fiche tuteur ; consentements ; OZ ID. Lot 1.7a : brouillon
   d'inscription (`player_signups`, chaque étape chiffrée, supprimé à la finalisation, 30 jours
   après la dernière saisie ou à la clôture du compte). Lot 1.7ba : invitation du tuteur
-  (`guardian_invitations`, empreinte du lien et dates, aucune donnée de la personne).
+  (`guardian_invitations`, empreinte du lien et dates, aucune donnée de la personne). Lot 1.7bb :
+  justificatif du lien (acte de naissance, livret de famille ou jugement de tutelle, au coffre
+  documentaire, gardé 6 mois après la décision puis purgé ; dépôt et décision dans
+  `guardian_link_reviews`, identifiants, statut et motif) ; consentements du tuteur avec la version
+  du texte consenti (`consent_texts`, immuable).
 - **Destinataires :** le joueur, son tuteur, son organisation ; les tiers selon la matrice des
   droits (`rbac.md`) — un mineur n'est visible que vérifié et publié avec consentement. Lot
   1.13b : carte OZ ID (titulaire, tuteur) et export PDF de la vue du lecteur, filigrané à son nom
@@ -137,35 +141,38 @@ registre d'effacement (`packages/db/src/erasure/gdpr-register.test.ts`).
 
 <!-- gdpr:tables -->
 
-| Table                       | Traitements |
-| --------------------------- | ----------- |
-| `system_settings`           | T1          |
-| `users`                     | T1, T7      |
-| `user_roles`                | T1          |
-| `sessions`                  | T1          |
-| `auth_tokens`               | T1          |
-| `auth_recovery_codes`       | T1          |
-| `organizations`             | T8          |
-| `players`                   | T2, T4      |
-| `guardians`                 | T2          |
-| `consents`                  | T2, T4      |
-| `oz_id_registry`            | T2          |
-| `documents`                 | T3          |
-| `document_duplicates`       | T3          |
-| `document_uploads`          | T3          |
-| `kyc_cases`                 | T3          |
-| `kyc_case_documents`        | T3          |
-| `imports`                   | T8          |
-| `subscriptions`             | T8          |
-| `notifications`             | T5          |
-| `audit_log`                 | T6          |
-| `audit_chain_state`         | T6          |
-| `audit_chain_checks`        | T6          |
-| `data_export_requests`      | T7          |
-| `account_deletion_requests` | T7          |
-| `player_signups`            | T2          |
-| `saved_searches`            | T4          |
-| `search_exports`            | T4          |
-| `guardian_invitations`      | T2          |
+| Table                            | Traitements |
+| -------------------------------- | ----------- |
+| `system_settings`                | T1          |
+| `users`                          | T1, T7      |
+| `user_roles`                     | T1          |
+| `sessions`                       | T1          |
+| `auth_tokens`                    | T1          |
+| `auth_recovery_codes`            | T1          |
+| `organizations`                  | T8          |
+| `players`                        | T2, T4      |
+| `guardians`                      | T2          |
+| `consents`                       | T2, T4      |
+| `oz_id_registry`                 | T2          |
+| `documents`                      | T3          |
+| `document_duplicates`            | T3          |
+| `document_uploads`               | T3          |
+| `kyc_cases`                      | T3          |
+| `kyc_case_documents`             | T3          |
+| `imports`                        | T8          |
+| `subscriptions`                  | T8          |
+| `notifications`                  | T5          |
+| `audit_log`                      | T6          |
+| `audit_chain_state`              | T6          |
+| `audit_chain_checks`             | T6          |
+| `data_export_requests`           | T7          |
+| `account_deletion_requests`      | T7          |
+| `player_signups`                 | T2          |
+| `saved_searches`                 | T4          |
+| `search_exports`                 | T4          |
+| `guardian_invitations`           | T2          |
+| `guardian_link_reviews`          | T2          |
+| `guardian_link_review_documents` | T2          |
+| `consent_texts`                  | T2          |
 
 <!-- /gdpr:tables -->
