@@ -30,39 +30,40 @@ Comme pour les phases du plan, un palier ne s'ouvre que lorsque le précédent e
 | Lien parent-enfant prouvé, revu par OZ      | ✅   | Lot 1.7bb (`docs/security/guardian.md`)                                   |
 | Accord parental versionné et révocable      | ✅   | Lot 1.7bb : texte gardé, heure du serveur, retrait immédiat               |
 | Bases légales de chaque traitement          | 🟡   | Proposées dans le registre, **à confirmer par le juriste**                |
-| Textes de consentement du tuteur            | 🟡   | Version 1 **provisoire** (décision C1 ci-dessous)                         |
+| Textes de consentement du tuteur            | 🟡   | Version 1 validée pour la recette (C1), provisoire jusqu'au juriste       |
 | Export : dépôt et décision du justificatif  | ⬜   | Dette D-135 (les pièces et les accords sont déjà exportés)                |
 
 ## Palier 2 — Avant la recette
 
-| Sujet                                                | État | Qui                                             |
-| ---------------------------------------------------- | ---- | ----------------------------------------------- |
-| Textes de consentement validés (C1)                  | ⏸️   | Gaëtan                                          |
-| Responsable du traitement et contact données (C2)    | ⏸️   | Fabrice (lié à Q20)                             |
-| Pays ouverts au lancement (C3)                       | ⏸️   | Fabrice                                         |
-| Relecture juridique groupée (C4)                     | ⏸️   | Gaëtan, juriste                                 |
-| Personnes habilitées à revoir les justificatifs (C5) | ⏸️   | Gaëtan                                          |
-| Procédure de revue écrite (proposée plus bas)        | 🟡   | Gaëtan à valider                                |
-| Retrait d'une approbation donnée par erreur (C6)     | ⬜   | Équipe technique                                |
-| Analyse d'impact (AIPD) relue                        | 🟡   | `docs/security/aipd.md`, 8 questions au juriste |
-| Dettes de conformité soldées ou acceptées par écrit  | 🟡   | D-134, D-135                                    |
+| Sujet                                                | État | Suite                                                         |
+| ---------------------------------------------------- | ---- | ------------------------------------------------------------- |
+| Textes de consentement validés (C1)                  | ✅   | Validés pour la recette le 2026-11-17                         |
+| Responsable du traitement et contact données (C2)    | 🟡   | Principe validé ; société et adresse à fournir (Q20, Fabrice) |
+| Pays ouverts au lancement (C3)                       | ✅   | Cameroun seul (2026-11-17)                                    |
+| Relecture juridique groupée (C4)                     | 🟡   | Principe validé ; juriste et date à fixer                     |
+| Personnes habilitées à revoir les justificatifs (C5) | 🟡   | Principe validé ; noms des deux administrateurs à fournir     |
+| Procédure de revue écrite (ci-dessous)               | ✅   | Validée le 2026-11-17                                         |
+| Retrait d'une approbation donnée par erreur (C6)     | ⬜   | Lot 1.7bc                                                     |
+| Analyse d'impact (AIPD) relue                        | 🟡   | `docs/security/aipd.md`, 8 questions au juriste               |
+| Dettes de conformité soldées ou acceptées par écrit  | 🟡   | D-134, D-135                                                  |
 
 ## Palier 3 — Avant la production
 
-| Sujet                                                                        | État | Qui                       |
-| ---------------------------------------------------------------------------- | ---- | ------------------------- |
-| Contrats de sous-traitance signés (hébergeur, identité, email, SMS)          | ⬜   | Fabrice                   |
-| Transferts hors Union européenne encadrés, s'il y en a                       | ⬜   | Juriste                   |
-| Vérification d'identité (KYC) en service, prestataire choisi (C7)            | ⏸️   | Gaëtan (lot 1.10)         |
-| Double contrôle (« quatre yeux ») pour les mineurs, prévu par l'AIPD         | ⬜   | Lots 1.10, 1.11           |
-| Parcours complet testé : inscription mineur → tuteur → accord → publication  | ⬜   | Équipe technique          |
-| Droits des personnes testés en recette (accès, export, suppression, retrait) | ⬜   | Équipe technique          |
-| Procédure en cas de fuite de données (notification sous 72 h)                | 🟡   | `docs/security/policy.md` |
-| Textes définitifs publiés (CGU, confidentialité, consentements)              | ⬜   | Juriste (Q7)              |
+| Sujet                                                                        | État | Qui                             |
+| ---------------------------------------------------------------------------- | ---- | ------------------------------- |
+| Contrats de sous-traitance signés (hébergeur, identité, email, SMS)          | ⬜   | Fabrice                         |
+| Transferts hors Union européenne encadrés, s'il y en a                       | ⬜   | Juriste                         |
+| Vérification d'identité (KYC) en service, prestataire choisi (C7)            | ⬜   | Reprise du lot 1.10 après 1.7bc |
+| Double contrôle (« quatre yeux ») pour les mineurs, prévu par l'AIPD         | ⬜   | Lots 1.10, 1.11                 |
+| Parcours complet testé : inscription mineur → tuteur → accord → publication  | ⬜   | Équipe technique                |
+| Droits des personnes testés en recette (accès, export, suppression, retrait) | ⬜   | Équipe technique                |
+| Procédure en cas de fuite de données (notification sous 72 h)                | 🟡   | `docs/security/policy.md`       |
+| Textes définitifs publiés (CGU, confidentialité, consentements)              | ⬜   | Juriste (Q7)                    |
 
-## Décisions attendues : mes propositions
+## Décisions C1 à C9 : validées le 2026-11-17 (Gaëtan Wassu)
 
-Pour chacune, une réponse « OK » suffit ; sinon, la correction.
+Propositions de l'équipe technique, toutes acceptées. Restent à fournir : la société et l'adresse
+de contact (C2, Q20), le juriste et sa date (C4), les noms des deux administrateurs (C5).
 
 | N°  | Question                                                   | Proposition de l'équipe technique                                                                                                                                                           |
 | --- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -76,9 +77,9 @@ Pour chacune, une réponse « OK » suffit ; sinon, la correction.
 | C8  | Invitation du tuteur par SMS ou WhatsApp                   | Au lancement, email ou lien transmis par le joueur ; SMS au lot 1.15, avec un modèle de message à approuver.                                                                                |
 | C9  | Suite du projet                                            | Lot 1.7bc (écrans du tuteur : invitation, dépôt, accord, retrait) dès la fusion du lot 1.7bb.                                                                                               |
 
-## Procédure de revue des justificatifs (proposition v1)
+## Procédure de revue des justificatifs (v1, validée le 2026-11-17)
 
-À valider (C5). Elle s'applique à chaque dépôt de la file `GET /admin/guardian-links`.
+Décision C5. Elle s'applique à chaque dépôt de la file `GET /admin/guardian-links`.
 
 1. **Se récuser** si l'on connaît la famille. OZ bloque déjà le déposant et l'enfant, pas un proche.
 2. **Lire les pièces dans OZ seulement** (lien valable 5 minutes). Ne jamais les télécharger, les
