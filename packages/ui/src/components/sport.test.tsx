@@ -48,6 +48,12 @@ describe('SplitHeading', () => {
     },
   );
 
+  it('titres plus doux (lot 1.5e, E6) : héros 26 → 44 px, section 24 → 32 px', () => {
+    expect(SPLIT_HEADING_MIN_PX).toEqual({ hero: 26, section: 24 });
+    render(<SplitHeading size="hero" lead="A" />);
+    expect(screen.getByRole('heading').className).toContain(',2.75rem)]');
+  });
+
   it('le rose atteint 3:1 sur le fond et les surfaces sombres (grand texte)', () => {
     const c = ozThemes.dark;
     for (const bg of [c.bg, c['surface-1']]) {

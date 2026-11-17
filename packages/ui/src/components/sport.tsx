@@ -37,12 +37,12 @@ export function Kicker({ children, tone = 'primary', className }: KickerProps) {
 }
 
 /** Taille minimale de chaque titre, en px : `accent` n'est admis qu'en grand texte (≥ 24 px). */
-export const SPLIT_HEADING_MIN_PX = { hero: 31, section: 28 } as const;
+export const SPLIT_HEADING_MIN_PX = { hero: 26, section: 24 } as const;
 
 const HEADING_SIZES = {
-  // 31 px sur téléphone (design.md §8.5) → 56 px sur grand écran, comme le héros de la maquette.
-  hero: 'text-[clamp(1.9375rem,4.2vw+1rem,3.5rem)] leading-[1.05]',
-  section: 'text-[clamp(1.75rem,2.4vw+1rem,2.5rem)] leading-[1.12]',
+  // Lot 1.5e (E6) : 26 px sur téléphone → 44 px sur grand écran (titres environ 20 % plus doux).
+  hero: 'text-[clamp(1.625rem,3vw+1rem,2.75rem)] leading-[1.1]',
+  section: 'text-[clamp(1.5rem,1.6vw+1rem,2rem)] leading-[1.18]',
 } as const satisfies Record<keyof typeof SPLIT_HEADING_MIN_PX, string>;
 
 export interface SplitHeadingProps {

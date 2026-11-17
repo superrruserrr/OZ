@@ -64,7 +64,7 @@ export function MediaFrame({
         </>
       ) : null}
       {tag ? (
-        <span className="absolute top-3 left-3 rounded-md bg-oz-primary px-2 py-1 text-[11px] font-medium tracking-[0.08em] text-oz-on-primary uppercase">
+        <span className="absolute top-3 left-3 rounded-md bg-oz-primary px-2 py-1 text-xs font-medium tracking-[0.08em] text-oz-on-primary uppercase">
           {tag}
         </span>
       ) : null}
@@ -104,7 +104,7 @@ export function AdSlot({ format, sponsoredLabel, children, placeholder, classNam
         className,
       )}
     >
-      <span className="absolute top-1.5 left-2.5 text-[10px] font-medium tracking-[0.12em] text-oz-text-label uppercase">
+      <span className="absolute top-1.5 left-2.5 text-xs font-medium tracking-[0.12em] text-oz-text-label uppercase">
         {sponsoredLabel}
       </span>
       {children ?? <span className="text-sm text-oz-text-label">{placeholder ?? size}</span>}

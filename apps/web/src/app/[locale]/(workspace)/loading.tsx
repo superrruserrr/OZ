@@ -1,8 +1,6 @@
-import { SportLoader } from '@oz/ui';
-import { useTranslations } from 'next-intl';
+import { PageLoading } from '../../../navigation/page-loading';
 
-/** Chargement de l'espace connecté (lot 1.5dc) : la coquille reste, la balle rebondit dans le contenu. */
+/** Chargement de l'espace connecté (lot 1.5dc, refonte 1.5e) : la coquille reste, le contenu se dessine. */
 export default function Loading() {
-  const t = useTranslations('loading');
-  return <SportLoader label={t('label')} />;
+  return <PageLoading inShell />;
 }

@@ -3,7 +3,7 @@ import { ClubCrest } from './club-crest.js';
 import { SPORTS, SportIcon, SportTag } from './sport-icon.js';
 import { SportLoader } from './sport-loader.js';
 
-/* Kit « sport » (lot 1.5da) : icônes de sports, écussons génériques, chargement animé. */
+/* Kit « sport » (lot 1.5da, chargement multisport 1.5e) : icônes, écussons génériques, chargement. */
 const meta = {
   title: 'Workspace/Kit sport',
   component: SportLoader,
@@ -13,7 +13,10 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Chargement: Story = {};
-export const ChargementBasket: Story = { name: 'Chargement basket', args: { sport: 'basketball' } };
+export const ChargementCollectif: Story = {
+  name: 'Chargement sports collectifs',
+  args: { sports: ['rugby', 'handball', 'volleyball'] },
+};
 export const Sports: Story = {
   render: () => (
     <div className="flex flex-col gap-4">

@@ -235,6 +235,15 @@ Terminées — voir `technology_decisions.md` (TD-001 à TD-017).
 **Deliverable :** Storybook « Direction sport » ; site refait. **Exigences :** EX-105, EX-106, EX-T22.
 **État (2026-11-17) :** terminé — 1.5cbb livré (coquille et écrans de compte, audit final `docs/ui/audit-1.5c.md`).
 
+### Phase 1.5e — Refonte visuelle v3 : typographie douce, chargement multisport, statistiques, tableau de bord · B
+**Goal :** textes plus petits et plus doux, chargement court et vivant, statistiques façon jeu de football sans faux chiffre, tableau de bord joueur et tuteur complet. Plan : `phase1.5e_plan.md` ; décisions E1 à E6 validées le 2026-11-17. Lot visuel placé avant 1.19, qui remplit les cartes « Bientôt disponible ».
+**Tasks :**
+1. 1.5ea — échelle typographique (`--text-*`, corps 15 px, titres environ −20 %, plancher 12 px) ; `SportLoader` « anneau → trois balles » après 150 ms ; `loading.tsx` en squelette non bloquant
+2. 1.5eb — kit statistiques : hexagone (complétude réelle, aptitudes vides), jauges, barres
+3. 1.5ec — tableau de bord `/accueil` (joueur) et accueil tuteur, cartes « Bientôt disponible »
+
+**État (2026-11-17) :** 1.5ea en revue.
+
 ### Phase 1.6 — Site public et pages légales · B
 **Goal :** OZ existe publiquement, avec ses documents légaux.
 **Tasks :**

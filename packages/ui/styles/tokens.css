@@ -80,6 +80,27 @@
  * sont en plus coupés par `motion-reduce:` dans les composants.
  */
 @theme {
+  /*
+   * Échelle typographique douce (lot 1.5e, E6) : corps à 15 px, titres environ 20 % sous l'échelle
+   * Tailwind par défaut, interlignage aéré ; plancher de 12 px pour les métadonnées.
+   */
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.45;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.5;
+  --text-base: 0.9375rem;
+  --text-base--line-height: 1.55;
+  --text-lg: 1.0625rem;
+  --text-lg--line-height: 1.5;
+  --text-xl: 1.1875rem;
+  --text-xl--line-height: 1.4;
+  --text-2xl: 1.375rem;
+  --text-2xl--line-height: 1.3;
+  --text-3xl: 1.625rem;
+  --text-3xl--line-height: 1.2;
+  --text-4xl: 1.875rem;
+  --text-4xl--line-height: 1.15;
+
   --animate-oz-shake: oz-shake 300ms ease-in-out;
   --animate-oz-pop: oz-pop 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
   --animate-oz-unfold: oz-unfold 250ms ease-out both;
@@ -99,6 +120,18 @@
   --animate-oz-ball-shadow: oz-ball-shadow 900ms cubic-bezier(0.5, 0, 0.5, 1) infinite;
   --animate-oz-ball-spin: oz-ball-spin 1.8s linear infinite;
   --animate-oz-dash: oz-dash 1.2s linear infinite;
+  /*
+   * Chargement multisport (lot 1.5e, E5) : rien pendant 150 ms (pages rapides), puis l'anneau OZ
+   * éclate en trois balles (≤ 600 ms) qui sautillent ensuite en décalé. Transform et opacité seules.
+   */
+  --animate-oz-loader-appear: oz-loader-appear 160ms ease-out 150ms both;
+  --animate-oz-ring-burst: oz-ring-burst 320ms cubic-bezier(0.5, 0, 0.75, 0) 150ms both;
+  --animate-oz-split-left: oz-split-left 520ms cubic-bezier(0.2, 0.8, 0.3, 1) 250ms both;
+  --animate-oz-split-center: oz-split-center 520ms cubic-bezier(0.2, 0.8, 0.3, 1) 250ms both;
+  --animate-oz-split-right: oz-split-right 520ms cubic-bezier(0.2, 0.8, 0.3, 1) 250ms both;
+  --animate-oz-ball-hop-1: oz-ball-hop 900ms ease-in-out 800ms infinite;
+  --animate-oz-ball-hop-2: oz-ball-hop 900ms ease-in-out 920ms infinite;
+  --animate-oz-ball-hop-3: oz-ball-hop 900ms ease-in-out 1040ms infinite;
   /* Volet de détail (lot 1.5dc) : entrée par la droite. */
   --animate-oz-slide-in: oz-slide-in 220ms ease-out both;
 
@@ -215,6 +248,79 @@
     50% {
       opacity: 0.2;
       transform: scale(1.8);
+    }
+  }
+
+  @keyframes oz-loader-appear {
+    from {
+      opacity: 0;
+    }
+  }
+
+  /* L'anneau se gonfle puis se resserre jusqu'à disparaître : les balles en sortent. */
+  @keyframes oz-ring-burst {
+    40% {
+      transform: scale(1.2);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(0.2);
+      opacity: 0;
+    }
+  }
+
+  @keyframes oz-split-left {
+    0% {
+      opacity: 0;
+      transform: translate(36px, 0) scale(0.3);
+    }
+    60% {
+      opacity: 1;
+      transform: translate(-2px, -14px) scale(1);
+    }
+    100% {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes oz-split-center {
+    0% {
+      opacity: 0;
+      transform: scale(0.3);
+    }
+    60% {
+      opacity: 1;
+      transform: translateY(-18px) scale(1);
+    }
+    100% {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes oz-split-right {
+    0% {
+      opacity: 0;
+      transform: translate(-36px, 0) scale(0.3);
+    }
+    60% {
+      opacity: 1;
+      transform: translate(2px, -14px) scale(1);
+    }
+    100% {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes oz-ball-hop {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-7px);
     }
   }
 

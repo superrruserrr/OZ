@@ -27,3 +27,12 @@ describe('aucune couleur en dur (naming_conventions, design.md §8.3)', () => {
     expect(sources(SRC).some((path) => path.includes('components'))).toBe(true);
   });
 });
+
+describe('plancher typographique de 12 px (lot 1.5e, E6)', () => {
+  it('aucune taille en dur sous 12 px', () => {
+    const offenders = sources(SRC)
+      .filter((path) => /text-\[(?:[0-9]|1[01])(?:\.\d+)?px\]/.test(readFileSync(path, 'utf8')))
+      .map((path) => path.slice(SRC.length));
+    expect(offenders).toEqual([]);
+  });
+});

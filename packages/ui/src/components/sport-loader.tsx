@@ -1,24 +1,36 @@
 import { cn } from '../lib/cn.js';
 import { SportGlyph, type Sport } from './sport-icon.js';
 
+export type LoaderSports = readonly [Sport, Sport, Sport];
+
 export interface SportLoaderProps {
   /** Message lu par les lecteurs d'écran et affiché sous l'animation (« Chargement… »). */
   label: string;
-  /** Balle du sport qui rebondit ; football par défaut. */
-  sport?: Sport | undefined;
-  /** `page` : plein écran centré ; `inline` : dans une carte ou un panneau. */
+  /** Les trois balles qui sortent de l'anneau, de gauche à droite (univers multisport). */
+  sports?: LoaderSports | undefined;
+  /** `page` : en tête du contenu, sur un squelette ; `inline` : dans une carte ou un panneau. */
   variant?: 'page' | 'inline' | undefined;
   className?: string | undefined;
 }
 
+const DEFAULT_SPORTS: LoaderSports = ['football', 'basketball', 'tennis'];
+
+/* Positions finales (centre des balles), départ commun au centre de l'anneau. */
+const BALLS = [
+  { x: 24, split: 'motion-safe:animate-oz-split-left', hop: 'motion-safe:animate-oz-ball-hop-1' },
+  { x: 60, split: 'motion-safe:animate-oz-split-center', hop: 'motion-safe:animate-oz-ball-hop-2' },
+  { x: 96, split: 'motion-safe:animate-oz-split-right', hop: 'motion-safe:animate-oz-ball-hop-3' },
+] as const;
+
 /*
- * Chargement « sport » (lot 1.5da) : une balle rebondit sur la ligne de terrain, s'écrase à
- * l'impact, son ombre respire. Animation en transform et opacité (GPU), sans Lottie ni script ;
- * sous `prefers-reduced-motion`, la balle reste posée et seul le texte informe.
+ * Chargement multisport (lot 1.5e, E5) : rien pendant 150 ms, si bien qu'une page rapide n'affiche
+ * aucune animation ; ensuite l'anneau OZ (un cercle, pas le logo recomposé, ADR-009) éclate en trois
+ * balles qui sautillent en décalé. SVG et CSS seulement (transform et opacité), aucun attribut
+ * `style` (CSP). Sous `prefers-reduced-motion`, l'anneau reste fixe et seul le texte informe.
  */
 export function SportLoader({
   label,
-  sport = 'football',
+  sports = DEFAULT_SPORTS,
   variant = 'page',
   className,
 }: SportLoaderProps) {
@@ -28,42 +40,39 @@ export function SportLoader({
       aria-live="polite"
       aria-busy="true"
       aria-label={label}
-      data-sport={sport}
+      data-sports={sports.join(' ')}
       data-testid="sport-loader"
       className={cn(
-        'flex flex-col items-center justify-center gap-4 text-oz-text-muted',
-        variant === 'page' ? 'min-h-[60dvh]' : 'py-8',
+        'flex animate-oz-loader-appear flex-col items-center justify-center gap-2 text-oz-text-muted',
+        variant === 'page' ? 'py-6' : 'py-4',
         className,
       )}
     >
-      <svg aria-hidden="true" viewBox="0 0 120 96" className="h-24 w-30 overflow-visible">
-        {/* Ligne de terrain et rond central en pointillés qui défilent. */}
-        <g className="stroke-oz-border" fill="none" strokeWidth="1.5">
-          <path d="M4 84h112" />
-          <path
-            d="M30 84a30 10 0 0 0 60 0"
-            strokeDasharray="3 5"
-            className="motion-safe:animate-oz-dash"
-          />
-        </g>
-        {/* Ombre : s'élargit quand la balle touche le sol. */}
-        <ellipse
+      <svg aria-hidden="true" viewBox="0 0 120 64" className="h-16 w-30 overflow-visible">
+        <path d="M8 56h104" className="stroke-oz-border" strokeWidth="1.5" fill="none" />
+        <circle
+          data-part="ring"
           cx="60"
-          cy="85"
-          rx="12"
-          ry="2.5"
-          className="origin-[60px_85px] fill-oz-primary/25 motion-safe:animate-oz-ball-shadow"
+          cy="36"
+          r="14"
+          fill="none"
+          strokeWidth="4"
+          className="origin-center stroke-oz-primary [transform-box:fill-box] motion-safe:animate-oz-ring-burst"
         />
-        <g className="origin-[60px_84px] motion-safe:animate-oz-ball-bounce">
-          <g transform="translate(46 56) scale(1.1667)" className="text-oz-primary">
-            <SportGlyph
-              sport={sport}
-              className="origin-[12px_12px] motion-safe:animate-oz-ball-spin"
-            />
+        {BALLS.map((ball, index) => (
+          <g key={ball.x} transform={`translate(${String(ball.x - 12)} 24)`}>
+            <g
+              data-ball={sports[index]}
+              className={cn('origin-center opacity-0 [transform-box:fill-box]', ball.split)}
+            >
+              <g className={cn('text-oz-primary', ball.hop)}>
+                <SportGlyph sport={sports[index] ?? 'football'} />
+              </g>
+            </g>
           </g>
-        </g>
+        ))}
       </svg>
-      <p aria-hidden="true" className="text-sm">
+      <p aria-hidden="true" className="text-xs">
         {label}
       </p>
     </div>

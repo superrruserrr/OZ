@@ -74,7 +74,7 @@ function RailLink({
       {count ? (
         <span
           aria-hidden="true"
-          className="min-w-5 rounded-full bg-oz-danger px-1 text-center text-[11px] leading-5 text-oz-bg"
+          className="min-w-5 rounded-full bg-oz-danger px-1 text-center text-xs leading-5 text-oz-bg"
         >
           {count > 99 ? '99+' : count}
         </span>

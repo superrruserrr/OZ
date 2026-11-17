@@ -62,7 +62,7 @@ export function LivePanel({
         <dl className="mt-5 grid grid-cols-2 gap-3 border-t border-oz-border pt-4 sm:grid-cols-3 lg:grid-cols-2">
           {facts.map((fact) => (
             <div key={fact.label} className="min-w-0">
-              <dt className="text-[11px] font-medium tracking-[0.08em] text-oz-text-label uppercase">
+              <dt className="text-xs font-medium tracking-[0.08em] text-oz-text-label uppercase">
                 {fact.label}
               </dt>
               <dd className="mt-1 truncate text-sm font-medium text-oz-text">{fact.value}</dd>

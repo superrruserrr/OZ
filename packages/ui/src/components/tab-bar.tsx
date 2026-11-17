@@ -94,7 +94,7 @@ export function TabBar({
                 {count ? (
                   <span
                     aria-hidden="true"
-                    className="absolute top-1 left-1/2 ml-2 min-w-5 rounded-full bg-oz-danger px-1 text-center text-[11px] leading-5 text-oz-bg"
+                    className="absolute top-1 left-1/2 ml-2 min-w-5 rounded-full bg-oz-danger px-1 text-center text-xs leading-5 text-oz-bg"
                   >
                     {count > 99 ? '99+' : count}
                   </span>
