@@ -50,11 +50,9 @@ export default async function GuardianConsentPage({
         <SplitHeading as="h1" lead={t('title', { firstName: child.firstName })} />
         <p className="mt-3 text-oz-text-muted">{t('lead')}</p>
       </div>
-      {child.guardianVerified ? null : (
-        <Callout tone="legal" testId="guardian-consent-kyc">
-          {t('kycNotice')}
-        </Callout>
-      )}
+      <Callout tone="legal" testId="guardian-consent-audience">
+        {t('audience')}
+      </Callout>
       {data === null || publication === null ? (
         <Callout testId="guardian-consent-unavailable">{t('unavailable')}</Callout>
       ) : (

@@ -55,9 +55,11 @@ export async function ChildrenList({
                   {t('consents', { count: child.consents.length })}
                 </p>
               ) : null}
-              {child.guardianVerified ? null : (
-                <p className="text-sm text-oz-text-muted">{t('kycNotice')}</p>
-              )}
+              {child.linkStatus === 'approved' && !child.published ? (
+                <p className="text-sm text-oz-text-muted" data-testid="guardian-child-publish-hint">
+                  {t('publishHint')}
+                </p>
+              ) : null}
               {canDeposit ? (
                 <Link
                   href={`/tuteur/justificatif/${child.guardianId}`}

@@ -50,7 +50,7 @@ export async function playerRecord(
       CASE WHEN EXISTS (
         SELECT 1 FROM guardians g
         WHERE g.id = p.guardian_id AND g.user_id = oz_current_user_id()
-          AND g.deleted_at IS NULL AND g.verification_status = 'verified')
+          AND g.deleted_at IS NULL AND oz_guardian_link_approved(g.verification_status))
       THEN oz_current_user_id()::text END AS guardian_user_id,
       p.organization_id::text,
       oz_player_published(p.id, p.guardian_id, p.verification_status) AS published,
@@ -155,7 +155,7 @@ export const PROFILE_COLUMNS = Prisma.sql`
   CASE WHEN EXISTS (
     SELECT 1 FROM guardians g
     WHERE g.id = p.guardian_id AND g.user_id = oz_current_user_id()
-      AND g.deleted_at IS NULL AND g.verification_status = 'verified')
+      AND g.deleted_at IS NULL AND oz_guardian_link_approved(g.verification_status))
   THEN oz_current_user_id()::text END AS guardian_user_id,
   p.organization_id::text,
   oz_player_published(p.id, p.guardian_id, p.verification_status) AS published,

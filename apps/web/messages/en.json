@@ -692,7 +692,7 @@
   "guardian": {
     "invite": {
       "title": "Invite my legal guardian",
-      "lead": "Your profile stays hidden from every organisation until your parent or legal guardian has given consent and had their identity verified.",
+      "lead": "Your profile won’t be visible to any organisation until your parent or legal guardian has proven your relationship and given their consent.",
       "send": "Send the invitation",
       "resend": "Send a new invitation",
       "resendHint": "A new invitation cancels the previous one, even if it was already accepted.",
@@ -709,7 +709,7 @@
       "title": "Legal guardian invitation",
       "loading": "Reading the invitation…",
       "lead": "{firstName} named you as {relationship} on OZ, the identity platform for football players.",
-      "explain": "Accepting publishes nothing: a minor’s profile stays hidden until you have proven your link, given consent and had your identity verified.",
+      "explain": "Accepting publishes nothing: a minor’s profile stays hidden until you have proven your relationship to OZ and given your publication consent.",
       "accept": "Accept the invitation",
       "signedOutLead": "To accept, log in or create your guardian account. The invitation is kept for 30 minutes on this device.",
       "login": "I already have an account",
@@ -733,8 +733,7 @@
       "lead": "The minor players who invited you, and the next step for each.",
       "empty": "No child linked yet. A link always starts with an invitation sent from the minor player’s account.",
       "unavailable": "Your space cannot be shown right now. Reload the page in a few minutes.",
-      "kycNotice": "The profile will only be published once OZ has verified your identity.",
-      "published": "Visible to verified organisations",
+      "published": "Profile published: visible only to organisations verified by OZ",
       "unpublished": "Profile not published",
       "ozId": "OZ ID: {ozId}",
       "consents": "Active consents: {count, plural, =0 {none} one {#} other {#}}",
@@ -745,7 +744,8 @@
         "approved": "Link approved by OZ"
       },
       "deposit": "Upload the proof",
-      "consent": "Manage my consents"
+      "consent": "Manage my consents",
+      "publishHint": "The profile will be published once you give your publication consent."
     },
     "link": {
       "title": "Proof of relationship",
@@ -760,7 +760,7 @@
       "add": "Add the document",
       "pieces": "Documents added",
       "none": "No document added.",
-      "submit": "Send for review",
+      "submit": "Send the proof",
       "scanning": "Documents are scanned before review; if sending is refused, try again in a minute.",
       "sent": "Proof sent. OZ will email you once it has been reviewed.",
       "notReady": "This step is not available for this child.",
@@ -770,7 +770,6 @@
     "consent": {
       "title": "My consents for {firstName}",
       "lead": "Read each text. You can withdraw a consent at any time: it takes effect immediately.",
-      "kycNotice": "Your consent is recorded, but the profile stays unpublished until OZ has verified your identity.",
       "version": "Version {version}",
       "provisional": "Provisional text, under legal review.",
       "active": "Consent given",
@@ -792,7 +791,8 @@
       "types": {
         "guardianDataProcessing": "Data processing",
         "guardianProfilePublication": "Profile publication"
-      }
+      },
+      "audience": "Publication consent makes the profile visible only to organisations verified by OZ (clubs, academies, federations). You can withdraw it at any time: the profile is removed at once."
     },
     "errors": {
       "invalid": "Check the information you entered.",

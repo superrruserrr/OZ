@@ -169,10 +169,12 @@ const newPlayer = async (spec: PlayerSpec): Promise<void> => {
       guardianUserId: verifiedGuardian,
       organizationId: spec.organization?.id ?? null,
       testedByOrganizationIds: [],
+      // Miroir de `oz_player_published` (D-137) : lien du tuteur validé, fiche ni rejetée ni suspendue.
       hasPublicationConsent:
         spec.consent === 'active' &&
         spec.guardian?.verified === true &&
-        (spec.consentBy === undefined || spec.consentBy.id === spec.guardian.id),
+        (spec.consentBy === undefined || spec.consentBy.id === spec.guardian.id) &&
+        !['rejected', 'suspended'].includes(status),
       deletionPending: spec.deletionPending === true || spec.deletionPending === 'guardian',
     },
   });
@@ -574,15 +576,16 @@ describe('politiques de lecture par rôle (tâche 1)', () => {
     }
   });
 
-  it('un mineur n’est lu d’un tiers que vérifié et publié avec un consentement actif d’un tuteur vérifié', async () => {
+  it('un mineur n’est lu d’un tiers que publié : consentement actif d’un tuteur au lien validé (D-137)', async () => {
     for (const who of ['académie', 'club', 'fédération']) {
       expect(await sees(who, 'mineur publié'), who).toBe(true);
+      // Le statut KYC de la fiche n'est plus exigé (lot 1.19a).
+      expect(await sees(who, 'mineur déclaré avec consentement'), who).toBe(true);
       for (const row of [
         'mineur sans consentement',
         'mineur consentement révoqué',
         'mineur consentement supprimé',
         'mineur tuteur non vérifié',
-        'mineur déclaré avec consentement',
       ]) {
         expect(await sees(who, row), `${who} × ${row}`).toBe(false);
       }

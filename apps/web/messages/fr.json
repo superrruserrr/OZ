@@ -692,7 +692,7 @@
   "guardian": {
     "invite": {
       "title": "Inviter mon tuteur légal",
-      "lead": "Ta fiche ne sera visible d’aucune organisation tant que ton parent ou tuteur légal n’aura pas donné son accord et fait vérifier son identité.",
+      "lead": "Ta fiche ne sera visible d’aucune organisation tant que ton parent ou tuteur légal n’aura pas justifié votre lien et donné son accord.",
       "send": "Envoyer l’invitation",
       "resend": "Envoyer une nouvelle invitation",
       "resendHint": "Une nouvelle invitation annule la précédente, même si elle a déjà été acceptée.",
@@ -709,7 +709,7 @@
       "title": "Invitation de tuteur légal",
       "loading": "Lecture de l’invitation…",
       "lead": "{firstName} vous a désigné comme {relationship} sur OZ, la plateforme d’identité des joueurs de football.",
-      "explain": "Accepter ne publie rien : la fiche d’un joueur mineur reste invisible tant que vous n’avez pas justifié votre lien, donné votre accord et fait vérifier votre identité.",
+      "explain": "Accepter ne publie rien : la fiche d’un joueur mineur reste invisible tant que vous n’avez pas justifié votre lien auprès d’OZ et donné votre accord de publication.",
       "accept": "Accepter l’invitation",
       "signedOutLead": "Pour accepter, connectez-vous ou créez votre compte de tuteur. L’invitation reste en attente 30 minutes sur cet appareil.",
       "login": "J’ai déjà un compte",
@@ -733,8 +733,7 @@
       "lead": "Les joueurs mineurs qui vous ont invité, et l’étape suivante pour chacun.",
       "empty": "Aucun enfant rattaché pour l’instant. Le rattachement se fait toujours par une invitation envoyée depuis le compte du joueur mineur.",
       "unavailable": "Votre espace ne peut pas être affiché pour le moment. Rechargez la page dans quelques minutes.",
-      "kycNotice": "La fiche ne sera publiée qu’après la vérification de votre identité par OZ.",
-      "published": "Fiche visible des organisations vérifiées",
+      "published": "Fiche publiée : visible des seules organisations vérifiées par OZ",
       "unpublished": "Fiche non publiée",
       "ozId": "OZ ID : {ozId}",
       "consents": "Accords actifs : {count, plural, =0 {aucun} one {#} other {#}}",
@@ -745,7 +744,8 @@
         "approved": "Lien validé par OZ"
       },
       "deposit": "Déposer le justificatif",
-      "consent": "Gérer mes accords"
+      "consent": "Gérer mes accords",
+      "publishHint": "La fiche sera publiée quand vous aurez donné l’accord de publication."
     },
     "link": {
       "title": "Justificatif de lien",
@@ -760,9 +760,9 @@
       "add": "Ajouter la pièce",
       "pieces": "Pièces ajoutées",
       "none": "Aucune pièce ajoutée.",
-      "submit": "Envoyer pour vérification",
+      "submit": "Envoyer le justificatif",
       "scanning": "Les pièces sont analysées avant la revue ; si l’envoi est refusé, réessayez dans une minute.",
-      "sent": "Justificatif envoyé. OZ vous écrira dès qu’il aura été vérifié.",
+      "sent": "Justificatif envoyé. OZ vous écrira dès qu’il aura été examiné.",
       "notReady": "Cette étape n’est pas disponible pour cet enfant.",
       "back": "Retour à mon espace",
       "piece": "{type} : {name}"
@@ -770,7 +770,6 @@
     "consent": {
       "title": "Mes accords pour {firstName}",
       "lead": "Lisez chaque texte. Vous pouvez retirer un accord à tout moment : l’effet est immédiat.",
-      "kycNotice": "Votre accord est enregistré, mais la fiche reste non publiée tant qu’OZ n’a pas vérifié votre identité.",
       "version": "Version {version}",
       "provisional": "Texte provisoire, en cours de relecture juridique.",
       "active": "Accord donné",
@@ -792,7 +791,8 @@
       "types": {
         "guardianDataProcessing": "Traitement des données",
         "guardianProfilePublication": "Publication de la fiche"
-      }
+      },
+      "audience": "L’accord de publication rend la fiche visible des seules organisations vérifiées par OZ (clubs, académies, fédérations). Vous pouvez le retirer à tout moment : la fiche est aussitôt retirée."
     },
     "errors": {
       "invalid": "Vérifiez les informations saisies.",

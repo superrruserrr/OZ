@@ -349,6 +349,28 @@ describe('oz_personal_data_export', () => {
     }
   });
 
+  it('lien validé par un administrateur (`in_review`, lot 1.19a, E2) : l’enfant est dans l’export', async () => {
+    const link = await one<{ id: string }>(
+      `INSERT INTO guardians (user_id, first_name, last_name, relationship, country, verification_status)
+       VALUES ($1, 'Tuteur', 'Synthétique', 'mother', 'CM', 'in_review') RETURNING id`,
+      [id('guardian')],
+    );
+    const child = await one<{ id: string }>(
+      `INSERT INTO players (first_name, last_name, birth_date, nationality, country, city,
+         verification_status, guardian_id)
+       VALUES ('Enfant', 'Synthétique', '2015-04-05', 'CM', 'CM', 'Douala', 'declared', $1)
+       RETURNING id`,
+      [link.id],
+    );
+    try {
+      expect(JSON.stringify(await exportOf('guardian'))).toContain(child.id);
+    } finally {
+      // Suppression physique interdite : retrait logique, hors de tout autre export.
+      await db.query('UPDATE players SET deleted_at = now() WHERE id = $1', [child.id]);
+      await db.query('UPDATE guardians SET deleted_at = now() WHERE id = $1', [link.id]);
+    }
+  });
+
   it('aucun autre utilisateur : enfant d’un autre tuteur, lien non vérifié, enfant majeur absents', async () => {
     const json = JSON.stringify(await exportOf('guardian'));
     for (const other of [

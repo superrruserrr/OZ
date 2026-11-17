@@ -9,6 +9,7 @@ const PROTECTED_PREFIXES = ['/onboarding', '/recherche', '/joueur', '/tuteur'] a
 const PUBLIC_EXCEPTIONS = ['/tuteur/invitation'] as const;
 export const GUARDIAN_INVITATION_PATH = '/tuteur/invitation';
 export const GUARDIAN_SPACE_PATH = '/tuteur';
+export const DIRECTORY_PATH = '/recherche';
 
 export const LOGIN_PATH = '/auth/login';
 export const DEFAULT_AFTER_LOGIN = '/onboarding';
