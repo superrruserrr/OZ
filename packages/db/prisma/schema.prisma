@@ -134,20 +134,22 @@ model User {
   updatedAt                  DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
   deletedAt                  DateTime?  @map("deleted_at") @db.Timestamptz(6)
 
-  roles             UserRole[]               @relation("UserRoleUser")
-  sessions          Session[]
-  authTokens        AuthToken[]
-  authRecoveryCodes AuthRecoveryCode[]
-  player            Player?                  @relation("PlayerUser")
-  guardians         Guardian[]               @relation("GuardianUser")
-  consents          Consent[]                @relation("ConsentGrantedByUser")
-  auditTrail        AuditLog[]
-  dataExports       DataExportRequest[]
-  deletions         AccountDeletionRequest[] @relation("AccountDeletionUser")
-  childDeletions    AccountDeletionRequest[] @relation("AccountDeletionRequestedBy")
-  savedSearches     SavedSearch[]
-  searchExports     SearchExport[]
-  playerSignup      PlayerSignup?
+  roles                       UserRole[]               @relation("UserRoleUser")
+  sessions                    Session[]
+  authTokens                  AuthToken[]
+  authRecoveryCodes           AuthRecoveryCode[]
+  player                      Player?                  @relation("PlayerUser")
+  guardians                   Guardian[]               @relation("GuardianUser")
+  consents                    Consent[]                @relation("ConsentGrantedByUser")
+  auditTrail                  AuditLog[]
+  dataExports                 DataExportRequest[]
+  deletions                   AccountDeletionRequest[] @relation("AccountDeletionUser")
+  childDeletions              AccountDeletionRequest[] @relation("AccountDeletionRequestedBy")
+  savedSearches               SavedSearch[]
+  searchExports               SearchExport[]
+  playerSignup                PlayerSignup?
+  guardianInvitationsCreated  GuardianInvitation[]     @relation("GuardianInvitationCreatedBy")
+  guardianInvitationsAccepted GuardianInvitation[]     @relation("GuardianInvitationAcceptedBy")
 
   rolesCreated         UserRole[]     @relation("UserRoleCreatedBy")
   rolesUpdated         UserRole[]     @relation("UserRoleUpdatedBy")
@@ -294,19 +296,20 @@ model Player {
   createdBy               String?                  @map("created_by") @db.Uuid
   updatedBy               String?                  @map("updated_by") @db.Uuid
 
-  user            User?                    @relation("PlayerUser", fields: [userId], references: [id], onDelete: Restrict)
-  guardian        Guardian?                @relation(fields: [guardianId], references: [id], onDelete: Restrict)
-  organization    Organization?            @relation(fields: [organizationId], references: [id], onDelete: Restrict)
-  consents        Consent[]
-  documents       Document[]
-  documentUploads DocumentUpload[]
-  kycCases        KycCase[]
-  deletions       AccountDeletionRequest[]
+  user                User?                    @relation("PlayerUser", fields: [userId], references: [id], onDelete: Restrict)
+  guardian            Guardian?                @relation(fields: [guardianId], references: [id], onDelete: Restrict)
+  organization        Organization?            @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  guardianInvitations GuardianInvitation[]
+  consents            Consent[]
+  documents           Document[]
+  documentUploads     DocumentUpload[]
+  kycCases            KycCase[]
+  deletions           AccountDeletionRequest[]
   /// OZ ID réservé à ce joueur par le registre, à lui et à nul autre (lot 1.2).
-  ozIdEntry       OzIdRegistry?            @relation("PlayerOzId", fields: [ozId, id], references: [ozId, playerId], onDelete: Restrict, map: "players_oz_id_registry_fkey")
-  ozIdReserved    OzIdRegistry?            @relation("OzIdRegistryPlayer")
-  createdByUser   User?                    @relation("PlayerCreatedBy", fields: [createdBy], references: [id], onDelete: Restrict)
-  updatedByUser   User?                    @relation("PlayerUpdatedBy", fields: [updatedBy], references: [id], onDelete: Restrict)
+  ozIdEntry           OzIdRegistry?            @relation("PlayerOzId", fields: [ozId, id], references: [ozId, playerId], onDelete: Restrict, map: "players_oz_id_registry_fkey")
+  ozIdReserved        OzIdRegistry?            @relation("OzIdRegistryPlayer")
+  createdByUser       User?                    @relation("PlayerCreatedBy", fields: [createdBy], references: [id], onDelete: Restrict)
+  updatedByUser       User?                    @relation("PlayerUpdatedBy", fields: [updatedBy], references: [id], onDelete: Restrict)
 
   @@index([documentNumberHmac])
   @@index([guardianId])
@@ -338,13 +341,14 @@ model Guardian {
   createdBy               String?              @map("created_by") @db.Uuid
   updatedBy               String?              @map("updated_by") @db.Uuid
 
-  user            User?            @relation("GuardianUser", fields: [userId], references: [id], onDelete: Restrict)
+  user            User?                @relation("GuardianUser", fields: [userId], references: [id], onDelete: Restrict)
   players         Player[]
+  invitations     GuardianInvitation[]
   consents        Consent[]
   documents       Document[]
   documentUploads DocumentUpload[]
-  createdByUser   User?            @relation("GuardianCreatedBy", fields: [createdBy], references: [id], onDelete: Restrict)
-  updatedByUser   User?            @relation("GuardianUpdatedBy", fields: [updatedBy], references: [id], onDelete: Restrict)
+  createdByUser   User?                @relation("GuardianCreatedBy", fields: [createdBy], references: [id], onDelete: Restrict)
+  updatedByUser   User?                @relation("GuardianUpdatedBy", fields: [updatedBy], references: [id], onDelete: Restrict)
 
   @@index([documentNumberHmac])
   @@index([userId])
@@ -643,6 +647,31 @@ model DataExportRequest {
 }
 
 /// Recherche sauvegardée (lot 1.14b, D2) : critères et tri seuls, 20 au plus par compte (déclencheur).
+/// Invitation du tuteur légal par le joueur mineur (lot 1.7ba) : empreinte du jeton seulement,
+/// écrite et lue par les fonctions oz_guardian_invite / _read / _accept.
+model GuardianInvitation {
+  id          String    @id @default(dbgenerated("oz_uuid_v7()")) @db.Uuid
+  guardianId  String    @map("guardian_id") @db.Uuid
+  playerId    String    @map("player_id") @db.Uuid
+  tokenHash   String    @unique @map("token_hash")
+  expiresAt   DateTime  @map("expires_at") @db.Timestamptz(6)
+  consumedAt  DateTime? @map("consumed_at") @db.Timestamptz(6)
+  acceptedBy  String?   @map("accepted_by") @db.Uuid
+  cancelledAt DateTime? @map("cancelled_at") @db.Timestamptz(6)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdBy   String?   @map("created_by") @db.Uuid
+
+  guardian       Guardian @relation(fields: [guardianId], references: [id], onDelete: Cascade)
+  player         Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  createdByUser  User?    @relation("GuardianInvitationCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
+  acceptedByUser User?    @relation("GuardianInvitationAcceptedBy", fields: [acceptedBy], references: [id], onDelete: Cascade)
+
+  @@index([playerId])
+  @@index([guardianId])
+  @@index([acceptedBy])
+  @@map("guardian_invitations")
+}
+
 /// Brouillon d'inscription joueur (lot 1.7a) : une colonne chiffrée par étape, écrit par
 /// oz_player_signup_save, supprimé à la finalisation ou à la clôture du compte.
 model PlayerSignup {

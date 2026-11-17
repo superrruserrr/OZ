@@ -10,6 +10,7 @@ export interface MailContent {
 /** Durées affichées : mêmes valeurs que les jetons (auth.service.ts). */
 const VERIFICATION_VALIDITY = '24 heures';
 const RESET_VALIDITY = '30 minutes';
+const GUARDIAN_INVITATION_VALIDITY = '7 jours';
 
 /**
  * Le jeton voyage dans le fragment (`#token=`) : le navigateur ne l'envoie ni au serveur web ni dans
@@ -17,6 +18,11 @@ const RESET_VALIDITY = '30 minutes';
  */
 export function verificationLink(appUrl: string, token: string): string {
   return `${appUrl}/auth/verify-email#token=${token}`;
+}
+
+/** Invitation du tuteur légal (lot 1.7ba) : même règle, jeton dans le fragment. */
+export function guardianInvitationLink(appUrl: string, token: string): string {
+  return `${appUrl}/tuteur/invitation#token=${token}`;
 }
 
 export function resetLink(appUrl: string, token: string): string {
@@ -87,6 +93,25 @@ export function passwordResetEmail(link: string): MailContent {
         "Si la demande n'est pas de vous, ignorez ce message : votre mot de passe reste inchangé.",
       ],
       { label: 'Choisir un nouveau mot de passe', href: link },
+    ),
+  };
+}
+
+/**
+ * Invitation du tuteur légal (lot 1.7ba). Seul le prénom de l'enfant est cité : ni nom, ni date de
+ * naissance, ni OZ ID tant que le tuteur n'a pas accepté.
+ */
+export function guardianInvitationEmail(link: string, childFirstName: string): MailContent {
+  return {
+    subject: 'Vous êtes invité comme tuteur légal sur OZ',
+    ...layout(
+      [
+        `${childFirstName} s'est inscrit sur OZ, la plateforme d'identité des joueurs de football, et vous a désigné comme son parent ou tuteur légal.`,
+        `Créez votre compte ou connectez-vous, puis acceptez l'invitation. Ce lien est valable ${GUARDIAN_INVITATION_VALIDITY} et ne sert qu'une fois.`,
+        "La fiche d'un joueur mineur n'est jamais publiée sans l'accord de son tuteur.",
+        'Si vous ne connaissez pas ce joueur, ignorez ce message : rien ne sera fait en votre nom.',
+      ],
+      { label: "Voir l'invitation", href: link },
     ),
   };
 }

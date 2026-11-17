@@ -5,6 +5,8 @@ import type { AuthMailer } from './auth-mailer.js';
 import {
   alreadyRegisteredEmail,
   newDeviceLoginEmail,
+  guardianInvitationEmail,
+  guardianInvitationLink,
   passwordChangedEmail,
   passwordResetEmail,
   resetLink,
@@ -69,6 +71,13 @@ export class SmtpAuthMailer implements AuthMailer, OnApplicationShutdown {
 
   sendPasswordReset(to: string, token: string): Promise<void> {
     return this.send(to, passwordResetEmail(resetLink(this.config.appUrl, token)));
+  }
+
+  sendGuardianInvitation(to: string, token: string, childFirstName: string): Promise<void> {
+    return this.send(
+      to,
+      guardianInvitationEmail(guardianInvitationLink(this.config.appUrl, token), childFirstName),
+    );
   }
 
   sendPasswordChanged(to: string): Promise<void> {

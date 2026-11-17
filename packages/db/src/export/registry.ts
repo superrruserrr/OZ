@@ -397,6 +397,20 @@ export const EXPORT_REGISTRY: ExportRegistry = {
     updated_at: INTERNAL,
     expires_at: INTERNAL,
   },
+  // Lot 1.7ba : invitation du tuteur, empreinte du lien et dates ; un rattachement en attente
+  // n'ouvre aucune donnée de l'enfant, l'export n'en porte donc aucune.
+  guardian_invitations: {
+    id: INTERNAL,
+    guardian_id: LINK,
+    player_id: LINK,
+    token_hash: excluded('empreinte d’un lien à usage unique, sans valeur pour la personne'),
+    expires_at: INTERNAL,
+    consumed_at: INTERNAL,
+    accepted_by: LINK,
+    cancelled_at: INTERNAL,
+    created_at: INTERNAL,
+    created_by: AUTHOR,
+  },
   // Lot 1.14b : lues par `GET /players/saved-searches` ; critères et tri seuls, sans résultat.
   saved_searches: {
     id: INTERNAL,

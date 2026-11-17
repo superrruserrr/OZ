@@ -107,6 +107,16 @@ export {
   type SavedSearchRecord,
 } from './saved-searches.js';
 export {
+  acceptGuardianInvitation,
+  guardianChildren,
+  inviteGuardian,
+  readGuardianInvitation,
+  type GuardianAcceptOutcome,
+  type GuardianChild,
+  type GuardianInvitationPreview,
+  type GuardianInviteOutcome,
+} from './guardian-invitations.js';
+export {
   completePlayerSignup,
   PLAYER_SIGNUP_STEPS,
   readPlayerSignup,

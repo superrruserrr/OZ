@@ -43,6 +43,8 @@ const EXPOSED_TABLES = [
   'player_signups',
   'saved_searches',
   'search_exports',
+  // Lot 1.7ba
+  'guardian_invitations',
 ];
 
 let db: TestDatabase;

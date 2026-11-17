@@ -137,6 +137,18 @@ erDiagram
     bigint perceptual_hash
     timestamptz purged_at
   }
+  guardian_invitations {
+    uuid id PK
+    uuid guardian_id FK
+    uuid player_id FK
+    text token_hash
+    timestamptz expires_at
+    timestamptz consumed_at
+    uuid accepted_by FK
+    timestamptz cancelled_at
+    timestamptz created_at
+    uuid created_by FK
+  }
   guardians {
     uuid id PK
     uuid user_id FK
@@ -396,6 +408,10 @@ erDiagram
   documents }o--o| users : "created_by"
   documents }o--o| users : "updated_by"
   documents }o--|| users : "uploaded_by"
+  guardian_invitations }o--|| guardians : "guardian_id"
+  guardian_invitations }o--|| players : "player_id"
+  guardian_invitations }o--o| users : "accepted_by"
+  guardian_invitations }o--o| users : "created_by"
   guardians }o--o| users : "created_by"
   guardians }o--o| users : "updated_by"
   guardians }o--o| users : "user_id"

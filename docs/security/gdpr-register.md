@@ -57,7 +57,8 @@ manuelle.
 - **Données :** identité, date de naissance, nationalité, ville, téléphone et numéro de pièce
   chiffrés, données sportives ; fiche tuteur ; consentements ; OZ ID. Lot 1.7a : brouillon
   d'inscription (`player_signups`, chaque étape chiffrée, supprimé à la finalisation, 30 jours
-  après la dernière saisie ou à la clôture du compte).
+  après la dernière saisie ou à la clôture du compte). Lot 1.7ba : invitation du tuteur
+  (`guardian_invitations`, empreinte du lien et dates, aucune donnée de la personne).
 - **Destinataires :** le joueur, son tuteur, son organisation ; les tiers selon la matrice des
   droits (`rbac.md`) — un mineur n'est visible que vérifié et publié avec consentement. Lot
   1.13b : carte OZ ID (titulaire, tuteur) et export PDF de la vue du lecteur, filigrané à son nom
@@ -165,5 +166,6 @@ registre d'effacement (`packages/db/src/erasure/gdpr-register.test.ts`).
 | `player_signups`            | T2          |
 | `saved_searches`            | T4          |
 | `search_exports`            | T4          |
+| `guardian_invitations`      | T2          |
 
 <!-- /gdpr:tables -->

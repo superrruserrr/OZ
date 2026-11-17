@@ -6,6 +6,8 @@ export interface AuthMailer {
   sendAlreadyRegistered(to: string): Promise<void>;
   sendPasswordReset(to: string, token: string): Promise<void>;
   sendPasswordChanged(to: string): Promise<void>;
+  /** Invitation du tuteur légal par un joueur mineur (lot 1.7ba) : prénom de l'enfant seulement. */
+  sendGuardianInvitation(to: string, token: string, childFirstName: string): Promise<void>;
   /** Connexion depuis un appareil inconnu depuis 90 jours (D5 du lot 1.3b). */
   sendNewDeviceLogin(to: string, device: string, when: Date): Promise<void>;
   /** Jeton de rafraîchissement rejoué : famille révoquée (EX-103 n° 5). */
