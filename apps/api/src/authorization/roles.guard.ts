@@ -38,14 +38,19 @@ export class RolesGuard implements CanActivate {
   }
 
   private isAllowed(context: ExecutionContext, req: Request, actor: Actor): boolean {
+    const requiredRoles = this.layers<RbacRole[]>(REQUIRED_ROLES, context);
+    const scopes = this.layers<string>(SCOPE_PARAM, context);
     let entries = actor.roles;
-    for (const roles of this.layers<RbacRole[]>(REQUIRED_ROLES, context)) {
+    for (const roles of requiredRoles) {
       entries = entries.filter(({ role }) => roles.includes(role));
     }
-    for (const param of this.layers<string>(SCOPE_PARAM, context)) {
+    for (const param of scopes) {
       entries = entries.filter((entry) => inScope(entry, req.params[param]));
     }
-    if (entries.length === 0) return false;
+    // Compte sans aucun rôle, sur une route `@Can` seule : il ne garde que les règles communes à
+    // tous (pièces du lien d'un rattachement en attente, lot 1.7bb) ; le service décide sur le sujet.
+    const roleless = actor.roles.length === 0 && requiredRoles.length === 0 && scopes.length === 0;
+    if (entries.length === 0 && !roleless) return false;
     // Seuls les rôles retenus décident : un rôle tenu ailleurs n'ouvre pas cette organisation.
     const ability = abilityFor({ ...actor, roles: entries });
     return this.layers<RbacAction>(REQUIRED_ACTION, context).every((action) =>

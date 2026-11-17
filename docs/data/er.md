@@ -60,6 +60,13 @@ erDiagram
     timestamptz consumed_at
     timestamptz created_at
   }
+  consent_texts {
+    consent_type type PK
+    text version PK
+    text body
+    text sha256
+    timestamptz published_at
+  }
   consents {
     uuid id PK
     consent_type type
@@ -148,6 +155,22 @@ erDiagram
     timestamptz cancelled_at
     timestamptz created_at
     uuid created_by FK
+  }
+  guardian_link_review_documents {
+    uuid review_id PK,FK
+    uuid document_id PK,FK
+  }
+  guardian_link_reviews {
+    uuid id PK
+    uuid invitation_id FK
+    uuid guardian_id FK
+    uuid player_id FK
+    uuid submitted_by FK
+    guardian_link_review_status status
+    guardian_link_rejection_reason rejection_reason
+    uuid decided_by FK
+    timestamptz decided_at
+    timestamptz created_at
   }
   guardians {
     uuid id PK
@@ -412,6 +435,13 @@ erDiagram
   guardian_invitations }o--|| players : "player_id"
   guardian_invitations }o--o| users : "accepted_by"
   guardian_invitations }o--o| users : "created_by"
+  guardian_link_review_documents }o--|| documents : "document_id"
+  guardian_link_review_documents }o--|| guardian_link_reviews : "review_id"
+  guardian_link_reviews }o--|| guardian_invitations : "invitation_id"
+  guardian_link_reviews }o--|| guardians : "guardian_id"
+  guardian_link_reviews }o--|| players : "player_id"
+  guardian_link_reviews }o--o| users : "decided_by"
+  guardian_link_reviews }o--|| users : "submitted_by"
   guardians }o--o| users : "created_by"
   guardians }o--o| users : "updated_by"
   guardians }o--o| users : "user_id"

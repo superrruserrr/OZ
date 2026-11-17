@@ -220,6 +220,7 @@ export class DocumentService {
         kind: record.kind,
         ownerUserId: record.ownerUserId,
         guardianUserId: record.guardianUserId,
+        pendingLinkUserId: record.pendingLinkUserId ?? null,
         organizationId: record.organizationId,
         birthDate: record.birthDate,
       },

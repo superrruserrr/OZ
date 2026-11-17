@@ -65,6 +65,8 @@ export const PERSON_DOCUMENT_TYPES = [
 ] as const;
 /** Justificatif d'une organisation. */
 export const ORGANIZATION_DOCUMENT_TYPES = ['organization_registration'] as const;
+/** Justificatif du lien entre un tuteur et l'enfant (lot 1.7bb, R3). */
+export const GUARDIAN_LINK_DOCUMENT_TYPES = ['birth_certificate', 'guardianship_order'] as const;
 
 /** Cible d'un dépôt (lot 1.9a), lue en base sous la RLS du demandeur. */
 export interface DocumentTarget {
@@ -78,6 +80,11 @@ export interface DocumentTarget {
   readonly organizationId: string | null;
   /** Joueur seulement : la tutelle s'arrête à sa majorité. */
   readonly birthDate: Date | null;
+  /**
+   * Fiche tuteur seulement : compte du rattachement en attente (invitation acceptée), s'il est le
+   * demandeur ; jugé par la base (lot 1.7bb).
+   */
+  readonly pendingLinkUserId?: string | null;
 }
 
 export type DocumentSubject = Omit<DocumentTarget, 'birthDate'> & { readonly isMinor: boolean };
@@ -244,6 +251,16 @@ export function abilityFor(actor: Actor): AppAbility {
       entry.role === role && entry.organizationId !== null ? [entry.organizationId] : [],
     );
     RULES[role](builder, actor, organizationIds);
+  }
+  // Rattachement en attente (lot 1.7bb) : quel que soit le rôle, le compte qui a accepté
+  // l'invitation dépose les pièces du lien sur cette fiche tuteur, et rien d'autre. Jamais
+  // l'administrateur, qui ne dépose aucune pièce (D5 du lot 1.9a).
+  if (!actor.roles.some((entry) => entry.role === 'admin')) {
+    builder.can('document.upload', 'Document', {
+      kind: 'guardian',
+      pendingLinkUserId: actor.userId,
+      documentType: { $in: [...GUARDIAN_LINK_DOCUMENT_TYPES] },
+    });
   }
   return builder.build();
 }

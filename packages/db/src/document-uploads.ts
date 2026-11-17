@@ -13,7 +13,8 @@ export type UploadDocumentType =
   | 'photo'
   | 'license'
   | 'video'
-  | 'organization_registration';
+  | 'organization_registration'
+  | 'guardianship_order';
 
 export type UploadTarget =
   | { readonly playerId: string }
@@ -73,6 +74,8 @@ export async function createDocumentUpload(
       ${input.sha256}
     WHERE EXISTS (SELECT 1 FROM players WHERE id = ${playerId}::uuid)
        OR EXISTS (SELECT 1 FROM guardians WHERE id = ${guardianId}::uuid)
+       OR (${input.documentType} IN ('birth_certificate', 'guardianship_order')
+         AND oz_guardian_link_pending(${guardianId}::uuid))
        OR EXISTS (SELECT 1 FROM organizations WHERE id = ${organizationId}::uuid)
     RETURNING id::text, expires_at`;
   const row = rows[0];
@@ -164,6 +167,11 @@ export interface DocumentTargetRecord {
   readonly ownerUserId: string | null;
   /** Le demandeur lui-même s'il est le tuteur vérifié du joueur ; jamais un autre tuteur. */
   readonly guardianUserId: string | null;
+  /**
+   * Fiche tuteur seulement : le demandeur lui-même s'il tient sur elle un rattachement en attente
+   * (invitation acceptée, lot 1.7bb) ; il n'y dépose que les pièces du lien.
+   */
+  readonly pendingLinkUserId?: string | null;
   readonly organizationId: string | null;
   readonly birthDate: Date | null;
   /** Instant de la base auquel la RLS a jugé la ligne : la minorité se décide à cet instant. */
@@ -192,18 +200,27 @@ export async function documentTargetFor(
   }
   if ('guardianId' in target) {
     if (!UUID.test(target.guardianId)) return null;
-    const rows = await tx.$queryRaw<{ user_id: string | null; checked_at: Date }[]>`
-      SELECT user_id::text, now() AS checked_at FROM guardians
-      WHERE id = ${target.guardianId}::uuid AND deleted_at IS NULL`;
-    const row = rows[0];
-    if (row === undefined) return null;
+    // Fiche visible sous la RLS, ou rattachement en attente du demandeur (lot 1.7bb), jugé par la
+    // base : il n'y dépose que les pièces du lien.
+    const rows = await tx.$queryRaw<
+      { user_id: string | null; pending: string | null; checked_at: Date }[]
+    >`
+      SELECT g.user_id::text AS user_id, NULL::text AS pending, now() AS checked_at FROM guardians g
+      WHERE g.id = ${target.guardianId}::uuid AND g.deleted_at IS NULL
+      UNION ALL
+      SELECT NULL, oz_current_user_id()::text, now()
+      WHERE oz_guardian_link_pending(${target.guardianId}::uuid)`;
+    if (rows.length === 0) return null;
+    const visible = rows.find((row) => row.pending === null);
+    const pending = rows.find((row) => row.pending !== null);
     return {
       kind: 'guardian',
-      ownerUserId: row.user_id,
+      ownerUserId: visible?.user_id ?? null,
       guardianUserId: null,
+      pendingLinkUserId: pending?.pending ?? null,
       organizationId: null,
       birthDate: null,
-      checkedAt: row.checked_at,
+      checkedAt: rows[0]?.checked_at ?? new Date(0),
     };
   }
   if (!UUID.test(target.organizationId)) return null;

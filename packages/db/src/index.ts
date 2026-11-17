@@ -115,7 +115,27 @@ export {
   type GuardianChild,
   type GuardianInvitationPreview,
   type GuardianInviteOutcome,
+  type GuardianLinkStatus,
 } from './guardian-invitations.js';
+export {
+  currentConsentText,
+  decideGuardianLink,
+  GUARDIAN_CONSENT_TYPES,
+  GUARDIAN_LINK_REJECTION_REASONS,
+  grantGuardianConsent,
+  guardianLinkQueue,
+  revokeGuardianConsent,
+  submitGuardianLink,
+  type ConsentText,
+  type GuardianConsentGrantOutcome,
+  type GuardianConsentRevokeOutcome,
+  type GuardianConsentType,
+  type GuardianLinkDecideOutcome,
+  type GuardianLinkDecision,
+  type GuardianLinkQueueEntry,
+  type GuardianLinkRejectionReason,
+  type GuardianLinkSubmitOutcome,
+} from './guardian-link.js';
 export {
   completePlayerSignup,
   PLAYER_SIGNUP_STEPS,

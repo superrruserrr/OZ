@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   abilityFor,
   authorizationReason,
+  documentSubject,
   organizationSubject,
   playerSubject,
   type Actor,
@@ -35,10 +36,50 @@ const actor = (
 describe('abilityFor', () => {
   it('acteur sans rôle : tout est refusé', () => {
     const ability = abilityFor({ userId: 'compte', roles: [], isKyc3Verified: true });
-    expect(ability.rules).toEqual([]);
+    // Seule règle sans rôle : les pièces du lien d'un rattachement en attente (lot 1.7bb).
+    expect(ability.rules.map((rule) => rule.action)).toEqual(['document.upload']);
     for (const action of RBAC_ACTIONS) {
       expect(ability.can(action, minor)).toBe(false);
     }
+  });
+
+  describe('rattachement en attente (lot 1.7bb) : pièces du lien seulement', () => {
+    const pending = (documentType: string, pendingLinkUserId: string | null = 'compte') =>
+      documentSubject(
+        {
+          documentType,
+          kind: 'guardian',
+          ownerUserId: null,
+          guardianUserId: null,
+          pendingLinkUserId,
+          organizationId: null,
+          birthDate: null,
+        },
+        NOW,
+      );
+    const someone = abilityFor({ userId: 'compte', roles: [], isKyc3Verified: false });
+
+    it('acte de naissance et jugement de tutelle : dépôt permis au compte en attente', () => {
+      expect(someone.can('document.upload', pending('birth_certificate'))).toBe(true);
+      expect(someone.can('document.upload', pending('guardianship_order'))).toBe(true);
+    });
+
+    it('jamais une autre pièce, jamais la relecture, jamais pour un autre compte', () => {
+      expect(someone.can('document.upload', pending('identity_document'))).toBe(false);
+      expect(someone.can('document.upload', pending('photo'))).toBe(false);
+      expect(someone.can('document.read', pending('birth_certificate'))).toBe(false);
+      expect(someone.can('document.upload', pending('birth_certificate', 'autre'))).toBe(false);
+      expect(someone.can('document.upload', pending('birth_certificate', null))).toBe(false);
+    });
+
+    it('jamais l’administrateur, qui ne dépose aucune pièce (D5 du lot 1.9a)', () => {
+      const admin = abilityFor({
+        userId: 'compte',
+        roles: [{ role: 'admin', organizationId: null }],
+        isKyc3Verified: false,
+      });
+      expect(admin.can('document.upload', pending('birth_certificate'))).toBe(false);
+    });
   });
 
   it('plusieurs rôles : droits cumulés, chacun borné à ses organisations', () => {
@@ -165,7 +206,11 @@ describe('abilityFor', () => {
 
   it('recruteur sans KYC 3 : aucun droit, sauf déposer et relire le justificatif de son organisation (D5 du lot 1.9a, lot 1.9ca)', () => {
     const rules = abilityFor(actor('recruiter')).rules;
-    expect(rules.map((rule) => rule.action)).toEqual([['document.upload', 'document.read']]);
+    // Plus la règle commune du rattachement en attente (lot 1.7bb), bornée aux pièces du lien.
+    expect(rules.map((rule) => rule.action)).toEqual([
+      ['document.upload', 'document.read'],
+      'document.upload',
+    ]);
     expect(rules[0]?.conditions).toMatchObject({
       kind: 'organization',
       documentType: { $in: ['organization_registration'] },

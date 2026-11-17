@@ -368,6 +368,27 @@ export const ANONYMIZATION_REGISTRY: Registry = {
     created_at: 'technical',
     created_by: 'technical',
   },
+  // Lot 1.7bb : identifiants, statut, motif et dates ; textes de consentement publics.
+  guardian_link_reviews: {
+    id: 'technical',
+    invitation_id: 'technical',
+    guardian_id: 'technical',
+    player_id: 'technical',
+    submitted_by: 'technical',
+    status: 'technical',
+    rejection_reason: 'technical',
+    decided_by: 'technical',
+    decided_at: 'technical',
+    created_at: 'technical',
+  },
+  guardian_link_review_documents: { review_id: 'technical', document_id: 'technical' },
+  consent_texts: {
+    type: 'technical',
+    version: 'technical',
+    body: 'technical',
+    sha256: 'technical',
+    published_at: 'technical',
+  },
   saved_searches: {
     id: 'technical',
     user_id: 'technical',

@@ -116,6 +116,62 @@ export function guardianInvitationEmail(link: string, childFirstName: string): M
   };
 }
 
+/** Avis de décision sur le justificatif du lien (lot 1.7bb). */
+export type GuardianLinkNotice =
+  | { readonly outcome: 'approved' }
+  | {
+      readonly outcome: 'rejected';
+      readonly reason: GuardianLinkRefusal;
+      readonly closed: boolean;
+    };
+
+export type GuardianLinkRefusal =
+  'illegible' | 'name_mismatch' | 'child_mismatch' | 'wrong_document' | 'suspected_forgery';
+
+const REFUSALS: Readonly<Record<GuardianLinkRefusal, string>> = {
+  illegible: 'la pièce est illisible ou incomplète',
+  name_mismatch: 'le nom porté sur la pièce ne correspond pas à celui déclaré',
+  child_mismatch: "la pièce ne désigne pas l'enfant qui vous a invité",
+  wrong_document:
+    "la pièce n'est pas un acte de naissance, un livret de famille ou un jugement de tutelle",
+  suspected_forgery: "la pièce n'a pas pu être acceptée",
+};
+
+export function guardianLinkDecisionEmail(
+  childFirstName: string,
+  decision: GuardianLinkNotice,
+  appUrl: string,
+): MailContent {
+  const space = { label: 'Ouvrir mon espace tuteur', href: `${appUrl}/tuteur` };
+  if (decision.outcome === 'approved') {
+    return {
+      subject: 'Votre lien avec votre enfant est validé',
+      ...layout(
+        [
+          `OZ a validé votre justificatif : vous êtes reconnu comme parent ou tuteur légal de ${childFirstName}.`,
+          'Vous pouvez donner, puis retirer à tout moment, votre accord au traitement des données et à la publication de sa fiche.',
+          "La fiche ne sera visible d'aucune organisation avant la vérification de votre identité.",
+        ],
+        space,
+      ),
+    };
+  }
+  const next = decision.closed
+    ? `${childFirstName} devra vous envoyer une nouvelle invitation pour reprendre la démarche.`
+    : 'Vous pouvez déposer un nouveau justificatif depuis votre espace tuteur.';
+  return {
+    subject: "Votre justificatif n'a pas été accepté",
+    ...layout(
+      [
+        `OZ n'a pas pu valider votre lien avec ${childFirstName} : ${REFUSALS[decision.reason]}.`,
+        next,
+        "Si vous n'êtes pas à l'origine de cette démarche, ignorez ce message.",
+      ],
+      decision.closed ? undefined : space,
+    ),
+  };
+}
+
 export function passwordChangedEmail(): MailContent {
   return {
     subject: 'Votre mot de passe a été modifié',

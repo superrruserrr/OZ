@@ -45,6 +45,10 @@ const EXPOSED_TABLES = [
   'search_exports',
   // Lot 1.7ba
   'guardian_invitations',
+  // Lot 1.7bb
+  'guardian_link_reviews',
+  'guardian_link_review_documents',
+  'consent_texts',
 ];
 
 let db: TestDatabase;

@@ -419,6 +419,37 @@ export const ERASURE_REGISTRY: ErasureRegistry = {
       created_by: 'technical',
     },
   },
+  guardian_link_reviews: {
+    scope:
+      'Les dépôts du justificatif de lien (lot 1.7bb) : identifiants, statut, motif et dates seulement ; un dépôt en cours est retiré dès que le compte déposant est clos (déclencheur sur `users.deleted_at`), les pièces suivent leur propre purge.',
+    columns: {
+      id: 'technical',
+      invitation_id: 'technical',
+      guardian_id: 'technical',
+      player_id: 'technical',
+      submitted_by: 'technical',
+      status: 'proof',
+      rejection_reason: 'proof',
+      decided_by: 'technical',
+      decided_at: 'proof',
+      created_at: 'technical',
+    },
+  },
+  guardian_link_review_documents: {
+    scope: 'Lien entre un dépôt et ses pièces (lot 1.7bb) : identifiants seulement.',
+    columns: { review_id: 'technical', document_id: 'technical' },
+  },
+  consent_texts: {
+    scope:
+      'Textes de consentement publiés (lot 1.7bb) : communs à tous, aucune donnée de personne.',
+    columns: {
+      type: 'technical',
+      version: 'technical',
+      body: 'technical',
+      sha256: 'technical',
+      published_at: 'technical',
+    },
+  },
   saved_searches: {
     scope:
       'Les recherches sauvegardées du compte : supprimées dès que le compte est clos (déclencheur sur `users.deleted_at`) ; un nom ou un texte libre peut nommer quelqu’un.',

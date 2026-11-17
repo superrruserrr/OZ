@@ -6,6 +6,7 @@ import {
   alreadyRegisteredEmail,
   newDeviceLoginEmail,
   guardianInvitationEmail,
+  guardianLinkDecisionEmail,
   guardianInvitationLink,
   passwordChangedEmail,
   passwordResetEmail,
@@ -20,6 +21,7 @@ import {
   childDeletionCancelledEmail,
   childDeletionScheduledEmail,
   type ChildDeletionRecipient,
+  type GuardianLinkNotice,
   dataExportRequestedEmail,
   twoFactorEnabledEmail,
   verificationEmail,
@@ -78,6 +80,14 @@ export class SmtpAuthMailer implements AuthMailer, OnApplicationShutdown {
       to,
       guardianInvitationEmail(guardianInvitationLink(this.config.appUrl, token), childFirstName),
     );
+  }
+
+  sendGuardianLinkDecision(
+    to: string,
+    childFirstName: string,
+    decision: GuardianLinkNotice,
+  ): Promise<void> {
+    return this.send(to, guardianLinkDecisionEmail(childFirstName, decision, this.config.appUrl));
   }
 
   sendPasswordChanged(to: string): Promise<void> {
