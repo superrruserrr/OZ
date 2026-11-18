@@ -2,57 +2,19 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 import { syntheticEmail, syntheticPassword } from '../auth/flows.js';
 import { logIn, settle, signUpAndConfirm, useClientAddress, watchApiCalls } from './helpers.js';
+import {
+  bornYearsAgo,
+  choose,
+  confirmAffiliation,
+  fillIdentity,
+  fillSport,
+  startOnboarding,
+} from './onboarding-steps.js';
 
 // Parcours d'inscription joueur (lot 1.7cb, EX-107 n° 7 et 8) : majeur, mineur, reprise, 3G
 // simulée. Le site relaie l'API (ADR-010) ; données synthétiques seulement.
 
 const WCAG_AA = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'];
-
-/** Date de naissance AAAA-MM-JJ d'un joueur de `years` ans révolus. */
-function bornYearsAgo(years: number): string {
-  const date = new Date();
-  date.setUTCFullYear(date.getUTCFullYear() - years);
-  date.setUTCDate(date.getUTCDate() - 2);
-  return date.toISOString().slice(0, 10);
-}
-
-async function choose(page: Page, testId: string, option: string): Promise<void> {
-  await page.getByTestId(testId).click();
-  await page.getByRole('option', { name: option, exact: true }).click();
-}
-
-async function startOnboarding(page: Page): Promise<void> {
-  const email = syntheticEmail();
-  const password = syntheticPassword();
-  await signUpAndConfirm(page, email, password);
-  await page.getByTestId('verify-login').click();
-  await logIn(page, email, password);
-  await expect(page).toHaveURL(/\/onboarding\/identite$/);
-}
-
-async function fillIdentity(page: Page, birthDate: string): Promise<void> {
-  await page.getByTestId('onboarding-first-name').fill('Awa');
-  await page.getByTestId('onboarding-last-name').fill('Ndiaye');
-  await page.getByTestId('onboarding-birth-date').fill(birthDate);
-  await choose(page, 'onboarding-nationality', 'Cameroun');
-  await choose(page, 'onboarding-country', 'Cameroun');
-  await page.getByTestId('onboarding-city').fill('Douala');
-  await page.getByTestId('onboarding-submit').click();
-  await expect(page).toHaveURL(/\/onboarding\/physique$/);
-}
-
-async function fillSport(page: Page): Promise<void> {
-  await choose(page, 'onboarding-primary-position', 'Attaquant');
-  await page.getByTestId('onboarding-foot-right').click();
-  await page.getByTestId('onboarding-height').fill('178');
-  await page.getByTestId('onboarding-submit').click();
-  await expect(page).toHaveURL(/\/onboarding\/rattachement$/);
-}
-
-async function confirmAffiliation(page: Page, next: RegExp): Promise<void> {
-  await page.getByTestId('onboarding-submit').click();
-  await expect(page).toHaveURL(next);
-}
 
 async function completeAndSeeCard(page: Page): Promise<void> {
   await page.getByTestId('onboarding-complete').click();
@@ -83,7 +45,9 @@ test.describe('parcours d’inscription joueur (lot 1.7cb)', () => {
 
     // Inscription finalisée : le parcours n'est plus proposé.
     await page.goto('/onboarding/identite');
-    await expect(page.getByTestId('onboarding-done')).toBeVisible();
+    // Lot 1.19b : l'inscription finie mène à l'espace du joueur.
+    await expect(page).toHaveURL(/\/espace$/);
+    await expect(page.getByTestId('espace-home')).toBeVisible();
 
     // D-133 : la carte et son QR sont relus sur l'API, donc présents après un rechargement.
     const OZ_ID = /OZ-CM-\d{2}-[0-9A-HJKMNP-TV-Z]{6}-[0-9A-HJKMNP-TV-Z]/;

@@ -58,7 +58,8 @@ describe('tableau de bord du joueur (lot 1.5ec, E3)', () => {
     render(<PlayerDashboard profile={PROFILE} />, { wrapper });
     const soon = screen.getByRole('region', { name: 'Bientôt disponible' });
     const cards = within(soon).getAllByRole('listitem');
-    expect(cards.length).toBeGreaterThanOrEqual(6);
+    // Visibilité, export et suppression sont livrés (lot 1.19b) : restent les fonctions à venir.
+    expect(cards).toHaveLength(4);
     for (const card of cards) {
       expect(card.getAttribute('aria-disabled')).toBe('true');
       expect(within(card).queryByRole('link')).toBeNull();

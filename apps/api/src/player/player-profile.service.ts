@@ -92,19 +92,23 @@ export class PlayerProfileService {
    */
   async readOwn(actor: Actor): Promise<PlayerProfileOutput> {
     await this.limit('player_profile_read_account', actor);
-    const profile = await withUserContext(this.db, actor.userId, async (tx) => {
+    const own = await withUserContext(this.db, actor.userId, async (tx) => {
       const found = await playerProfileOfUser(tx, actor.userId);
-      return found === null ? null : this.present(tx, actor, found);
+      if (found === null) return null;
+      const presented = await this.present(tx, actor, found);
+      return presented === null ? null : { presented, visibility: found.visibility };
     });
-    if (profile === null) {
+    if (own === null) {
       this.logger.info({ event: 'player.profile.own_missing' }, 'Aucune fiche pour ce compte');
       throw OWN_PROFILE_NOT_FOUND();
     }
+    const profile = own.presented;
     this.logger.info(
       { event: 'player.profile.read', playerId: profile.id, view: profile.view },
       'Fiche lue',
     );
-    return profile.body;
+    // Ses propres réglages de visibilité (lot 1.19b) : l'espace du joueur les affiche.
+    return { ...profile.body, visibility: own.visibility };
   }
 
   /** QR du profil (EX-115 n° 4) pour qui peut lire la fiche ; l'URL ne porte que l'OZ ID. */

@@ -10,9 +10,6 @@ import { DASHBOARD_ICONS } from './icons';
 const APTITUDES = ['speed', 'endurance', 'jump', 'agility', 'strength', 'technique'] as const;
 
 const SOON = [
-  { key: 'visibility', icon: DASHBOARD_ICONS.toggle },
-  { key: 'export', icon: DASHBOARD_ICONS.download },
-  { key: 'deletion', icon: DASHBOARD_ICONS.trash },
   { key: 'views', icon: DASHBOARD_ICONS.eye },
   { key: 'videos', icon: DASHBOARD_ICONS.video },
   { key: 'messages', icon: DASHBOARD_ICONS.message },

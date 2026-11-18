@@ -201,9 +201,16 @@ describe('GET /players/me (D-133)', () => {
     const target = await player({ userId: owner.userId });
     const response = await readMe(owner.token).expect(200);
     expect(response.headers['cache-control']).toBe('no-store');
-    expect(response.body).toEqual((await read(owner.token, target.ozId).expect(200)).body);
+    // Lot 1.19b : le titulaire relit aussi ses réglages de visibilité, absents de la lecture par OZ ID.
+    const { visibility, ...profile } = response.body as Record<string, unknown>;
+    expect(visibility).toEqual({});
+    expect(profile).toEqual((await read(owner.token, target.ozId).expect(200)).body);
     expect(response.body).toMatchObject({ ozId: target.ozId, phone: PHONE });
     expect(await viewsOf(target.id)).toEqual([]);
+    await setVisibility(owner.token, target.ozId, { location: false }).expect(200);
+    expect((await readMe(owner.token).expect(200)).body).toMatchObject({
+      visibility: { location: false },
+    });
   });
 
   it('mineur titulaire : sa fiche sans son téléphone (CP-11)', async () => {

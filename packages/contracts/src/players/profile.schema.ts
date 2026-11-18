@@ -21,6 +21,15 @@ export const playerPositionSchema = z.enum([
   'striker',
 ]);
 
+const blocks = {
+  /** Région et ville. */
+  location: z.boolean().optional(),
+  /** Taille et poids. */
+  physical: z.boolean().optional(),
+  /** Postes et pied fort. */
+  sport: z.boolean().optional(),
+};
+
 export const playerProfileOutputSchema = z.strictObject({
   id: z.uuid().optional(),
   ozId: z.string().optional(),
@@ -47,17 +56,10 @@ export const playerProfileOutputSchema = z.strictObject({
   organizationId: z.uuid().nullable().optional(),
   /** Titulaire majeur, tuteur de l'enfant, administrateur seulement (CP-11). */
   phone: z.string().nullable().optional(),
+  /** Réglages de visibilité des blocs : `GET /players/me` seulement (lot 1.19b) ; absent : visible. */
+  visibility: z.strictObject(blocks).optional(),
 });
 export type PlayerProfileOutput = z.infer<typeof playerProfileOutputSchema>;
-
-const blocks = {
-  /** Région et ville. */
-  location: z.boolean().optional(),
-  /** Taille et poids. */
-  physical: z.boolean().optional(),
-  /** Postes et pied fort. */
-  sport: z.boolean().optional(),
-};
 
 /** `false` masque le bloc aux tiers ; les blocs absents gardent leur réglage. */
 export const playerVisibilityInputSchema = z
