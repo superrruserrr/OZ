@@ -48,11 +48,13 @@ tuteur ; un même compte peut en tenir plusieurs, chacune vérifiée séparémen
 
 ## Ce que l'acceptation ne fait pas (D3)
 
-Elle ne vérifie rien et ne publie rien. La fiche de l'enfant reste non publiée tant qu'un tuteur
-**vérifié** n'a pas donné son consentement (`oz_player_published`, EX-T16 n° 3, CP-13). Un mineur peut
-désigner sa propre adresse et accepter avec un second compte majeur : l'invitation ne l'empêche pas.
-La revue humaine du justificatif (lot 1.7bb) réduit ce risque sans le supprimer (pièce falsifiée) ;
-la vérification d'identité du tuteur (KYC 2, lot 1.10) le ferme, et rien n'est publié avant elle.
+Elle ne vérifie rien et ne publie rien. La fiche de l'enfant reste non publiée tant qu'un tuteur au
+**lien validé** (justificatif approuvé) n'a pas donné son consentement (`oz_player_published`, EX-T16
+n° 3, CP-13). Un mineur peut désigner sa propre adresse et accepter avec un second compte majeur :
+l'invitation ne l'empêche pas. La revue humaine du justificatif (lot 1.7bb) réduit ce risque sans le
+supprimer (pièce falsifiée) ; la vérification d'identité du tuteur (KYC 2, lot 1.10, après
+l'ouverture) le fermera. Risque accepté pour l'ouverture (ADR-013, D-137, D-134) : la fiche publiée
+n'est lue que par des organisations vérifiées, qui n'arrivent qu'avec les lots 1.8 et 1.10b.
 
 ## Justificatif de lien (lot 1.7bb, EX-108 n° 2)
 
@@ -70,9 +72,9 @@ la vérification d'identité du tuteur (KYC 2, lot 1.10) le ferme, et rien n'est
    auditée), puis décide (`POST /admin/guardian-links/:id/decision`), ré-authentifié par mot de passe
    et code. Un seul administrateur suffit ; jamais le déposant ni l'enfant.
 4. **Approbation (R1).** Dans une transaction : `guardians.user_id` = le déposant, rôle `guardian`,
-   fiche `in_review`. **Jamais `verified`** : réservé au KYC 2 du tuteur (lot 1.10). Les droits de la
-   matrice sur l'enfant (lecture, modification, suppression, export) restent fermés : ils suivent le
-   tuteur vérifié. Le tuteur voit le nom et l'OZ ID de l'enfant et peut consentir.
+   fiche `in_review`. **Jamais `verified`** : réservé au KYC 2 du tuteur (lot 1.10). Depuis le lot
+   1.19a (E2, D-137), le lien validé ouvre les droits de la matrice sur l'enfant (lecture,
+   visibilité, suppression, export ; `oz_guardian_link_approved`) et la publication après accord.
 5. **Refus (R4).** Motif d'une liste fermée (`illegible`, `name_mismatch`, `child_mismatch`,
    `wrong_document`, `suspected_forgery`), fiche `rejected`, nouveau dépôt possible. Au 3e refus de
    la même invitation, ou sur faux suspecté, le rattachement est clos : l'enfant devra réinviter.
@@ -96,8 +98,9 @@ dépôt en cours ; une fiche sans compte revient à `declared`.
   Version et empreinte du texte lu : un texte changé depuis est refusé (409). Heure de la base. La
   publication exige un consentement actif au traitement. Un second consentement identique rend le
   premier.
-- **Avant le KYC (R5).** Le consentement est enregistré, mais la fiche reste non publiée tant que la
-  fiche tuteur n'est pas `verified` (`oz_player_published`, CP-13).
+- **Publication (D-137, lot 1.19a).** Lien validé, accord au traitement puis accord de publication :
+  la fiche est publiée sans attendre le KYC 2 (`oz_player_published`, CP-13). Une fiche rejetée ou
+  suspendue ne l'est jamais. Avant le lot 1.19a, elle restait non publiée jusqu'au KYC (R5).
 - **Révoquer.** `DELETE /guardians/me/children/:ozId/consents/:type`, sans ré-authentification (le
   retrait doit rester simple). `revoked_at` à l'heure de la base, dans la transaction : la règle de
   lecture relit les consentements actifs, la fiche disparaît aussitôt pour les organisations.
@@ -145,7 +148,7 @@ Le navigateur n'appelle jamais l'API (ADR-010) : actions serveur du site, CSP `c
 - **Accords** : `/tuteur/accords/:ozId`. Texte présenté tel quel avec sa version ; accord
   ré-authentifié (mot de passe, code si la 2FA est active) avec la version et l'empreinte lues ;
   publication fermée tant que le traitement n'est pas consenti ; retrait confirmé, sans
-  ré-authentification. Mention R5 : accord enregistré, fiche non publiée avant le KYC.
+  ré-authentification. Mention de l'audience : fiche lue par les seules organisations vérifiées.
 
 ## Inscription directe (D4)
 

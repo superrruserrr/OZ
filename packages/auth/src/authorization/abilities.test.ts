@@ -217,9 +217,10 @@ describe('abilityFor', () => {
     });
   });
 
-  it('EX-T16 n° 3 : mineur non vérifié ou sans consentement fermé aux tiers', () => {
+  it('EX-T16 n° 3 : mineur sans consentement, rejeté ou suspendu fermé aux tiers (D-137)', () => {
     const closed = [
-      playerSubject(record({ verificationStatus: 'declared', organizationId: 'autre' }), NOW),
+      playerSubject(record({ verificationStatus: 'rejected', organizationId: 'autre' }), NOW),
+      playerSubject(record({ verificationStatus: 'suspended', organizationId: 'autre' }), NOW),
       playerSubject(record({ hasPublicationConsent: false, organizationId: 'autre' }), NOW),
     ];
     const roles = ['academy', 'club', 'federation', 'recruiter'] as const;
@@ -227,6 +228,12 @@ describe('abilityFor', () => {
       const ability = abilityFor(actor(role, 'org', true));
       for (const target of closed) expect(ability.can('player.read_minor', target)).toBe(false);
     }
+    // Lot 1.19a : une fiche déclarée (sans KYC) d'un mineur publié par son tuteur est ouverte.
+    const declared = playerSubject(
+      record({ verificationStatus: 'declared', organizationId: 'autre' }),
+      NOW,
+    );
+    expect(abilityFor(actor('club', 'org', true)).can('player.read_minor', declared)).toBe(true);
     const center = abilityFor(actor('center'));
     const tested = playerSubject(
       record({ hasPublicationConsent: false, testedByOrganizationIds: ['org'] }),

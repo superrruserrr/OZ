@@ -33,11 +33,17 @@ export interface PlayerRecord {
   readonly userId: string | null;
   readonly birthDate: Date;
   readonly verificationStatus: string;
-  /** Compte du tuteur **vérifié** de ce joueur : à laisser vide tant qu'il ne l'est pas. */
+  /**
+   * Compte du tuteur de ce joueur dont le lien est validé (justificatif approuvé ou KYC 2, lot
+   * 1.19a) : à laisser vide sinon.
+   */
   readonly guardianUserId: string | null;
   readonly organizationId: string | null;
   readonly testedByOrganizationIds: readonly string[];
-  /** Consentement de publication horodaté d'un tuteur vérifié en KYC 2 (EX-T16 n° 3). */
+  /**
+   * Mineur publié selon la base (`oz_player_published`) : accord de publication actif d'un tuteur au
+   * lien validé (EX-T16 n° 3, D-137 : sans KYC 2 depuis le lot 1.19a).
+   */
   readonly hasPublicationConsent: boolean;
   /**
    * Suppression du compte titulaire en attente (lot 1.16cba, D1) : la fiche est invisible des tiers
@@ -265,6 +271,8 @@ export function abilityFor(actor: Actor): AppAbility {
   return builder.build();
 }
 
+const UNPUBLISHABLE: ReadonlySet<string> = new Set(['rejected', 'suspended']);
+
 /** Sujet de décision ; la minorité est recalculée ici, à la date de la requête (EX-T16 n° 1). */
 export function playerSubject(player: PlayerRecord, now: Date): PlayerSubject {
   const { birthDate, verificationStatus, hasPublicationConsent, ...links } = player;
@@ -273,7 +281,8 @@ export function playerSubject(player: PlayerRecord, now: Date): PlayerSubject {
     ...links,
     isMinor: isMinor(birthDate, now),
     isVerified,
-    isPublished: isVerified && hasPublicationConsent,
+    // D-137 : le statut KYC de la fiche n'est plus exigé ; une fiche rejetée ou suspendue ne l'est jamais.
+    isPublished: hasPublicationConsent && !UNPUBLISHABLE.has(verificationStatus),
   } satisfies PlayerSubject);
 }
 
