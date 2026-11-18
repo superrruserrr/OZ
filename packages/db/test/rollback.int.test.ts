@@ -53,7 +53,14 @@ describe('rollbackLast (db:rollback)', () => {
     await migrateDeploy(db);
     const last = listMigrations(MIGRATIONS_DIR).at(-1)?.name;
     expect(await applied()).toContain(last);
-    // Dernière migration (lot 1.7bc, C6) : un lien retiré ne bloque pas le retour arrière ; il
+    // Dernière migration (lot 1.19a) : retour à la publication et aux droits du tuteur vérifié.
+    expect(await functionExists('oz_guardian_link_approved')).toBe(true);
+    expect((await rollbackLast({ databaseUrl: db.url, appEnv: 'local' })).rolledBack).toBe(last);
+    expect(await functionExists('oz_guardian_link_approved')).toBe(false);
+    expect(await functionExists('oz_player_published')).toBe(true);
+    const lot17bc = listMigrations(MIGRATIONS_DIR).at(-2)?.name;
+
+    // Lot 1.7bc (C6) : un lien retiré ne bloque pas le retour arrière ; il
     // redevient `withdrawn`, fonction et colonnes du retrait disparaissent.
     const [revoked] = await db.query<{ n: number }>(
       `WITH u AS (INSERT INTO users (email) VALUES ('tuteur-retire@example.test') RETURNING id),
@@ -74,8 +81,8 @@ describe('rollbackLast (db:rollback)', () => {
        SELECT count(*)::int AS n FROM r`,
     );
     expect(revoked?.n).toBe(1);
-    expect((await rollbackLast({ databaseUrl: db.url, appEnv: 'local' })).rolledBack).toBe(last);
-    expect(await applied()).not.toContain(last);
+    expect((await rollbackLast({ databaseUrl: db.url, appEnv: 'local' })).rolledBack).toBe(lot17bc);
+    expect(await applied()).not.toContain(lot17bc);
     expect(await functionExists('oz_guardian_link_revoke')).toBe(false);
     expect(await columnExists('guardian_link_reviews', 'revoked_at')).toBe(false);
     const [withdrawn] = await db.query<{ status: string }>(
@@ -104,7 +111,7 @@ describe('rollbackLast (db:rollback)', () => {
     );
     expect(review?.n).toBe(1);
     expect(await tableExists('consent_texts')).toBe(true);
-    const lot17bb = listMigrations(MIGRATIONS_DIR).at(-2)?.name;
+    const lot17bb = listMigrations(MIGRATIONS_DIR).at(-3)?.name;
     expect((await rollbackLast({ databaseUrl: db.url, appEnv: 'local' })).rolledBack).toBe(lot17bb);
     expect(await applied()).not.toContain(lot17bb);
     for (const table of [
@@ -127,7 +134,7 @@ describe('rollbackLast (db:rollback)', () => {
 
     // Lot 1.7ba : un rattachement en attente ne bloque pas le retour arrière ;
     // table, fonctions et déclencheur retirés, fiches et comptes intacts.
-    const lot17ba = listMigrations(MIGRATIONS_DIR).at(-3)?.name;
+    const lot17ba = listMigrations(MIGRATIONS_DIR).at(-4)?.name;
     const [pending] = await db.query<{ n: number }>(
       `WITH u AS (INSERT INTO users (email) VALUES ('tuteur-attente@example.test') RETURNING id),
          g AS (INSERT INTO guardians (first_name, last_name, relationship, country)
@@ -159,7 +166,7 @@ describe('rollbackLast (db:rollback)', () => {
     expect(await tableExists('guardians')).toBe(true);
 
     // Lot 1.7cc : le renvoi de l'email de confirmation est retiré.
-    const beforeGuardian = listMigrations(MIGRATIONS_DIR).at(-4)?.name;
+    const beforeGuardian = listMigrations(MIGRATIONS_DIR).at(-5)?.name;
     expect(await functionExists('oz_auth_resend_verification')).toBe(true);
     expect((await rollbackLast({ databaseUrl: db.url, appEnv: 'local' })).rolledBack).toBe(
       beforeGuardian,
@@ -168,7 +175,7 @@ describe('rollbackLast (db:rollback)', () => {
     expect(await functionExists('oz_auth_resend_verification')).toBe(false);
 
     // D-132 : la fenêtre de grâce de la rotation est retirée, la fonction d'origine rétablie.
-    const beforeResend = listMigrations(MIGRATIONS_DIR).at(-5)?.name;
+    const beforeResend = listMigrations(MIGRATIONS_DIR).at(-6)?.name;
     const rotationSource = async (): Promise<string> =>
       (
         await db.query<{ src: string }>(
@@ -182,7 +189,7 @@ describe('rollbackLast (db:rollback)', () => {
     expect(await applied()).not.toContain(beforeResend);
     expect(await rotationSource()).not.toContain("'raced'");
     expect(await rotationSource()).toContain("'reuse'");
-    const before17a0 = listMigrations(MIGRATIONS_DIR).at(-6)?.name;
+    const before17a0 = listMigrations(MIGRATIONS_DIR).at(-7)?.name;
     // Un document rejeté (lot 1.9b) ne bloque pas le retour arrière : il redevient `error`.
     const [rejected] = await db.query<{ id: string }>(
       `WITH u AS (INSERT INTO users (email) VALUES ('retour@example.test') RETURNING id),
@@ -232,7 +239,7 @@ describe('rollbackLast (db:rollback)', () => {
 
     // Lot 1.14b : une sauvegarde et un export ne bloquent pas le retour arrière ; tables, fonctions
     // et déclencheur retirés.
-    const before17a = listMigrations(MIGRATIONS_DIR).at(-7)?.name;
+    const before17a = listMigrations(MIGRATIONS_DIR).at(-8)?.name;
     await db.query(
       `INSERT INTO saved_searches (user_id, name, sort)
        SELECT id, 'Retour', 'name' FROM users WHERE email = 'retour@example.test'`,
@@ -257,7 +264,7 @@ describe('rollbackLast (db:rollback)', () => {
     }
 
     // Lot 1.14a : index de la recherche retirés, rien d'autre.
-    const before14b = listMigrations(MIGRATIONS_DIR).at(-8)?.name;
+    const before14b = listMigrations(MIGRATIONS_DIR).at(-9)?.name;
     expect((await rollbackLast({ databaseUrl: db.url, appEnv: 'local' })).rolledBack).toBe(
       before14b,
     );
@@ -276,7 +283,7 @@ describe('rollbackLast (db:rollback)', () => {
        INSERT INTO account_deletion_requests (player_id, requested_by_user_id, scheduled_for)
        SELECT p.id, u.id, now() + interval '30 days' FROM p, u`,
     );
-    const before14a = listMigrations(MIGRATIONS_DIR).at(-9)?.name;
+    const before14a = listMigrations(MIGRATIONS_DIR).at(-10)?.name;
     expect((await rollbackLast({ databaseUrl: db.url, appEnv: 'local' })).rolledBack).toBe(
       before14a,
     );
@@ -290,7 +297,7 @@ describe('rollbackLast (db:rollback)', () => {
 
     // Lot 1.16cba : politique de lecture tierce et fonctions du lot 1.16ca rétablies, la demande en
     // attente ne bloque pas le retour arrière.
-    const before16cbb = listMigrations(MIGRATIONS_DIR).at(-10)?.name;
+    const before16cbb = listMigrations(MIGRATIONS_DIR).at(-11)?.name;
     expect((await rollbackLast({ databaseUrl: db.url, appEnv: 'local' })).rolledBack).toBe(
       before16cbb,
     );
@@ -314,7 +321,7 @@ describe('rollbackLast (db:rollback)', () => {
        SELECT id, oz_uuid_v7(), repeat('b', 64), now() + interval '1 day', now(), 'account_deleted'
        FROM users WHERE email = 'retour@example.test'`,
     );
-    const before16cba = listMigrations(MIGRATIONS_DIR).at(-11)?.name;
+    const before16cba = listMigrations(MIGRATIONS_DIR).at(-12)?.name;
     expect((await rollbackLast({ databaseUrl: db.url, appEnv: 'local' })).rolledBack).toBe(
       before16cba,
     );
@@ -333,7 +340,7 @@ describe('rollbackLast (db:rollback)', () => {
     expect(kycGuard?.src).not.toContain('account_erasure');
 
     // Lot 1.16bb : une archive prête ne bloque pas le retour arrière.
-    const before16ca = listMigrations(MIGRATIONS_DIR).at(-12)?.name;
+    const before16ca = listMigrations(MIGRATIONS_DIR).at(-13)?.name;
     await db.query(
       `INSERT INTO data_export_requests (id, user_id, status, storage_key, ready_at, expires_at)
        SELECT r, id, 'ready', 'exports/' || r || '.json', now(), now() + interval '7 days'
@@ -363,7 +370,7 @@ describe('rollbackLast (db:rollback)', () => {
     ).toEqual([]);
 
     // Lot 1.16ba : une demande d'export ne bloque pas le retour arrière.
-    const before16ba = listMigrations(MIGRATIONS_DIR).at(-13)?.name;
+    const before16ba = listMigrations(MIGRATIONS_DIR).at(-14)?.name;
     expect((await rollbackLast({ databaseUrl: db.url, appEnv: 'local' })).rolledBack).toBe(
       before16ba,
     );
@@ -380,7 +387,7 @@ describe('rollbackLast (db:rollback)', () => {
        WHERE user_id = (SELECT id FROM users WHERE email = 'retour@example.test')`,
     );
     expect((await rollbackLast({ databaseUrl: db.url, appEnv: 'local' })).rolledBack).toBe(
-      listMigrations(MIGRATIONS_DIR).at(-14)?.name,
+      listMigrations(MIGRATIONS_DIR).at(-15)?.name,
     );
     expect(await functionExists('oz_player_set_visibility')).toBe(false);
     expect(await functionExists('oz_player_kyc_level')).toBe(false);
@@ -393,7 +400,7 @@ describe('rollbackLast (db:rollback)', () => {
 
     // Lot 1.16a : fonctions du worker, vérifications et lecture admin retirées.
     const result = await rollbackLast({ databaseUrl: db.url, appEnv: 'local' });
-    expect(result.rolledBack).toBe(listMigrations(MIGRATIONS_DIR).at(-15)?.name);
+    expect(result.rolledBack).toBe(listMigrations(MIGRATIONS_DIR).at(-16)?.name);
     expect(await tableExists('audit_chain_checks')).toBe(false);
     expect(await functionExists('oz_audit_check')).toBe(false);
     expect(await functionExists('oz_audit_head')).toBe(false);
@@ -404,7 +411,7 @@ describe('rollbackLast (db:rollback)', () => {
 
     // Lot 1.9cb : fonctions de purge retirées, anciennes contraintes rétablies.
     expect((await rollbackLast({ databaseUrl: db.url, appEnv: 'local' })).rolledBack).toBe(
-      listMigrations(MIGRATIONS_DIR).at(-16)?.name,
+      listMigrations(MIGRATIONS_DIR).at(-17)?.name,
     );
     expect(await functionExists('oz_document_purge_due')).toBe(false);
     expect(await functionExists('oz_document_storage_orphans')).toBe(false);
@@ -417,7 +424,7 @@ describe('rollbackLast (db:rollback)', () => {
 
     // Lot 1.9ca, les précédentes intactes.
     expect((await rollbackLast({ databaseUrl: db.url, appEnv: 'local' })).rolledBack).toBe(
-      listMigrations(MIGRATIONS_DIR).at(-17)?.name,
+      listMigrations(MIGRATIONS_DIR).at(-18)?.name,
     );
     expect(await columnExists('documents', 'purged_at')).toBe(false);
     expect(await policyExists('documents', 'documents_admin_read')).toBe(false);
@@ -430,7 +437,7 @@ describe('rollbackLast (db:rollback)', () => {
     expect(await functionExists('oz_document_scan_claim')).toBe(true);
 
     // Lot 1.9b : un document rejeté redevient `error`.
-    const previous = listMigrations(MIGRATIONS_DIR).at(-18)?.name;
+    const previous = listMigrations(MIGRATIONS_DIR).at(-19)?.name;
     expect((await rollbackLast({ databaseUrl: db.url, appEnv: 'local' })).rolledBack).toBe(
       previous,
     );

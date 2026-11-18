@@ -11,13 +11,14 @@ import { OwnCard } from '../../../../onboarding/own-card';
 import { readSignup } from '../../../../onboarding/signup-api';
 import { nextPath, ONBOARDING_PATH } from '../../../../onboarding/steps';
 import { readOwnPlayer } from '../../../../players/players-api';
-import { GUARDIAN_SPACE_PATH } from '../../../../session/protected-routes';
+import { DIRECTORY_PATH, GUARDIAN_SPACE_PATH } from '../../../../session/protected-routes';
 
 export const generateMetadata = () => authMetadata('onboarding');
 
 /**
  * Aiguillage du parcours (lot 1.7cb) : reprise à la première étape manquante d'après l'API
- * (EX-107 n° 2) ; inscription déjà finalisée → carte OZ ID relue sur l'API (D-133), avec son QR.
+ * (EX-107 n° 2) ; inscription déjà finalisée → carte OZ ID relue sur l'API (D-133), avec son QR ;
+ * compte sans fiche joueur → espace du tuteur ou annuaire (lot 1.19a).
  */
 export default async function OnboardingPage() {
   const locale = await rootLocale();
@@ -47,6 +48,18 @@ export default async function OnboardingPage() {
   const tGuardian = await getTranslations({ locale, namespace: 'guardian.invite' });
   const own = await readOwnPlayer();
   if (own.kind === 'unauthenticated') toLogin(ONBOARDING_PATH, locale);
+  if (own.kind === 'not_found') {
+    // Compte sans fiche joueur (lot 1.19a) : le tuteur va à son espace, un autre rôle à l'annuaire,
+    // jamais sur « Votre profil joueur est créé ». L'API refait ses contrôles sur chaque écran.
+    const children = await readChildren();
+    redirect({
+      href:
+        children.kind === 'ok' && children.children.length > 0
+          ? GUARDIAN_SPACE_PATH
+          : DIRECTORY_PATH,
+      locale,
+    });
+  }
   return (
     <section className="flex flex-col gap-6" data-testid="onboarding-done">
       <SplitHeading as="h1" lead={t('title')} />

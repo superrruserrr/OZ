@@ -1,7 +1,7 @@
 # OZ — Où en est le projet ?
 
 > Check-list tenue à jour à la fin de chaque étape, à transmettre telle quelle à Fabrice Olinga.
-> **Dernière mise à jour : 17 novembre 2026** — étape : 1.5cbb Refonte des écrans de compte ; périmètre de la première mise en ligne (ADR-013).
+> **Dernière mise à jour : 17 novembre 2026** — étape : 1.19a Publication des mineurs et droits du tuteur sans KYC (ADR-013).
 
 Légende : ✅ fait et vérifié · 🟡 en cours · ⬜ à faire · ⏸️ bloqué en attente d'une décision
 
@@ -23,12 +23,12 @@ justificatif est validé et que le tuteur a donné son accord (décision du 17 n
 | Ordre | Étape                                                                 | État |
 | ----- | --------------------------------------------------------------------- | ---- |
 | 1     | 1.5cbb Connexion, choix du compte, inscription au nouveau style       | ✅   |
-| 2     | 1.19 Ouverture, en un seul bloc :                                     | ⬜   |
+| 2     | 1.19 Ouverture, en un seul bloc :                                     | 🟡   |
 |       | · espace du joueur : sa fiche, ce qu'il montre, export, suppression   | ⬜   |
 |       | · espace du tuteur : enfants, justificatif, accord                    | ⬜   |
 |       | · back-office réduit : comptes, justificatifs des tuteurs, suspension | ⬜   |
 |       | · emails essentiels                                                   | ⬜   |
-|       | · fiche d'un mineur publiée après justificatif validé et accord       | ⬜   |
+|       | · fiche d'un mineur publiée après justificatif validé et accord       | ✅   |
 | 3     | 0.8c/d et 0.9 Version de test et de production en ligne, surveillance | ⬜   |
 | 4     | 1.17 Recette, puis 1.18 mise en production                            | ⬜   |
 
@@ -157,38 +157,39 @@ Conformité (données, mineurs, identité) : check-list et décisions C1 à C9 (
 
 ## Historique des mises à jour
 
-| Date       | Étape terminée                                                |
-| ---------- | ------------------------------------------------------------- |
-| 2026-11-03 | Création de la check-list ; brouillon AIPD                    |
-| 2026-11-03 | 1.9 Coffre des documents d'identité (effacement auto)         |
-| 2026-11-03 | 1.16a Journal d'audit infalsifiable (étape 1.16 en cours)     |
-| 2026-11-03 | 1.13a Fiche joueur et visibilité (étape 1.13 en cours)        |
-| 2026-11-03 | 1.16ba Demande d'export des données (1.16 en cours)           |
-| 2026-11-03 | 1.16bb Archive d'export téléchargeable (1.16 en cours)        |
-| 2026-11-03 | 1.16ca Suppression de compte (1.16 en cours)                  |
-| 2026-11-09 | 1.16cba Suppression exécutée à l'échéance (1.16 en cours)     |
-| 2026-11-09 | 1.16cbb Suppression par le tuteur, registre RGPD (1.16 ✅)    |
-| 2026-11-09 | 1.13b QR, carte OZ ID et fiche PDF (1.13 en cours)            |
-| 2026-11-09 | 1.14a Recherche de joueurs, côté serveur (1.14 en cours)      |
-| 2026-11-10 | 1.5a Charte graphique OZ Football ID (1.5 en cours)           |
-| 2026-11-10 | 1.14b Recherches sauvegardées et export CSV (1.14 serveur)    |
-| 2026-11-10 | Réponses de Fabrice (Q2, Q15, Q16, Q18, Q21 à Q24)            |
-| 2026-11-10 | Textes légaux et tarifs provisoires (Q7, Q8)                  |
-| 2026-11-11 | 1.5ba Composants des écrans (1.5 en cours)                    |
-| 2026-11-11 | 1.5bb Coquille, navigation et audit (1.5 ✅)                  |
-| 2026-11-11 | 1.6 Site public et pages légales (1.6 ✅)                     |
-| 2026-11-11 | 1.7a Inscription joueur, côté serveur (1.7 en cours)          |
-| 2026-11-10 | 1.7ca Connexion au site et création de compte (1.7 en cours)  |
-| 2026-11-10 | 1.7cb Parcours d'inscription joueur à l'écran (1.7 ✅)        |
-| 2026-11-10 | 1.5ca Refonte « sport », briques ; thème noir et lime choisi  |
-| 2026-11-11 | 1.5cc Thème noir et lime, police douce (1.5 en cours)         |
-| 2026-11-11 | 1.5cba Refonte, pages publiques (1.5 en cours)                |
-| 2026-11-11 | 1.5da Kit sport : icônes, écussons, chargement animé          |
-| 2026-11-11 | 1.5db Accueil en landing page (mission, aperçu, FAQ, SEO)     |
-| 2026-11-11 | 1.5dc Annuaire et fiche joueur, démonstration locale          |
-| 2026-11-11 | 1.7cc Email renvoyé, mot de passe oublié, carte OZ ID avec QR |
-| 2026-11-16 | 1.7ba Tuteur légal : invitation et compte (1.7b en cours)     |
-| 2026-11-17 | 1.7bb Tuteur légal : justificatif et accord (1.7b en cours)   |
-| 2026-11-17 | 1.7bc Tuteur légal : écrans et retrait du lien (1.7b ✅)      |
-| 2026-11-17 | Périmètre de la première mise en ligne sans KYC (ADR-013)     |
-| 2026-11-17 | 1.5cbb Refonte des écrans de compte, audit final (1.5 ✅)     |
+| Date       | Étape terminée                                                   |
+| ---------- | ---------------------------------------------------------------- |
+| 2026-11-03 | Création de la check-list ; brouillon AIPD                       |
+| 2026-11-03 | 1.9 Coffre des documents d'identité (effacement auto)            |
+| 2026-11-03 | 1.16a Journal d'audit infalsifiable (étape 1.16 en cours)        |
+| 2026-11-03 | 1.13a Fiche joueur et visibilité (étape 1.13 en cours)           |
+| 2026-11-03 | 1.16ba Demande d'export des données (1.16 en cours)              |
+| 2026-11-03 | 1.16bb Archive d'export téléchargeable (1.16 en cours)           |
+| 2026-11-03 | 1.16ca Suppression de compte (1.16 en cours)                     |
+| 2026-11-09 | 1.16cba Suppression exécutée à l'échéance (1.16 en cours)        |
+| 2026-11-09 | 1.16cbb Suppression par le tuteur, registre RGPD (1.16 ✅)       |
+| 2026-11-09 | 1.13b QR, carte OZ ID et fiche PDF (1.13 en cours)               |
+| 2026-11-09 | 1.14a Recherche de joueurs, côté serveur (1.14 en cours)         |
+| 2026-11-10 | 1.5a Charte graphique OZ Football ID (1.5 en cours)              |
+| 2026-11-10 | 1.14b Recherches sauvegardées et export CSV (1.14 serveur)       |
+| 2026-11-10 | Réponses de Fabrice (Q2, Q15, Q16, Q18, Q21 à Q24)               |
+| 2026-11-10 | Textes légaux et tarifs provisoires (Q7, Q8)                     |
+| 2026-11-11 | 1.5ba Composants des écrans (1.5 en cours)                       |
+| 2026-11-11 | 1.5bb Coquille, navigation et audit (1.5 ✅)                     |
+| 2026-11-11 | 1.6 Site public et pages légales (1.6 ✅)                        |
+| 2026-11-11 | 1.7a Inscription joueur, côté serveur (1.7 en cours)             |
+| 2026-11-10 | 1.7ca Connexion au site et création de compte (1.7 en cours)     |
+| 2026-11-10 | 1.7cb Parcours d'inscription joueur à l'écran (1.7 ✅)           |
+| 2026-11-10 | 1.5ca Refonte « sport », briques ; thème noir et lime choisi     |
+| 2026-11-11 | 1.5cc Thème noir et lime, police douce (1.5 en cours)            |
+| 2026-11-11 | 1.5cba Refonte, pages publiques (1.5 en cours)                   |
+| 2026-11-11 | 1.5da Kit sport : icônes, écussons, chargement animé             |
+| 2026-11-11 | 1.5db Accueil en landing page (mission, aperçu, FAQ, SEO)        |
+| 2026-11-11 | 1.5dc Annuaire et fiche joueur, démonstration locale             |
+| 2026-11-11 | 1.7cc Email renvoyé, mot de passe oublié, carte OZ ID avec QR    |
+| 2026-11-16 | 1.7ba Tuteur légal : invitation et compte (1.7b en cours)        |
+| 2026-11-17 | 1.7bb Tuteur légal : justificatif et accord (1.7b en cours)      |
+| 2026-11-17 | 1.7bc Tuteur légal : écrans et retrait du lien (1.7b ✅)         |
+| 2026-11-17 | Périmètre de la première mise en ligne sans KYC (ADR-013)        |
+| 2026-11-17 | 1.5cbb Refonte des écrans de compte, audit final (1.5 ✅)        |
+| 2026-11-17 | 1.19a Mineur publié et droits du tuteur sans KYC (1.19 en cours) |

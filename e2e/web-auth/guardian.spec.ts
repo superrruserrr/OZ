@@ -16,7 +16,7 @@ import { logIn, settle, signUpAndConfirm, useClientAddress } from './helpers.js'
 
 // E2E n° 2 (lot 1.7b, EX-108, CP-13) : un joueur mineur invite son tuteur ; le tuteur crée son
 // compte, accepte, dépose son justificatif ; un administrateur l'approuve ; le tuteur consent, et la
-// fiche reste non publiée faute de KYC (lot 1.10). Puis retrait d'un accord, et retrait du lien par
+// fiche est publiée sans KYC 2 (D-137, ADR-013). Puis retrait d'un accord, et retrait du lien par
 // un administrateur (C6) : l'enfant peut réinviter. Le site relaie l'API (ADR-010) ; données
 // synthétiques seulement. L'analyse antivirus (prouvée par le parcours n° 10) est posée en base.
 
@@ -135,7 +135,7 @@ async function newPage(browser: Browser, host: number): Promise<Page> {
   return page;
 }
 
-test('E2E n° 2 : mineur → tuteur → justificatif → accord, publication bloquée ; puis C6', async ({
+test('E2E n° 2 : mineur → tuteur → justificatif → accord → publication (D-137) ; puis C6', async ({
   browser,
 }) => {
   test.setTimeout(240_000);
@@ -217,7 +217,7 @@ test('E2E n° 2 : mineur → tuteur → justificatif → accord, publication blo
     await expect(tutor.getByTestId('guardian-child-ozid')).toContainText(/OZ-CM-/);
     await tutor.getByTestId('guardian-child-consent').click();
     await expect(tutor).toHaveURL(/\/tuteur\/accords\/OZ-CM-/);
-    await expect(tutor.getByTestId('guardian-consent-kyc')).toBeVisible();
+    await expect(tutor.getByTestId('guardian-consent-audience')).toBeVisible();
     await expect(
       tutor.getByTestId('guardian-consent-guardian_profile_publication-blocked'),
     ).toBeVisible();
@@ -239,7 +239,7 @@ test('E2E n° 2 : mineur → tuteur → justificatif → accord, publication blo
     await tutor.getByTestId(`${publication}-give`).click();
     await expect(tutor.getByTestId(publication).getByTestId('badge-consent-active')).toBeVisible();
 
-    // 7. Blocage de publication (CP-13, R5) : accords enregistrés, fiche non publiée sans KYC.
+    // 7. Publication (D-137) : lien validé et accords donnés, fiche publiée sans KYC 2.
     const published = async (): Promise<boolean> => {
       const { rows } = await db.query(
         `SELECT oz_player_published(p.id, p.guardian_id, p.verification_status) AS published
@@ -255,9 +255,9 @@ test('E2E n° 2 : mineur → tuteur → justificatif → accord, publication blo
       [email],
     );
     expect((active[0] as { n: number }).n).toBe(2);
-    expect(await published()).toBe(false);
+    expect(await published()).toBe(true);
     await tutor.goto('/tuteur');
-    await expect(tutor.getByTestId('badge-unpublished')).toBeVisible();
+    await expect(tutor.getByTestId('badge-published')).toBeVisible();
 
     // 8. Retrait d'un accord : sans ré-authentification, confirmé.
     await tutor.getByTestId('guardian-child-consent').click();

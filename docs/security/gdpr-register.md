@@ -64,7 +64,9 @@ manuelle.
   `guardian_link_reviews`, identifiants, statut et motif) ; consentements du tuteur avec la version
   du texte consenti (`consent_texts`, immuable).
 - **Destinataires :** le joueur, son tuteur, son organisation ; les tiers selon la matrice des
-  droits (`rbac.md`) — un mineur n'est visible que vérifié et publié avec consentement. Lot
+  droits (`rbac.md`) — un mineur n'est visible que publié : consentement actif d'un tuteur au lien
+  validé (lot 1.19a, D-137), lu par les seules organisations vérifiées ; le tuteur au lien validé
+  exerce les droits d'accès, d'export et d'effacement sur la fiche de l'enfant. Lot
   1.13b : carte OZ ID (titulaire, tuteur) et export PDF de la vue du lecteur, filigrané à son nom
   et audité.
 - **Conservation :** durée du compte ; anonymisation à la suppression, OZ ID réservé à vie (EX-118

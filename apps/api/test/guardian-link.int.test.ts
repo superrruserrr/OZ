@@ -451,8 +451,15 @@ describe('revue par un administrateur (R1, R2, R4)', () => {
     expect(audit?.metadata).toHaveProperty('review_id');
   });
 
-  it('lien approuvé mais tuteur non vérifié : pas de suppression de la fiche de l’enfant', async () => {
+  it('lien approuvé sans KYC 2 : le tuteur demande la suppression de la fiche de l’enfant (E2)', async () => {
     const link = await approvedLink();
+    await call('post', `/players/${link.child.ozId}/deletion`, link.tutor.token)
+      .send({ password: PASSWORD })
+      .expect(202);
+  });
+
+  it('lien en attente : ni suppression ni lecture complète de la fiche de l’enfant', async () => {
+    const link = await pendingLink();
     const response = await call(
       'post',
       `/players/${link.child.ozId}/deletion`,
@@ -588,12 +595,14 @@ describe('consentement versionné et révocation (EX-108 n° 3 à 5, CP-13)', ()
     expect(code(response)).toBe('CONSENT_REQUIRES_DATA_PROCESSING');
   });
 
-  it('tuteur `in_review` : consentements enregistrés, profil toujours non publié (CP-13, R5)', async () => {
+  it('lien approuvé et accord de publication : profil publié sans KYC 2 (D-137, CP-13)', async () => {
     const link = await approvedLink();
     await consent(link, 'guardian_data_processing', 201);
-    await consent(link, 'guardian_profile_publication', 201);
     expect(await published(link.child.playerId)).toBe(false);
-    await harness.db.query(`UPDATE players SET verification_status = 'verified' WHERE id = $1`, [
+    await consent(link, 'guardian_profile_publication', 201);
+    expect(await published(link.child.playerId)).toBe(true);
+    // Fiche rejetée ou suspendue : jamais publiée.
+    await harness.db.query(`UPDATE players SET verification_status = 'rejected' WHERE id = $1`, [
       link.child.playerId,
     ]);
     expect(await published(link.child.playerId)).toBe(false);
