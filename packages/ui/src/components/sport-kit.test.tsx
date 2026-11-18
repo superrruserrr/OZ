@@ -44,8 +44,8 @@ describe('ClubCrest', () => {
   });
 });
 
-describe('SportLoader', () => {
-  it('statut annoncé poliment, animation décorative', () => {
+describe('SportLoader (lot 1.5e, E5)', () => {
+  it('statut annoncé poliment, animation décorative, sans attribut style (CSP)', () => {
     render(<SportLoader label="Chargement de la page" />);
     const status = screen.getByRole('status');
     expect(status.getAttribute('aria-live')).toBe('polite');
@@ -54,8 +54,37 @@ describe('SportLoader', () => {
     expect(status.querySelector('[style]')).toBeNull();
   });
 
-  it('balle du sport choisi', () => {
-    render(<SportLoader label="Chargement" sport="basketball" />);
-    expect(screen.getByRole('status').dataset.sport).toBe('basketball');
+  it('l’anneau OZ éclate en trois balles : football, basket, tennis par défaut', () => {
+    render(<SportLoader label="Chargement" />);
+    const status = screen.getByRole('status');
+    expect(status.querySelector('[data-part="ring"]')).not.toBeNull();
+    const balls = [...status.querySelectorAll<SVGElement>('[data-ball]')].map(
+      (b) => b.dataset.ball,
+    );
+    expect(balls).toEqual(['football', 'basketball', 'tennis']);
+  });
+
+  it('sports choisis', () => {
+    render(<SportLoader label="Chargement" sports={['rugby', 'handball', 'volleyball']} />);
+    expect(screen.getByRole('status').dataset.sports).toBe('rugby handball volleyball');
+  });
+
+  it('n’apparaît qu’après un court délai et ne prend pas tout l’écran', () => {
+    render(<SportLoader label="Chargement" />);
+    const status = screen.getByRole('status');
+    expect(status.className).toContain('animate-oz-loader-appear');
+    expect(status.className).not.toContain('dvh');
+  });
+
+  it('mouvement réduit : seul l’anneau fixe reste, les balles ne bougent qu’en motion-safe', () => {
+    render(<SportLoader label="Chargement" />);
+    const status = screen.getByRole('status');
+    const ring = status.querySelector('[data-part="ring"]');
+    expect(ring?.getAttribute('class')).toContain('motion-safe:animate-oz-ring-burst');
+    for (const ball of status.querySelectorAll('[data-ball]')) {
+      const cls = ball.getAttribute('class') ?? '';
+      expect(cls).toContain('opacity-0');
+      expect(cls).toMatch(/motion-safe:animate-oz-split-(left|center|right)/);
+    }
   });
 });

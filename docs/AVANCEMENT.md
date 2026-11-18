@@ -23,6 +23,7 @@ justificatif est validé et que le tuteur a donné son accord (décision du 17 n
 | Ordre | Étape                                                                 | État |
 | ----- | --------------------------------------------------------------------- | ---- |
 | 1     | 1.5cbb Connexion, choix du compte, inscription au nouveau style       | ✅   |
+| 1 bis | 1.5e Textes plus doux, chargement multisport, statistiques, accueil   | ⏳   |
 | 2     | 1.19 Ouverture, en un seul bloc :                                     | 🟡   |
 |       | · espace du joueur : sa fiche, ce qu'il montre, export, suppression   | ⬜   |
 |       | · espace du tuteur : enfants, justificatif, accord                    | ⬜   |
@@ -93,6 +94,9 @@ d'intrusion par une société externe recommandé.
 | 1.5db Accueil en landing page          | ✅   | Mission expliquée, aperçu d'une fiche d'exemple, parcours en 3 étapes, questions fréquentes, données pour Google      |
 | 1.5dc Annuaire et fiche joueur         | ✅   | Recherche de joueurs, fiche avec sections qui s'ouvrent au clic, drapeaux ; démo locale avec compte de test           |
 | 1.5cbb Refonte : compte et inscription | ✅   | Connexion, choix du compte, inscription et premiers pas au nouveau style ; audit final                                |
+| 1.5ea Textes plus doux, chargement     | ✅   | Titres environ 20 % plus petits, texte à 15 px ; le logo s'ouvre en trois balles, seulement si la page tarde          |
+| 1.5eb Statistiques façon jeu de foot   | ⬜   | Hexagone, jauges et barres ; seulement des données réelles, rien d'inventé                                            |
+| 1.5ec Tableau de bord joueur et tuteur | ⬜   | Toutes les rubriques ; celles pas encore livrées en cartes « Bientôt disponible »                                     |
 
 Q6 (un seul système visuel) et Q19 (nom « OZ FOOTBALL ID ») sont tranchées par la charte (ADR-009).
 
@@ -193,3 +197,4 @@ Conformité (données, mineurs, identité) : check-list et décisions C1 à C9 (
 | 2026-11-17 | Périmètre de la première mise en ligne sans KYC (ADR-013)        |
 | 2026-11-17 | 1.5cbb Refonte des écrans de compte, audit final (1.5 ✅)        |
 | 2026-11-17 | 1.19a Mineur publié et droits du tuteur sans KYC (1.19 en cours) |
+| 2026-11-17 | 1.5ea Textes plus doux, chargement multisport (1.5e en cours)    |

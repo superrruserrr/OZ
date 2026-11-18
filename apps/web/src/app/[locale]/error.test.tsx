@@ -36,9 +36,22 @@ describe('page d’erreur', () => {
 });
 
 describe('chargement', () => {
-  it('balle animée annoncée une fois', () => {
+  it('trois balles animées, annoncées une seule fois', () => {
     render(<Loading />, { wrapper });
     const status = screen.getByRole('status', { name: 'Chargement en cours' });
     expect(status.getAttribute('aria-busy')).toBe('true');
+    expect(screen.getAllByRole('status')).toHaveLength(1);
+  });
+
+  it('non bloquant (lot 1.5e, E5) : squelette décoratif de la page, pas de plein écran', () => {
+    const { container } = render(<Loading />, { wrapper });
+    const skeleton = container.querySelector('[data-testid="page-skeleton"]');
+    expect(skeleton?.getAttribute('aria-hidden')).toBe('true');
+    expect(container.innerHTML).not.toContain('dvh');
+  });
+
+  it('dans la coquille de l’espace connecté, sans second <main>', () => {
+    const { container } = render(<Loading inShell />, { wrapper });
+    expect(container.querySelector('main')).toBeNull();
   });
 });

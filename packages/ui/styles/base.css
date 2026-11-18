@@ -10,6 +10,9 @@
   body {
     min-height: 100dvh;
     font-family: var(--font-sans);
+    /* Corps à 15 px, interlignage aéré (lot 1.5e, E6). */
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
     -webkit-font-smoothing: antialiased;
   }
 

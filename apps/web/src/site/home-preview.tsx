@@ -27,7 +27,7 @@ export function HomePreview() {
       data-testid="home-preview"
       className="relative rounded-3xl border border-oz-border bg-oz-surface-1 p-5 shadow-[0_0_60px_-30px_var(--oz-primary)] sm:p-6"
     >
-      <span className="absolute top-4 right-4 rounded-md border border-oz-border px-2 py-1 text-[11px] font-medium tracking-[0.08em] text-oz-text-label uppercase">
+      <span className="absolute top-4 right-4 rounded-md border border-oz-border px-2 py-1 text-xs font-medium tracking-[0.08em] text-oz-text-label uppercase">
         {t('example')}
       </span>
       <div className="flex items-center gap-4">
