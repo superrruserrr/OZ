@@ -4,7 +4,16 @@ import { locale as rootLocale } from 'next/root-params';
 
 /** Écrans de compte : titre traduit, jamais indexés (robots). */
 export async function authMetadata(
-  key: 'role' | 'signup' | 'login' | 'verify' | 'forgot' | 'reset' | 'onboarding' | 'guardian',
+  key:
+    | 'role'
+    | 'signup'
+    | 'login'
+    | 'verify'
+    | 'forgot'
+    | 'reset'
+    | 'onboarding'
+    | 'guardian'
+    | 'dashboard',
 ): Promise<Metadata> {
   const locale = await rootLocale();
   const t = await getTranslations({ locale, namespace: 'auth.meta' });

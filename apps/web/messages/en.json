@@ -367,7 +367,8 @@
       "onboarding": "Player sign-up",
       "forgot": "Forgot password",
       "reset": "New password",
-      "guardian": "Guardian space"
+      "guardian": "Guardian space",
+      "dashboard": "My dashboard"
     },
     "layout": {
       "skip": "Skip to content",
@@ -814,5 +815,100 @@
       "fileType": "Only PDF, JPEG, PNG and WebP files are accepted.",
       "uploadFailed": "The upload failed. Try again."
     }
+  },
+  "dashboard": {
+    "hello": "Hello {name}",
+    "helloAnonymous": "Hello",
+    "lead": "Your OZ profile at a glance: what is filled in, what is missing, what is coming soon.",
+    "viewProfile": "View my profile",
+    "percent": "{value}%",
+    "level": {
+      "l0": "Declared profile",
+      "l1": "Identity verified",
+      "l2": "Fully verified"
+    },
+    "profile": {
+      "title": "Your profile",
+      "kicker": "Real data",
+      "radar": "Profile completeness by section",
+      "gauge": "Fields filled in",
+      "fields": "{filled} of {total} fields",
+      "note": "The hexagon only shows what you have filled in. It is neither a rating nor an assessment."
+    },
+    "rubrics": {
+      "identity": "Identity",
+      "location": "Location",
+      "sport": "Sport",
+      "physical": "Physical",
+      "verification": "Verification",
+      "contact": "Contact"
+    },
+    "aptitudes": {
+      "title": "Abilities",
+      "kicker": "Certified measurements",
+      "empty": "Waiting for certified measurements in an OZ Performance Centre.",
+      "axes": {
+        "speed": "Speed",
+        "endurance": "Endurance",
+        "jump": "Jump",
+        "agility": "Agility",
+        "strength": "Strength",
+        "technique": "Technique"
+      }
+    },
+    "soonTitle": "Coming soon",
+    "soonBadge": "Soon",
+    "soon": {
+      "visibility": {
+        "title": "Profile visibility",
+        "text": "Choose what verified organisations can see."
+      },
+      "export": {
+        "title": "Export your data",
+        "text": "Download everything OZ keeps about you."
+      },
+      "deletion": {
+        "title": "Delete your account",
+        "text": "Delete your account and your data."
+      },
+      "views": {
+        "title": "Profile views",
+        "text": "See which organisations viewed your profile."
+      },
+      "videos": {
+        "title": "Videos",
+        "text": "Add your best moments."
+      },
+      "messages": {
+        "title": "Messages",
+        "text": "Talk with clubs and academies."
+      },
+      "evaluations": {
+        "title": "Centre assessments",
+        "text": "Your certified measurements: speed, jump, endurance."
+      }
+    },
+    "guardian": {
+      "soonTitle": "Coming soon",
+      "soon": {
+        "notifications": {
+          "title": "Notifications",
+          "text": "Be told about every request that concerns your child."
+        },
+        "documents": {
+          "title": "Documents",
+          "text": "Find the proofs and consents you sent."
+        },
+        "export": {
+          "title": "Data export",
+          "text": "Download your child’s data."
+        },
+        "messages": {
+          "title": "Messages",
+          "text": "Talk with organisations, always copied in."
+        }
+      }
+    },
+    "unavailable": "Your dashboard cannot be shown right now. Reload the page in a few minutes."
   }
 }

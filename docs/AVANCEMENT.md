@@ -1,7 +1,7 @@
 # OZ — Où en est le projet ?
 
 > Check-list tenue à jour à la fin de chaque étape, à transmettre telle quelle à Fabrice Olinga.
-> **Dernière mise à jour : 17 novembre 2026** — étape : 1.5eb Statistiques façon jeu de football (refonte 1.5e en cours).
+> **Dernière mise à jour : 17 novembre 2026** — étape : 1.5ec Tableau de bord du joueur et du tuteur (refonte 1.5e terminée).
 
 Légende : ✅ fait et vérifié · 🟡 en cours · ⬜ à faire · ⏸️ bloqué en attente d'une décision
 
@@ -23,7 +23,7 @@ justificatif est validé et que le tuteur a donné son accord (décision du 17 n
 | Ordre | Étape                                                                 | État |
 | ----- | --------------------------------------------------------------------- | ---- |
 | 1     | 1.5cbb Connexion, choix du compte, inscription au nouveau style       | ✅   |
-| 1 bis | 1.5e Textes plus doux, chargement multisport, statistiques, accueil   | ⏳   |
+| 1 bis | 1.5e Textes plus doux, chargement multisport, statistiques, accueil   | ✅   |
 | 2     | 1.19 Ouverture, en un seul bloc :                                     | 🟡   |
 |       | · espace du joueur : sa fiche, ce qu'il montre, export, suppression   | ⬜   |
 |       | · espace du tuteur : enfants, justificatif, accord                    | ⬜   |
@@ -96,7 +96,7 @@ d'intrusion par une société externe recommandé.
 | 1.5cbb Refonte : compte et inscription | ✅   | Connexion, choix du compte, inscription et premiers pas au nouveau style ; audit final                                |
 | 1.5ea Textes plus doux, chargement     | ✅   | Titres environ 20 % plus petits, texte à 15 px ; le logo s'ouvre en trois balles, seulement si la page tarde          |
 | 1.5eb Statistiques façon jeu de foot   | ✅   | Hexagone, jauges et barres ; seulement des données réelles, rien d'inventé                                            |
-| 1.5ec Tableau de bord joueur et tuteur | ⬜   | Toutes les rubriques ; celles pas encore livrées en cartes « Bientôt disponible »                                     |
+| 1.5ec Tableau de bord joueur et tuteur | ✅   | Toutes les rubriques ; celles pas encore livrées en cartes « Bientôt disponible »                                     |
 
 Q6 (un seul système visuel) et Q19 (nom « OZ FOOTBALL ID ») sont tranchées par la charte (ADR-009).
 

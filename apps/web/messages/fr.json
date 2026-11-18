@@ -367,7 +367,8 @@
       "onboarding": "Inscription joueur",
       "forgot": "Mot de passe oublié",
       "reset": "Nouveau mot de passe",
-      "guardian": "Espace tuteur"
+      "guardian": "Espace tuteur",
+      "dashboard": "Mon tableau de bord"
     },
     "layout": {
       "skip": "Aller au contenu",
@@ -814,5 +815,100 @@
       "fileType": "Seuls les fichiers PDF, JPEG, PNG et WebP sont acceptés.",
       "uploadFailed": "L’envoi du fichier a échoué. Réessayez."
     }
+  },
+  "dashboard": {
+    "hello": "Bonjour {name}",
+    "helloAnonymous": "Bonjour",
+    "lead": "Ta fiche OZ en un coup d’œil : ce qui est rempli, ce qui manque, ce qui arrive bientôt.",
+    "viewProfile": "Voir ma fiche",
+    "percent": "{value} %",
+    "level": {
+      "l0": "Profil déclaré",
+      "l1": "Identité vérifiée",
+      "l2": "Vérification complète"
+    },
+    "profile": {
+      "title": "Ta fiche",
+      "kicker": "Données réelles",
+      "radar": "Complétude de ta fiche par rubrique",
+      "gauge": "Champs renseignés",
+      "fields": "{filled} champs sur {total}",
+      "note": "L’hexagone montre seulement ce que tu as rempli. Ce n’est ni une note ni une évaluation."
+    },
+    "rubrics": {
+      "identity": "Identité",
+      "location": "Lieu",
+      "sport": "Sport",
+      "physical": "Physique",
+      "verification": "Vérification",
+      "contact": "Contact"
+    },
+    "aptitudes": {
+      "title": "Aptitudes",
+      "kicker": "Mesures certifiées",
+      "empty": "En attente de mesures certifiées dans un Centre OZ Performance.",
+      "axes": {
+        "speed": "Vitesse",
+        "endurance": "Endurance",
+        "jump": "Détente",
+        "agility": "Agilité",
+        "strength": "Force",
+        "technique": "Technique"
+      }
+    },
+    "soonTitle": "Bientôt disponible",
+    "soonBadge": "Bientôt",
+    "soon": {
+      "visibility": {
+        "title": "Visibilité de ta fiche",
+        "text": "Choisir ce que voient les organisations vérifiées."
+      },
+      "export": {
+        "title": "Export de tes données",
+        "text": "Télécharger tout ce qu’OZ garde sur toi."
+      },
+      "deletion": {
+        "title": "Suppression du compte",
+        "text": "Supprimer ton compte et tes données."
+      },
+      "views": {
+        "title": "Vues de ta fiche",
+        "text": "Savoir quelles organisations ont consulté ta fiche."
+      },
+      "videos": {
+        "title": "Vidéos",
+        "text": "Ajouter tes meilleures actions."
+      },
+      "messages": {
+        "title": "Messages",
+        "text": "Échanger avec les clubs et les académies."
+      },
+      "evaluations": {
+        "title": "Évaluations en centre",
+        "text": "Tes mesures certifiées : vitesse, détente, endurance."
+      }
+    },
+    "guardian": {
+      "soonTitle": "Bientôt disponible",
+      "soon": {
+        "notifications": {
+          "title": "Notifications",
+          "text": "Être prévenu de chaque demande qui concerne votre enfant."
+        },
+        "documents": {
+          "title": "Documents",
+          "text": "Retrouver les justificatifs et accords envoyés."
+        },
+        "export": {
+          "title": "Export des données",
+          "text": "Télécharger les données de votre enfant."
+        },
+        "messages": {
+          "title": "Messages",
+          "text": "Échanger avec les organisations, toujours en copie."
+        }
+      }
+    },
+    "unavailable": "Ton tableau de bord ne peut pas être affiché pour le moment. Recharge la page dans quelques minutes."
   }
 }

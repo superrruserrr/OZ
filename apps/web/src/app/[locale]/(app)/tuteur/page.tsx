@@ -3,6 +3,7 @@ import { getTranslations } from 'next-intl/server';
 import { locale as rootLocale } from 'next/root-params';
 import { authMetadata } from '../../../../auth/auth-metadata';
 import { LogoutButton } from '../../../../auth/logout-button';
+import { GuardianComingSoon } from '../../../../dashboard/guardian-coming-soon';
 import { ChildrenList } from '../../../../guardian/children-list';
 import { readChildren } from '../../../../guardian/guardian-api';
 import { toLogin } from '../../../../onboarding/load-draft';
@@ -27,6 +28,7 @@ export default async function GuardianSpacePage() {
       ) : (
         <Callout testId="guardian-space-unavailable">{t('unavailable')}</Callout>
       )}
+      <GuardianComingSoon />
       <LogoutButton />
     </section>
   );
