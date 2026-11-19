@@ -12,7 +12,7 @@ import { PLAYER_PHONE, playerFixtures, type Account } from './player-fixtures.js
 // vue attendue, sur un majeur, un mineur rattaché à un club et un mineur publié non rattaché. Lot
 // 1.13b : l'export PDF du même lecteur porte exactement les champs de cette réponse, et ses refus.
 // Lot 1.14a : la recherche rend le même joueur dans la même vue, sans téléphone ; un joueur caché
-// n'y figure pas ; un rôle sans recherche reçoit 403 (CP-12).
+// n'y figure pas ; un rôle sans recherche reçoit 403 (CP-12). Joueur : portée réduite (lot 1.19c).
 
 const ORIGIN = 'http://localhost:3000';
 const binary = (
@@ -61,8 +61,11 @@ const EXPECTED: Readonly<Record<Reader, Readonly<Record<Target, Expected>>>> = {
   },
 };
 
-/** Rôles qui recherchent (rbac `player.search`) ; recruteur : pas avant le KYC 3. */
-const SEARCHERS: readonly Reader[] = ['academy', 'club', 'federation', 'admin'];
+/**
+ * Rôles qui recherchent (rbac `player.search`) ; recruteur : pas avant le KYC 3. Joueur (titulaire
+ * ou tiers) : portée réduite depuis le lot 1.19c (U0), les fiches qu'il lit déjà.
+ */
+const SEARCHERS: readonly Reader[] = ['self', 'player', 'academy', 'club', 'federation', 'admin'];
 
 /** Rôles qui exportent (lot 1.14b, D1) : portée complète ; l'académie n'exporte pas. */
 const EXPORTERS: readonly Reader[] = ['club', 'federation', 'admin'];
