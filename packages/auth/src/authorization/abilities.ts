@@ -146,6 +146,8 @@ const RULES: Readonly<Record<RbacRole, Rules>> = {
     can('profile.set_visibility', 'Player', { userId, isMinor: false });
     can('profile.card', 'Player', { userId, isMinor: false });
     can('player.read_public', 'Player', PUBLIC_PROFILE);
+    // Recherche réduite (lot 1.19c, U0) : les fiches qu'il lit déjà, sans critère avancé ni export.
+    can('player.search', 'PlayerSearch').because(LIMITED);
     can('player.read_minor', 'Player', { userId, isMinor: true });
     can('audit.read', 'Player', { userId });
     can(DOCUMENT_ACTIONS, 'Document', { ...PERSON_DOCUMENT, ownerUserId: userId });

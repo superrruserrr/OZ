@@ -48,7 +48,7 @@ La colonne `recruiter` vaut aussi pour l'agence. `player.read_public` ne porte q
 | `profile.card`              | Éditer la carte OZ ID (PDF)                   | self-adult | child      | deny        | deny  | deny       | deny   | deny        | deny   |
 | `player.create`             | Créer ou importer des joueurs                 | deny       | deny       | org         | org   | deny       | deny   | deny        | allow  |
 | `player.read_public`        | Voir un profil majeur vérifié                 | allow      | allow      | allow       | allow | allow      | allow  | kyc3        | allow  |
-| `player.search`             | Rechercher des joueurs                        | deny       | deny       | limited     | allow | allow      | deny   | kyc3        | allow  |
+| `player.search`             | Rechercher des joueurs                        | limited    | deny       | limited     | allow | allow      | deny   | kyc3        | allow  |
 | `player.read_club_contact`  | Voir les coordonnées du club ou de l'académie | deny       | deny       | tier        | tier  | allow      | deny   | tier        | allow  |
 | `player.read_minor`         | Voir un profil mineur                         | self       | child      | org+limited | allow | allow      | tested | kyc3+logged | logged |
 | `player.read_minor_contact` | Voir les coordonnées directes d'un mineur     | deny       | child      | deny        | deny  | deny       | deny   | never       | logged |
@@ -159,6 +159,10 @@ recherche rend la vue de la fiche du même lecteur (`apps/api/test/player-payloa
 parcours E2E n° 4 la refuse au recruteur non vérifié (`pnpm test:e2e:search`). Charge : `oz_is_minor`
 et `oz_is_minor_at` sans `search_path` figé (appels qualifiés), donc développées dans la politique de
 lecture ; texte libre hors cible sous la RLS (dette D-125).
+
+Décision U0 du 2026-11-19 (lot 1.19c) : le **joueur** reçoit la portée réduite (`limited`) — il ne
+trouve que les fiches qu'il lit déjà (`player.read_public`), sans critère avancé ni export ; la
+recherche de l'en-tête de son espace s'appuie dessus.
 
 ## Recherches sauvegardées et export (lot 1.14b)
 
