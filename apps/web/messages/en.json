@@ -860,7 +860,8 @@
         "agility": "Agility",
         "strength": "Strength",
         "technique": "Technique"
-      }
+      },
+      "more": "View"
     },
     "helloLead": "Hello",
     "helloName": "{name}",
@@ -871,7 +872,8 @@
       "gauge": "Profile completed",
       "radar": "Profile sections",
       "fields": "{filled} fields filled in out of {total}",
-      "note": "This percentage only shows what you have filled in. It is neither a score nor an assessment."
+      "note": "This percentage only shows what you have filled in. It is neither a score nor an assessment.",
+      "complete": "Complete my profile"
     },
     "visibility": {
       "title": "My visibility",
@@ -881,7 +883,8 @@
     "ozId": {
       "title": "My OZ ID",
       "lead": "The player’s unique ID, kept for life.",
-      "qr": "QR code of profile {ozId}"
+      "qr": "QR code of profile {ozId}",
+      "card": "View my OZ ID card"
     },
     "activity": {
       "title": "My recent activity",
@@ -893,8 +896,10 @@
     },
     "videos": {
       "title": "My video portfolio",
-      "empty": "Adding videos is coming soon."
-    }
+      "empty": "Adding videos is coming soon.",
+      "more": "View all"
+    },
+    "wave": "👋"
   },
   "espace": {
     "nav": {
@@ -903,7 +908,19 @@
       "visibility": "Visibility",
       "data": "Settings",
       "help": "Need help?",
-      "helpLead": "Contact us"
+      "helpLead": "Contact us",
+      "profile": "My profile",
+      "performances": "My performance",
+      "videos": "My videos",
+      "messages": "Messages",
+      "settingsSection": "Settings",
+      "search": "Search for a feature…",
+      "searchLabel": "Search for a feature",
+      "searchNone": "No feature matches.",
+      "notifications": "Notifications: coming soon",
+      "slogan": "Develop your talent.",
+      "sloganAccent": "Reach your goals.",
+      "settings": "Settings"
     },
     "home": {
       "unavailable": "Your profile can’t be read right now. Try again in a few minutes.",
@@ -971,6 +988,72 @@
       "retryLater": "Too many attempts. Try again in a few minutes.",
       "session": "Your session has expired. Reload the page.",
       "unavailable": "Service temporarily unavailable. Try again in a few minutes."
+    },
+    "profile": {
+      "title": "My profile",
+      "public": "View my public profile",
+      "identity": "Identity",
+      "location": "Location",
+      "sport": "Sport",
+      "physical": "Physical",
+      "missing": "Not provided",
+      "cm": "{value} cm",
+      "kg": "{value} kg",
+      "levels": {
+        "l0": "Declared profile",
+        "l1": "Identity verified",
+        "l2": "Fully verified"
+      },
+      "fields": {
+        "name": "Name",
+        "birth": "Birth",
+        "nationality": "Nationality",
+        "country": "Country",
+        "region": "Region",
+        "city": "City",
+        "position": "Main position",
+        "secondary": "Second position",
+        "foot": "Strong foot",
+        "height": "Height",
+        "weight": "Weight"
+      },
+      "editSoon": "Editing your profile from this screen is coming soon. Measurements are declared by you, not certified."
+    },
+    "upcoming": {
+      "badge": "Coming soon",
+      "aptitudes": "Abilities",
+      "next": "What is coming",
+      "back": "Back to home",
+      "performances": {
+        "title": "My performance",
+        "lead": "Your certified measurements, taken in an OZ Performance Centre.",
+        "empty": "Waiting for certified measurements.",
+        "points": {
+          "one": "A supervised assessment in an OZ Performance Centre.",
+          "two": "Measurements signed by the assessor, never entered by you.",
+          "three": "Your abilities hexagon fills with these measurements only."
+        }
+      },
+      "videos": {
+        "title": "My videos",
+        "lead": "Your portfolio: your best moments, next to your profile.",
+        "empty": "No videos yet. Adding videos is coming soon.",
+        "points": {
+          "one": "Add clips from your matches and training.",
+          "two": "Choose who can see them, as for your profile.",
+          "three": "Show them to verified organisations."
+        }
+      },
+      "messages": {
+        "title": "Messages",
+        "lead": "Talk with verified clubs, academies and scouts.",
+        "empty": "No messages yet. Messaging is coming soon.",
+        "points": {
+          "one": "Only verified organisations will be able to write to you.",
+          "two": "For a minor, the legal guardian is always copied in.",
+          "three": "You will be able to block and report a contact."
+        }
+      }
     }
   }
 }

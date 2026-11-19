@@ -37,7 +37,7 @@ describe('tableau de bord du joueur, maquette v2 (lots 1.5ec et 1.19b)', () => {
     render(<PlayerDashboard profile={PROFILE} qr={QR} position="Attaquant" country="Cameroun" />, {
       wrapper,
     });
-    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Bonjour Awa');
+    expect(screen.getByRole('heading', { level: 1, name: 'Bonjour Awa' })).toBeTruthy();
     expect(screen.getByTestId('dashboard-name').textContent).toBe('Awa Test');
     expect(screen.getByText('Attaquant · Cameroun')).toBeTruthy();
     expect(screen.getByTestId('badge-declared').textContent).toBe('Profil déclaré');
@@ -76,7 +76,10 @@ describe('tableau de bord du joueur, maquette v2 (lots 1.5ec et 1.19b)', () => {
       const block = screen.getByTestId(id);
       expect(block.textContent).toContain('Bientôt');
       expect(block.textContent).not.toMatch(/\d/);
-      expect(within(block).queryByRole('link')).toBeNull();
+      // Navigation fonctionnelle : seulement vers la page de l'espace qui explique la fonction.
+      for (const link of within(block).queryAllByRole('link')) {
+        expect(link.getAttribute('href')).toMatch(/^\/espace\//);
+      }
     }
   });
 });

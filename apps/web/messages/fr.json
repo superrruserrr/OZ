@@ -860,7 +860,8 @@
         "agility": "Agilité",
         "strength": "Force",
         "technique": "Technique"
-      }
+      },
+      "more": "Voir"
     },
     "helloLead": "Bonjour",
     "helloName": "{name}",
@@ -871,7 +872,8 @@
       "gauge": "Profil complété",
       "radar": "Rubriques de la fiche",
       "fields": "{filled} champs renseignés sur {total}",
-      "note": "Ce pourcentage montre seulement ce que tu as rempli. Ce n’est ni une note ni une évaluation."
+      "note": "Ce pourcentage montre seulement ce que tu as rempli. Ce n’est ni une note ni une évaluation.",
+      "complete": "Compléter mon profil"
     },
     "visibility": {
       "title": "Ma visibilité",
@@ -881,7 +883,8 @@
     "ozId": {
       "title": "Mon OZ ID",
       "lead": "Identifiant unique du joueur, gardé à vie.",
-      "qr": "QR code de la fiche {ozId}"
+      "qr": "QR code de la fiche {ozId}",
+      "card": "Voir ma carte OZ ID"
     },
     "activity": {
       "title": "Mes activités récentes",
@@ -893,8 +896,10 @@
     },
     "videos": {
       "title": "Mon portfolio vidéo",
-      "empty": "L’ajout de vidéos arrive bientôt."
-    }
+      "empty": "L’ajout de vidéos arrive bientôt.",
+      "more": "Voir toutes"
+    },
+    "wave": "👋"
   },
   "espace": {
     "nav": {
@@ -903,7 +908,19 @@
       "visibility": "Visibilité",
       "data": "Paramètres",
       "help": "Besoin d’aide ?",
-      "helpLead": "Contactez-nous"
+      "helpLead": "Contactez-nous",
+      "profile": "Mon profil",
+      "performances": "Mes performances",
+      "videos": "Mes vidéos",
+      "messages": "Messages",
+      "settingsSection": "Réglages",
+      "search": "Rechercher une fonctionnalité…",
+      "searchLabel": "Rechercher une fonctionnalité",
+      "searchNone": "Aucune fonctionnalité ne correspond.",
+      "notifications": "Notifications : bientôt disponible",
+      "slogan": "Développe ton talent.",
+      "sloganAccent": "Atteins tes objectifs.",
+      "settings": "Paramètres"
     },
     "home": {
       "unavailable": "Votre fiche est momentanément illisible. Réessayez dans quelques minutes.",
@@ -971,6 +988,72 @@
       "retryLater": "Trop de tentatives. Réessayez dans quelques minutes.",
       "session": "Votre session a expiré. Rechargez la page.",
       "unavailable": "Service momentanément indisponible. Réessayez dans quelques minutes."
+    },
+    "profile": {
+      "title": "Mon profil",
+      "public": "Voir ma fiche publique",
+      "identity": "Identité",
+      "location": "Lieu",
+      "sport": "Sport",
+      "physical": "Physique",
+      "missing": "Non renseigné",
+      "cm": "{value} cm",
+      "kg": "{value} kg",
+      "levels": {
+        "l0": "Profil déclaré",
+        "l1": "Identité vérifiée",
+        "l2": "Vérification complète"
+      },
+      "fields": {
+        "name": "Nom",
+        "birth": "Naissance",
+        "nationality": "Nationalité",
+        "country": "Pays",
+        "region": "Région",
+        "city": "Ville",
+        "position": "Poste principal",
+        "secondary": "Poste secondaire",
+        "foot": "Pied fort",
+        "height": "Taille",
+        "weight": "Poids"
+      },
+      "editSoon": "La modification de ta fiche depuis cet écran arrive bientôt. Les mesures sont déclarées par toi, pas certifiées."
+    },
+    "upcoming": {
+      "badge": "Bientôt disponible",
+      "aptitudes": "Aptitudes",
+      "next": "Ce qui arrive",
+      "back": "Retour à l’accueil",
+      "performances": {
+        "title": "Mes performances",
+        "lead": "Tes mesures certifiées, mesurées dans un Centre OZ Performance.",
+        "empty": "En attente de mesures certifiées.",
+        "points": {
+          "one": "Une évaluation encadrée dans un Centre OZ Performance.",
+          "two": "Des mesures signées par l’évaluateur, jamais saisies par toi.",
+          "three": "Ton hexagone d’aptitudes se remplit avec ces seules mesures."
+        }
+      },
+      "videos": {
+        "title": "Mes vidéos",
+        "lead": "Ton portfolio : tes meilleures actions, au même endroit que ta fiche.",
+        "empty": "Aucune vidéo pour l’instant. L’ajout de vidéos arrive bientôt.",
+        "points": {
+          "one": "Ajouter des extraits de tes matchs et entraînements.",
+          "two": "Choisir qui peut les voir, comme pour ta fiche.",
+          "three": "Les montrer aux organisations vérifiées."
+        }
+      },
+      "messages": {
+        "title": "Messages",
+        "lead": "Échanger avec les clubs, académies et recruteurs vérifiés.",
+        "empty": "Aucun message pour l’instant. La messagerie arrive bientôt.",
+        "points": {
+          "one": "Seules les organisations vérifiées pourront t’écrire.",
+          "two": "Pour un mineur, le tuteur légal est toujours en copie.",
+          "three": "Tu pourras bloquer et signaler un contact."
+        }
+      }
     }
   }
 }

@@ -1,5 +1,5 @@
 import type { PlayerProfileOutput } from '@oz/contracts';
-import { Badge, MeasureBar, MediaFrame, SplitHeading } from '@oz/ui';
+import { Badge, MeasureBar, MediaFrame } from '@oz/ui';
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
 import type { ReactNode } from 'react';
@@ -10,10 +10,27 @@ import { DASHBOARD_ICONS } from './icons';
 
 /* Aptitudes que mesureront les Centres OZ Performance (Source A, Phase 2) : axes seulement. */
 const APTITUDES = ['speed', 'endurance', 'jump', 'agility', 'strength', 'technique'] as const;
+
+const arrow = (
+  <svg
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+    className="size-4"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M5 12h14M13 6l6 6-6 6" />
+  </svg>
+);
 const VISIBILITY_BLOCKS = ['location', 'physical', 'sport'] as const;
 
 const card =
-  'relative flex min-w-0 flex-col gap-4 rounded-2xl border border-oz-border bg-oz-surface-1 p-5 sm:p-6';
+  'relative flex min-w-0 flex-col gap-4 rounded-2xl border border-oz-border bg-oz-surface-1 p-5 shadow-[0_0_48px_-28px_var(--oz-primary)] sm:p-6';
+const more =
+  'inline-flex min-h-11 items-center gap-1 text-sm font-medium text-oz-primary underline-offset-4 hover:underline';
 const action =
   'inline-flex min-h-11 w-fit items-center gap-2 rounded-full border border-oz-primary/50 px-4 text-sm font-medium text-oz-primary hover:bg-oz-primary/10';
 
@@ -38,7 +55,7 @@ function CardTitle({
   readonly aside?: ReactNode;
 }) {
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
       {n === undefined ? null : <Step n={n} />}
       <h2 className="text-lg font-medium text-oz-text">{title}</h2>
       {aside ? <span className="ml-auto">{aside}</span> : null}
@@ -82,18 +99,22 @@ export function PlayerDashboard({ profile, qr = null, position, country }: Playe
     <div className="flex flex-col gap-6" data-testid="player-dashboard">
       {/* Héros : salutation et carte d'identité, illustration à droite (≥ 768 px). */}
       <section className="relative isolate overflow-hidden rounded-2xl border border-oz-border bg-oz-surface-1 p-5 sm:p-8">
-        <HeroIllustration className="pointer-events-none absolute inset-y-0 right-0 -z-10 hidden h-full w-auto opacity-90 md:block" />
-        <div className="flex max-w-xl flex-col gap-5">
+        <HeroIllustration className="pointer-events-none absolute inset-y-0 right-0 -z-10 hidden h-full w-auto lg:block" />
+        <div className="flex max-w-2xl flex-col gap-5">
           <div className="flex flex-col gap-2">
-            <SplitHeading
-              as="h1"
-              size="hero"
-              lead={t('helloLead')}
-              highlight={
-                profile.firstName ? t('helloName', { name: profile.firstName }) : undefined
-              }
-            />
-            <p className="text-oz-text-muted">{t('lead')}</p>
+            <h1 className="font-display text-[clamp(2rem,3.2vw+1rem,3.25rem)] leading-[1.05] font-semibold tracking-[-0.02em] text-oz-text">
+              {t('helloLead')}
+              {profile.firstName ? (
+                <>
+                  {' '}
+                  <span className="text-oz-accent">
+                    {t('helloName', { name: profile.firstName })}
+                  </span>
+                </>
+              ) : null}{' '}
+              <span aria-hidden="true">{t('wave')}</span>
+            </h1>
+            <p className="text-base text-oz-text-muted sm:text-lg">{t('lead')}</p>
           </div>
           <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-oz-border bg-oz-bg/70 p-4 supports-backdrop-filter:backdrop-blur-md">
             <span
@@ -169,11 +190,35 @@ export function PlayerDashboard({ profile, qr = null, position, country }: Playe
             ))}
           </ul>
           <p className="text-xs text-oz-text-label">{t('profile.note')}</p>
+          <Link
+            href="/espace/profil"
+            data-testid="dashboard-complete-profile"
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-oz-primary/60 text-sm font-medium text-oz-primary hover:bg-oz-primary/10"
+          >
+            {t('profile.complete')}
+            {arrow}
+          </Link>
         </section>
 
         {/* 2. Performances : axes seulement, en attente de mesures certifiées (E4). */}
         <section className={card} data-testid="dashboard-performances">
-          <CardTitle n={2} title={t('aptitudes.title')} aside={soon} />
+          <CardTitle
+            n={2}
+            title={t('aptitudes.title')}
+            aside={
+              <span className="flex items-center gap-3">
+                {soon}
+                <Link
+                  href="/espace/performances"
+                  className={more}
+                  data-testid="dashboard-to-performances"
+                >
+                  {t('aptitudes.more')}
+                  {arrow}
+                </Link>
+              </span>
+            }
+          />
           <p className="text-sm text-oz-text-muted">{t('aptitudes.empty')}</p>
           <figure aria-label={t('aptitudes.title')} data-state="empty">
             <ul className="grid grid-cols-2 gap-x-6 gap-y-3">
@@ -212,13 +257,11 @@ export function PlayerDashboard({ profile, qr = null, position, country }: Playe
         {/* 4. OZ ID et QR, relus sur l'API (D-133). */}
         <section className={card} data-testid="onboarding-own-card">
           <CardTitle n={4} title={t('ozId.title')} />
+          <p className="font-mono text-base font-medium whitespace-nowrap text-oz-primary sm:text-lg">
+            {profile.ozId}
+          </p>
           <div className="flex items-center justify-between gap-4">
-            <div className="flex min-w-0 flex-col gap-1">
-              <p className="font-mono text-lg font-medium break-all text-oz-primary">
-                {profile.ozId}
-              </p>
-              <p className="text-sm text-oz-text-muted">{t('ozId.lead')}</p>
-            </div>
+            <p className="min-w-0 text-sm text-oz-text-muted">{t('ozId.lead')}</p>
             {qr && profile.ozId ? (
               <Image
                 unoptimized
@@ -231,6 +274,10 @@ export function PlayerDashboard({ profile, qr = null, position, country }: Playe
               />
             ) : null}
           </div>
+          <Link href="/onboarding/oz-id" className={action} data-testid="dashboard-to-card">
+            {t('ozId.card')}
+            {arrow}
+          </Link>
         </section>
 
         {/* Activités récentes : rien d'inventé tant que les vues ne sont pas tracées. */}
@@ -243,7 +290,18 @@ export function PlayerDashboard({ profile, qr = null, position, country }: Playe
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Statistiques : cadre vide, aucune courbe sans mesure réelle. */}
         <section className={card} data-testid="dashboard-stats">
-          <CardTitle title={t('stats.title')} aside={soon} />
+          <CardTitle
+            title={t('stats.title')}
+            aside={
+              <span className="flex items-center gap-3">
+                {soon}
+                <Link href="/espace/performances" className={more} data-testid="dashboard-to-stats">
+                  {t('aptitudes.more')}
+                  {arrow}
+                </Link>
+              </span>
+            }
+          />
           <div className="relative h-40 rounded-xl border border-dashed border-oz-border bg-[linear-gradient(to_top,var(--oz-border)_1px,transparent_1px)] bg-size-[100%_25%]">
             <p className="absolute inset-0 grid place-items-center px-6 text-center text-sm text-oz-text-muted">
               {t('stats.empty')}
@@ -253,7 +311,18 @@ export function PlayerDashboard({ profile, qr = null, position, country }: Playe
 
         {/* Portfolio vidéo : cadres vides au format 16:9. */}
         <section className={card} data-testid="dashboard-videos">
-          <CardTitle title={t('videos.title')} aside={soon} />
+          <CardTitle
+            title={t('videos.title')}
+            aside={
+              <span className="flex items-center gap-3">
+                {soon}
+                <Link href="/espace/videos" className={more} data-testid="dashboard-to-videos">
+                  {t('videos.more')}
+                  {arrow}
+                </Link>
+              </span>
+            }
+          />
           <div className="grid grid-cols-3 gap-2">
             {[0, 1, 2].map((index) => (
               <MediaFrame key={index} ratio="16:9" testId={`dashboard-video-${String(index)}`} />
