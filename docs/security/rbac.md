@@ -110,6 +110,8 @@ Un champ non autorisé n'est pas envoyé (EX-104 n° 3). Les vues sont des liste
 
 Modification de sa fiche (lot 1.19cb) : `PATCH /players/me` (`profile.update`, titulaire majeur) décide chaque champ par CASL (`PLAYER_EDITABLE_FIELDS` ; le pays, inscrit dans l'OZ ID, reste figé) ; un mineur reçoit 403 `PROFILE_UPDATE_FORBIDDEN` (son tuteur modifie). Prénom, nom et nationalité ne changent qu'au statut `declared` (décision U3 du 2026-11-19), 409 `PROFILE_IDENTITY_LOCKED` sinon ; la base le redécide (garde d'autorité N1 pour `verified`, `oz_players_identity_review_guard` pour les autres statuts). Audit `player.profile.updated` (noms des champs seuls) dans la transaction ; règle `player_profile_update_account` (30 par heure).
 
+Photos du joueur (lot 1.19cd, décisions U1 et U2 du 2026-11-19) : déposées par `POST /documents/upload` (type `photo`, coffre du lot 1.9), six au plus par joueur, dépôts ouverts compris (`oz_document_uploads_photo_limit`, 409 `PHOTO_LIMIT_REACHED`), gardées tant que le joueur les garde (échéance repoussée, ramenée à maintenant au retrait ou à la clôture). La galerie suit la vue de la fiche (`oz_player_photos`, appelée sur une fiche déjà lue sous la RLS du lecteur) : titulaire et tuteur voient tout et gèrent (photo de profil `oz_player_set_profile_photo`, retrait `oz_player_remove_photo`, redécidés et audités par la base) ; un tiers ne voit que les photos saines, et aucune si le bloc `photos` est masqué. Chaque image est servie par une URL signée de 5 minutes, lecture auditée (`document.read.granted`).
+
 Toutes les vues portent le badge `verificationLevel` (lot 1.13a) : 0 email seul, 1 email et téléphone du compte titulaire vérifiés, 2 identité vérifiée ; un joueur sans compte reste à 0 avant vérification (D-109) ; jamais les dates de vérification. Le titulaire majeur, ou le tuteur vérifié d'un mineur (`profile.set_visibility`), peut masquer aux tiers trois blocs : `location` (région, ville), `physical` (taille, poids), `sport` (postes, pied fort). Un bloc masqué disparaît de `PlayerPublicView` seulement ; OZ ID, nom, nationalité, pays, année de naissance et badge restent. Le réglage passe par `oz_player_set_visibility`, qui redécide (compte en état, rôle `player` ou `guardian` tenu, lien, minorité à l'instant de la base) et audite (`player.visibility.updated`) ; un majeur sans compte n'a encore personne pour le régler (D-110) ; une écriture directe de `visibility` sous contexte utilisateur est refusée.
 
 Le téléphone d'un mineur ne reste que pour qui a `player.read_minor_contact` : son tuteur et l'administrateur (CP-11). Aucun tiers ne reçoit la date de naissance complète. Sans lecture permise, aucune vue : l'appelant répond 403 ou 404. Un filet global (`PayloadGuardInterceptor`) bloque toute réponse portant une clé `*Encrypted`, `*Hmac` (hors booléens `isX`, `hasX`, `is_x`, `has_x`), `password`, `*passwordHash`, `*tokenHash`, `*codeHash`, `totpSecret` ou `documentNumber`, ou une valeur binaire hors `StreamableFile`, après `toJSON` : 500 sans le corps d'origine ni les cookies. Chaque vue exige en plus la relation qui la fonde : titulaire avec le rôle joueur, tuteur d'un mineur, administrateur, organisation de rattachement.
@@ -246,6 +248,12 @@ Les pages `/docs`, `/docs-json` et `/docs-yaml` (Swagger) sont servies hors cont
 | GET     | /players/export.csv                         | `player.search`          |
 | GET     | /players/me                                 | `profile.read`           |
 | PATCH   | /players/me                                 | `profile.update`         |
+| GET     | /players/me/photos                          | `profile.read`           |
+| GET     | /players/me/photos/:photoId/url             | `profile.read`           |
+| PUT     | /players/me/profile-photo                   | `profile.update`         |
+| DELETE  | /players/me/photos/:photoId                 | `profile.update`         |
+| GET     | /players/:ozId/photos                       | `player.read_public`     |
+| GET     | /players/:ozId/photos/:photoId/url          | `player.read_public`     |
 | GET     | /players/:ozId                              | `player.read_public`     |
 | GET     | /players/:ozId/qr.svg                       | `player.read_public`     |
 | GET     | /players/:ozId/card.pdf                     | `profile.card`           |

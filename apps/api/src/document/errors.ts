@@ -23,3 +23,11 @@ export const UPLOAD_REJECTED = (): AppException =>
 /** Mise en file d'analyse impossible : rien n'est enregistré, le dépôt peut être réceptionné à nouveau. */
 export const SCAN_UNAVAILABLE = (): AppException =>
   new AppException(503, 'SERVICE_UNAVAILABLE', 'Service momentanément indisponible.');
+
+/** Six photos au plus par joueur (lot 1.19cd, U2), dépôts en cours compris. */
+export const PHOTO_LIMIT_REACHED = (): AppException =>
+  new AppException(409, 'PHOTO_LIMIT_REACHED', 'Six photos au plus : retirez-en une d’abord.');
+
+/** Photo de profil : une photo saine de sa galerie, choisie par le titulaire majeur ou le tuteur. */
+export const PHOTO_NOT_SET = (): AppException =>
+  new AppException(404, 'NOT_FOUND', 'Ressource introuvable.');
