@@ -14,7 +14,16 @@ const PROMISES = ['id', 'control', 'minors'] as const;
  * s'ajoute à gauche à partir de 1024 px ; elle suit le panneau dans le DOM pour garder le `h1` de
  * la page en premier. Seuls `transform` et `opacity` bougent, en `motion-safe`.
  */
-export function AuthFrame({ children, aside = false }: { children: ReactNode; aside?: boolean }) {
+export function AuthFrame({
+  children,
+  aside = false,
+  homeHref = '/',
+}: {
+  children: ReactNode;
+  aside?: boolean;
+  /** Cible du logo : l'accueil public, ou l'espace pour un écran connecté (lot 1.19b). */
+  homeHref?: string;
+}) {
   const t = useTranslations('auth.layout');
   return (
     <div className="relative isolate flex min-h-dvh flex-col overflow-x-clip">
@@ -36,7 +45,7 @@ export function AuthFrame({ children, aside = false }: { children: ReactNode; as
       <header className="sticky top-0 z-10 border-b border-oz-border bg-oz-bg/85 supports-backdrop-filter:backdrop-blur-lg">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-2 sm:px-6">
           <Link
-            href="/"
+            href={homeHref}
             aria-label={t('home')}
             className="inline-flex min-h-11 items-center"
             data-testid="auth-home-link"

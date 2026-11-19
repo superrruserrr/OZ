@@ -35,8 +35,26 @@ test('majeur : espace, visibilité relue, export demandé, suppression programm�
   await settle(page);
   expect((await new AxeBuilder({ page }).withTags(WCAG_AA).analyze()).violations).toEqual([]);
 
+  // Navigation de la maquette v2 : chaque entrée du rail ouvre une vraie page, sans faux chiffre.
+  const rail = {
+    profile: [/\/espace\/profil$/, 'Awa Ndiaye'],
+    performances: [/\/espace\/performances$/, 'Mes performances'],
+    videos: [/\/espace\/videos$/, 'Mes vidéos'],
+    messages: [/\/espace\/messages$/, 'Messages'],
+    settings: [/\/espace\/donnees$/, null],
+    home: [/\/espace$/, null],
+  } as const;
+  for (const [id, [url, title]] of Object.entries(rail)) {
+    await page.getByTestId(`rail-${id}`).click();
+    await expect(page).toHaveURL(url);
+    await expect(page.getByTestId(`rail-${id}`)).toHaveAttribute('aria-current', 'page');
+    if (title) await expect(page.getByRole('heading', { level: 1 })).toHaveText(title);
+    await settle(page);
+    expect((await new AxeBuilder({ page }).withTags(WCAG_AA).analyze()).violations).toEqual([]);
+  }
+
   // Visibilité : masquer la taille et le poids, l'état relu après rechargement.
-  await page.getByTestId('espace-to-visibility').click();
+  await page.getByTestId('dashboard-to-visibility').click();
   await expect(page).toHaveURL(/\/espace\/visibilite$/);
   await expect(page.getByTestId('espace-visibility-submit')).toBeDisabled();
   await page.getByTestId('espace-visibility-physical').uncheck();
