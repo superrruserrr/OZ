@@ -126,6 +126,8 @@ export const ANONYMIZATION_REGISTRY: Registry = {
     guardian_id: 'technical',
     organization_id: 'technical',
     visibility: 'technical',
+    // Photo de profil (lot 1.19cd) : lien vers une pièce, anonymisée avec les documents.
+    profile_photo_id: 'technical',
     // Colonne générée depuis les noms : recalculée par la base après leur remplacement.
     search_vector: 'technical',
   },

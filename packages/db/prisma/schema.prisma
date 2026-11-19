@@ -291,6 +291,8 @@ model Player {
   guardianId              String?                  @map("guardian_id") @db.Uuid
   organizationId          String?                  @map("organization_id") @db.Uuid
   visibility              Json                     @default("{}")
+  /// Photo de profil (lot 1.19cd) : une photo saine du même joueur, vérifiée par la base.
+  profilePhotoId          String?                  @map("profile_photo_id") @db.Uuid
   /// Recherche plein texte : colonne générée (SQL), index GIN ; trigrammes sur noms désaccentués.
   searchVector            Unsupported("tsvector")? @default(dbgenerated("oz_player_search_document(first_name, last_name, city, primary_position)")) @map("search_vector")
   createdAt               DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
@@ -305,7 +307,8 @@ model Player {
   guardianInvitations GuardianInvitation[]
   guardianLinkReviews GuardianLinkReview[]
   consents            Consent[]
-  documents           Document[]
+  documents           Document[]               @relation("DocumentPlayer")
+  profilePhoto        Document?                @relation("PlayerProfilePhoto", fields: [profilePhotoId], references: [id], onDelete: Restrict)
   documentUploads     DocumentUpload[]
   kycCases            KycCase[]
   deletions           AccountDeletionRequest[]
@@ -568,7 +571,8 @@ model Document {
   createdBy               String?      @map("created_by") @db.Uuid
   updatedBy               String?      @map("updated_by") @db.Uuid
 
-  player        Player?                      @relation(fields: [playerId], references: [id], onDelete: Restrict)
+  player        Player?                      @relation("DocumentPlayer", fields: [playerId], references: [id], onDelete: Restrict)
+  profileOf     Player[]                     @relation("PlayerProfilePhoto")
   guardian      Guardian?                    @relation(fields: [guardianId], references: [id], onDelete: Restrict)
   organization  Organization?                @relation(fields: [organizationId], references: [id], onDelete: Restrict)
   uploader      User                         @relation("DocumentUploadedBy", fields: [uploadedBy], references: [id], onDelete: Restrict)

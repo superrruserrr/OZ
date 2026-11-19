@@ -129,6 +129,8 @@ export const ERASURE_REGISTRY: ErasureRegistry = {
       guardian_id: 'technical',
       organization_id: 'aggregate',
       visibility: 'technical',
+      // Lien vers une photo ramenée à échéance à la clôture, puis purgée (lot 1.19cd).
+      profile_photo_id: 'technical',
       search_vector: 'erase',
     },
   },

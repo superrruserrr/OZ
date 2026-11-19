@@ -214,3 +214,12 @@ export {
   type AccountDeletionRequestInput,
   type AccountDeletionStatusOutput,
 } from './privacy/account-deletion.schema.js';
+export {
+  playerPhotoParamsSchema,
+  playerPhotoSchema,
+  playerPhotosOutputSchema,
+  playerProfilePhotoInputSchema,
+  type PlayerPhoto,
+  type PlayerPhotosOutput,
+  type PlayerProfilePhotoInput,
+} from './players/photos.schema.js';

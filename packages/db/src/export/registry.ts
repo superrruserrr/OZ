@@ -145,6 +145,8 @@ export const EXPORT_REGISTRY: ExportRegistry = {
     guardian_id: LINK,
     organization_id: 'players.organizationId',
     visibility: 'players.visibility',
+    // Photo de profil (lot 1.19cd) : la pièce elle-même figure parmi les documents exportés.
+    profile_photo_id: LINK,
     search_vector: excluded('index de recherche dérivé des noms exportés'),
     created_at: 'players.createdAt',
     updated_at: 'players.updatedAt',
