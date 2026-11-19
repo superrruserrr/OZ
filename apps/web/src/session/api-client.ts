@@ -18,7 +18,7 @@ export interface ApiClientContext {
 }
 
 export interface ApiRequest {
-  readonly method: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  readonly method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   readonly body?: unknown;
   readonly accessToken?: string;
   readonly refreshToken?: string;

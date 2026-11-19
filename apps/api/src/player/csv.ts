@@ -5,7 +5,10 @@ import type { PlayerProfileOutput } from '@oz/contracts';
 // téléphone ; une ligne de filigrane au nom du demandeur et une référence par ligne, traçable par OZ
 // seule (HMAC dérivé de `AUTH_HMAC_KEY`). Cellules neutralisées contre l'injection de formules.
 
-/** Colonnes de la fiche, dans l'ordre du contrat ; le téléphone n'est jamais listé. */
+/**
+ * Colonnes de la fiche, dans l'ordre du contrat ; ni le téléphone ni les réglages de visibilité du
+ * titulaire (`GET /players/me` seulement, lot 1.19b) ne sont listés.
+ */
 export const CSV_COLUMNS = [
   'ozId',
   'id',

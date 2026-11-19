@@ -5,8 +5,8 @@ import { finish, newDocument, winAnsi } from './render.js';
 // un filigrane individualisé sur chaque page (plan R8, anti-aspiration). Aucun champ n'est ajouté :
 // le document ne porte que ce que la réponse JSON du même lecteur porte.
 
-/** Champs techniques de la vue, jamais imprimés (identifiants internes). */
-export const UNPRINTED_FIELDS = ['id', 'organizationId'] as const;
+/** Champs techniques, jamais imprimés (identifiants internes, réglages de visibilité du titulaire). */
+export const UNPRINTED_FIELDS = ['id', 'organizationId', 'visibility'] as const;
 
 const LABELS: Record<
   Exclude<keyof PlayerProfileOutput, (typeof UNPRINTED_FIELDS)[number]>,

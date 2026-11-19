@@ -11,14 +11,19 @@ import { OwnCard } from '../../../../onboarding/own-card';
 import { readSignup } from '../../../../onboarding/signup-api';
 import { nextPath, ONBOARDING_PATH } from '../../../../onboarding/steps';
 import { readOwnPlayer } from '../../../../players/players-api';
-import { DIRECTORY_PATH, GUARDIAN_SPACE_PATH } from '../../../../session/protected-routes';
+import {
+  DIRECTORY_PATH,
+  GUARDIAN_SPACE_PATH,
+  DASHBOARD_PATH,
+} from '../../../../session/protected-routes';
 
 export const generateMetadata = () => authMetadata('onboarding');
 
 /**
  * Aiguillage du parcours (lot 1.7cb) : reprise à la première étape manquante d'après l'API
  * (EX-107 n° 2) ; inscription déjà finalisée → carte OZ ID relue sur l'API (D-133), avec son QR ;
- * compte sans fiche joueur → espace du tuteur ou annuaire (lot 1.19a).
+ * compte sans fiche joueur → espace du tuteur ou annuaire (lot 1.19a) ; fiche lisible → espace du
+ * joueur (lot 1.19b).
  */
 export default async function OnboardingPage() {
   const locale = await rootLocale();
@@ -60,6 +65,8 @@ export default async function OnboardingPage() {
       locale,
     });
   }
+  // Inscription finalisée (lot 1.19b) : l'espace du joueur affiche la carte et ses réglages.
+  if (own.kind === 'ok') redirect({ href: DASHBOARD_PATH, locale });
   return (
     <section className="flex flex-col gap-6" data-testid="onboarding-done">
       <SplitHeading as="h1" lead={t('title')} />

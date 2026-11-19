@@ -910,5 +910,83 @@
       }
     },
     "unavailable": "Ton tableau de bord ne peut pas être affiché pour le moment. Recharge la page dans quelques minutes."
+  },
+  "espace": {
+    "nav": {
+      "label": "Mon espace",
+      "home": "Accueil",
+      "visibility": "Visibilité",
+      "data": "Mes données"
+    },
+    "home": {
+      "unavailable": "Votre fiche est momentanément illisible. Réessayez dans quelques minutes.",
+      "minor": "Tant que vous êtes mineur, votre tuteur légal règle la visibilité de votre fiche et donne l’accord de publication.",
+      "shortcuts": "Raccourcis",
+      "toVisibility": "Régler la visibilité",
+      "toData": "Exporter ou supprimer mes données"
+    },
+    "visibility": {
+      "kicker": "Espace joueur",
+      "title": "Visibilité de ma fiche",
+      "lead": "Choisissez ce que voient les organisations autorisées à lire votre fiche. Votre nom, votre OZ ID et votre pays restent visibles.",
+      "legend": "Blocs de la fiche",
+      "blocks": {
+        "location": "Région et ville",
+        "physical": "Taille et poids",
+        "sport": "Postes et pied fort"
+      },
+      "shown": "Visible",
+      "hidden": "Masqué",
+      "save": "Enregistrer",
+      "saved": "Réglages enregistrés.",
+      "minor": "Votre tuteur légal règle la visibilité de votre fiche.",
+      "unavailable": "Réglages momentanément illisibles. Réessayez dans quelques minutes."
+    },
+    "data": {
+      "kicker": "Espace joueur",
+      "title": "Mes données",
+      "lead": "Exportez toutes vos données ou supprimez votre compte.",
+      "unavailable": "Suivi momentanément illisible. Réessayez dans quelques minutes.",
+      "export": {
+        "title": "Exporter mes données",
+        "lead": "Vous recevez une archive de toutes vos données. Une demande par 24 heures ; l’archive reste disponible 7 jours.",
+        "submit": "Demander l’export",
+        "download": "Télécharger l’archive",
+        "next": "Prochaine demande possible : {date}",
+        "status": {
+          "pending": "Demande enregistrée",
+          "processing": "Archive en préparation",
+          "ready": "Archive prête",
+          "failed": "Préparation échouée",
+          "expired": "Archive expirée"
+        }
+      },
+      "deletion": {
+        "title": "Supprimer mon compte",
+        "lead": "Votre compte et votre fiche sont supprimés 30 jours après la demande ; vous pouvez annuler d’ici là. Votre OZ ID reste réservé.",
+        "confirm": "Je comprends que la suppression devient définitive après 30 jours.",
+        "submit": "Demander la suppression",
+        "pending": "Suppression programmée le {date}.",
+        "cancel": "Annuler la suppression",
+        "cancelled": "Suppression annulée.",
+        "signedOut": "Vos sessions sont fermées : reconnectez-vous pour annuler."
+      }
+    },
+    "reauth": {
+      "password": "Mot de passe",
+      "code": "Code de validation",
+      "codeHint": "Seulement si la validation en deux étapes est activée."
+    },
+    "errors": {
+      "invalid": "Vérifiez les informations saisies.",
+      "reauth": "Mot de passe ou code incorrect.",
+      "tooSoon": "Une seule demande d’export par 24 heures.",
+      "active": "Un export est déjà en cours ou prêt.",
+      "pending": "La suppression est déjà programmée.",
+      "notFound": "Rien à télécharger ou à annuler pour l’instant.",
+      "retryLater": "Trop de tentatives. Réessayez dans quelques minutes.",
+      "session": "Votre session a expiré. Rechargez la page.",
+      "unavailable": "Service momentanément indisponible. Réessayez dans quelques minutes."
+    }
   }
 }

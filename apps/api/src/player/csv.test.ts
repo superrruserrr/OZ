@@ -50,8 +50,10 @@ describe('csvCell', () => {
 });
 
 describe('searchExportCsv', () => {
-  it('colonnes : toutes celles de la fiche sauf le téléphone', () => {
-    const fields = Object.keys(playerProfileOutputSchema.shape).filter((key) => key !== 'phone');
+  it('colonnes : toutes celles de la fiche sauf le téléphone et les réglages de visibilité', () => {
+    const fields = Object.keys(playerProfileOutputSchema.shape).filter(
+      (key) => key !== 'phone' && key !== 'visibility',
+    );
     expect([...CSV_COLUMNS].sort()).toEqual(fields.sort());
   });
 

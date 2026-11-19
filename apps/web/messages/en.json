@@ -910,5 +910,83 @@
       }
     },
     "unavailable": "Your dashboard cannot be shown right now. Reload the page in a few minutes."
+  },
+  "espace": {
+    "nav": {
+      "label": "My space",
+      "home": "Home",
+      "visibility": "Visibility",
+      "data": "My data"
+    },
+    "home": {
+      "unavailable": "Your profile can’t be read right now. Try again in a few minutes.",
+      "minor": "While you are a minor, your legal guardian sets your profile’s visibility and gives the publication consent.",
+      "shortcuts": "Shortcuts",
+      "toVisibility": "Set visibility",
+      "toData": "Export or delete my data"
+    },
+    "visibility": {
+      "kicker": "Player space",
+      "title": "Profile visibility",
+      "lead": "Choose what organisations allowed to read your profile can see. Your name, OZ ID and country stay visible.",
+      "legend": "Profile sections",
+      "blocks": {
+        "location": "Region and city",
+        "physical": "Height and weight",
+        "sport": "Positions and stronger foot"
+      },
+      "shown": "Visible",
+      "hidden": "Hidden",
+      "save": "Save",
+      "saved": "Settings saved.",
+      "minor": "Your legal guardian sets your profile’s visibility.",
+      "unavailable": "Settings can’t be read right now. Try again in a few minutes."
+    },
+    "data": {
+      "kicker": "Player space",
+      "title": "My data",
+      "lead": "Export all your data or delete your account.",
+      "unavailable": "Status can’t be read right now. Try again in a few minutes.",
+      "export": {
+        "title": "Export my data",
+        "lead": "You get an archive of all your data. One request per 24 hours; the archive stays available for 7 days.",
+        "submit": "Request export",
+        "download": "Download archive",
+        "next": "Next request possible: {date}",
+        "status": {
+          "pending": "Request recorded",
+          "processing": "Archive being prepared",
+          "ready": "Archive ready",
+          "failed": "Preparation failed",
+          "expired": "Archive expired"
+        }
+      },
+      "deletion": {
+        "title": "Delete my account",
+        "lead": "Your account and profile are deleted 30 days after the request; you can cancel until then. Your OZ ID stays reserved.",
+        "confirm": "I understand that deletion becomes final after 30 days.",
+        "submit": "Request deletion",
+        "pending": "Deletion scheduled for {date}.",
+        "cancel": "Cancel deletion",
+        "cancelled": "Deletion cancelled.",
+        "signedOut": "Your sessions are closed: sign in again to cancel."
+      }
+    },
+    "reauth": {
+      "password": "Password",
+      "code": "Verification code",
+      "codeHint": "Only if two-step verification is on."
+    },
+    "errors": {
+      "invalid": "Check the information entered.",
+      "reauth": "Wrong password or code.",
+      "tooSoon": "Only one export request per 24 hours.",
+      "active": "An export is already in progress or ready.",
+      "pending": "Deletion is already scheduled.",
+      "notFound": "Nothing to download or cancel yet.",
+      "retryLater": "Too many attempts. Try again in a few minutes.",
+      "session": "Your session has expired. Reload the page.",
+      "unavailable": "Service temporarily unavailable. Try again in a few minutes."
+    }
   }
 }
