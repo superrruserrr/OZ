@@ -1036,7 +1036,9 @@
       "notFound": "Nothing to download or cancel yet.",
       "retryLater": "Too many attempts. Try again in a few minutes.",
       "session": "Your session has expired. Reload the page.",
-      "unavailable": "Service temporarily unavailable. Try again in a few minutes."
+      "unavailable": "Service temporarily unavailable. Try again in a few minutes.",
+      "locked": "First name, last name and nationality can no longer change: identity under review or verified.",
+      "forbidden": "Your profile is edited by your legal guardian."
     },
     "profile": {
       "title": "My profile",
@@ -1065,8 +1067,7 @@
         "foot": "Strong foot",
         "height": "Height",
         "weight": "Weight"
-      },
-      "editSoon": "Editing your profile from this screen is coming soon. Measurements are declared by you, not certified."
+      }
     },
     "upcoming": {
       "badge": "Coming soon",
@@ -1103,6 +1104,21 @@
           "three": "You will be able to block and report a contact."
         }
       }
+    },
+    "edit": {
+      "title": "Edit my profile",
+      "lead": "Correct or complete your profile. Only changed fields are saved.",
+      "locked": "Your identity is under review or verified: first name, last name and nationality can no longer be changed here. Contact support for a correction.",
+      "country": "Your country is part of your OZ ID: it cannot be changed.",
+      "noPosition": "None",
+      "cmHint": "in cm, 80 to 230",
+      "kgHint": "in kg, 15 to 150",
+      "declared": "Your measurements are self-declared, not certified.",
+      "save": "Save",
+      "cancel": "Cancel",
+      "saved": "Your profile has been saved.",
+      "minor": "Your profile is edited by your legal guardian, from their space.",
+      "action": "Edit profile"
     }
   }
 }
