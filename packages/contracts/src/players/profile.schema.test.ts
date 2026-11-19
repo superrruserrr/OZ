@@ -30,9 +30,18 @@ describe('playerProfileOutputSchema', () => {
   });
 
   it('refuse tout champ hors vues (empreinte, chiffré, statut interne)', () => {
-    for (const extra of [{ phoneHmac: 'x' }, { phoneEncrypted: 'x' }, { visibility: {} }]) {
+    for (const extra of [{ phoneHmac: 'x' }, { phoneEncrypted: 'x' }, { deletionPending: true }]) {
       expect(playerProfileOutputSchema.safeParse(extra).success).toBe(false);
     }
+  });
+
+  it('réglages de visibilité du titulaire (lot 1.19b) : les trois blocs connus seulement', () => {
+    expect(playerProfileOutputSchema.safeParse({ visibility: { physical: false } }).success).toBe(
+      true,
+    );
+    expect(playerProfileOutputSchema.safeParse({ visibility: { photo: false } }).success).toBe(
+      false,
+    );
   });
 });
 
