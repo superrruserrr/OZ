@@ -75,7 +75,7 @@ test.describe('parcours d’inscription joueur (lot 1.7cb)', () => {
     await page.setViewportSize({ width: 320, height: 720 });
     await page.goto('/espace');
     await expect(page.getByTestId('player-dashboard')).toBeVisible();
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Bonjour Awa');
+    await expect(page.getByRole('heading', { level: 1 })).toHaveAccessibleName('Bonjour Awa');
     // Maquette v2 : complétude réelle, performances vides, rien d'inventé (Q18, E4).
     await expect(page.getByRole('meter', { name: 'Profil complété' })).toBeVisible();
     const aptitudes = page.getByRole('figure', { name: 'Mes performances' });

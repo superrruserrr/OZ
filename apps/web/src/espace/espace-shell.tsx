@@ -214,11 +214,12 @@ export function EspaceShell({
             {initials ? (
               <Link
                 href="/espace/profil"
-                aria-label={t('profile')}
                 data-testid="espace-avatar"
                 className="hidden size-11 place-items-center rounded-full border-2 border-oz-primary text-sm font-medium text-oz-primary sm:grid"
               >
-                {initials}
+                {/* Nom accessible = texte du lien (WCAG 2.5.3) : initiales décoratives, libellé lu. */}
+                <span aria-hidden="true">{initials}</span>
+                <span className="sr-only">{t('profile')}</span>
               </Link>
             ) : null}
             <LogoutButton />

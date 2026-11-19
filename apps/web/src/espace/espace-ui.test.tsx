@@ -53,7 +53,9 @@ describe('coquille de l’espace (tableau de bord v2)', () => {
     pathname = '/espace/messages';
     render(<EspaceShell initials="AD">contenu</EspaceShell>, { wrapper });
     const avatar = screen.getByTestId('espace-avatar');
-    expect(avatar.textContent).toBe('AD');
+    // Initiales décoratives, nom accessible « Mon profil » égal au texte lu (WCAG 2.5.3).
+    expect(avatar.querySelector('[aria-hidden="true"]')?.textContent).toBe('AD');
+    expect(avatar.textContent).toContain('Mon profil');
     expect(avatar.getAttribute('href')).toBe('/espace/profil');
     const rail = screen.getByTestId('app-shell-rail');
     expect(within(rail).getByTestId('rail-messages').getAttribute('aria-current')).toBe('page');
