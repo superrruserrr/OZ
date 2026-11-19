@@ -17,15 +17,17 @@ export async function choose(page: Page, testId: string, option: string): Promis
   await page.getByRole('option', { name: option, exact: true }).click();
 }
 
-/** Compte créé, confirmé et connecté, à la première étape ; rend le mot de passe synthétique. */
-export async function startOnboarding(page: Page): Promise<string> {
+/** Compte créé, confirmé et connecté, à la première étape ; rend ses identifiants synthétiques. */
+export async function startOnboarding(
+  page: Page,
+): Promise<{ readonly email: string; readonly password: string }> {
   const email = syntheticEmail();
   const password = syntheticPassword();
   await signUpAndConfirm(page, email, password);
   await page.getByTestId('verify-login').click();
   await logIn(page, email, password);
   await expect(page).toHaveURL(/\/onboarding\/identite$/);
-  return password;
+  return { email, password };
 }
 
 export async function fillIdentity(page: Page, birthDate: string): Promise<void> {

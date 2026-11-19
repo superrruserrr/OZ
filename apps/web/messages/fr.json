@@ -968,7 +968,8 @@
         "submit": "Demander la suppression",
         "pending": "Suppression programmée le {date}.",
         "cancel": "Annuler la suppression",
-        "cancelled": "Suppression annulée."
+        "cancelled": "Suppression annulée.",
+        "signedOut": "Vos sessions sont fermées : reconnectez-vous pour annuler."
       }
     },
     "reauth": {

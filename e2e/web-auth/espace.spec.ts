@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
-import { settle, useClientAddress, watchApiCalls } from './helpers.js';
+import { logIn, settle, useClientAddress, watchApiCalls } from './helpers.js';
 import {
   bornYearsAgo,
   confirmAffiliation,
@@ -20,7 +20,7 @@ test('majeur : espace, visibilité relue, export demandé, suppression programm�
   test.setTimeout(180_000);
   await useClientAddress(page, 41);
   const apiCalls = watchApiCalls(page);
-  const password = await startOnboarding(page);
+  const { email, password } = await startOnboarding(page);
   await fillIdentity(page, bornYearsAgo(22));
   await fillSport(page);
   await confirmAffiliation(page, /\/onboarding\/oz-id$/);
@@ -66,7 +66,12 @@ test('majeur : espace, visibilité relue, export demandé, suppression programm�
   await page.getByTestId('espace-deletion-password').fill(password);
   await page.getByTestId('espace-deletion-submit').click();
   await expect(page.getByTestId('espace-deletion-pending')).toBeVisible();
+  // La demande ferme toutes les sessions (D1 du lot 1.16ca) : reconnexion pour annuler.
   await page.reload();
+  await expect(page).toHaveURL(/\/auth\/login/);
+  await logIn(page, email, password);
+  // Le retour vers l'écran demandé (`next`) vaut preuve de la connexion.
+  await expect(page).toHaveURL(/\/espace\/donnees$/);
   await expect(page.getByTestId('espace-deletion-pending')).toBeVisible();
   await settle(page);
   expect((await new AxeBuilder({ page }).withTags(WCAG_AA).analyze()).violations).toEqual([]);

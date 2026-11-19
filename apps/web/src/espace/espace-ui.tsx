@@ -56,9 +56,10 @@ export function EspaceShell({ children }: { readonly children: ReactNode }) {
       header={
         <>
           <Link href="/" className="inline-flex min-h-11 items-center lg:hidden">
-            <Logo alt={t('label')} className="h-9 max-sm:h-11" />
+            <Logo alt={t('label')} className="h-9" />
           </Link>
-          <div className="ml-auto flex items-center gap-2">
+          {/* 320 px : logo, langue et déconnexion tiennent sur une ligne (audit EX-T22). */}
+          <div className="ml-auto flex items-center gap-1 sm:gap-2">
             <LocaleSwitcher />
             <LogoutButton />
           </div>

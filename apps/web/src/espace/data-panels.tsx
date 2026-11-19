@@ -105,7 +105,8 @@ export function DeletionPanel({ initial }: { readonly initial: AccountDeletionOu
       {pending !== null ? (
         <>
           <Callout testId="espace-deletion-pending">
-            {t('pending', { date: format.dateTime(new Date(pending.scheduledFor), day) })}
+            {t('pending', { date: format.dateTime(new Date(pending.scheduledFor), day) })}{' '}
+            {t('signedOut')}
           </Callout>
           <Button
             type="button"

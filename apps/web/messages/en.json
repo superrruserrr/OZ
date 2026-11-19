@@ -968,7 +968,8 @@
         "submit": "Request deletion",
         "pending": "Deletion scheduled for {date}.",
         "cancel": "Cancel deletion",
-        "cancelled": "Deletion cancelled."
+        "cancelled": "Deletion cancelled.",
+        "signedOut": "Your sessions are closed: sign in again to cancel."
       }
     },
     "reauth": {
