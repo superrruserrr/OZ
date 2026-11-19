@@ -1,11 +1,12 @@
 // Pile de démonstration locale (lot 1.5dc) : `node scripts/demo-setup.mjs`.
 // Monte un Postgres isolé (conteneur `oz-demo-postgres`, port 5544) — la base de développement n'est
 // jamais touchée —, génère `.demo/demo.env` (clés et mots de passe aléatoires, non versionnés),
-// applique les migrations, charge le jeu synthétique et crée le compte de démonstration.
+// applique les migrations, charge le jeu synthétique et crée le compte de démonstration, puis les
+// joueurs fictifs Abena Paul et Samuel Ndongo avec leurs photos (lot 1.19cg).
 // Idempotent : relancer ne recrée rien. Poste local seulement.
 import { spawnSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
-import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
@@ -81,6 +82,7 @@ if (!existsSync(envFile)) {
       `CORS_ORIGINS=${WEB}`,
       'FEATURE_CONTACT_FORM=true',
       'FEATURE_AUTH=true',
+      'FEATURE_DOCUMENTS=true',
       'SMTP_HOST=127.0.0.1',
       'SMTP_PORT=1025',
       'EMAIL_FROM="OZ <no-reply@oz.localhost>"',
@@ -104,7 +106,41 @@ if (!existsSync(envFile)) {
     { mode: 0o600 },
   );
 }
+// Démonstration des photos (lot 1.19cg) : coffre documentaire actif, ajouté aux anciens fichiers.
+const DOCUMENT_ENV = {
+  FEATURE_DOCUMENTS: 'true',
+  S3_ENDPOINT: 'http://localhost:8333',
+  S3_REGION: 'fr-par',
+  S3_BUCKET: 'oz-documents',
+  S3_ACCESS_KEY: 'oz-dev-access',
+  S3_SECRET_KEY: 'oz-dev-secret',
+};
+const written = readFileSync(envFile, 'utf8');
+for (const [name, value] of Object.entries(DOCUMENT_ENV)) {
+  if (!new RegExp(`^${name}=`, 'm').test(written)) appendFileSync(envFile, `${name}=${value}\n`);
+}
 process.loadEnvFile(envFile);
+
+// Stockage S3 local (SeaweedFS de infra/docker/compose.dev.yml, port 8333) pour les photos : jamais
+// bloquant ; injoignable, les fiches de démonstration restent sans photo et le script le dit.
+const s3 = spawnSync('docker', ['start', 'oz-dev-s3-1'], { cwd: root, encoding: 'utf8' });
+if (s3.status !== 0) {
+  spawnSync(
+    'docker',
+    ['compose', '-f', 'infra/docker/compose.dev.yml', 'up', '-d', '--wait', 's3'],
+    {
+      cwd: root,
+      encoding: 'utf8',
+      env: {
+        ...process.env,
+        POSTGRES_USER: 'oz',
+        POSTGRES_PASSWORD: 'oz',
+        POSTGRES_DB: 'oz',
+        S3_ALLOWED_ORIGINS: WEB,
+      },
+    },
+  );
+}
 const owner = process.env.DEMO_OWNER_DATABASE_URL;
 const appPassword = new URL(process.env.DATABASE_URL).password;
 
@@ -127,6 +163,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO oz_app_de
 run('pnpm', ['db:seed'], { env: ownerEnv });
 run('pnpm', ['exec', 'turbo', 'run', 'build', '--filter=@oz/api', '--output-logs=errors-only']);
 process.stdout.write(run(process.execPath, ['scripts/demo-account.mjs'], { env: process.env }));
+process.stdout.write(run(process.execPath, ['scripts/demo-players.mjs'], { env: process.env }));
 process.stdout.write(
   `✓ Démonstration prête. Lancer l'API (node --env-file=.demo/demo.env apps/api/dist/main.js)\n` +
     `  puis le site (node scripts/demo-web.mjs -- port 3010), et ouvrir ${WEB}.\n`,
