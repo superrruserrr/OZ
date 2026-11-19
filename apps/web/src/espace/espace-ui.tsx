@@ -55,7 +55,11 @@ export function EspaceShell({ children }: { readonly children: ReactNode }) {
       skipLabel={nav('skip')}
       header={
         <>
-          <Link href="/" className="inline-flex min-h-11 items-center lg:hidden">
+          <Link
+            href="/espace"
+            data-testid="espace-logo"
+            className="inline-flex min-h-11 items-center lg:hidden"
+          >
             <Logo alt={t('label')} className="h-9" />
           </Link>
           {/* 320 px : logo, langue et déconnexion tiennent sur une ligne (audit EX-T22). */}
@@ -66,7 +70,7 @@ export function EspaceShell({ children }: { readonly children: ReactNode }) {
         </>
       }
       railHeader={
-        <Link href="/" className="inline-flex min-h-11 items-center">
+        <Link href="/espace" className="inline-flex min-h-11 items-center">
           <Logo alt={t('label')} className="h-9" />
         </Link>
       }
@@ -77,6 +81,16 @@ export function EspaceShell({ children }: { readonly children: ReactNode }) {
         activeId: active,
         linkComponent: Link,
       }}
+      railFooter={
+        <Link
+          href="/contact"
+          data-testid="espace-help"
+          className="flex min-h-11 flex-col justify-center rounded-xl border border-oz-border px-4 py-3 text-sm hover:border-oz-primary/40"
+        >
+          <span className="font-medium text-oz-text">{t('help')}</span>
+          <span className="text-oz-text-muted">{t('helpLead')}</span>
+        </Link>
+      }
     >
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-8">{children}</div>
     </AppShell>

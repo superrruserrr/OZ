@@ -36,7 +36,7 @@ test('majeur : espace, visibilité relue, export demandé, suppression programm�
   expect((await new AxeBuilder({ page }).withTags(WCAG_AA).analyze()).violations).toEqual([]);
 
   // Visibilité : masquer la taille et le poids, l'état relu après rechargement.
-  await page.getByTestId('espace-to-visibility').click();
+  await page.getByTestId('dashboard-to-visibility').click();
   await expect(page).toHaveURL(/\/espace\/visibilite$/);
   await expect(page.getByTestId('espace-visibility-submit')).toBeDisabled();
   await page.getByTestId('espace-visibility-physical').uncheck();

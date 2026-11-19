@@ -6,5 +6,5 @@ import { AuthFrame } from '../../../auth/auth-frame';
  * que les écrans de compte, sans accroche (D4), jusqu'aux tableaux de bord à rail (1.13c, 1.7d).
  */
 export default function AppLayout({ children }: { children: ReactNode }) {
-  return <AuthFrame>{children}</AuthFrame>;
+  return <AuthFrame homeHref="/espace">{children}</AuthFrame>;
 }

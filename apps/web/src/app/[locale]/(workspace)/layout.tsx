@@ -26,7 +26,7 @@ export default function WorkspaceLayout({ children }: { children: ReactNode }) {
       header={
         <>
           <Link
-            href="/"
+            href="/espace"
             className="inline-flex min-h-11 items-center lg:hidden"
             data-testid="workspace-home"
           >
@@ -39,7 +39,7 @@ export default function WorkspaceLayout({ children }: { children: ReactNode }) {
         </>
       }
       railHeader={
-        <Link href="/" className="inline-flex min-h-11 items-center">
+        <Link href="/espace" className="inline-flex min-h-11 items-center">
           <Logo alt={p('workspace')} className="h-9" />
         </Link>
       }

@@ -817,24 +817,7 @@
     }
   },
   "dashboard": {
-    "hello": "Hello {name}",
-    "helloAnonymous": "Hello",
-    "lead": "Your OZ profile at a glance: what is filled in, what is missing, what is coming soon.",
-    "viewProfile": "View my profile",
     "percent": "{value}%",
-    "level": {
-      "l0": "Declared profile",
-      "l1": "Identity verified",
-      "l2": "Fully verified"
-    },
-    "profile": {
-      "title": "Your profile",
-      "kicker": "Real data",
-      "radar": "Profile completeness by section",
-      "gauge": "Fields filled in",
-      "fields": "{filled} of {total} fields",
-      "note": "The hexagon only shows what you have filled in. It is neither a rating nor an assessment."
-    },
     "rubrics": {
       "identity": "Identity",
       "location": "Location",
@@ -843,51 +826,7 @@
       "verification": "Verification",
       "contact": "Contact"
     },
-    "aptitudes": {
-      "title": "Abilities",
-      "kicker": "Certified measurements",
-      "empty": "Waiting for certified measurements in an OZ Performance Centre.",
-      "axes": {
-        "speed": "Speed",
-        "endurance": "Endurance",
-        "jump": "Jump",
-        "agility": "Agility",
-        "strength": "Strength",
-        "technique": "Technique"
-      }
-    },
-    "soonTitle": "Coming soon",
     "soonBadge": "Soon",
-    "soon": {
-      "visibility": {
-        "title": "Profile visibility",
-        "text": "Choose what verified organisations can see."
-      },
-      "export": {
-        "title": "Export your data",
-        "text": "Download everything OZ keeps about you."
-      },
-      "deletion": {
-        "title": "Delete your account",
-        "text": "Delete your account and your data."
-      },
-      "views": {
-        "title": "Profile views",
-        "text": "See which organisations viewed your profile."
-      },
-      "videos": {
-        "title": "Videos",
-        "text": "Add your best moments."
-      },
-      "messages": {
-        "title": "Messages",
-        "text": "Talk with clubs and academies."
-      },
-      "evaluations": {
-        "title": "Centre assessments",
-        "text": "Your certified measurements: speed, jump, endurance."
-      }
-    },
     "guardian": {
       "soonTitle": "Coming soon",
       "soon": {
@@ -909,21 +848,66 @@
         }
       }
     },
-    "unavailable": "Your dashboard cannot be shown right now. Reload the page in a few minutes."
+    "unavailable": "Your dashboard cannot be shown right now. Reload the page in a few minutes.",
+    "viewProfile": "View my profile",
+    "aptitudes": {
+      "title": "My performance",
+      "empty": "Your certified measurements will come after an assessment in an OZ Performance Centre.",
+      "axes": {
+        "speed": "Speed",
+        "endurance": "Endurance",
+        "jump": "Jump",
+        "agility": "Agility",
+        "strength": "Strength",
+        "technique": "Technique"
+      }
+    },
+    "helloLead": "Hello",
+    "helloName": "{name}",
+    "lead": "Here is an overview of your OZ profile: what’s filled in, what’s missing, what’s coming soon.",
+    "declared": "Declared profile",
+    "profile": {
+      "title": "My OZ profile",
+      "gauge": "Profile completed",
+      "radar": "Profile sections",
+      "fields": "{filled} fields filled in out of {total}",
+      "note": "This percentage only shows what you have filled in. It is neither a score nor an assessment."
+    },
+    "visibility": {
+      "title": "My visibility",
+      "state": "{visible} of {total} sections visible to authorised organisations.",
+      "edit": "Change settings"
+    },
+    "ozId": {
+      "title": "My OZ ID",
+      "lead": "The player’s unique ID, kept for life.",
+      "qr": "QR code of profile {ozId}"
+    },
+    "activity": {
+      "title": "My recent activity",
+      "empty": "Profile views and news will appear here once these features open."
+    },
+    "stats": {
+      "title": "My statistics",
+      "empty": "No statistics yet: they will come with your first certified measurements."
+    },
+    "videos": {
+      "title": "My video portfolio",
+      "empty": "Adding videos is coming soon."
+    }
   },
   "espace": {
     "nav": {
       "label": "My space",
       "home": "Home",
       "visibility": "Visibility",
-      "data": "My data"
+      "data": "Settings",
+      "help": "Need help?",
+      "helpLead": "Contact us"
     },
     "home": {
       "unavailable": "Your profile can’t be read right now. Try again in a few minutes.",
-      "minor": "While you are a minor, your legal guardian sets your profile’s visibility and gives the publication consent.",
-      "shortcuts": "Shortcuts",
-      "toVisibility": "Set visibility",
-      "toData": "Export or delete my data"
+      "minor": "While you are a minor, your legal guardian sets your profile’s visibility and gives the publication consent."
     },
     "visibility": {
       "kicker": "Player space",
