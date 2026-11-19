@@ -240,9 +240,9 @@ Terminées — voir `technology_decisions.md` (TD-001 à TD-017).
 **Tasks :**
 1. 1.5ea — échelle typographique (`--text-*`, corps 15 px, titres environ −20 %, plancher 12 px) ; `SportLoader` « anneau → trois balles » après 150 ms ; `loading.tsx` en squelette non bloquant
 2. 1.5eb — kit statistiques : hexagone (complétude réelle, aptitudes vides), jauges, barres
-3. 1.5ec — tableau de bord `/accueil` (joueur) et accueil tuteur, cartes « Bientôt disponible »
+3. 1.5ec — tableau de bord du joueur à `/espace` (route du plan 1.19, reprise par 1.19b dans le groupe `(espace)`) et cartes « Bientôt disponible » de l'espace tuteur
 
-**État (2026-11-17) :** 1.5ea et 1.5eb en revue.
+**État (2026-11-17) :** 1.5ea, 1.5eb et 1.5ec en revue.
 
 ### Phase 1.6 — Site public et pages légales · B
 **Goal :** OZ existe publiquement, avec ses documents légaux.

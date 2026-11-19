@@ -4,11 +4,12 @@ import { routing } from '../i18n/routing';
  * Écrans réservés à un utilisateur connecté (ADR-010). La garde est appliquée par le serveur du site
  * (`proxy.ts`) avant tout rendu ; l'API refait ses propres contrôles à chaque appel.
  */
-const PROTECTED_PREFIXES = ['/onboarding', '/recherche', '/joueur', '/tuteur'] as const;
+const PROTECTED_PREFIXES = ['/espace', '/onboarding', '/recherche', '/joueur', '/tuteur'] as const;
 /** Ouverte sans compte : l'aperçu de l'invitation précède la connexion (lot 1.7bc). */
 const PUBLIC_EXCEPTIONS = ['/tuteur/invitation'] as const;
 export const GUARDIAN_INVITATION_PATH = '/tuteur/invitation';
 export const GUARDIAN_SPACE_PATH = '/tuteur';
+export const DASHBOARD_PATH = '/espace';
 export const DIRECTORY_PATH = '/recherche';
 
 export const LOGIN_PATH = '/auth/login';

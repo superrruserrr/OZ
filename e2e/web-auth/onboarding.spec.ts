@@ -98,6 +98,37 @@ test.describe('parcours d’inscription joueur (lot 1.7cb)', () => {
     expect(apiCalls).toEqual([]);
   });
 
+  test('tableau de bord (lot 1.5ec) : données réelles, aptitudes vides, 320 px sans défilement', async ({
+    page,
+  }) => {
+    await useClientAddress(page, 15);
+    await startOnboarding(page);
+    await fillIdentity(page, bornYearsAgo(22));
+    await fillSport(page);
+    await confirmAffiliation(page, /\/onboarding\/oz-id$/);
+    await completeAndSeeCard(page);
+
+    await page.setViewportSize({ width: 320, height: 720 });
+    await page.goto('/espace');
+    await expect(page.getByTestId('player-dashboard')).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Bonjour Awa');
+    const completeness = page.getByRole('figure', { name: 'Complétude de ta fiche par rubrique' });
+    await expect(completeness).toHaveAttribute('data-state', 'filled');
+    const aptitudes = page.getByRole('figure', { name: 'Aptitudes' });
+    await expect(aptitudes).toHaveAttribute('data-state', 'empty');
+    await expect(aptitudes).not.toContainText(/\d/);
+    const soon = page.getByTestId('coming-soon').getByRole('listitem');
+    await expect(soon.first()).toHaveAttribute('aria-disabled', 'true');
+    await expect(page.getByTestId('coming-soon').getByRole('link')).toHaveCount(0);
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
+    );
+    expect(overflow).toBe(false);
+    await settle(page);
+    const { violations } = await new AxeBuilder({ page }).withTags(WCAG_AA).analyze();
+    expect(violations.map((violation) => violation.id)).toEqual([]);
+  });
+
   test('mineur : bloc E6 à la saisie, tuteur exigé avant l’OZ ID', async ({ page }) => {
     await useClientAddress(page, 12);
     const apiCalls = watchApiCalls(page);
