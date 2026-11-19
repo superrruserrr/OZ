@@ -242,7 +242,7 @@ Terminées — voir `technology_decisions.md` (TD-001 à TD-017).
 2. 1.5eb — kit statistiques : hexagone (complétude réelle, aptitudes vides), jauges, barres
 3. 1.5ec — tableau de bord `/accueil` (joueur) et accueil tuteur, cartes « Bientôt disponible »
 
-**État (2026-11-17) :** 1.5ea en revue.
+**État (2026-11-17) :** 1.5ea et 1.5eb en revue.
 
 ### Phase 1.6 — Site public et pages légales · B
 **Goal :** OZ existe publiquement, avec ses documents légaux.

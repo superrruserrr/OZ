@@ -132,6 +132,8 @@
   --animate-oz-ball-hop-1: oz-ball-hop 900ms ease-in-out 800ms infinite;
   --animate-oz-ball-hop-2: oz-ball-hop 900ms ease-in-out 920ms infinite;
   --animate-oz-ball-hop-3: oz-ball-hop 900ms ease-in-out 1040ms infinite;
+  /* Hexagone des statistiques (lot 1.5eb) : la forme se déploie depuis le centre. */
+  --animate-oz-radar-in: oz-radar-in 500ms cubic-bezier(0.2, 0.8, 0.3, 1) both;
   /* Volet de détail (lot 1.5dc) : entrée par la droite. */
   --animate-oz-slide-in: oz-slide-in 220ms ease-out both;
 
@@ -311,6 +313,13 @@
     100% {
       opacity: 1;
       transform: none;
+    }
+  }
+
+  @keyframes oz-radar-in {
+    from {
+      opacity: 0;
+      transform: scale(0.2);
     }
   }
 

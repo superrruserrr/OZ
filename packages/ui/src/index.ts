@@ -39,6 +39,14 @@ export {
   type SkeletonProps,
 } from './components/skeleton.js';
 export { MeasureBar, type MeasureBarProps } from './components/measure-bar.js';
+export {
+  AttributeRadar,
+  radarPoint,
+  type AttributeRadarProps,
+  type RadarAxis,
+} from './components/attribute-radar.js';
+export { GaugeDial, type GaugeDialProps } from './components/gauge-dial.js';
+export { HudFrame, type HudFrameProps } from './components/hud-frame.js';
 export { OzIdCard, type OzIdCardProps } from './components/oz-id-card.js';
 export {
   AppShell,

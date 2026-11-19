@@ -1,7 +1,7 @@
 # OZ — Où en est le projet ?
 
 > Check-list tenue à jour à la fin de chaque étape, à transmettre telle quelle à Fabrice Olinga.
-> **Dernière mise à jour : 17 novembre 2026** — étape : 1.19a Publication des mineurs et droits du tuteur sans KYC (ADR-013).
+> **Dernière mise à jour : 17 novembre 2026** — étape : 1.5eb Statistiques façon jeu de football (refonte 1.5e en cours).
 
 Légende : ✅ fait et vérifié · 🟡 en cours · ⬜ à faire · ⏸️ bloqué en attente d'une décision
 
@@ -95,7 +95,7 @@ d'intrusion par une société externe recommandé.
 | 1.5dc Annuaire et fiche joueur         | ✅   | Recherche de joueurs, fiche avec sections qui s'ouvrent au clic, drapeaux ; démo locale avec compte de test           |
 | 1.5cbb Refonte : compte et inscription | ✅   | Connexion, choix du compte, inscription et premiers pas au nouveau style ; audit final                                |
 | 1.5ea Textes plus doux, chargement     | ✅   | Titres environ 20 % plus petits, texte à 15 px ; le logo s'ouvre en trois balles, seulement si la page tarde          |
-| 1.5eb Statistiques façon jeu de foot   | ⬜   | Hexagone, jauges et barres ; seulement des données réelles, rien d'inventé                                            |
+| 1.5eb Statistiques façon jeu de foot   | ✅   | Hexagone, jauges et barres ; seulement des données réelles, rien d'inventé                                            |
 | 1.5ec Tableau de bord joueur et tuteur | ⬜   | Toutes les rubriques ; celles pas encore livrées en cartes « Bientôt disponible »                                     |
 
 Q6 (un seul système visuel) et Q19 (nom « OZ FOOTBALL ID ») sont tranchées par la charte (ADR-009).
@@ -198,3 +198,4 @@ Conformité (données, mineurs, identité) : check-list et décisions C1 à C9 (
 | 2026-11-17 | 1.5cbb Refonte des écrans de compte, audit final (1.5 ✅)        |
 | 2026-11-17 | 1.19a Mineur publié et droits du tuteur sans KYC (1.19 en cours) |
 | 2026-11-17 | 1.5ea Textes plus doux, chargement multisport (1.5e en cours)    |
+| 2026-11-18 | 1.5eb Statistiques façon jeu de foot (1.5e en cours)             |
