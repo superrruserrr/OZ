@@ -33,6 +33,7 @@ export const RATE_LIMIT_RULES = [
   'player_profile_read_account',
   'player_document_account',
   'player_visibility_update_account',
+  'player_profile_update_account',
   'player_search_account',
   'player_saved_search_account',
   'player_search_export_account',
@@ -97,6 +98,8 @@ export const RATE_LIMIT_DEFAULTS: RateLimits = Object.freeze({
   player_document_account: { limit: 20, windowSeconds: HOUR },
   // Réglage de visibilité (lot 1.13a) : quelques changements, jamais une rafale.
   player_visibility_update_account: { limit: 30, windowSeconds: HOUR },
+  // Modification de sa fiche (lot 1.19cb) : quelques corrections, jamais une rafale.
+  player_profile_update_account: { limit: 30, windowSeconds: HOUR },
   // Recherche (lot 1.14a) : on feuillette quelques dizaines de pages, un aspirateur des milliers.
   player_search_account: { limit: 120, windowSeconds: HOUR },
   // Recherches sauvegardées (lot 1.14b) : quelques créations et suppressions par séance.

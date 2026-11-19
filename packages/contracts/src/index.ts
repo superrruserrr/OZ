@@ -99,6 +99,11 @@ export {
   type PlayerVisibilityOutput,
 } from './players/profile.schema.js';
 export {
+  PLAYER_IDENTITY_FIELDS,
+  playerProfileUpdateInputSchema,
+  type PlayerProfileUpdateInput,
+} from './players/profile-update.schema.js';
+export {
   PLAYER_SEARCH_SORTS,
   playerSearchPageSchema,
   playerSearchQuerySchema,

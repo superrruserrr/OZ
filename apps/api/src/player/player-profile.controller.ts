@@ -2,6 +2,7 @@ import { Controller, Get, Header, Param, Patch, StreamableFile } from '@nestjs/c
 import {
   ApiBearerAuth,
   ApiBody,
+  ApiConflictResponse,
   ApiForbiddenResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
@@ -16,9 +17,11 @@ import {
 import type { Actor } from '@oz/auth';
 import {
   playerProfileOutputSchema,
+  playerProfileUpdateInputSchema,
   playerVisibilityInputSchema,
   playerVisibilityOutputSchema,
   type PlayerProfileOutput,
+  type PlayerProfileUpdateInput,
   type PlayerVisibilityInput,
   type PlayerVisibilityOutput,
 } from '@oz/contracts';
@@ -77,6 +80,47 @@ export class PlayerProfileController {
   })
   readOwn(@CurrentActor() actor: Actor): Promise<PlayerProfileOutput> {
     return this.players.readOwn(actor);
+  }
+
+  @Patch('me')
+  @Can('profile.update')
+  @Header('Cache-Control', 'no-store')
+  @ApiOperation({
+    summary: 'Modifier sa propre fiche joueur',
+    description:
+      'Titulaire majeur : champs de la liste blanche seulement (pays de rattachement figé dans l’OZ ID). Un champ absent garde sa valeur, `null` efface un champ facultatif. Prénom, nom et nationalité ne changent qu’au statut `declared`. Chaque modification est inscrite au journal d’audit (noms des champs seuls).',
+  })
+  @ApiBody({ schema: openApiBodySchema(playerProfileUpdateInputSchema) })
+  @ApiOkResponse({
+    description: 'Fiche relue après modification',
+    schema: openApiBodySchema(playerProfileOutputSchema),
+  })
+  @ApiForbiddenResponse({
+    type: ApiErrorDto,
+    description: 'Fiche d’un mineur : son tuteur la modifie (`PROFILE_UPDATE_FORBIDDEN`)',
+  })
+  @ApiNotFoundResponse({
+    type: ApiErrorDto,
+    description: 'Aucune fiche joueur pour ce compte (`PLAYER_PROFILE_NOT_FOUND`)',
+  })
+  @ApiConflictResponse({
+    type: ApiErrorDto,
+    description: 'Identité examinée ou vérifiée (`PROFILE_IDENTITY_LOCKED`)',
+  })
+  @ApiUnprocessableEntityResponse({
+    type: ApiErrorDto,
+    description: 'Champ inconnu ou hors bornes',
+  })
+  @ApiTooManyRequestsResponse({
+    type: ApiErrorDto,
+    description: 'Plus de 30 modifications dans l’heure',
+    headers: retryAfter,
+  })
+  updateOwn(
+    @CurrentActor() actor: Actor,
+    @ValidatedBody(playerProfileUpdateInputSchema) input: PlayerProfileUpdateInput,
+  ): Promise<PlayerProfileOutput> {
+    return this.players.updateOwn(actor, input);
   }
 
   @Get(':ozId')
