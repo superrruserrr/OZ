@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
 import { logout } from '../auth/actions';
@@ -20,7 +21,14 @@ const itemClass =
  * entrée d'un menu discret. Motif « menu button » de l'APG : ↓/Entrée/Espace ouvrent sur la première
  * entrée, ↑ sur la dernière, flèches circulaires, Début/Fin, Échap et Tab ferment ; Échap rend le focus.
  */
-export function AvatarMenu({ initials }: { readonly initials: string | null }) {
+export function AvatarMenu({
+  initials,
+  photoId = null,
+}: {
+  readonly initials: string | null;
+  /** Photo de profil saine (lot 1.19cd), relayée par le site ; sinon les initiales. */
+  readonly photoId?: string | null;
+}) {
   const t = useTranslations('espace.nav');
   const router = useRouter();
   const menuId = useId();
@@ -102,9 +110,18 @@ export function AvatarMenu({ initials }: { readonly initials: string | null }) {
           else show('first');
         }}
         onKeyDown={onButtonKey}
-        className="grid size-11 place-items-center rounded-full border-2 border-oz-primary text-sm font-medium text-oz-primary hover:bg-oz-primary/10"
+        className="grid size-11 place-items-center overflow-hidden rounded-full border-2 border-oz-primary text-sm font-medium text-oz-primary hover:bg-oz-primary/10"
       >
-        {initials ? (
+        {photoId ? (
+          <Image
+            src={`/api/photos?joueur=me&id=${encodeURIComponent(photoId)}`}
+            alt=""
+            width={40}
+            height={40}
+            unoptimized
+            className="size-10 rounded-full object-cover"
+          />
+        ) : initials ? (
           <span aria-hidden="true">{initials}</span>
         ) : (
           <svg

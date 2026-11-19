@@ -14,6 +14,10 @@ import {
 
 const WCAG_AA = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'];
 
+/** PNG 1 × 1 valide : le type réel est relu par le site, puis par l'API. */
+const PNG_1PX =
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+
 test('majeur : espace, visibilité relue, export demandé, suppression programmée puis annulée', async ({
   page,
 }) => {
@@ -65,6 +69,16 @@ test('majeur : espace, visibilité relue, export demandé, suppression programm�
   await expect(page).toHaveURL(/\/espace\/profil\?modifie=1$/);
   await expect(page.getByTestId('own-profile-saved')).toBeVisible();
   await expect(page.getByTestId('own-profile')).toContainText('Kribi');
+  // Photos (lot 1.19cd) : le dépôt passe par le coffre ; la photo attend son analyse.
+  await page.getByTestId('espace-photo-input').setInputFiles({
+    name: 'match.png',
+    mimeType: 'image/png',
+    buffer: Buffer.from(PNG_1PX, 'base64'),
+  });
+  await expect(page.getByTestId('espace-photo-pending')).toBeVisible();
+  await expect(page.getByTestId('espace-photos-count')).toHaveText('1 sur 6');
+  await page.getByTestId('espace-photo-remove').click();
+  await expect(page.getByTestId('espace-photos-empty')).toBeVisible();
   await page.goto('/espace');
 
   // Visibilité : masquer la taille et le poids, l'état relu après rechargement.

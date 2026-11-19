@@ -7,7 +7,7 @@ import { useState, type SyntheticEvent } from 'react';
 import { saveVisibility, type EspaceFailure } from './actions';
 import { call, EspaceError } from './espace-ui';
 
-const BLOCKS = ['location', 'physical', 'sport'] as const;
+const BLOCKS = ['location', 'physical', 'sport', 'photos'] as const;
 
 /**
  * Visibilité des blocs de la fiche (EX-115, lot 1.19b) : cocher = visible des lecteurs autorisés.
