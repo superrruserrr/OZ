@@ -53,6 +53,20 @@ test('majeur : espace, visibilité relue, export demandé, suppression programm�
     expect((await new AxeBuilder({ page }).withTags(WCAG_AA).analyze()).violations).toEqual([]);
   }
 
+  // Modifier le profil (lot 1.19cb) : la ville changée est relue sur l'API.
+  await page.goto('/espace/profil');
+  await page.getByTestId('own-profile-edit').click();
+  await expect(page).toHaveURL(/\/espace\/profil\/modifier$/);
+  await expect(page.getByTestId('espace-profile-submit')).toBeDisabled();
+  await page.getByTestId('espace-city').fill('Kribi');
+  await settle(page);
+  expect((await new AxeBuilder({ page }).withTags(WCAG_AA).analyze()).violations).toEqual([]);
+  await page.getByTestId('espace-profile-submit').click();
+  await expect(page).toHaveURL(/\/espace\/profil\?modifie=1$/);
+  await expect(page.getByTestId('own-profile-saved')).toBeVisible();
+  await expect(page.getByTestId('own-profile')).toContainText('Kribi');
+  await page.goto('/espace');
+
   // Visibilité : masquer la taille et le poids, l'état relu après rechargement.
   await page.getByTestId('dashboard-to-visibility').click();
   await expect(page).toHaveURL(/\/espace\/visibilite$/);
