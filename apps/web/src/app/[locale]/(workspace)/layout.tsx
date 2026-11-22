@@ -2,8 +2,8 @@ import { AppShell } from '@oz/ui';
 import { Logo } from '@oz/ui/logo';
 import { useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
-import { LogoutButton } from '../../../auth/logout-button';
 import { LocaleSwitcher } from '../../../components/locale-switcher';
+import { AvatarMenu } from '../../../espace/avatar-menu';
 import { Link } from '../../../i18n/navigation';
 
 const SearchIcon = () => (
@@ -34,7 +34,8 @@ export default function WorkspaceLayout({ children }: { children: ReactNode }) {
           </Link>
           <div className="ml-auto flex items-center gap-2">
             <LocaleSwitcher />
-            <LogoutButton />
+            {/* Déconnexion discrète, comme dans l'espace du joueur (lot 1.19ch). */}
+            <AvatarMenu initials={null} />
           </div>
         </>
       }

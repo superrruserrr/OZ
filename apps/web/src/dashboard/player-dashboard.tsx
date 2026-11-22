@@ -1,11 +1,11 @@
 import type { PlayerProfileOutput } from '@oz/contracts';
-import { Badge, MeasureBar, MediaFrame } from '@oz/ui';
+import { Badge, ClubCrest, MeasureBar, MediaFrame } from '@oz/ui';
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
 import type { ReactNode } from 'react';
 import { Link } from '../i18n/navigation';
 import { profileCompleteness } from './completeness';
-import { HeroIllustration } from './hero-illustration';
+import { CountryFlag } from '../players/country';
 import { DASHBOARD_ICONS } from './icons';
 
 /* Aptitudes que mesureront les Centres OZ Performance (Source A, Phase 2) : axes seulement. */
@@ -25,7 +25,7 @@ const arrow = (
     <path d="M5 12h14M13 6l6 6-6 6" />
   </svg>
 );
-const VISIBILITY_BLOCKS = ['location', 'physical', 'sport'] as const;
+const VISIBILITY_BLOCKS = ['location', 'physical', 'sport', 'photos'] as const;
 
 const card =
   'relative flex min-w-0 flex-col gap-4 rounded-2xl border border-oz-border bg-oz-surface-1 p-5 shadow-[0_0_48px_-28px_var(--oz-primary)] sm:p-6';
@@ -75,6 +75,8 @@ export interface PlayerDashboardProps {
   /** Libellés déjà traduits du poste et du pays. */
   readonly position?: string | null;
   readonly country?: string | null;
+  /** Photo de profil saine (lot 1.19cd), relayée par le site ; sinon les initiales. */
+  readonly photoId?: string | null;
 }
 
 /*
@@ -83,7 +85,13 @@ export interface PlayerDashboardProps {
  * Performances, activités, statistiques et vidéos restent « Bientôt disponible », sans valeur
  * inventée (Q18, E4) ; l'illustration est dessinée, sans visage (EX-T16).
  */
-export function PlayerDashboard({ profile, qr = null, position, country }: PlayerDashboardProps) {
+export function PlayerDashboard({
+  profile,
+  qr = null,
+  position,
+  country,
+  photoId = null,
+}: PlayerDashboardProps) {
   const t = useTranslations('dashboard');
   const completeness = profileCompleteness(profile);
   const percent =
@@ -99,7 +107,20 @@ export function PlayerDashboard({ profile, qr = null, position, country }: Playe
     <div className="flex flex-col gap-6" data-testid="player-dashboard">
       {/* Héros : salutation et carte d'identité, illustration à droite (≥ 768 px). */}
       <section className="relative isolate overflow-hidden rounded-2xl border border-oz-border bg-oz-surface-1 p-5 sm:p-8">
-        <HeroIllustration className="pointer-events-none absolute inset-y-0 right-0 -z-10 hidden h-full w-auto lg:block" />
+        {/* Stade vide la nuit (photo libre sans visage, docs/legal/credits.md), AVIF ou WebP. */}
+        <Image
+          src="/images/sport/stade-nuit.jpg"
+          alt=""
+          data-testid="dashboard-hero-photo"
+          fill
+          priority
+          sizes="(min-width: 1024px) 72rem, 100vw"
+          className="pointer-events-none -z-20 object-cover opacity-35"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 -z-10 bg-linear-to-r from-oz-surface-1 via-oz-surface-1/85 to-oz-surface-1/30"
+        />
         <div className="flex max-w-2xl flex-col gap-5">
           <div className="flex flex-col gap-2">
             <h1 className="font-display text-[clamp(2rem,3.2vw+1rem,3.25rem)] leading-[1.05] font-semibold tracking-[-0.02em] text-oz-text">
@@ -117,21 +138,55 @@ export function PlayerDashboard({ profile, qr = null, position, country }: Playe
             <p className="text-base text-oz-text-muted sm:text-lg">{t('lead')}</p>
           </div>
           <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-oz-border bg-oz-bg/70 p-4 supports-backdrop-filter:backdrop-blur-md">
-            <span
-              aria-hidden="true"
-              className="grid size-14 shrink-0 place-items-center rounded-full border-2 border-oz-primary text-lg font-medium text-oz-primary"
-            >
-              {initials(profile)}
-            </span>
+            {photoId ? (
+              <Image
+                src={`/api/photos?joueur=me&id=${encodeURIComponent(photoId)}`}
+                alt=""
+                width={56}
+                height={56}
+                unoptimized
+                data-testid="dashboard-photo"
+                className="size-14 shrink-0 rounded-full border-2 border-oz-primary object-cover"
+              />
+            ) : (
+              <span
+                aria-hidden="true"
+                className="grid size-14 shrink-0 place-items-center rounded-full border-2 border-oz-primary text-lg font-medium text-oz-primary"
+              >
+                {initials(profile)}
+              </span>
+            )}
             <div className="flex min-w-0 flex-col gap-1">
               <p className="truncate font-medium text-oz-text" data-testid="dashboard-name">
                 {name}
               </p>
               {position || country ? (
-                <p className="text-sm text-oz-text-muted">
-                  {[position, country].filter(Boolean).join(' · ')}
+                <p className="flex flex-wrap items-center gap-x-2 text-sm text-oz-text-muted">
+                  {position ? <span>{position}</span> : null}
+                  {position && country ? (
+                    <span aria-hidden="true" className="size-1 rounded-full bg-oz-text-label" />
+                  ) : null}
+                  {country ? (
+                    <span
+                      className="inline-flex items-center gap-1.5"
+                      data-testid="dashboard-country"
+                    >
+                      {profile.country ? (
+                        <CountryFlag code={profile.country} className="h-3.5 w-5 rounded-sm" />
+                      ) : null}
+                      {country}
+                    </span>
+                  ) : null}
                 </p>
               ) : null}
+              {/* Écusson générique (aucun logo réel) : club rattaché, ou joueur libre. */}
+              <p
+                className="flex items-center gap-2 text-sm text-oz-text-muted"
+                data-testid="dashboard-club"
+              >
+                <ClubCrest name={profile.organizationId ?? 'OZ'} decorative className="h-6" />
+                {profile.organizationId ? t('club.attached') : t('club.free')}
+              </p>
               {profile.ozId ? (
                 <p className="font-mono text-sm text-oz-primary">{profile.ozId}</p>
               ) : null}

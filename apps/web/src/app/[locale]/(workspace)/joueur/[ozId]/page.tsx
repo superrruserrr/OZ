@@ -1,4 +1,5 @@
 import { Badge, OzIdCard, PitchPositions, SportIcon, SportTag } from '@oz/ui';
+import Image from 'next/image';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
@@ -9,11 +10,12 @@ import { toLogin } from '../../../../../onboarding/load-draft';
 import { CountryFlag, countryName } from '../../../../../players/country';
 import { POSITION_SPOTS, positionKey } from '../../../../../players/labels';
 import { PlayerAvatar } from '../../../../../players/player-avatar';
-import { readPlayer } from '../../../../../players/players-api';
-import { ProfileSections, type ProfileSection } from '../../../../../players/profile-sections';
+import { readPlayer, readPlayerPhotos } from '../../../../../players/players-api';
+import { ProfileTabs, type ProfileSection } from '../../../../../players/profile-tabs';
 
 interface Props {
   params: Promise<{ ozId: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -42,12 +44,12 @@ function Row({ label, children }: { label: string; children: ReactNode }) {
 
 /**
  * Fiche d'un joueur (lot 1.5dc, EX-115) : en-tête lisible d'un coup d'œil (sport, poste, pays avec
- * drapeau, niveau de vérification), puis des sections qui s'ouvrent au clic dans un volet. Le site
+ * drapeau, niveau de vérification), puis des sections en onglets, en place (lot 1.19ch). Le site
  * n'affiche que ce que l'API rend à ce lecteur ; une fiche hors de portée répond 404, sans indice.
  */
-export default async function PlayerPage({ params }: Props) {
-  const [{ ozId }, locale] = await Promise.all([params, rootLocale()]);
-  const result = await readPlayer(ozId);
+export default async function PlayerPage({ params, searchParams }: Props) {
+  const [{ ozId }, query, locale] = await Promise.all([params, searchParams, rootLocale()]);
+  const [result, gallery] = await Promise.all([readPlayer(ozId), readPlayerPhotos(ozId)]);
   if (result.kind === 'unauthenticated') toLogin(`/joueur/${ozId}`, locale);
   if (result.kind === 'not_found' || result.kind === 'forbidden') notFound();
   const [t, pos, feet] = await Promise.all([
@@ -242,6 +244,47 @@ export default async function PlayerPage({ params }: Props) {
       ),
     },
   ];
+  // Photos (lot 1.19cd, U1) : celles que l'API rend à ce lecteur, servies par le relais du site.
+  const photos =
+    gallery.kind === 'ok' ? gallery.data.items.filter((photo) => photo.status === 'clean') : [];
+  if (photos.length > 0) {
+    sections.push({
+      id: 'photos',
+      title: t('profile.photos.title'),
+      summary: t('profile.photos.summary', { count: photos.length }),
+      icon: (
+        <svg {...stroke} aria-hidden="true">
+          <rect x="3" y="5" width="18" height="14" rx="3" />
+          <circle cx="9" cy="10" r="2" />
+          <path d="m21 16-5-5-9 8" />
+        </svg>
+      ),
+      content: (
+        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {photos.map((photo) => (
+            <li
+              key={photo.id}
+              className="relative aspect-square overflow-hidden rounded-xl bg-oz-surface-2"
+            >
+              <Image
+                src={`/api/photos?joueur=${encodeURIComponent(player.ozId ?? '')}&id=${photo.id}`}
+                alt={t('profile.photos.alt', { name })}
+                fill
+                unoptimized
+                sizes="(min-width: 640px) 33vw, 50vw"
+                className="object-cover"
+              />
+            </li>
+          ))}
+        </ul>
+      ),
+    });
+  }
+  const initial = typeof query.section === 'string' ? query.section : undefined;
+  const chosen = photos.find((photo) => photo.isProfile);
+  const profilePhoto = chosen
+    ? `/api/photos?joueur=${encodeURIComponent(player.ozId ?? '')}&id=${chosen.id}`
+    : null;
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-8" data-testid="player-profile">
@@ -261,7 +304,12 @@ export default async function PlayerPage({ params }: Props) {
           className="pointer-events-none absolute -top-24 -right-24 size-64 rounded-full bg-radial from-oz-primary/15 to-transparent to-70%"
         />
         <div className="relative flex flex-wrap items-center gap-5">
-          <PlayerAvatar firstName={player.firstName} lastName={player.lastName} size="lg" />
+          <PlayerAvatar
+            firstName={player.firstName}
+            lastName={player.lastName}
+            size="lg"
+            photoSrc={profilePhoto}
+          />
           <div className="min-w-0 flex-1">
             <h1 className="font-display text-3xl font-medium tracking-[-0.01em] text-oz-text sm:text-4xl">
               {name || player.ozId}
@@ -301,11 +349,7 @@ export default async function PlayerPage({ params }: Props) {
           </h2>
           <p className="mt-1 text-sm text-oz-text-muted">{t('profile.sectionsHint')}</p>
         </div>
-        <ProfileSections
-          sections={sections}
-          openLabel={t('profile.openSection')}
-          closeLabel={t('profile.close')}
-        />
+        <ProfileTabs sections={sections} label={t('profile.sectionsTitle')} initialId={initial} />
       </section>
     </div>
   );
