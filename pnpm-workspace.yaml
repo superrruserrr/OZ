@@ -37,8 +37,7 @@ overrides:
   # versions corrigées, celles qu'embarque Prisma 7.10.x.
   mysql2: ^3.24.4
   deepmerge-ts: ^8.0.2
-  # GHSA-7589-6fvf-x4pw (high, déni de service par expression), tiré par prisma > @prisma/config :
-  # version corrigée de la même branche 3.x.
+  # GHSA-7589-6fvf-x4pw (high, ReDoS), tiré par prisma > @prisma/config : version corrigée.
   effect: ^3.22.1
 
 # Avis ignorés par `pnpm audit`, nommément et temporairement (DEBT D-136, autorisé par Gaëtan Wassu le
