@@ -30,40 +30,56 @@ const PROFILE = {
   verificationLevel: 0,
 } as const;
 
-describe('tableau de bord du joueur (lot 1.5ec, E3)', () => {
-  it('accueil, OZ ID et lien vers la fiche', () => {
-    render(<PlayerDashboard profile={PROFILE} />, { wrapper });
-    expect(screen.getByRole('heading', { level: 1 }).textContent).toContain('Awa');
-    expect(screen.getByText('OZ-CM-26-ABCDEF-1')).toBeTruthy();
-    expect(screen.getByRole('link', { name: 'Voir ma fiche' }).getAttribute('href')).toBe(
+describe('tableau de bord du joueur, maquette v2 (lots 1.5ec et 1.19b)', () => {
+  const QR = 'data:image/svg+xml;base64,PHN2Zy8+';
+
+  it('salutation, identité, OZ ID, QR et lien vers la fiche', () => {
+    render(<PlayerDashboard profile={PROFILE} qr={QR} position="Attaquant" country="Cameroun" />, {
+      wrapper,
+    });
+    expect(screen.getByRole('heading', { level: 1, name: 'Bonjour Awa' })).toBeTruthy();
+    expect(screen.getByTestId('dashboard-name').textContent).toBe('Awa Test');
+    expect(screen.getByText('Attaquant · Cameroun')).toBeTruthy();
+    expect(screen.getByTestId('badge-declared').textContent).toBe('Profil déclaré');
+    expect(screen.getByTestId('dashboard-view-profile').getAttribute('href')).toBe(
       '/joueur/OZ-CM-26-ABCDEF-1',
+    );
+    expect(within(screen.getByTestId('onboarding-own-card')).getByText(PROFILE.ozId)).toBeTruthy();
+    expect(screen.getByTestId('oz-id-qr')).toBeTruthy();
+    expect(screen.getByTestId('dashboard-hero-illustration').getAttribute('aria-hidden')).toBe(
+      'true',
     );
   });
 
-  it('hexagone de complétude réel et jauge des champs renseignés', () => {
+  it('complétude réelle : jauge et rubriques', () => {
     render(<PlayerDashboard profile={PROFILE} />, { wrapper });
-    const radar = screen.getByRole('figure', { name: 'Complétude de ta fiche par rubrique' });
-    expect(radar.dataset.state).toBe('filled');
-    expect(screen.getByRole('meter').getAttribute('aria-valuetext')).toBe('8 champs sur 15');
+    const meter = screen.getByRole('meter', { name: 'Profil complété' });
+    expect(Number(meter.getAttribute('aria-valuenow'))).toBeGreaterThan(0);
+    expect(screen.getByText(/champs renseignés sur/)).toBeTruthy();
   });
 
-  it('aptitudes : hexagone vide, aucun chiffre, en attente de mesures certifiées', () => {
-    render(<PlayerDashboard profile={PROFILE} />, { wrapper });
-    const radar = screen.getByRole('figure', { name: 'Aptitudes' });
-    expect(radar.dataset.state).toBe('empty');
-    expect(radar.textContent).not.toMatch(/\d/);
+  it('visibilité : état relu des blocs, lien vers les réglages', () => {
+    render(<PlayerDashboard profile={{ ...PROFILE, visibility: { physical: false } }} />, {
+      wrapper,
+    });
+    const card = screen.getByTestId('dashboard-visibility');
+    expect(card.textContent).toContain('2 blocs sur 3 visibles');
+    expect(within(card).getByRole('link').getAttribute('href')).toBe('/espace/visibilite');
   });
 
-  it('fonctions à venir : cartes « Bientôt disponible » désactivées, sans lien ni chiffre', () => {
+  it('performances, activités, statistiques, vidéos : « Bientôt », aucun chiffre inventé', () => {
     render(<PlayerDashboard profile={PROFILE} />, { wrapper });
-    const soon = screen.getByRole('region', { name: 'Bientôt disponible' });
-    const cards = within(soon).getAllByRole('listitem');
-    // Visibilité, export et suppression sont livrés (lot 1.19b) : restent les fonctions à venir.
-    expect(cards).toHaveLength(4);
-    for (const card of cards) {
-      expect(card.getAttribute('aria-disabled')).toBe('true');
-      expect(within(card).queryByRole('link')).toBeNull();
-      expect(card.textContent).not.toMatch(/\d/);
+    const performances = screen.getByRole('figure', { name: 'Mes performances' });
+    expect(performances.getAttribute('data-state')).toBe('empty');
+    expect(performances.textContent).not.toMatch(/\d/);
+    for (const id of ['dashboard-activity', 'dashboard-stats', 'dashboard-videos']) {
+      const block = screen.getByTestId(id);
+      expect(block.textContent).toContain('Bientôt');
+      expect(block.textContent).not.toMatch(/\d/);
+      // Navigation fonctionnelle : seulement vers la page de l'espace qui explique la fonction.
+      for (const link of within(block).queryAllByRole('link')) {
+        expect(link.getAttribute('href')).toMatch(/^\/espace\//);
+      }
     }
   });
 });

@@ -55,7 +55,7 @@ test.describe('parcours d’inscription joueur (lot 1.7cb)', () => {
     await page.reload();
     await expect(page.getByTestId('onboarding-own-card')).toContainText(OZ_ID);
     await expect(page.getByTestId('oz-id-qr')).toBeVisible();
-    await expect(page.getByTestId('badge-declared')).toHaveText('Déclaré');
+    await expect(page.getByTestId('badge-declared')).toHaveText('Profil déclaré');
     await settle(page);
     const own = await new AxeBuilder({ page }).withTags(WCAG_AA).analyze();
     expect(own.violations.map((violation) => violation.id)).toEqual([]);
@@ -75,15 +75,16 @@ test.describe('parcours d’inscription joueur (lot 1.7cb)', () => {
     await page.setViewportSize({ width: 320, height: 720 });
     await page.goto('/espace');
     await expect(page.getByTestId('player-dashboard')).toBeVisible();
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Bonjour Awa');
-    const completeness = page.getByRole('figure', { name: 'Complétude de ta fiche par rubrique' });
-    await expect(completeness).toHaveAttribute('data-state', 'filled');
-    const aptitudes = page.getByRole('figure', { name: 'Aptitudes' });
+    await expect(page.getByRole('heading', { level: 1 })).toHaveAccessibleName('Bonjour Awa');
+    // Maquette v2 : complétude réelle, performances vides, rien d'inventé (Q18, E4).
+    await expect(page.getByRole('meter', { name: 'Profil complété' })).toBeVisible();
+    const aptitudes = page.getByRole('figure', { name: 'Mes performances' });
     await expect(aptitudes).toHaveAttribute('data-state', 'empty');
     await expect(aptitudes).not.toContainText(/\d/);
-    const soon = page.getByTestId('coming-soon').getByRole('listitem');
-    await expect(soon.first()).toHaveAttribute('aria-disabled', 'true');
-    await expect(page.getByTestId('coming-soon').getByRole('link')).toHaveCount(0);
+    for (const block of ['dashboard-activity', 'dashboard-stats', 'dashboard-videos']) {
+      await expect(page.getByTestId(block)).toContainText('Bientôt');
+      await expect(page.getByTestId(block)).not.toContainText(/\d/);
+    }
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
     );

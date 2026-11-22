@@ -1,87 +1,9 @@
 'use client';
 
-import { AppShell, Button, Callout, Field } from '@oz/ui';
-import { Logo } from '@oz/ui/logo';
+import { Button, Callout, Field } from '@oz/ui';
 import { useTranslations } from 'next-intl';
 import { useState, type SyntheticEvent, type ReactNode } from 'react';
-import { LogoutButton } from '../auth/logout-button';
-import { LocaleSwitcher } from '../components/locale-switcher';
-import { Link, usePathname } from '../i18n/navigation';
 import type { EspaceFailure } from './actions';
-
-const stroke = {
-  viewBox: '0 0 24 24',
-  fill: 'none',
-  stroke: 'currentColor',
-  strokeWidth: 1.75,
-  strokeLinecap: 'round',
-  strokeLinejoin: 'round',
-} as const;
-
-const ICONS = {
-  home: (
-    <svg {...stroke} aria-hidden="true">
-      <path d="M4 11l8-7 8 7v9H4z" />
-    </svg>
-  ),
-  visibility: (
-    <svg {...stroke} aria-hidden="true">
-      <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" />
-      <circle cx="12" cy="12" r="3" />
-    </svg>
-  ),
-  data: (
-    <svg {...stroke} aria-hidden="true">
-      <path d="M12 3v12m-5-5l5 5 5-5M5 21h14" />
-    </svg>
-  ),
-} as const;
-
-export const ESPACE_ITEMS = [
-  ['home', '/espace'],
-  ['visibility', '/espace/visibilite'],
-  ['data', '/espace/donnees'],
-] as const;
-
-/** Coquille de l'espace du joueur (lot 1.19b) : rail ≥ 1024 px, onglets bas, entrée active. */
-export function EspaceShell({ children }: { readonly children: ReactNode }) {
-  const t = useTranslations('espace.nav');
-  const nav = useTranslations('nav');
-  const pathname = usePathname();
-  const active =
-    [...ESPACE_ITEMS].reverse().find(([, href]) => pathname.startsWith(href))?.[0] ?? 'home';
-  return (
-    <AppShell
-      skipLabel={nav('skip')}
-      header={
-        <>
-          <Link href="/" className="inline-flex min-h-11 items-center lg:hidden">
-            <Logo alt={t('label')} className="h-9" />
-          </Link>
-          {/* 320 px : logo, langue et déconnexion tiennent sur une ligne (audit EX-T22). */}
-          <div className="ml-auto flex items-center gap-1 sm:gap-2">
-            <LocaleSwitcher />
-            <LogoutButton />
-          </div>
-        </>
-      }
-      railHeader={
-        <Link href="/" className="inline-flex min-h-11 items-center">
-          <Logo alt={t('label')} className="h-9" />
-        </Link>
-      }
-      nav={{
-        label: t('label'),
-        sectionLabel: t('label'),
-        items: ESPACE_ITEMS.map(([id, href]) => ({ id, label: t(id), href, icon: ICONS[id] })),
-        activeId: active,
-        linkComponent: Link,
-      }}
-    >
-      <div className="mx-auto flex w-full max-w-3xl flex-col gap-8">{children}</div>
-    </AppShell>
-  );
-}
 
 /** Erreur annoncée (`aria-live`) ; jamais un message de l'API. */
 export function EspaceError({
