@@ -80,7 +80,7 @@ export async function playerRecord(
 const OZ_ID = /^OZ-[A-Z]{2}-[0-9]{2}-[0-9A-HJKMNP-TV-Z]{6}-[0-9A-HJKMNP-TV-Z]$/;
 
 /** Blocs réglables (D1 du lot 1.13a) ; absent : visible. */
-export const PLAYER_VISIBILITY_BLOCKS = ['location', 'physical', 'sport'] as const;
+export const PLAYER_VISIBILITY_BLOCKS = ['location', 'physical', 'sport', 'photos'] as const;
 export type PlayerVisibilityBlock = (typeof PLAYER_VISIBILITY_BLOCKS)[number];
 export type PlayerVisibility = Partial<Record<PlayerVisibilityBlock, boolean>>;
 

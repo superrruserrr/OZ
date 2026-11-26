@@ -223,3 +223,11 @@ export {
   erasureInventory,
   type ErasureAction,
 } from './erasure/registry.js';
+export {
+  PLAYER_PHOTO_LIMIT,
+  playerPhotos,
+  removePlayerPhoto,
+  setPlayerProfilePhoto,
+  type PlayerPhoto,
+  type PlayerPhotoStatus,
+} from './player-photos.js';

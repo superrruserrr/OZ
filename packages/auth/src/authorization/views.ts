@@ -86,6 +86,8 @@ export const PLAYER_BLOCK_FIELDS = Object.freeze({
   location: Object.freeze(['region', 'city']),
   physical: Object.freeze(['heightCm', 'weightKg']),
   sport: Object.freeze(['primaryPosition', 'secondaryPosition', 'dominantFoot']),
+  // Galerie (lot 1.19cd, U1) : aucun champ de la fiche ; l'API des photos lit ce réglage.
+  photos: Object.freeze([] as PlayerViewField[]),
 } as const satisfies Record<string, readonly PlayerViewField[]>);
 export type PlayerBlock = keyof typeof PLAYER_BLOCK_FIELDS;
 /** `false` : bloc masqué aux tiers ; absent ou `true` : visible. */

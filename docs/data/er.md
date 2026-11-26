@@ -320,6 +320,7 @@ erDiagram
     uuid created_by FK
     uuid updated_by FK
     tsvector search_vector
+    uuid profile_photo_id FK
   }
   saved_searches {
     uuid id PK
@@ -467,6 +468,7 @@ erDiagram
   organizations }o--o| users : "updated_by"
   oz_id_registry }o--|| players : "player_id"
   player_signups }o--|| users : "user_id"
+  players }o--o| documents : "profile_photo_id"
   players }o--o| guardians : "guardian_id"
   players }o--o| organizations : "organization_id"
   players }o--o| oz_id_registry : "oz_id,id"

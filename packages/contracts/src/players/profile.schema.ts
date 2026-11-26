@@ -28,6 +28,8 @@ const blocks = {
   physical: z.boolean().optional(),
   /** Postes et pied fort. */
   sport: z.boolean().optional(),
+  /** Photos de la galerie (lot 1.19cd, U1). */
+  photos: z.boolean().optional(),
 };
 
 export const playerProfileOutputSchema = z.strictObject({
