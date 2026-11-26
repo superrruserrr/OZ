@@ -6,6 +6,7 @@ import { getTranslations } from 'next-intl/server';
 import { locale as rootLocale } from 'next/root-params';
 import { Link } from '../../../i18n/navigation';
 import { pageMetadata } from '../../../site/metadata';
+import { FeatureShowcase } from '../../../site/feature-showcase';
 import { HomePreview } from '../../../site/home-preview';
 import { HomeJsonLd } from '../../../site/json-ld';
 import { PROFILE_SLUGS, type ProfileSlug } from '../../../site/routes';
@@ -128,6 +129,7 @@ export default function HomePage() {
             {t('missionMore')} <Arrow />
           </Link>
         </section>
+        <FeatureShowcase />
         <section
           aria-label={t('preview.label')}
           className="mt-20 grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]"

@@ -119,7 +119,55 @@
       }
     },
     "ctaTitle": "Ready to create your identity?",
-    "ctaBody": "Join OZ in a few minutes. It is free for players."
+    "ctaBody": "Join OZ in a few minutes. It is free for players.",
+    "features": {
+      "kicker": "Features",
+      "title": "Everything OZ does",
+      "titleHighlight": "for you.",
+      "lead": "A look at the screens available at launch. Illustrations are examples: no real data.",
+      "example": "Example",
+      "items": {
+        "signup": {
+          "title": "Step-by-step sign-up",
+          "text": "Account, identity, sport, club: resume at any time, even on a slow connection."
+        },
+        "ozId": {
+          "title": "Your OZ ID and QR code",
+          "text": "A unique ID, yours for life, and a card to share."
+        },
+        "dashboard": {
+          "title": "Your dashboard",
+          "text": "What’s filled in, what’s missing, and what’s coming soon."
+        },
+        "visibility": {
+          "title": "You choose what is visible",
+          "text": "Hide your city, height or positions in one click."
+        },
+        "guardian": {
+          "title": "Minors protected",
+          "text": "The legal guardian proves the relationship and consents before anything is published."
+        },
+        "data": {
+          "title": "Your data belongs to you",
+          "text": "Export everything or delete your account, with time to change your mind."
+        }
+      },
+      "mock": {
+        "ozIdLabel": "OZ ID",
+        "ozIdSample": "OZ-CM-••-••••••-•",
+        "consent": "Guardian consent",
+        "consentGiven": "Consent given",
+        "export": "Export",
+        "delete": "Delete"
+      },
+      "soonTitle": "Coming soon",
+      "soon": {
+        "performances": "Certified centre measurements",
+        "videos": "Video portfolio",
+        "messages": "Messages with clubs",
+        "directory": "Search by verified clubs"
+      }
+    }
   },
   "localeSwitcher": {
     "label": "Language",

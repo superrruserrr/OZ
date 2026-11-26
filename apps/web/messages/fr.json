@@ -119,7 +119,55 @@
       }
     },
     "ctaTitle": "Prêt à créer votre identité ?",
-    "ctaBody": "Rejoignez OZ en quelques minutes. C’est gratuit pour le joueur."
+    "ctaBody": "Rejoignez OZ en quelques minutes. C’est gratuit pour le joueur.",
+    "features": {
+      "kicker": "Fonctionnalités",
+      "title": "Tout ce qu’OZ fait",
+      "titleHighlight": "pour toi.",
+      "lead": "Un aperçu des écrans disponibles dès l’ouverture. Les illustrations sont des exemples : aucune donnée réelle.",
+      "example": "Exemple",
+      "items": {
+        "signup": {
+          "title": "Inscription pas à pas",
+          "text": "Compte, identité, sport, club : reprise possible à tout moment, même sur une connexion lente."
+        },
+        "ozId": {
+          "title": "Ton OZ ID et ton QR code",
+          "text": "Un identifiant unique, gardé à vie, et une carte à partager."
+        },
+        "dashboard": {
+          "title": "Ton tableau de bord",
+          "text": "Ce qui est rempli, ce qui manque, et ce qui arrive bientôt."
+        },
+        "visibility": {
+          "title": "Tu choisis ce qui est visible",
+          "text": "Masque ta ville, ta taille ou tes postes en un clic."
+        },
+        "guardian": {
+          "title": "Les mineurs protégés",
+          "text": "Le tuteur légal prouve son lien et donne son accord avant toute publication."
+        },
+        "data": {
+          "title": "Tes données t’appartiennent",
+          "text": "Exporte tout ou supprime ton compte, avec un délai pour changer d’avis."
+        }
+      },
+      "mock": {
+        "ozIdLabel": "OZ ID",
+        "ozIdSample": "OZ-CM-••-••••••-•",
+        "consent": "Accord du tuteur",
+        "consentGiven": "Accord donné",
+        "export": "Exporter",
+        "delete": "Supprimer"
+      },
+      "soonTitle": "Bientôt disponible",
+      "soon": {
+        "performances": "Mesures certifiées en centre",
+        "videos": "Portfolio vidéo",
+        "messages": "Messages avec les clubs",
+        "directory": "Recherche par les clubs vérifiés"
+      }
+    }
   },
   "localeSwitcher": {
     "label": "Langue",
