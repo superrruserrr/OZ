@@ -125,6 +125,20 @@ describe('DocumentService.issue', () => {
     expect(db.createDocumentUpload).not.toHaveBeenCalled();
   });
 
+  it('septième photo refusée par la base : 409 PHOTO_LIMIT_REACHED ; toute autre erreur remonte', async () => {
+    const limit = new Error('photos : six au plus par joueur');
+    db.createDocumentUpload.mockRejectedValueOnce(limit);
+    await expect(service.issue(actor, { ...input, documentType: 'photo' })).rejects.toMatchObject({
+      status: 409,
+      code: 'PHOTO_LIMIT_REACHED',
+    });
+    db.createDocumentUpload.mockRejectedValueOnce(limit);
+    await expect(service.issue(actor, input)).rejects.toBe(limit);
+    const other = new Error('panne');
+    db.createDocumentUpload.mockRejectedValueOnce(other);
+    await expect(service.issue(actor, { ...input, documentType: 'photo' })).rejects.toBe(other);
+  });
+
   it('limite atteinte : 429, rien n’est lu', async () => {
     const limited = new DocumentService(
       {} as PrismaClient,

@@ -28,6 +28,7 @@ import { DB_CLIENT } from '../database/database.module.js';
 import { DOCUMENT_STORAGE } from './document.tokens.js';
 import {
   DOCUMENT_NOT_FOUND,
+  PHOTO_LIMIT_REACHED,
   SCAN_UNAVAILABLE,
   UPLOAD_ALREADY_USED,
   UPLOAD_EXPIRED,
@@ -36,6 +37,9 @@ import {
 } from './errors.js';
 import { ScanQueue } from './scan-queue.js';
 import { SNIFF_BYTES, sniffContentType } from './sniff.js';
+
+/** Texte levé par `oz_document_uploads_photo_limit` (migration 20261124100000_player_photos). */
+const PHOTO_LIMIT_MESSAGE = 'photos : six au plus par joueur';
 
 /** Validité de l'URL de dépôt, égale à celle de l'intention en base (D1). */
 export const UPLOAD_URL_SECONDS = 300;
@@ -97,13 +101,21 @@ export class DocumentService {
     const target = targetOf(input);
     const issued = await withUserContext(this.db, actor.userId, async (tx) => {
       if (!(await this.mayUpload(tx, actor, input.documentType, target))) return null;
-      return createDocumentUpload(tx, {
-        documentType: input.documentType,
-        target,
-        contentType: input.contentType,
-        sizeBytes: input.sizeBytes,
-        sha256: input.sha256,
-      });
+      try {
+        return await createDocumentUpload(tx, {
+          documentType: input.documentType,
+          target,
+          contentType: input.contentType,
+          sizeBytes: input.sizeBytes,
+          sha256: input.sha256,
+        });
+      } catch (error) {
+        // Six photos au plus par joueur (lot 1.19cd, U2) : décidé par la base, sous verrou.
+        if (input.documentType === 'photo' && String(error).includes(PHOTO_LIMIT_MESSAGE)) {
+          throw PHOTO_LIMIT_REACHED();
+        }
+        throw error;
+      }
     });
     if (issued === null) throw DOCUMENT_NOT_FOUND();
     const presigned = await this.storage.presignPut({

@@ -15,6 +15,8 @@ import { DocumentReadService } from './document-read.service.js';
 import { DocumentController } from './document.controller.js';
 import { DocumentService } from './document.service.js';
 import { DOCUMENT_STORAGE } from './document.tokens.js';
+import { PlayerPhotoController } from './player-photo.controller.js';
+import { PlayerPhotoService } from './player-photo.service.js';
 import { ScanQueue } from './scan-queue.js';
 
 /** Ferme le client S3 à l'arrêt de l'application. */
@@ -34,10 +36,11 @@ export class DocumentModule {
     return {
       module: DocumentModule,
       imports: [DatabaseModule, RateLimitModule.forRoot(hmacKey)],
-      controllers: [DocumentController, DocumentReadController],
+      controllers: [DocumentController, DocumentReadController, PlayerPhotoController],
       providers: [
         DocumentService,
         DocumentReadService,
+        PlayerPhotoService,
         ScanQueue,
         StorageLifecycle,
         {
