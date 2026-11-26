@@ -35,6 +35,10 @@ describe('garde D-136 : picomatch et micromatch hors du code d’OZ', () => {
       .split('\n')
       .map((line) => line.trim())
       .filter((line) => line !== '' && !line.startsWith('#'));
-    expect(entries).toEqual(['CVE-2026-112366', 'CVE-2026-124709 exp:2026-12-31']);
+    expect(entries).toEqual([
+      'CVE-2026-112366',
+      'CVE-2026-124709 exp:2026-12-31',
+      'CVE-2026-107494 exp:2026-12-31',
+    ]);
   });
 });
