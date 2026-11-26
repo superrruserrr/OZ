@@ -20,6 +20,8 @@ const config: NextConfig = {
     serverActions: { bodySizeLimit: '11mb' },
     proxyClientMaxBodySize: '11mb',
   },
+  // Photos libres du décor (lot 1.19ch) : AVIF d'abord, WebP sinon ; servies par le site (CSP inchangée).
+  images: { formats: ['image/avif', 'image/webp'] },
   // Fichiers statiques compris : la CSP avec nonce est posée par src/proxy.ts sur les pages.
   headers: () =>
     Promise.resolve([

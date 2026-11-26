@@ -39,16 +39,23 @@ describe('tableau de bord du joueur, maquette v2 (lots 1.5ec et 1.19b)', () => {
     });
     expect(screen.getByRole('heading', { level: 1, name: 'Bonjour Awa' })).toBeTruthy();
     expect(screen.getByTestId('dashboard-name').textContent).toBe('Awa Test');
-    expect(screen.getByText('Attaquant · Cameroun')).toBeTruthy();
+    expect(screen.getByText('Attaquant')).toBeTruthy();
+    // Drapeau du pays (décoratif) et nom lu ; écusson générique, jamais un logo réel (lot 1.19ch).
+    expect(screen.getByTestId('dashboard-country').textContent).toBe('Cameroun');
+    expect(
+      screen.getByTestId('dashboard-country').querySelector('[data-testid="flag-CM"]'),
+    ).toBeTruthy();
+    expect(screen.getByTestId('dashboard-club').textContent).toContain('Sans club pour l’instant');
     expect(screen.getByTestId('badge-declared').textContent).toBe('Profil déclaré');
     expect(screen.getByTestId('dashboard-view-profile').getAttribute('href')).toBe(
       '/joueur/OZ-CM-26-ABCDEF-1',
     );
     expect(within(screen.getByTestId('onboarding-own-card')).getByText(PROFILE.ozId)).toBeTruthy();
     expect(screen.getByTestId('oz-id-qr')).toBeTruthy();
-    expect(screen.getByTestId('dashboard-hero-illustration').getAttribute('aria-hidden')).toBe(
-      'true',
-    );
+    // Photo de stade décorative (texte alternatif vide), sans visage (lot 1.19ch).
+    const hero = screen.getByTestId('dashboard-hero-photo');
+    expect(hero.getAttribute('alt')).toBe('');
+    expect(hero.getAttribute('src')).toContain('stade-nuit.jpg');
   });
 
   it('complétude réelle : jauge et rubriques', () => {
@@ -63,7 +70,7 @@ describe('tableau de bord du joueur, maquette v2 (lots 1.5ec et 1.19b)', () => {
       wrapper,
     });
     const card = screen.getByTestId('dashboard-visibility');
-    expect(card.textContent).toContain('2 blocs sur 3 visibles');
+    expect(card.textContent).toContain('3 blocs sur 4 visibles');
     expect(within(card).getByRole('link').getAttribute('href')).toBe('/espace/visibilite');
   });
 

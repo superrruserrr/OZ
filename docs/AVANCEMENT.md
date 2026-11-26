@@ -1,7 +1,7 @@
 # OZ — Où en est le projet ?
 
 > Check-list tenue à jour à la fin de chaque étape, à transmettre telle quelle à Fabrice Olinga.
-> **Dernière mise à jour : 17 novembre 2026** — étape : 1.5ec Tableau de bord du joueur et du tuteur (refonte 1.5e terminée).
+> **Dernière mise à jour : 22 novembre 2026** — étape : 1.19c Espace joueur v3 (recherche de joueurs, profil modifiable, photos, démo Abena).
 
 Légende : ✅ fait et vérifié · 🟡 en cours · ⬜ à faire · ⏸️ bloqué en attente d'une décision
 
@@ -20,18 +20,19 @@ prévu par le plan technique, qui la plaçait avant le back-office et l'ouvertur
 reste cachée tant que le justificatif de son tuteur n'est pas validé ; elle est publiée dès que le
 justificatif est validé et que le tuteur a donné son accord (décision du 17 novembre).
 
-| Ordre | Étape                                                                 | État |
-| ----- | --------------------------------------------------------------------- | ---- |
-| 1     | 1.5cbb Connexion, choix du compte, inscription au nouveau style       | ✅   |
-| 1 bis | 1.5e Textes plus doux, chargement multisport, statistiques, accueil   | ✅   |
-| 2     | 1.19 Ouverture, en un seul bloc :                                     | 🟡   |
-|       | · espace du joueur : sa fiche, ce qu'il montre, export, suppression   | ⬜   |
-|       | · espace du tuteur : enfants, justificatif, accord                    | ⬜   |
-|       | · back-office réduit : comptes, justificatifs des tuteurs, suspension | ⬜   |
-|       | · emails essentiels                                                   | ⬜   |
-|       | · fiche d'un mineur publiée après justificatif validé et accord       | ✅   |
-| 3     | 0.8c/d et 0.9 Version de test et de production en ligne, surveillance | ⬜   |
-| 4     | 1.17 Recette, puis 1.18 mise en production                            | ⬜   |
+| Ordre | Étape                                                                   | État |
+| ----- | ----------------------------------------------------------------------- | ---- |
+| 1     | 1.5cbb Connexion, choix du compte, inscription au nouveau style         | ✅   |
+| 1 bis | 1.5e Textes plus doux, chargement multisport, statistiques, accueil     | ✅   |
+| 2     | 1.19 Ouverture, en un seul bloc :                                       | 🟡   |
+|       | · espace du joueur : sa fiche, ce qu'il montre, export, suppression     | ⬜   |
+|       | · espace joueur v3 : recherche, profil modifiable, photos, démo (1.19c) | 🟡   |
+|       | · espace du tuteur : enfants, justificatif, accord                      | ⬜   |
+|       | · back-office réduit : comptes, justificatifs des tuteurs, suspension   | ⬜   |
+|       | · emails essentiels                                                     | ⬜   |
+|       | · fiche d'un mineur publiée après justificatif validé et accord         | ✅   |
+| 3     | 0.8c/d et 0.9 Version de test et de production en ligne, surveillance   | ⬜   |
+| 4     | 1.17 Recette, puis 1.18 mise en production                              | ⬜   |
 
 Avant l'ouverture, hors code : relecture par le juriste de l'analyse d'impact et des CGU ; test
 d'intrusion par une société externe recommandé.

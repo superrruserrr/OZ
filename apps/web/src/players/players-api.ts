@@ -1,7 +1,9 @@
 import 'server-only';
 import {
+  playerPhotosOutputSchema,
   playerProfileOutputSchema,
   playerSearchPageSchema,
+  type PlayerPhotosOutput,
   type PlayerProfileOutput,
   type PlayerSearchPageOutput,
 } from '@oz/contracts';
@@ -107,6 +109,15 @@ export async function readOwnPlayer(): Promise<Read<PlayerProfileOutput>> {
 }
 
 const OZ_ID = /^OZ-[A-Z]{2}-\d{2}-[A-Z0-9]{6}-[A-Z0-9]$/;
+
+/** Galerie d'un joueur dans la vue du lecteur (lot 1.19ch) ; rien si le coffre n'est pas monté. */
+export async function readPlayerPhotos(ozId: string): Promise<Read<PlayerPhotosOutput>> {
+  if (!OZ_ID.test(ozId)) return { kind: 'not_found' };
+  const result = await read(`/players/${ozId}/photos`);
+  if (result.kind !== 'ok') return result;
+  const parsed = playerPhotosOutputSchema.safeParse(result.data);
+  return parsed.success ? { kind: 'ok', data: parsed.data } : { kind: 'unavailable' };
+}
 
 export async function readPlayer(ozId: string): Promise<Read<PlayerProfileOutput>> {
   // Identifiant hors format : jamais transmis à l'API.

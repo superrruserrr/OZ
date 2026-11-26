@@ -689,9 +689,7 @@
     "profile": {
       "ozId": "OZ ID",
       "sectionsTitle": "Profile sections",
-      "sectionsHint": "Click a section to open it. Escape or the cross closes it.",
-      "close": "Close panel",
-      "openSection": "Open",
+      "sectionsHint": "Pick a section: its content shows right below.",
       "hidden": "Not shared",
       "identity": {
         "title": "Identity",
@@ -735,6 +733,11 @@
         "title": "OZ ID card",
         "summary": "Unique identifier, never reassigned",
         "note": "The online status is authoritative."
+      },
+      "photos": {
+        "title": "Photos",
+        "summary": "{count, plural, one {# photo} other {# photos}} of the player.",
+        "alt": "Photo of {name}"
       }
     }
   },
@@ -947,7 +950,11 @@
       "empty": "Adding videos is coming soon.",
       "more": "View all"
     },
-    "wave": "👋"
+    "wave": "👋",
+    "club": {
+      "attached": "Attached club",
+      "free": "No club yet"
+    }
   },
   "espace": {
     "nav": {

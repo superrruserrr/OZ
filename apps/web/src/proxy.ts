@@ -198,6 +198,6 @@ export const config = {
   // seuls l'API, les fichiers de Next, les logos (`brand/oz-logo-*.png`) et les fichiers racine connus (robots, icônes,
   // manifeste) sont exclus.
   matcher: [
-    '/((?!api/|brand/oz-logo-[\\w-]+\\.png$|_next/static/|_next/image|_vercel/|favicon\\.ico$|robots\\.txt$|sitemap\\.xml$|manifest\\.webmanifest$|(?:apple-)?icon(?:-\\w+)?\\.(?:svg|png|ico)$).*)',
+    '/((?!api/|brand/oz-logo-[\\w-]+\\.png$|images/sport/[\\w-]+\\.jpg$|_next/static/|_next/image|_vercel/|favicon\\.ico$|robots\\.txt$|sitemap\\.xml$|manifest\\.webmanifest$|(?:apple-)?icon(?:-\\w+)?\\.(?:svg|png|ico)$).*)',
   ],
 };

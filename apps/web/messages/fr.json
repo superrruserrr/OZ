@@ -689,9 +689,7 @@
     "profile": {
       "ozId": "OZ ID",
       "sectionsTitle": "Sections de la fiche",
-      "sectionsHint": "Cliquez sur une section pour l’ouvrir. Échap ou la croix la referment.",
-      "close": "Fermer le panneau",
-      "openSection": "Ouvrir",
+      "sectionsHint": "Choisissez une section : son contenu s’affiche juste en dessous.",
       "hidden": "Non communiqué",
       "identity": {
         "title": "Identité",
@@ -735,6 +733,11 @@
         "title": "Carte OZ ID",
         "summary": "Identifiant unique, jamais réattribué",
         "note": "Le statut en ligne fait foi."
+      },
+      "photos": {
+        "title": "Photos",
+        "summary": "{count, plural, one {# photo} other {# photos}} du joueur.",
+        "alt": "Photo de {name}"
       }
     }
   },
@@ -947,7 +950,11 @@
       "empty": "L’ajout de vidéos arrive bientôt.",
       "more": "Voir toutes"
     },
-    "wave": "👋"
+    "wave": "👋",
+    "club": {
+      "attached": "Club rattaché",
+      "free": "Sans club pour l’instant"
+    }
   },
   "espace": {
     "nav": {

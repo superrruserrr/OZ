@@ -2,6 +2,7 @@ import { Callout } from '@oz/ui';
 import { getTranslations } from 'next-intl/server';
 import { locale as rootLocale } from 'next/root-params';
 import { authMetadata } from '../../../../auth/auth-metadata';
+import { listOwnPhotos } from '../../../../espace/photo-actions';
 import { PlayerDashboard } from '../../../../dashboard/player-dashboard';
 import { loadOwn } from '../../../../espace/load-own';
 import { isMinor } from '../../../../guardian/minor';
@@ -29,6 +30,11 @@ export default async function EspaceHomePage() {
     return <Callout testId="dashboard-unavailable">{t('unavailable')}</Callout>;
   }
   const minor = own.birthDate !== undefined && isMinor(own.birthDate);
+  const photos = await listOwnPhotos();
+  const photoId = photos.ok
+    ? (photos.gallery.items.find((photo) => photo.isProfile && photo.status === 'clean')?.id ??
+      null)
+    : null;
   return (
     <section className="flex flex-col gap-6" data-testid="espace-home">
       {minor ? (
@@ -48,6 +54,7 @@ export default async function EspaceHomePage() {
         qr={own.ozId === undefined ? null : ownQrDataUri(own.ozId)}
         position={own.primaryPosition ? pos(positionKey(own.primaryPosition)) : null}
         country={own.country ? countryName(own.country, locale) : null}
+        photoId={photoId}
       />
     </section>
   );
