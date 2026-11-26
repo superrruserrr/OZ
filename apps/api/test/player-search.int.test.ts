@@ -67,7 +67,19 @@ describe('GET /players — portée', () => {
     expect(JSON.stringify(page)).not.toContain(PLAYER_PHONE);
   });
 
-  it.each(['recruiter', 'player', 'guardian', 'center'] as const)(
+  it('joueur (lot 1.19c) : portée réduite, vues publiques, critères avancés refusés', async () => {
+    const reader = await account('player');
+    const target = await player({ lastName: 'Coequipier' });
+    const page = (await search(reader.token, { q: 'Coequipier' }).expect(200)).body as Page;
+    expect(page.items).toHaveLength(1);
+    expect(page.items[0]).toMatchObject({ ozId: target.ozId });
+    expect(page.items[0]).not.toHaveProperty('birthDate');
+    expect(JSON.stringify(page)).not.toContain(PLAYER_PHONE);
+    const refused = await search(reader.token, { heightMin: 170 }).expect(403);
+    expect(refused.body).toMatchObject({ code: 'SEARCH_CRITERIA_FORBIDDEN' });
+  });
+
+  it.each(['recruiter', 'guardian', 'center'] as const)(
     '%s (sans KYC 3 pour le recruteur) : 403, aucune ligne',
     async (role) => {
       const organizationId =

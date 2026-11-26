@@ -2,11 +2,11 @@
 
 import { AppShell } from '@oz/ui';
 import { Logo } from '@oz/ui/logo';
-import { useTranslations } from 'next-intl';
-import { useId, useState, type ReactNode, type SyntheticEvent } from 'react';
-import { LogoutButton } from '../auth/logout-button';
+import { useLocale, useTranslations } from 'next-intl';
+import type { ReactNode, SyntheticEvent } from 'react';
 import { LocaleSwitcher } from '../components/locale-switcher';
-import { Link, usePathname, useRouter } from '../i18n/navigation';
+import { getPathname, Link, usePathname, useRouter } from '../i18n/navigation';
+import { AvatarMenu } from './avatar-menu';
 
 const stroke = {
   viewBox: '0 0 24 24',
@@ -90,28 +90,25 @@ const SETTINGS = [
 export const ESPACE_ITEMS = [...MAIN, ...SETTINGS] as const;
 type EspaceItemId = (typeof ESPACE_ITEMS)[number][0];
 
-const normalize = (value: string) =>
-  value.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
-
-/** Recherche d'une fonctionnalité de l'espace : ouvre la première page dont le nom correspond. */
-function FeatureSearch({ labels }: { readonly labels: Record<EspaceItemId, string> }) {
+/**
+ * Recherche de joueurs (lot 1.19c, U0) : relais vers l'annuaire `/recherche`, qui interroge
+ * `GET /players` dans la portée du lecteur. Formulaire GET : il marche aussi sans JavaScript.
+ */
+function PlayerSearch() {
   const t = useTranslations('espace.nav');
+  const locale = useLocale();
   const router = useRouter();
-  const listId = useId();
-  const [miss, setMiss] = useState(false);
   const onSubmit = (event: SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
     const raw = new FormData(event.currentTarget).get('q');
-    const query = normalize(typeof raw === 'string' ? raw : '');
-    const found = query
-      ? ESPACE_ITEMS.find(([id]) => normalize(labels[id]).includes(query))
-      : undefined;
-    setMiss(!found);
-    if (found) router.push(found[1]);
+    const q = typeof raw === 'string' ? raw.trim() : '';
+    router.push(q ? { pathname: '/recherche', query: { q } } : { pathname: '/recherche' });
   };
   return (
     <form
       role="search"
+      method="get"
+      action={getPathname({ href: '/recherche', locale })}
       onSubmit={onSubmit}
       className="relative hidden w-full max-w-md md:block"
       data-testid="espace-search"
@@ -122,22 +119,12 @@ function FeatureSearch({ labels }: { readonly labels: Record<EspaceItemId, strin
       <input
         type="search"
         name="q"
-        list={listId}
+        maxLength={80}
+        autoComplete="off"
         aria-label={t('searchLabel')}
         placeholder={t('search')}
-        onChange={() => {
-          setMiss(false);
-        }}
         className="min-h-11 w-full rounded-full border border-oz-border bg-oz-surface-1 pr-4 pl-12 text-sm text-oz-text placeholder:text-oz-text-label focus:border-oz-primary/60"
       />
-      <datalist id={listId}>
-        {ESPACE_ITEMS.map(([id]) => (
-          <option key={id} value={labels[id]} />
-        ))}
-      </datalist>
-      <p role="status" className="absolute top-full left-4 mt-1 text-xs text-oz-text-muted">
-        {miss ? t('searchNone') : ''}
-      </p>
     </form>
   );
 }
@@ -159,7 +146,7 @@ function RailArt() {
 /**
  * Coquille de l'espace du joueur (lot 1.19b, maquette v2 du 2026-11-18) : rail de sept entrées qui
  * mènent toutes à une page ; les pages pas encore alimentées le disent (« Bientôt disponible »), sans
- * chiffre inventé. En-tête : recherche de fonctionnalité, langue, cloche (à venir), avatar.
+ * chiffre inventé. En-tête : recherche de joueurs, langue, cloche (à venir), menu de l'avatar (lot 1.19c).
  */
 export function EspaceShell({
   children,
@@ -197,8 +184,8 @@ export function EspaceShell({
           >
             <Logo alt={t('label')} className="h-9" />
           </Link>
-          <FeatureSearch labels={labels} />
-          {/* 320 px : logo, langue et déconnexion tiennent sur une ligne (audit EX-T22). */}
+          <PlayerSearch />
+          {/* 320 px : logo, langue et avatar tiennent sur une ligne (audit EX-T22). */}
           <div className="ml-auto flex items-center gap-1 sm:gap-2">
             <LocaleSwitcher />
             <span
@@ -211,18 +198,7 @@ export function EspaceShell({
             >
               {ICONS.bell}
             </span>
-            {initials ? (
-              <Link
-                href="/espace/profil"
-                data-testid="espace-avatar"
-                className="hidden size-11 place-items-center rounded-full border-2 border-oz-primary text-sm font-medium text-oz-primary sm:grid"
-              >
-                {/* Nom accessible = texte du lien (WCAG 2.5.3) : initiales décoratives, libellé lu. */}
-                <span aria-hidden="true">{initials}</span>
-                <span className="sr-only">{t('profile')}</span>
-              </Link>
-            ) : null}
-            <LogoutButton />
+            <AvatarMenu initials={initials} />
           </div>
         </>
       }

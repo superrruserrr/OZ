@@ -27,7 +27,7 @@ RUN mkdir -p scripts && mv next-standalone-assets.mjs scripts/ \
  && mkdir -p /writable/cache
 
 # distroless nodejs24, Debian 13, utilisateur nonroot
-FROM gcr.io/distroless/nodejs24-debian13@sha256:b770c59f44ed459329508a73794e6d284f6c10143f83c8012a8f775cd514eca2 AS runtime
+FROM gcr.io/distroless/nodejs24-debian13@sha256:235cae47d37e0ba4ab70a723ed0bfd4f619c04d16d4226371d5d0c71a52f9211 AS runtime
 ARG APP
 # D-013 : l'adresse d'écoute est imposée par next-start.mjs (un HOSTNAME défini par l'orchestrateur
 # ferait boucler ou tomber le serveur autonome) ; HOSTNAME reste aussi fixé ici par défaut.

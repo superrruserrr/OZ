@@ -109,7 +109,7 @@ describe('recherches sauvegardées', () => {
       .expect(201);
   });
 
-  it.each(['player', 'guardian', 'center', 'recruiter'] as const)(
+  it.each(['guardian', 'center', 'recruiter'] as const)(
     '%s (sans KYC 3 pour le recruteur) : 403 sur chaque route',
     async (role) => {
       const organizationId =

@@ -495,6 +495,30 @@ describe('revue adversariale finale du lot 1.1a : identité certifiée et consen
     ).resolves.toMatchObject({ rowCount: 1 });
   });
 
+  it('U3 (lot 1.19cb) : identité en examen figée ; lieu et mesures modifiables', async () => {
+    const [user] = await db.query<{ id: string }>(
+      `INSERT INTO users (email) VALUES ('u3-examen@example.test') RETURNING id`,
+    );
+    const me = user?.id ?? '';
+    const [player] = await db.query<{ id: string }>(
+      `INSERT INTO players (user_id, first_name, last_name, birth_date, nationality, country,
+         verification_status)
+       VALUES ($1, 'Examen', 'U3', '1998-01-01', 'CM', 'CM', 'in_review') RETURNING id`,
+      [me],
+    );
+    for (const set of [`first_name = 'Autre'`, `last_name = 'Autre'`, `nationality = 'GH'`]) {
+      await expect(
+        app.as(me, (c) => c.query(`UPDATE players SET ${set} WHERE id = $1`, [player?.id])),
+        set,
+      ).rejects.toThrow(/autorité/);
+    }
+    await expect(
+      app.as(me, (c) =>
+        c.query(`UPDATE players SET city = 'Kribi', height_cm = 180 WHERE id = $1`, [player?.id]),
+      ),
+    ).resolves.toMatchObject({ rowCount: 1 });
+  });
+
   it('N1 : un tuteur vérifié ne réécrit pas son identité', async () => {
     const [user] = await db.query<{ id: string }>(
       `INSERT INTO users (email) VALUES ('n1-tuteur@example.test') RETURNING id`,

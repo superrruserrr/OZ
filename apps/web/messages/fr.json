@@ -914,13 +914,14 @@
       "videos": "Mes vidéos",
       "messages": "Messages",
       "settingsSection": "Réglages",
-      "search": "Rechercher une fonctionnalité…",
-      "searchLabel": "Rechercher une fonctionnalité",
-      "searchNone": "Aucune fonctionnalité ne correspond.",
+      "search": "Chercher un joueur…",
+      "searchLabel": "Chercher un joueur",
       "notifications": "Notifications : bientôt disponible",
       "slogan": "Développe ton talent.",
       "sloganAccent": "Atteins tes objectifs.",
-      "settings": "Paramètres"
+      "settings": "Paramètres",
+      "account": "Mon compte",
+      "logout": "Se déconnecter"
     },
     "home": {
       "unavailable": "Votre fiche est momentanément illisible. Réessayez dans quelques minutes.",
