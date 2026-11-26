@@ -15,7 +15,7 @@ export const playerPhotoSchema = z.strictObject({
   width: z.number().int().positive().nullable(),
   height: z.number().int().positive().nullable(),
 });
-export type PlayerPhoto = z.infer<typeof playerPhotoSchema>;
+export type PlayerPhotoOutput = z.infer<typeof playerPhotoSchema>;
 
 export const playerPhotosOutputSchema = z.strictObject({
   limit: z.literal(PLAYER_PHOTO_LIMIT),

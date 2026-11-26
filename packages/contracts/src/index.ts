@@ -219,7 +219,7 @@ export {
   playerPhotoSchema,
   playerPhotosOutputSchema,
   playerProfilePhotoInputSchema,
-  type PlayerPhoto,
+  type PlayerPhotoOutput,
   type PlayerPhotosOutput,
   type PlayerProfilePhotoInput,
 } from './players/photos.schema.js';
