@@ -129,10 +129,10 @@ export class PlayerPhotoService {
     actor: Actor,
     ozId: string | null,
   ): Promise<Gallery | null> {
-    const found: PlayerProfileRecord | null =
-      ozId === null
-        ? await playerProfileOfUser(tx, actor.userId)
-        : await playerProfileByOzId(tx, ozId);
+    // Sans `await` dans un ternaire : Node 24 y compte une branche de reprise que les tests ne voient pas.
+    const lookup: Promise<PlayerProfileRecord | null> =
+      ozId === null ? playerProfileOfUser(tx, actor.userId) : playerProfileByOzId(tx, ozId);
+    const found = await lookup;
     if (found === null) return null;
     const { checkedAt, ...access } = found.access;
     const ability = abilityFor(actor);
