@@ -5,3 +5,9 @@
 # (GHSA-fc5q-39xc-vjpf), aucune version corrigée. Non exploitable dans OZ : seuls nos fichiers de
 # configuration fournissent des motifs ; garde `scripts/glob-matcher-guard.test.mjs`.
 CVE-2026-112366
+
+# D-138 (décision de Gaëtan Wassu du 2026-11-26) : OpenSSL 3.5.7 de l'image Debian 13 (libssl3t64),
+# déni de service par fuite mémoire dans QUIC (CVE-2026-124709, high), aucune version corrigée.
+# Non exploitable dans OZ : QUIC n'est jamais activé (Node sans --experimental-quic, images distroless
+# lancées sans option). Échéance : l'exception expire le 2026-12-31 ; à retirer dès le correctif Debian.
+CVE-2026-124709 exp:2026-12-31
