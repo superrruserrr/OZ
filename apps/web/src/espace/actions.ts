@@ -6,10 +6,13 @@ import {
   dataExportDownloadOutputSchema,
   dataExportOutputSchema,
   dataExportRequestInputSchema,
+  playerProfileOutputSchema,
+  playerProfileUpdateInputSchema,
   playerVisibilityInputSchema,
   playerVisibilityOutputSchema,
   type AccountDeletionOutput,
   type DataExportOutput,
+  type PlayerProfileOutput,
   type PlayerVisibilityOutput,
 } from '@oz/contracts';
 import { z } from 'zod';
@@ -31,6 +34,8 @@ export type EspaceErrorKey =
   | 'notFound'
   | 'retryLater'
   | 'session'
+  | 'locked'
+  | 'forbidden'
   | 'unavailable';
 
 export type EspaceFailure = {
@@ -49,6 +54,8 @@ const CODES: Readonly<Record<string, EspaceErrorKey>> = {
   ACCOUNT_DELETION_PENDING: 'pending',
   DATA_EXPORT_NOT_FOUND: 'notFound',
   ACCOUNT_DELETION_NOT_FOUND: 'notFound',
+  PROFILE_IDENTITY_LOCKED: 'locked',
+  PROFILE_UPDATE_FORBIDDEN: 'forbidden',
 };
 
 const failure = (error: EspaceErrorKey): EspaceFailure => ({ ok: false, error });
@@ -87,6 +94,18 @@ export async function saveVisibility(
   if (result === null || !result.ok) return fromApi(result);
   const out = playerVisibilityOutputSchema.safeParse(result.data);
   return out.success ? { ok: true, visibility: out.data } : failure('unavailable');
+}
+
+/** Modification de sa fiche (lot 1.19cb) : seuls les champs changés, revalidés ici puis par l'API. */
+export async function updateOwnProfile(
+  input: unknown,
+): Promise<{ readonly ok: true; readonly profile: PlayerProfileOutput } | EspaceFailure> {
+  const parsed = playerProfileUpdateInputSchema.safeParse(input);
+  if (!parsed.success) return failure('invalid');
+  const result = await signupFetch('/players/me', { method: 'PATCH', body: parsed.data });
+  if (result === null || !result.ok) return fromApi(result);
+  const out = playerProfileOutputSchema.safeParse(result.data);
+  return out.success ? { ok: true, profile: out.data } : failure('unavailable');
 }
 
 export async function requestExport(

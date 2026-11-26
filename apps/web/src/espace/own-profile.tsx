@@ -1,5 +1,5 @@
 import type { PlayerProfileOutput } from '@oz/contracts';
-import { Badge } from '@oz/ui';
+import { Badge, Callout } from '@oz/ui';
 import { useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
 import { Link } from '../i18n/navigation';
@@ -37,8 +37,8 @@ function Block({
 
 /**
  * Mon profil (maquette v2) : la fiche du joueur telle qu'enregistrée, rubrique par rubrique.
- * Seulement des données réelles : un champ absent s'affiche « Non renseigné ». La modification des
- * champs arrive avec l'édition du profil ; la fiche publique reste à un clic.
+ * Seulement des données réelles : un champ absent s'affiche « Non renseigné ». « Modifier le profil »
+ * ouvre l'écran d'édition (lot 1.19cb) ; la fiche publique reste à un clic.
  */
 export function OwnProfile({
   profile,
@@ -46,14 +46,21 @@ export function OwnProfile({
   secondary = null,
   country,
   nationality,
+  saved = false,
+  editable = true,
 }: {
   readonly profile: Partial<PlayerProfileOutput>;
+  /** Retour de l'écran d'édition (lot 1.19cb). */
+  readonly saved?: boolean;
+  /** Faux pour un mineur : son tuteur modifie la fiche. */
+  readonly editable?: boolean;
   readonly position: string | null;
   readonly secondary?: string | null;
   readonly country: string | null;
   readonly nationality: string | null;
 }) {
   const t = useTranslations('espace.profile');
+  const edit = useTranslations('espace.edit');
   const feet = useTranslations('onboarding.sport.feet');
   const name = [profile.firstName, profile.lastName].filter(Boolean).join(' ');
   const initials = [profile.firstName, profile.lastName]
@@ -81,16 +88,30 @@ export function OwnProfile({
             </Badge>
           </div>
         </div>
-        {profile.ozId ? (
-          <Link
-            href={`/joueur/${profile.ozId}`}
-            data-testid="own-profile-public"
-            className="inline-flex min-h-11 items-center rounded-full border border-oz-primary px-5 text-sm font-medium text-oz-primary hover:bg-oz-primary/10 sm:ml-auto"
-          >
-            {t('public')}
-          </Link>
-        ) : null}
+        <div className="flex flex-wrap gap-2 sm:ml-auto">
+          {editable ? (
+            <Link
+              href="/espace/profil/modifier"
+              data-testid="own-profile-edit"
+              className="inline-flex min-h-11 items-center rounded-full bg-oz-primary px-5 text-sm font-medium text-oz-on-primary hover:bg-oz-primary/90"
+            >
+              {edit('action')}
+            </Link>
+          ) : null}
+          {profile.ozId ? (
+            <Link
+              href={`/joueur/${profile.ozId}`}
+              data-testid="own-profile-public"
+              className="inline-flex min-h-11 items-center rounded-full border border-oz-primary px-5 text-sm font-medium text-oz-primary hover:bg-oz-primary/10"
+            >
+              {t('public')}
+            </Link>
+          ) : null}
+        </div>
       </header>
+      <div aria-live="polite">
+        {saved ? <Callout testId="own-profile-saved">{edit('saved')}</Callout> : null}
+      </div>
       <div className="grid gap-4 md:grid-cols-2">
         <Block
           title={t('identity')}
@@ -128,7 +149,7 @@ export function OwnProfile({
           ]}
         />
       </div>
-      <p className="text-sm text-oz-text-muted">{t('editSoon')}</p>
+      <p className="text-sm text-oz-text-muted">{edit('declared')}</p>
     </div>
   );
 }

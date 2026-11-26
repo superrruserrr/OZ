@@ -3,6 +3,7 @@ import { getTranslations } from 'next-intl/server';
 import { locale as rootLocale } from 'next/root-params';
 import { authMetadata } from '../../../../../auth/auth-metadata';
 import { loadOwn } from '../../../../../espace/load-own';
+import { isMinor } from '../../../../../guardian/minor';
 import { OwnProfile } from '../../../../../espace/own-profile';
 import { countryName } from '../../../../../players/country';
 import { positionKey } from '../../../../../players/labels';
@@ -10,7 +11,11 @@ import { positionKey } from '../../../../../players/labels';
 export const generateMetadata = () => authMetadata('dashboard');
 
 /** Mon profil (maquette v2) : la fiche du titulaire relue sur l'API, rubrique par rubrique. */
-export default async function OwnProfilePage() {
+export default async function OwnProfilePage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const locale = await rootLocale();
   const [t, pos] = await Promise.all([
     getTranslations({ locale, namespace: 'espace.home' }),
@@ -25,6 +30,8 @@ export default async function OwnProfilePage() {
       secondary={own.secondaryPosition ? pos(positionKey(own.secondaryPosition)) : null}
       country={own.country ? countryName(own.country, locale) : null}
       nationality={own.nationality ? countryName(own.nationality, locale) : null}
+      saved={(await searchParams).modifie === '1'}
+      editable={own.birthDate === undefined || !isMinor(own.birthDate)}
     />
   );
 }
