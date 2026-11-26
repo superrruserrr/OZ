@@ -12,8 +12,11 @@ vi.mock('../i18n/navigation', () => ({
   Link: (props: AnchorHTMLAttributes<HTMLAnchorElement>) => <a {...props} />,
   usePathname: () => pathname,
   useRouter: () => ({ push }),
+  getPathname: ({ href, locale }: { href: string; locale: string }) =>
+    locale === 'fr' ? href : `/${locale}${href}`,
 }));
-vi.mock('../auth/logout-button', () => ({ LogoutButton: () => <button>Se déconnecter</button> }));
+vi.mock('../auth/actions', () => ({ logout: vi.fn(() => Promise.resolve()) }));
+vi.mock('next/navigation', () => ({ useRouter: () => ({ replace: vi.fn() }) }));
 vi.mock('../components/locale-switcher', () => ({ LocaleSwitcher: () => null }));
 
 const wrapper = ({ children }: { children: ReactNode }) => (
@@ -49,14 +52,15 @@ describe('coquille de l’espace (tableau de bord v2)', () => {
     ).toBeLessThanOrEqual(5);
   });
 
-  it('avatar aux initiales vers Mon profil ; entrée active selon la page', () => {
+  it('avatar : bouton de menu aux initiales ; entrée active selon la page', () => {
     pathname = '/espace/messages';
     render(<EspaceShell initials="AD">contenu</EspaceShell>, { wrapper });
     const avatar = screen.getByTestId('espace-avatar');
-    // Initiales décoratives, nom accessible « Mon profil » égal au texte lu (WCAG 2.5.3).
+    // Initiales décoratives, nom accessible lu (WCAG 2.5.3) ; aucun bouton de déconnexion visible.
     expect(avatar.querySelector('[aria-hidden="true"]')?.textContent).toBe('AD');
-    expect(avatar.textContent).toContain('Mon profil');
-    expect(avatar.getAttribute('href')).toBe('/espace/profil');
+    expect(avatar.getAttribute('aria-haspopup')).toBe('menu');
+    expect(avatar.getAttribute('aria-expanded')).toBe('false');
+    expect(screen.queryByRole('menuitem', { name: 'Se déconnecter' })).toBeNull();
     const rail = screen.getByTestId('app-shell-rail');
     expect(within(rail).getByTestId('rail-messages').getAttribute('aria-current')).toBe('page');
   });
@@ -77,13 +81,17 @@ describe('coquille de l’espace (tableau de bord v2)', () => {
     expect(bell.textContent).not.toMatch(/\d/);
   });
 
-  it('recherche d’une fonctionnalité : ouvre la page trouvée, sinon le dit', async () => {
+  it('recherche de joueurs : relais vers l’annuaire, sans JavaScript aussi', async () => {
     render(<EspaceShell initials="AD">contenu</EspaceShell>, { wrapper });
-    const search = screen.getByRole('combobox', { name: 'Rechercher une fonctionnalité' });
-    await userEvent.type(search, 'visib{Enter}');
-    expect(push).toHaveBeenCalledWith('/espace/visibilite');
-    await userEvent.clear(search);
-    await userEvent.type(search, 'zzz{Enter}');
-    expect(screen.getByRole('status').textContent).toBe('Aucune fonctionnalité ne correspond.');
+    const form = screen.getByRole('search');
+    expect(form.getAttribute('action')).toBe('/recherche');
+    expect(form.getAttribute('method')).toBe('get');
+    const input = screen.getByRole('searchbox', { name: 'Chercher un joueur' });
+    await userEvent.type(input, '  Abena  {Enter}');
+    expect(push).toHaveBeenCalledWith({ pathname: '/recherche', query: { q: 'Abena' } });
+    push.mockReset();
+    await userEvent.clear(input);
+    await userEvent.type(input, '{Enter}');
+    expect(push).toHaveBeenCalledWith({ pathname: '/recherche' });
   });
 });

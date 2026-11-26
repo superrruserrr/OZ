@@ -259,6 +259,65 @@ export async function setPlayerVisibility(
   return visibility === null || visibility === undefined ? null : visibilityOf(visibility);
 }
 
+/** Champs modifiables de sa fiche (lot 1.19cb) et colonne de chacun ; liste blanche fermée. */
+const EDITABLE_COLUMNS = {
+  firstName: 'first_name',
+  lastName: 'last_name',
+  nationality: 'nationality',
+  region: 'region',
+  city: 'city',
+  primaryPosition: 'primary_position',
+  secondaryPosition: 'secondary_position',
+  dominantFoot: 'dominant_foot',
+  heightCm: 'height_cm',
+  weightKg: 'weight_kg',
+} as const;
+const EDITABLE_CASTS: Partial<Record<keyof typeof EDITABLE_COLUMNS, string>> = {
+  primaryPosition: 'player_position',
+  secondaryPosition: 'player_position',
+  dominantFoot: 'dominant_foot',
+  heightCm: 'smallint',
+  weightKg: 'smallint',
+};
+export type PlayerProfilePatch = Partial<
+  Record<keyof typeof EDITABLE_COLUMNS, string | number | null>
+>;
+
+/**
+ * Modification de la fiche sous la RLS de l'appelant (`players_owner`), auditée dans la même
+ * transaction : `player.profile.updated`, noms des champs seuls, jamais leurs valeurs. La base
+ * refuse en plus l'identité figée hors du statut déclaré (U3). `false` :
+ * aucune ligne visible (inconnue, supprimée ou hors RLS).
+ */
+export async function updatePlayerProfile(
+  tx: TransactionClient,
+  actorUserId: string,
+  playerId: string,
+  patch: PlayerProfilePatch,
+): Promise<boolean> {
+  if (!UUID.test(playerId)) return false;
+  const fields = (Object.keys(patch) as (keyof typeof EDITABLE_COLUMNS)[]).filter(
+    (field) => field in EDITABLE_COLUMNS && patch[field] !== undefined,
+  );
+  if (fields.length === 0) throw new Error('Fiche : au moins un champ connu attendu.');
+  const sets = fields.map((field) => {
+    const cast = EDITABLE_CASTS[field];
+    const value = Prisma.sql`${patch[field] ?? null}`;
+    return Prisma.sql`${Prisma.raw(`"${EDITABLE_COLUMNS[field]}"`)} = ${
+      cast === undefined ? value : Prisma.sql`${value}::${Prisma.raw(cast)}`
+    }`;
+  });
+  const updated = await tx.$executeRaw`
+    UPDATE players SET ${Prisma.join(sets)}, updated_by = ${actorUserId}::uuid
+    WHERE id = ${playerId}::uuid AND deleted_at IS NULL`;
+  if (updated === 0) return false;
+  await tx.$executeRaw`
+    INSERT INTO audit_log (actor_user_id, action, target_type, target_id, reason, metadata)
+    VALUES (${actorUserId}::uuid, 'player.profile.updated', 'player', ${playerId}::uuid,
+      'Fiche modifiée', jsonb_build_object('fields', ${fields}::text[]))`;
+  return true;
+}
+
 /** Lecture journalisée (cellule `logged`, EX-T16 n° 4) : écrite dans la transaction de la lecture. */
 export async function recordPlayerProfileView(
   tx: TransactionClient,

@@ -10,10 +10,12 @@ import {
 } from '@oz/auth';
 import type { ApiConfig } from '@oz/config';
 import { profileQrSvg, profileUrl } from '@oz/core';
-import type {
-  PlayerProfileOutput,
-  PlayerVisibilityInput,
-  PlayerVisibilityOutput,
+import {
+  PLAYER_IDENTITY_FIELDS,
+  type PlayerProfileOutput,
+  type PlayerProfileUpdateInput,
+  type PlayerVisibilityInput,
+  type PlayerVisibilityOutput,
 } from '@oz/contracts';
 import {
   accountEmail,
@@ -23,7 +25,9 @@ import {
   recordPlayerDocument,
   recordPlayerProfileView,
   setPlayerVisibility,
+  updatePlayerProfile,
   withUserContext,
+  type PlayerProfilePatch,
   type PlayerProfileRecord,
   type PlayerVisibility,
   type PrismaClient,
@@ -34,7 +38,12 @@ import { RateLimitedException } from '../common/rate-limit/rate-limited.exceptio
 import { RateLimiter } from '../common/rate-limit/rate-limiter.service.js';
 import { API_CONFIG } from '../config/config.module.js';
 import { DB_CLIENT } from '../database/database.module.js';
-import { OWN_PROFILE_NOT_FOUND, PLAYER_NOT_FOUND } from './errors.js';
+import {
+  OWN_PROFILE_NOT_FOUND,
+  PLAYER_NOT_FOUND,
+  PROFILE_IDENTITY_LOCKED,
+  PROFILE_UPDATE_FORBIDDEN,
+} from './errors.js';
 import { cardPdf } from './pdf/card.js';
 import { profilePdf } from './pdf/profile.js';
 import { profileViewData } from './view-data.js';
@@ -109,6 +118,64 @@ export class PlayerProfileService {
     );
     // Ses propres réglages de visibilité (lot 1.19b) : l'espace du joueur les affiche.
     return { ...profile.body, visibility: own.visibility };
+  }
+
+  /**
+   * Modification de sa fiche (lot 1.19cb) : chaque champ est décidé par CASL (`profile.update`,
+   * titulaire majeur) ; un mineur reçoit 403, son tuteur modifie. Prénom, nom et nationalité ne
+   * changent qu'au statut `declared` (U3) : 409 sinon. Un champ inchangé n'est pas réécrit. Audit
+   * dans la transaction ; la réponse est la fiche relue, comme `GET /players/me`.
+   */
+  async updateOwn(actor: Actor, input: PlayerProfileUpdateInput): Promise<PlayerProfileOutput> {
+    await this.limit('player_profile_update_account', actor);
+    const result = await withUserContext(this.db, actor.userId, async (tx) => {
+      const found = await playerProfileOfUser(tx, actor.userId);
+      if (found === null) return { kind: 'missing' } as const;
+      const { checkedAt, ...access } = found.access;
+      const subject = playerSubject(access, checkedAt);
+      const ability = abilityFor(actor);
+      const current = found.data as unknown as Readonly<Record<string, unknown>>;
+      const patch: PlayerProfilePatch & Record<string, string | number | null> = {};
+      for (const [field, value] of Object.entries<string | number | null | undefined>(input)) {
+        if (value === undefined || current[field] === value) continue;
+        if (!ability.can('profile.update', subject, field)) return { kind: 'forbidden' } as const;
+        patch[field] = value;
+      }
+      const locked = PLAYER_IDENTITY_FIELDS.filter((field) => field in patch);
+      if (locked.length > 0 && found.access.verificationStatus !== 'declared') {
+        return { kind: 'locked', fields: locked } as const;
+      }
+      if (
+        Object.keys(patch).length > 0 &&
+        !(await updatePlayerProfile(tx, actor.userId, found.id, patch))
+      ) {
+        return { kind: 'missing' } as const;
+      }
+      const fresh = await playerProfileOfUser(tx, actor.userId);
+      const presented = fresh === null ? null : await this.present(tx, actor, fresh, false);
+      return presented === null || fresh === null
+        ? ({ kind: 'missing' } as const)
+        : ({
+            kind: 'ok',
+            presented,
+            visibility: fresh.visibility,
+            fields: Object.keys(patch),
+          } as const);
+    });
+    if (result.kind === 'missing') throw OWN_PROFILE_NOT_FOUND();
+    if (result.kind === 'forbidden') {
+      this.logger.info({ event: 'player.profile.update_refused' }, 'Modification refusée');
+      throw PROFILE_UPDATE_FORBIDDEN();
+    }
+    if (result.kind === 'locked') {
+      this.logger.info({ event: 'player.profile.identity_locked' }, 'Identité figée');
+      throw PROFILE_IDENTITY_LOCKED(result.fields);
+    }
+    this.logger.info(
+      { event: 'player.profile.updated', playerId: result.presented.id, fields: result.fields },
+      'Fiche modifiée',
+    );
+    return { ...result.presented.body, visibility: result.visibility };
   }
 
   /** QR du profil (EX-115 n° 4) pour qui peut lire la fiche ; l'URL ne porte que l'OZ ID. */

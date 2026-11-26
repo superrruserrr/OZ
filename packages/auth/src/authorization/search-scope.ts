@@ -1,5 +1,5 @@
 // Portée de recherche (lot 1.14a, rbac `player.search`) : décidée par CASL sur les rôles relus en
-// base. `limited` (académie) : profils vérifiés, sans critère avancé (D1). Le filtre par organisation
+// base. `limited` (académie, joueur) : profils vérifiés, sans critère avancé (D1). Le filtre par organisation
 // ne vise que les organisations du lecteur, pour toute portée hors administrateur. Le cumul de rôles
 // retient la portée la plus large.
 
@@ -24,7 +24,7 @@ export const SEARCH_ADVANCED_CRITERIA = [
   'organizationId',
 ] as const;
 
-/** `null` : aucune recherche permise (joueur, tuteur, centre, recruteur ou agence sans KYC 3). */
+/** `null` : aucune recherche permise (tuteur, centre, recruteur ou agence sans KYC 3). */
 export function searchScopeFor(actor: Actor, ability: AppAbility): SearchScope | null {
   if (!ability.can('player.search', 'PlayerSearch')) return null;
   const kind =

@@ -962,13 +962,14 @@
       "videos": "My videos",
       "messages": "Messages",
       "settingsSection": "Settings",
-      "search": "Search for a feature…",
-      "searchLabel": "Search for a feature",
-      "searchNone": "No feature matches.",
+      "search": "Find a player…",
+      "searchLabel": "Find a player",
       "notifications": "Notifications: coming soon",
       "slogan": "Develop your talent.",
       "sloganAccent": "Reach your goals.",
-      "settings": "Settings"
+      "settings": "Settings",
+      "account": "My account",
+      "logout": "Sign out"
     },
     "home": {
       "unavailable": "Your profile can’t be read right now. Try again in a few minutes.",

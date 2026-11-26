@@ -6,7 +6,10 @@
 # configuration fournissent des motifs ; garde `scripts/glob-matcher-guard.test.mjs`.
 CVE-2026-112366
 
-# D-138 (accord du 2026-11-24) : OpenSSL `libssl3t64` 3.5.7-1~deb13u3 de l'image distroless Debian 13
-# (API, site, worker), déni de service par fuite de mémoire dans QUIC, aucune version corrigée par
-# Debian. Non exploitable dans OZ : aucun service n'utilise QUIC (HTTP/3). Retirer dès l'image corrigée.
-CVE-2026-124709
+# D-138 (décisions de Gaëtan Wassu du 2026-11-26) : OpenSSL 3.5.7 de l'image Debian 13 (libssl3t64),
+# déni de service dans QUIC : fuite mémoire (CVE-2026-124709) et file de trames non bornée
+# (CVE-2026-107494), toutes deux high, aucune version corrigée.
+# Non exploitable dans OZ : QUIC n'est jamais activé (Node sans --experimental-quic, images distroless
+# lancées sans option). Échéance : l'exception expire le 2026-12-31 ; à retirer dès le correctif Debian.
+CVE-2026-124709 exp:2026-12-31
+CVE-2026-107494 exp:2026-12-31

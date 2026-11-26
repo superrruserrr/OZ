@@ -21,10 +21,14 @@ const scope = (roles: RbacRole[], kyc3 = false) => {
 };
 
 describe('searchScopeFor', () => {
-  it('aucune portée : joueur, tuteur, centre, recruteur et agence sans KYC 3, sans rôle', () => {
-    for (const roles of [['player'], ['guardian'], ['center'], ['recruiter'], []] as RbacRole[][]) {
+  it('aucune portée : tuteur, centre, recruteur et agence sans KYC 3, sans rôle', () => {
+    for (const roles of [['guardian'], ['center'], ['recruiter'], []] as RbacRole[][]) {
       expect(scope(roles), roles.join() || 'aucun').toBeNull();
     }
+  });
+
+  it('réduite pour le joueur (lot 1.19c), sans organisation', () => {
+    expect(scope(['player'])).toEqual({ kind: 'limited', organizationIds: [] });
   });
 
   it('réduite pour l’académie ; complète pour club, fédération, admin, recruteur KYC 3', () => {

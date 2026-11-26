@@ -30,11 +30,15 @@ describe('garde D-136 : picomatch et micromatch hors du code d’OZ', () => {
     expect(IMPORT.test("import x from 'picomatch-lite';")).toBe(false);
   });
 
-  it('les exceptions Trivy restent bornées aux identifiants accordés (D-136, D-138)', () => {
+  it('les exceptions Trivy restent bornées aux identifiants validés (D-136, D-138)', () => {
     const entries = readFileSync(new URL('.trivyignore', ROOT), 'utf8')
       .split('\n')
       .map((line) => line.trim())
       .filter((line) => line !== '' && !line.startsWith('#'));
-    expect(entries).toEqual(['CVE-2026-112366', 'CVE-2026-124709']);
+    expect(entries).toEqual([
+      'CVE-2026-112366',
+      'CVE-2026-124709 exp:2026-12-31',
+      'CVE-2026-107494 exp:2026-12-31',
+    ]);
   });
 });

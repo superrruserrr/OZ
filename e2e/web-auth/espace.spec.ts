@@ -96,6 +96,27 @@ test('majeur : espace, visibilité relue, export demandé, suppression programm�
   await page.getByTestId('espace-deletion-cancel').click();
   await expect(page.getByTestId('espace-deletion-cancelled')).toBeVisible();
   await expect(page.getByTestId('espace-deletion-form')).toBeVisible();
+
+  // Recherche de joueurs depuis l'en-tête (lot 1.19c) : l'annuaire répond dans la portée réduite.
+  await page.getByRole('searchbox').fill('Zzzinconnu');
+  await page.getByRole('searchbox').press('Enter');
+  await expect(page).toHaveURL(/\/recherche\?q=Zzzinconnu$/);
+  await expect(page.getByTestId('player-search-forbidden')).toBeHidden();
+
+  // Déconnexion par le menu de l'avatar : Échap le ferme et rend le focus.
+  await page.goto('/espace');
+  const avatar = page.getByTestId('espace-avatar');
+  await avatar.focus();
+  await page.keyboard.press('Enter');
+  await expect(page.getByTestId('espace-avatar-menu')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByTestId('espace-avatar-menu')).toBeHidden();
+  await expect(avatar).toBeFocused();
+  await avatar.click();
+  await page.getByRole('menuitem', { name: 'Se déconnecter' }).click();
+  await expect(page).toHaveURL(/\/$/);
+  await page.goto('/espace');
+  await expect(page).toHaveURL(/\/auth\/login/);
   expect(apiCalls).toEqual([]);
 });
 

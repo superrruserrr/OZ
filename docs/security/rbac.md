@@ -48,7 +48,7 @@ La colonne `recruiter` vaut aussi pour l'agence. `player.read_public` ne porte q
 | `profile.card`              | Éditer la carte OZ ID (PDF)                   | self-adult | child      | deny        | deny  | deny       | deny   | deny        | deny   |
 | `player.create`             | Créer ou importer des joueurs                 | deny       | deny       | org         | org   | deny       | deny   | deny        | allow  |
 | `player.read_public`        | Voir un profil majeur vérifié                 | allow      | allow      | allow       | allow | allow      | allow  | kyc3        | allow  |
-| `player.search`             | Rechercher des joueurs                        | deny       | deny       | limited     | allow | allow      | deny   | kyc3        | allow  |
+| `player.search`             | Rechercher des joueurs                        | limited    | deny       | limited     | allow | allow      | deny   | kyc3        | allow  |
 | `player.read_club_contact`  | Voir les coordonnées du club ou de l'académie | deny       | deny       | tier        | tier  | allow      | deny   | tier        | allow  |
 | `player.read_minor`         | Voir un profil mineur                         | self       | child      | org+limited | allow | allow      | tested | kyc3+logged | logged |
 | `player.read_minor_contact` | Voir les coordonnées directes d'un mineur     | deny       | child      | deny        | deny  | deny       | deny   | never       | logged |
@@ -108,6 +108,8 @@ Un champ non autorisé n'est pas envoyé (EX-104 n° 3). Les vues sont des liste
 | `PlayerOrganizationView` | Académie ou club de rattachement, sur un mineur     | Mêmes champs, sans `phone`                                        |
 | `PlayerPublicView`       | Tout autre lecteur permis (recruteur KYC 3 compris) | Identité, année de naissance (`birthYear`), sport                 |
 
+Modification de sa fiche (lot 1.19cb) : `PATCH /players/me` (`profile.update`, titulaire majeur) décide chaque champ par CASL (`PLAYER_EDITABLE_FIELDS` ; le pays, inscrit dans l'OZ ID, reste figé) ; un mineur reçoit 403 `PROFILE_UPDATE_FORBIDDEN` (son tuteur modifie). Prénom, nom et nationalité ne changent qu'au statut `declared` (décision U3 du 2026-11-19), 409 `PROFILE_IDENTITY_LOCKED` sinon ; la base le redécide (garde d'autorité N1 pour `verified`, `oz_players_identity_review_guard` pour les autres statuts). Audit `player.profile.updated` (noms des champs seuls) dans la transaction ; règle `player_profile_update_account` (30 par heure).
+
 Toutes les vues portent le badge `verificationLevel` (lot 1.13a) : 0 email seul, 1 email et téléphone du compte titulaire vérifiés, 2 identité vérifiée ; un joueur sans compte reste à 0 avant vérification (D-109) ; jamais les dates de vérification. Le titulaire majeur, ou le tuteur vérifié d'un mineur (`profile.set_visibility`), peut masquer aux tiers trois blocs : `location` (région, ville), `physical` (taille, poids), `sport` (postes, pied fort). Un bloc masqué disparaît de `PlayerPublicView` seulement ; OZ ID, nom, nationalité, pays, année de naissance et badge restent. Le réglage passe par `oz_player_set_visibility`, qui redécide (compte en état, rôle `player` ou `guardian` tenu, lien, minorité à l'instant de la base) et audite (`player.visibility.updated`) ; un majeur sans compte n'a encore personne pour le régler (D-110) ; une écriture directe de `visibility` sous contexte utilisateur est refusée.
 
 Le téléphone d'un mineur ne reste que pour qui a `player.read_minor_contact` : son tuteur et l'administrateur (CP-11). Aucun tiers ne reçoit la date de naissance complète. Sans lecture permise, aucune vue : l'appelant répond 403 ou 404. Un filet global (`PayloadGuardInterceptor`) bloque toute réponse portant une clé `*Encrypted`, `*Hmac` (hors booléens `isX`, `hasX`, `is_x`, `has_x`), `password`, `*passwordHash`, `*tokenHash`, `*codeHash`, `totpSecret` ou `documentNumber`, ou une valeur binaire hors `StreamableFile`, après `toJSON` : 500 sans le corps d'origine ni les cookies. Chaque vue exige en plus la relation qui la fonde : titulaire avec le rôle joueur, tuteur d'un mineur, administrateur, organisation de rattachement.
@@ -159,6 +161,10 @@ recherche rend la vue de la fiche du même lecteur (`apps/api/test/player-payloa
 parcours E2E n° 4 la refuse au recruteur non vérifié (`pnpm test:e2e:search`). Charge : `oz_is_minor`
 et `oz_is_minor_at` sans `search_path` figé (appels qualifiés), donc développées dans la politique de
 lecture ; texte libre hors cible sous la RLS (dette D-125).
+
+Décision U0 du 2026-11-19 (lot 1.19c) : le **joueur** reçoit la portée réduite (`limited`) — il ne
+trouve que les fiches qu'il lit déjà (`player.read_public`), sans critère avancé ni export ; la
+recherche de l'en-tête de son espace s'appuie dessus.
 
 ## Recherches sauvegardées et export (lot 1.14b)
 
@@ -239,6 +245,7 @@ Les pages `/docs`, `/docs-json` et `/docs-yaml` (Swagger) sont servies hors cont
 | DELETE  | /players/saved-searches/:id                 | `player.search`          |
 | GET     | /players/export.csv                         | `player.search`          |
 | GET     | /players/me                                 | `profile.read`           |
+| PATCH   | /players/me                                 | `profile.update`         |
 | GET     | /players/:ozId                              | `player.read_public`     |
 | GET     | /players/:ozId/qr.svg                       | `player.read_public`     |
 | GET     | /players/:ozId/card.pdf                     | `profile.card`           |
