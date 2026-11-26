@@ -1036,7 +1036,9 @@
       "notFound": "Rien à télécharger ou à annuler pour l’instant.",
       "retryLater": "Trop de tentatives. Réessayez dans quelques minutes.",
       "session": "Votre session a expiré. Rechargez la page.",
-      "unavailable": "Service momentanément indisponible. Réessayez dans quelques minutes."
+      "unavailable": "Service momentanément indisponible. Réessayez dans quelques minutes.",
+      "locked": "Prénom, nom et nationalité ne se modifient plus : identité examinée ou vérifiée.",
+      "forbidden": "Ta fiche est modifiée par ton tuteur légal."
     },
     "profile": {
       "title": "Mon profil",
@@ -1065,8 +1067,7 @@
         "foot": "Pied fort",
         "height": "Taille",
         "weight": "Poids"
-      },
-      "editSoon": "La modification de ta fiche depuis cet écran arrive bientôt. Les mesures sont déclarées par toi, pas certifiées."
+      }
     },
     "upcoming": {
       "badge": "Bientôt disponible",
@@ -1103,6 +1104,21 @@
           "three": "Tu pourras bloquer et signaler un contact."
         }
       }
+    },
+    "edit": {
+      "title": "Modifier mon profil",
+      "lead": "Corrige ou complète ta fiche. Seuls les champs changés sont enregistrés.",
+      "locked": "Ton identité est en cours d’examen ou vérifiée : prénom, nom et nationalité ne se modifient plus ici. Écris au support pour une correction.",
+      "country": "Le pays de rattachement est inscrit dans ton OZ ID : il ne se modifie pas.",
+      "noPosition": "Aucun",
+      "cmHint": "en cm, de 80 à 230",
+      "kgHint": "en kg, de 15 à 150",
+      "declared": "Tes mesures sont déclarées par toi, pas certifiées.",
+      "save": "Enregistrer",
+      "cancel": "Annuler",
+      "saved": "Ta fiche est enregistrée.",
+      "minor": "Ta fiche est modifiée par ton tuteur légal, depuis son espace.",
+      "action": "Modifier le profil"
     }
   }
 }
