@@ -44,6 +44,19 @@ au moins et n'est pas affaiblie pour la démonstration. Le compte a le rôle « 
 vérifiée : il voit les joueurs majeurs à l'identité vérifiée (un majeur fictif sur deux dans cette
 base).
 
+### Joueurs fictifs (lot 1.19cg)
+
+| Compte                | Joueur        | Fiche                          | Mot de passe (`.demo/demo.env`) |
+| --------------------- | ------------- | ------------------------------ | ------------------------------- |
+| `abena@oz.localhost`  | Abena Paul    | déclarée, modifiable, 4 photos | `DEMO_ABENA_PASSWORD`           |
+| `samuel@oz.localhost` | Samuel Ndongo | vérifiée, 1 photo              | `DEMO_SAMUEL_PASSWORD`          |
+
+Noms fictifs, photos libres sans visage (`docs/legal/credits.md`). Connecté en Abena : « Mon profil »
+montre la photo de profil et la galerie ; « Modifier le profil » corrige la fiche ; la recherche de
+l'en-tête trouve Samuel Ndongo (le joueur ne voit que les fiches vérifiées, sans export). Les photos
+sont servies par le stockage S3 local (service `s3` de `infra/docker/compose.dev.yml`, port 8333),
+démarré par `demo-setup` ; injoignable, les fiches restent sans photo et le script le signale.
+
 ## 4. Parcours à tester
 
 Cocher au fur et à mesure.
@@ -91,6 +104,8 @@ docker rm -f oz-demo-postgres && docker volume rm oz-demo-postgres && rm -rf .de
 
 - Football seulement : la base n'a pas de champ « sport » ; les icônes des autres sports existent
   dans `@oz/ui`, le multi-sport demandera une migration et un ADR.
-- Pas de photo ni d'écusson de club sur la fiche : le dépôt de photos n'existe pas (D-131) et l'API
-  ne rend pas encore le nom de l'organisation. Avatar en initiales.
+- Une photo déposée à l'écran reste « Vérification en cours » tant que le worker et ClamAV ne
+  tournent pas (configurations `worker` de `.claude/launch.json`, service `clamav`) ; les photos des
+  joueurs fictifs sont posées comme déjà analysées. Vidéos : « Bientôt disponible ».
+- Pas d'écusson de club réel : l'API ne rend pas encore le nom de l'organisation (écusson générique).
 - Les emails partent vers Mailpit (<http://localhost:8025>).
