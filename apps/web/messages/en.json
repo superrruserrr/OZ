@@ -983,7 +983,8 @@
       "blocks": {
         "location": "Region and city",
         "physical": "Height and weight",
-        "sport": "Positions and stronger foot"
+        "sport": "Positions and stronger foot",
+        "photos": "Gallery photos"
       },
       "shown": "Visible",
       "hidden": "Hidden",
@@ -1119,6 +1120,33 @@
       "saved": "Your profile has been saved.",
       "minor": "Your profile is edited by your legal guardian, from their space.",
       "action": "Edit profile"
+    },
+    "photos": {
+      "title": "My photos",
+      "count": "{count} of {limit}",
+      "lead": "Profile photo and gallery, six at most. Pick photos of you playing; each photo is checked before it is shown.",
+      "empty": "No photos yet.",
+      "analysing": "Checking…",
+      "refused": "Photo refused",
+      "profileBadge": "Profile",
+      "profileAlt": "My profile photo",
+      "galleryAlt": "Photo from my gallery",
+      "makeProfile": "Profile photo",
+      "remove": "Remove",
+      "add": "Add a photo",
+      "full": "Six photos: remove one to add another",
+      "rules": "JPEG, PNG or WebP, 10 MB at most. Device location data is removed.",
+      "guardian": "Your legal guardian manages your photos.",
+      "errors": {
+        "fileType": "Format not accepted: JPEG, PNG or WebP.",
+        "fileSize": "Photo too large: 10 MB at most.",
+        "limit": "Six photos at most: remove one first.",
+        "uploadFailed": "Upload failed. Try again.",
+        "retryLater": "Too many attempts. Try again in a few minutes.",
+        "session": "Your session has expired. Reload the page.",
+        "notFound": "Photo not found: reload the page.",
+        "unavailable": "Service temporarily unavailable. Try again in a few minutes."
+      }
     }
   }
 }

@@ -1,6 +1,7 @@
 import type { PlayerProfileOutput } from '@oz/contracts';
 import { Badge, Callout } from '@oz/ui';
 import { useTranslations } from 'next-intl';
+import Image from 'next/image';
 import type { ReactNode } from 'react';
 import { Link } from '../i18n/navigation';
 
@@ -48,12 +49,15 @@ export function OwnProfile({
   nationality,
   saved = false,
   editable = true,
+  photoId = null,
 }: {
   readonly profile: Partial<PlayerProfileOutput>;
   /** Retour de l'écran d'édition (lot 1.19cb). */
   readonly saved?: boolean;
   /** Faux pour un mineur : son tuteur modifie la fiche. */
   readonly editable?: boolean;
+  /** Photo de profil saine (lot 1.19cd) ; sinon les initiales. */
+  readonly photoId?: string | null;
   readonly position: string | null;
   readonly secondary?: string | null;
   readonly country: string | null;
@@ -71,12 +75,24 @@ export function OwnProfile({
   return (
     <div className="flex flex-col gap-6" data-testid="own-profile">
       <header className="flex flex-wrap items-center gap-4 rounded-2xl border border-oz-border bg-oz-surface-1 p-5 sm:p-6">
-        <span
-          aria-hidden="true"
-          className="grid size-16 shrink-0 place-items-center rounded-full border-2 border-oz-primary text-xl font-medium text-oz-primary"
-        >
-          {initials}
-        </span>
+        {photoId ? (
+          <Image
+            src={`/api/photos?joueur=me&id=${encodeURIComponent(photoId)}`}
+            alt=""
+            width={64}
+            height={64}
+            unoptimized
+            data-testid="own-profile-photo"
+            className="size-16 shrink-0 rounded-full border-2 border-oz-primary object-cover"
+          />
+        ) : (
+          <span
+            aria-hidden="true"
+            className="grid size-16 shrink-0 place-items-center rounded-full border-2 border-oz-primary text-xl font-medium text-oz-primary"
+          >
+            {initials}
+          </span>
+        )}
         <div className="flex min-w-0 flex-col gap-1">
           <h1 className="text-2xl font-medium text-oz-text">{name || t('title')}</h1>
           {profile.ozId ? (

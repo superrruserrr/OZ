@@ -983,7 +983,8 @@
       "blocks": {
         "location": "Région et ville",
         "physical": "Taille et poids",
-        "sport": "Postes et pied fort"
+        "sport": "Postes et pied fort",
+        "photos": "Photos de la galerie"
       },
       "shown": "Visible",
       "hidden": "Masqué",
@@ -1119,6 +1120,33 @@
       "saved": "Ta fiche est enregistrée.",
       "minor": "Ta fiche est modifiée par ton tuteur légal, depuis son espace.",
       "action": "Modifier le profil"
+    },
+    "photos": {
+      "title": "Mes photos",
+      "count": "{count} sur {limit}",
+      "lead": "Photo de profil et galerie, six au plus. Choisis des photos de toi en jeu ; chaque photo est vérifiée avant d’être affichée.",
+      "empty": "Aucune photo pour l’instant.",
+      "analysing": "Vérification en cours…",
+      "refused": "Photo refusée",
+      "profileBadge": "Profil",
+      "profileAlt": "Ma photo de profil",
+      "galleryAlt": "Photo de ma galerie",
+      "makeProfile": "Photo de profil",
+      "remove": "Retirer",
+      "add": "Ajouter une photo",
+      "full": "Six photos : retires-en une pour en ajouter",
+      "rules": "JPEG, PNG ou WebP, 10 Mo au plus. Les données de localisation de l’appareil sont retirées.",
+      "guardian": "Ton tuteur légal gère tes photos.",
+      "errors": {
+        "fileType": "Format non accepté : JPEG, PNG ou WebP.",
+        "fileSize": "Photo trop lourde : 10 Mo au plus.",
+        "limit": "Six photos au plus : retires-en une d’abord.",
+        "uploadFailed": "L’envoi a échoué. Réessaie.",
+        "retryLater": "Trop de tentatives. Réessaie dans quelques minutes.",
+        "session": "Ta session a expiré. Recharge la page.",
+        "notFound": "Photo introuvable : recharge la page.",
+        "unavailable": "Service momentanément indisponible. Réessaie dans quelques minutes."
+      }
     }
   }
 }

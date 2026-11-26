@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { EspaceShell } from '../../../espace/espace-shell';
+import { listOwnPhotos } from '../../../espace/photo-actions';
 import { readOwnPlayer } from '../../../players/players-api';
 
 /** Initiales de l'avatar ; rien si la fiche n'est pas lisible (chaque page refait sa garde). */
@@ -17,5 +18,15 @@ async function ownInitials(): Promise<string | null> {
  * l'API refait ses contrôles à chaque appel. Jamais indexé.
  */
 export default async function EspaceLayout({ children }: { children: ReactNode }) {
-  return <EspaceShell initials={await ownInitials()}>{children}</EspaceShell>;
+  const [initials, photos] = await Promise.all([ownInitials(), listOwnPhotos()]);
+  // Photo de profil saine (lot 1.19cd) ; sans galerie lisible, les initiales.
+  const photoId = photos.ok
+    ? (photos.gallery.items.find((photo) => photo.isProfile && photo.status === 'clean')?.id ??
+      null)
+    : null;
+  return (
+    <EspaceShell initials={initials} photoId={photoId}>
+      {children}
+    </EspaceShell>
+  );
 }

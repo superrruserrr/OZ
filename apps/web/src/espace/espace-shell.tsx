@@ -151,9 +151,11 @@ function RailArt() {
 export function EspaceShell({
   children,
   initials,
+  photoId = null,
 }: {
   readonly children: ReactNode;
   readonly initials: string | null;
+  readonly photoId?: string | null;
 }) {
   const t = useTranslations('espace.nav');
   const nav = useTranslations('nav');
@@ -198,7 +200,7 @@ export function EspaceShell({
             >
               {ICONS.bell}
             </span>
-            <AvatarMenu initials={initials} />
+            <AvatarMenu initials={initials} photoId={photoId} />
           </div>
         </>
       }
